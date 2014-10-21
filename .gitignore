@@ -1,0 +1,12 @@
+build/*
+nbproject/*
+.idea/*
+out/*
+*.iml
+/antlr/output/*
+/src/ch/tinsphp/inference_engine/antlr/*
+
+/lib/dev/pmd/cfg/pmd_tsphp.xml
+/lib/dev/checkstyle/cfg/checkstyle.properties
+/lib/dev/QA.html
+/atlassian-ide-plugin.xml
