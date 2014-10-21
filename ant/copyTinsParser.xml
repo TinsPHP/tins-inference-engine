@@ -5,7 +5,7 @@
   -->
 
 <!--
-  Yet, it is a one-to-one copy of /ant/copyParserCommon.xml from the TSPHP project.
+  Yet, it is based on /ant/copyParser.xml from the TSPHP project.
   TSPHP is also published under the Apache License 2.0
   For more information see http://tsphp.ch/wiki/display/TSPHP/License
 -->
@@ -17,8 +17,8 @@
 
     <import file="${basedir}/ant/build-common.xml" as="common"/>
 
-    <property name="parser" location="${basedir}/../tsphp-parser"/>
-    <property name="parser.tokens" location="${parser}/src/ch/tsphp/parser/antlr"/>
+    <property name="parser" location="${basedir}/../tins-parser"/>
+    <property name="parser.tokens" location="${parser}/src/ch/tsphp/tinsphp/parser/antlr"/>
     <property name="parser.jar" location="${parser}/build/lib"/>
 
     <target name="parser" depends="" description="copy parser jar and token file to /lib/dev/, /antlr respectively">
@@ -29,10 +29,10 @@
             <fileset dir="${parser.tokens}" includes="*.tokens"/>
         </copy>
         <delete>
-            <fileset dir="${libdev}" includes="TSPHP-parser-*.jar"/>
+            <fileset dir="${libdev}" includes="TinsPHP-parser-*.jar"/>
         </delete>
         <copy todir="${libdev}">
-            <fileset dir="${parser.jar}" includes="TSPHP-parser-*.jar"/>
+            <fileset dir="${parser.jar}" includes="TinsPHP-parser-*.jar"/>
         </copy>
     </target>
 

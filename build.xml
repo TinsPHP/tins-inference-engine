@@ -10,7 +10,7 @@
     <import file="${basedir}/ant/build-common.xml" as="common"/>
     <import file="${basedir}/ant/copyCommon.xml" as="cp"/>
     <import file="${basedir}/ant/copyParserCommonToLibDev.xml" as="cp"/>
-    <import file="${basedir}/ant/copyParser.xml" as="cp"/>
+    <import file="${basedir}/ant/copyTinsParser.xml" as="cp"/>
     <import file="${basedir}/ant/copyAntlr.xml" as="cp"/>
     <import file="${basedir}/ant/copyQA.xml" as="copy"/>
 
