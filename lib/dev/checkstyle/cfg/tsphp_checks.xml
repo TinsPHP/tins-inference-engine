@@ -1,0 +1,386 @@
+<?xml version="1.0"?>
+<!--
+  This file is part of the TSPHP project published under the Apache License 2.0
+  For the full copyright and license information, please have a look at LICENSE in the
+  root folder or visit the project's website http://tsphp.ch/wiki/display/TSPHP/License
+  -->
+
+<!DOCTYPE module PUBLIC
+        "-//Puppy Crawl//DTD Check Configuration 1.3//EN"
+        "http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
+
+<!--
+Following adoptions are applied to the original file from checkstyle:
+- Max file size = 1500
+- Disabled "Line has trailing space" due to multiline comment issue
+- NewLineAtEndOfFile disabled
+- Naming conventions for abstract classes, interfaces etc. added
+- Javadoc is optional for methods and variables
+- Max line length = 120
+- Max method length = 80
+- Max parameters per method = 4
+- Added OuterTypeNumber check
+- AvoidInlineConditionals disabled
+-->
+
+<module name="Checker">
+    <!--
+        If you set the basedir property below, then all reported file
+        names will be relative to the specified directory. See
+        http://checkstyle.sourceforge.net/5.x/config.html#Checker
+
+        <property name="basedir" value="${basedir}"/>
+    -->
+
+    <!-- Checks that a package-info.java file exists for each package.     -->
+    <!-- See http://checkstyle.sf.net/config_javadoc.html#JavadocPackage -->
+    <module name="JavadocPackage">
+        <property name="severity" value="info"/>
+    </module>
+
+    <!-- Checks whether files end with a new line.                        -->
+    <!-- See http://checkstyle.sf.net/config_misc.html#NewlineAtEndOfFile -->
+    <!-- <module name="NewlineAtEndOfFile"/> -->
+
+    <!-- Checks that property files contain the same keys.         -->
+    <!-- See http://checkstyle.sf.net/config_misc.html#Translation -->
+    <module name="Translation"/>
+
+    <!-- Checks for Size Violations.                    -->
+    <!-- See http://checkstyle.sf.net/config_sizes.html -->
+    <module name="FileLength">
+        <property name="max" value="1500"/>
+    </module>
+
+    <!-- Checks for whitespace                               -->
+    <!-- See http://checkstyle.sf.net/config_whitespace.html -->
+    <module name="FileTabCharacter"/>
+
+
+    <!-- Miscellaneous other checks.                   -->
+    <!-- See http://checkstyle.sf.net/config_misc.html -->
+    <module name="UniqueProperties">
+        <property name="severity" value="warning"/>
+    </module>
+    <!--<module name="RegexpSingleline">
+       <property name="format" value="\s+$"/>
+       <property name="minimum" value="0"/>
+       <property name="maximum" value="0"/>
+       <property name="message" value="Line has trailing spaces."/>
+    </module>-->
+
+    <!-- Checks for Headers                                -->
+    <!-- See http://checkstyle.sf.net/config_header.html   -->
+    <module name="Header">
+        <property name="headerFile" value="${checkstyle.header.file}"/>
+        <property name="fileExtensions" value="java, g"/>
+    </module>
+
+    <module name="TreeWalker">
+
+        <!-- Checks for annotations                              -->
+        <!-- see http://checkstyle.sf.net/config_annotation.html -->
+        <module name="AnnotationUseStyle">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="MissingDeprecated">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="MissingOverride"/>
+        <module name="PackageAnnotation">
+            <property name="severity" value="warning"/>
+        </module>
+        <!-- <module name="SuppressWarnings"/> -->
+        <module name="SuppressWarningsHolder"/>
+
+
+        <!-- Checks for blocks. You know, those {}'s         -->
+        <!-- See http://checkstyle.sf.net/config_blocks.html -->
+        <module name="AvoidNestedBlocks">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="EmptyBlock">
+            <property name="option" value="text"/>
+        </module>
+        <module name="LeftCurly">
+            <property name="option" value="eol"/>
+            <property name="tokens"
+                      value="CTOR_DEF, LITERAL_CATCH, LITERAL_DO, LITERAL_ELSE, LITERAL_FINALLY, LITERAL_FOR, LITERAL_IF, LITERAL_SWITCH, LITERAL_SYNCHRONIZED, LITERAL_TRY, LITERAL_WHILE, METHOD_DEF"/>
+        </module>
+        <module name="LeftCurly">
+            <property name="option" value="nl"/>
+            <property name="tokens" value="CLASS_DEF,INTERFACE_DEF"/>
+        </module>
+        <module name="NeedBraces"/>
+        <module name="RightCurly"/>
+
+
+        <!-- Checks for class design                         -->
+        <!-- See http://checkstyle.sf.net/config_design.html -->
+        <!-- <module name="DesignForExtension"/> -->
+        <module name="FinalClass">
+            <property name="severity" value="info"/>
+        </module>
+        <module name="HideUtilityClassConstructor">
+            <property name="severity" value="info"/>
+        </module>
+        <module name="InterfaceIsType">
+            <property name="severity" value="warning"/>
+        </module>
+        <!-- <module name="MutableException"/> -->
+        <module name="VisibilityModifier">
+            <property name="protectedAllowed" value="true"/>
+        </module>
+        <module name="InnerTypeLast"/>
+        <module name="ThrowsCount">
+            <property name="severity" value="warning"/>
+        </module>
+
+
+        <!-- Checks for common coding problems               -->
+        <!-- See http://checkstyle.sf.net/config_coding.html -->
+        <!-- <module name="ArrayTrailingComma"/> -->
+        <!-- <module name="AvoidInlineConditionals"/> -->
+        <module name="CovariantEquals">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="DeclarationOrder"/>
+        <module name="DefaultComesLast"/>
+        <module name="EmptyStatement"/>
+        <!-- <module name="EqualsAvoidNull"/> -->
+        <module name="EqualsHashCode">
+            <property name="severity" value="warning"/>
+        </module>
+        <!-- <module name="FinalLocalVariable"/> -->
+        <module name="FallThrough">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="HiddenField"/>
+        <module name="IllegalInstantiation">
+            <property name="severity" value="info"/>
+        </module>
+        <!-- <module name="IllegalToken"/> -->
+        <!-- <module name="IllegalTokenText"/> -->
+        <!-- <module name="IllegalType"/> -->
+        <module name="IllegalCatch">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="IllegalThrows">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="InnerAssignment"/>
+        <module name="MagicNumber">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="MissingSwitchDefault">
+            <property name="severity" value="warning"/>
+        </module>
+        <!-- <module name="MissingCtor"/> -->
+        <module name="ModifiedControlVariable">
+            <property name="severity" value="warning"/>
+        </module>
+        <!-- <module name="MultipleStringLiterals"/> -->
+        <module name="MultipleVariableDeclarations"/>
+        <module name="NoClone">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="NoFinalizer">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="OneStatementPerLine"/>
+        <module name="PackageDeclaration">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="ParameterAssignment">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="RedundantThrows">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="ReturnCount">
+            <property name="max" value="2"/>
+            <property name="severity" value="warning"/>
+        </module>
+        <!-- <module name="RequireThis"/> -->
+        <module name="SimplifyBooleanExpression"/>
+        <module name="SimplifyBooleanReturn"/>
+        <module name="StringLiteralEquality"/>
+
+        <!-- Checks for nesting level -->
+        <module name="AvoidNestedBlocks">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="NestedForDepth">
+            <property name="max" value="2"/>
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="NestedIfDepth">
+            <property name="max" value="2"/>
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="NestedTryDepth">
+            <property name="max" value="2"/>
+            <property name="severity" value="warning"/>
+        </module>
+
+
+        <!-- Checks for imports                              -->
+        <!-- See http://checkstyle.sf.net/config_import.html -->
+        <module name="AvoidStarImport"/>
+        <module name="IllegalImport"/>
+        <!-- defaults to sun.* packages -->
+        <!-- <module name="ImportOrder"/> -->
+        <!-- <module name="ImportControl"/> -->
+        <module name="RedundantImport"/>
+        <module name="UnusedImports"/>
+
+
+        <!-- Checks for Javadoc comments.                     -->
+        <!-- See http://checkstyle.sf.net/config_javadoc.html -->
+        <!-- <module name="JavadocMethod"/> -->
+        <module name="JavadocType">
+            <property name="severity" value="info"/>
+            <property name="tokens" value="INTERFACE_DEF"/>
+        </module>
+        <!-- <module name="JavadocVariable"/> -->
+        <module name="JavadocStyle">
+            <property name="severity" value="info"/>
+        </module>
+
+
+        <!-- Checks for metrics                               -->
+        <!-- See http://checkstyle.sf.net/config_metrics.html -->
+        <module name="BooleanExpressionComplexity">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="ClassDataAbstractionCoupling">
+            <property name="max" value="10"/>
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="ClassFanOutComplexity">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="CyclomaticComplexity">
+            <property name="max" value="20"/>
+            <property name="severity" value="warning"/>
+        </module>
+
+
+        <!-- Modifier Checks                                    -->
+        <!-- See http://checkstyle.sf.net/config_modifiers.html -->
+        <module name="ModifierOrder"/>
+        <module name="RedundantModifier"/>
+
+
+        <!-- Miscellaneous other checks.                   -->
+        <!-- See http://checkstyle.sf.net/config_misc.html -->
+        <module name="ArrayTypeStyle"/>
+        <!-- <module name="FinalParameters"/> -->
+        <module name="TodoComment">
+            <property name="format" value="TODO|FIXME|XXX"/>
+            <property name="severity" value="info"/>
+        </module>
+        <module name="UpperEll"/>
+        <module name="FileContentsHolder"/>
+        <module name="TrailingComment">
+            <property name="severity" value="warning"/>
+        </module>
+
+
+        <!-- Checks for Naming Conventions.                  -->
+        <!-- See http://checkstyle.sf.net/config_naming.html -->
+        <module name="ConstantName"/>
+        <module name="LocalFinalVariableName"/>
+        <module name="LocalVariableName">
+            <property name="format" value="^(([a-z][a-zA-Z0-9]*)|(\$this))$"/>
+        </module>
+        <module name="MemberName">
+            <property name="format" value="^(([a-z][a-zA-Z0-9]*)|(\$this))$"/>
+        </module>
+        <module name="MethodName"/>
+        <module name="PackageName"/>
+        <module name="ParameterName">
+            <property name="format" value="^(([a-z][a-zA-Z0-9]*)|(\$this))$"/>
+        </module>
+        <module name="StaticVariableName"/>
+        <module name="TypeName">
+            <property name="format" value="^I[A-Z][a-zA-Z0-9]*$"/>
+            <property name="tokens" value="INTERFACE_DEF"/>
+        </module>
+        <module name="AbstractClassName">
+            <property name="format" value="^A[A-Z][a-zA-Z0-9]*$"/>
+        </module>
+        <module name="ClassTypeParameterName">
+            <property name="format" value="^T[A-Z][a-zA-Z0-9]*$"/>
+        </module>
+        <module name="MethodTypeParameterName">
+            <property name="format" value="^T[A-Z][a-zA-Z0-9]*$"/>
+        </module>
+
+
+        <!-- Checks for Size Violations.                    -->
+        <!-- See http://checkstyle.sf.net/config_sizes.html -->
+        <module name="LineLength">
+            <property name="max" value="120"/>
+        </module>
+        <module name="MethodLength">
+            <property name="max" value="80"/>
+        </module>
+        <module name="ParameterNumber">
+            <property name="max" value="4"/>
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="OuterTypeNumber"/>
+        <module name="AnonInnerLength">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="OuterTypeNumber">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="MethodCount">
+            <property name="maxTotal" value="50"/>
+            <property name="severity" value="warning"/>
+        </module>
+
+        <!-- Checks for whitespace                               -->
+        <!-- See http://checkstyle.sf.net/config_whitespace.html -->
+        <module name="EmptyForIteratorPad"/>
+        <module name="GenericWhitespace"/>
+        <module name="MethodParamPad"/>
+        <module name="NoWhitespaceAfter"/>
+        <module name="NoWhitespaceBefore"/>
+        <module name="OperatorWrap"/>
+        <module name="ParenPad"/>
+        <module name="TypecastParenPad"/>
+        <module name="WhitespaceAfter"/>
+        <module name="WhitespaceAround"/>
+    </module>
+
+    <module name="ch.tsphp.grammarconvention.GrammarWalker">
+        <module name="ch.tsphp.grammarconvention.checks.HeaderCheck">
+            <property name="headerFile" value="${checkstyle.header.file}"/>
+        </module>
+        <module name="ch.tsphp.grammarconvention.checks.OptionsIndentationCheck"/>
+        <module name="ch.tsphp.grammarconvention.checks.OptionsSpaceCheck"/>
+        <module name="ch.tsphp.grammarconvention.checks.RuleColonSemicolonCheck"/>
+        <module name="ch.tsphp.grammarconvention.checks.TokensIndentationCheck"/>
+        <module name="ch.tsphp.grammarconvention.checks.TokensNamingCheck"/>
+        <!-- decided that this rule is rather unpractical, it should be in alphabetical order more or less but it
+        should still be possible to define logical order such as TypeBool, TypeInt, TypeFloat
+         in alphabetical order TypeFloat would need to be before TypeInt
+        -->
+        <!--<module name="ch.tsphp.grammarconvention.checks.TokensOrderCheck"/>-->
+        <module name="ch.tsphp.grammarconvention.checks.TokensSpaceCheck"/>
+    </module>
+
+    <module name="SuppressionCommentFilter">
+        <property name="offCommentFormat" value="CHECKSTYLE\:OFF\:([\w\|]+)"/>
+        <property name="onCommentFormat" value="CHECKSTYLE\:ON\:([\w\|]+)"/>
+        <property name="checkFormat" value="$1"/>
+    </module>
+    <module name="SuppressWarningsFilter"/>
+    <module name="SuppressionFilter">
+        <property name="file" value="${suppressions.xml}"/>
+    </module>
+
+</module>
