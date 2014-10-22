@@ -4,7 +4,7 @@ nbproject/*
 out/*
 *.iml
 /antlr/output/*
-/src/ch/tinsphp/inference_engine/antlr/*
+/src/ch/tsphp/tinsphp/inference_engine/antlr/*
 
 /lib/dev/pmd/cfg/pmd_tsphp.xml
 /lib/dev/checkstyle/cfg/checkstyle.properties

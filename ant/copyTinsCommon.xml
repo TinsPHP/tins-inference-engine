@@ -1,0 +1,23 @@
+<!--
+  This file is part of the TinsPHP project published under the Apache License 2.0
+  For the full copyright and license information, please have a look at LICENSE in the
+  root folder or visit the project's website http://tsphp.ch/wiki/display/TSPHP/License
+  -->
+
+<!--
+  Yet, it is based on /ant/copyCommon.xml from the TSPHP project.
+  TSPHP is also published under the Apache License 2.0
+  For more information see http://tsphp.ch/wiki/display/TSPHP/License
+-->
+
+<project name="copyTinsCommon" basedir="../">
+
+    <import file="${basedir}/ant/build-common.xml" as="common"/>
+
+    <property name="tins-common.jar" location="${basedir}/../tins-common/build/lib"/>
+
+    <target name="common" depends="" description="copy tins common library to the lib folder">
+        <copyComponent dir="${tins-common.jar}" includes="TinsPHP-common-*.jar"/>
+    </target>
+
+</project>

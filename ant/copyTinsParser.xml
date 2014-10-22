@@ -11,7 +11,7 @@
 -->
 
 
-<project name="copyParser" basedir="../">
+<project name="copyTinsParser" basedir="../">
 
     <property file="${basedir}/ant/antlr.properties"/>
 
@@ -19,20 +19,20 @@
 
     <property name="parser" location="${basedir}/../tins-parser"/>
     <property name="parser.tokens" location="${parser}/src/ch/tsphp/tinsphp/parser/antlr"/>
-    <property name="parser.jar" location="${parser}/build/lib"/>
+    <property name="tins-parser.jar" location="${parser}/build/lib"/>
 
     <target name="parser" depends="" description="copy parser jar and token file to /lib/dev/, /antlr respectively">
         <delete>
             <fileset dir="${src.antlr}" includes="*.tokens"/>
         </delete>
         <copy todir="${src.antlr}">
-            <fileset dir="${parser.tokens}" includes="*.tokens"/>
+            <fileset dir="${parser.tokens}" includes="TinsPHP.tokens"/>
         </copy>
         <delete>
             <fileset dir="${libdev}" includes="TinsPHP-parser-*.jar"/>
         </delete>
         <copy todir="${libdev}">
-            <fileset dir="${parser.jar}" includes="TinsPHP-parser-*.jar"/>
+            <fileset dir="${tins-parser.jar}" includes="TinsPHP-parser-*.jar"/>
         </copy>
     </target>
 
