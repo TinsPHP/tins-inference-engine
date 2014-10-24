@@ -4,7 +4,7 @@
  * root folder or visit the project's website http://tsphp.ch/wiki/display/TINS/License
  */
  
- /* This file was created based on TinsPHPDefinitionWalker.g - the tree grammar file for the definition phase of
+ /* This file was created based on TSPHPDefinitionWalker.g - the tree grammar file for the definition phase of
   * TSPHP's type checker - and reuses TSPHP's AST class as well as other classes/files related to the AST generation.
   * TSPHP is also licenced under the Apache License 2.0
   * For more information see http://tsphp.ch/wiki/display/TSPHP/License
@@ -60,8 +60,7 @@ topdown
     //|   methodFunctionDefinition
 
     |   blockConditional
-    //TODO rstoll TINS-162 definition phase - scopes
-    //|   foreachLoop
+    |   foreachLoop
     
         //symbols
     //TODO rstoll TINS-156 definition phase - constants
@@ -98,9 +97,8 @@ exitScope
         //|   METHOD_DECLARATION        
         //TODO rstoll TINS-155 definition phase - functions
         //|    Function
-           BLOCK_CONDITIONAL
-        //TODO rstoll TINS-162 definition phase - scopes
-        //|   Foreach
+            BLOCK_CONDITIONAL
+        |   Foreach
         ) 
         {
             //only get enclosing scope if a scope was defined - might not be the case due to syntax errors
@@ -163,8 +161,6 @@ blockConditional
         }    
     ;
 
-//TODO rstoll TINS-162 definition phase - scopes
-/*
 foreachLoop
     :   ^(Foreach .*)
         {
@@ -172,7 +168,6 @@ foreachLoop
             $Foreach.setScope(currentScope);
         }    
     ;
-*/
 
 //TODO rstoll TINS-156 definition phase - constants    
 /*constantDefinitionList

@@ -12,6 +12,7 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.testutils;
 
+import ch.tsphp.common.IScope;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.inference_engine.scopes.INamespaceScope;
@@ -21,12 +22,12 @@ import ch.tsphp.tinsphp.inference_engine.scopes.ScopeFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TestScopeFactory extends ScopeFactory
+public class TestNamespaceScopeFactory extends ScopeFactory
 {
 
-    public List<INamespaceScope> scopes = new ArrayList<>();
+    public List<IScope> scopes = new ArrayList<>();
 
-    public TestScopeFactory(IScopeHelper theScopeHelper, IInferenceErrorReporter theInferenceErrorReporter) {
+    public TestNamespaceScopeFactory(IScopeHelper theScopeHelper, IInferenceErrorReporter theInferenceErrorReporter) {
         super(theScopeHelper, theInferenceErrorReporter);
     }
 

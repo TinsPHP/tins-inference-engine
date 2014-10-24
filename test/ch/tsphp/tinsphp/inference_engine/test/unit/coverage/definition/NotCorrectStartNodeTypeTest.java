@@ -80,30 +80,30 @@ public class NotCorrectStartNodeTypeTest extends ADefinitionWalkerTest
         return Arrays.asList(new Object[][]{
                 //TODO rstoll TINS-162 definition phase - scopes
 //                {"atom", Try},
-//                {"blockConditional", Try},
+                {"blockConditional", Try},
                 {"bottomup", Try},
                 //TODO rstoll TINS-161 inference OOP
 //                {"classDefinition", Try},
-                //TODO rstoll TINS-162 definition phase - scopes
+                //TODO rstoll TINS-156 definition phase - constants
 //                {"constant", Try},
 //                {"constantDefinitionList", Try},
                 //TODO rstoll TINS-161 inference OOP
 //                {"constructDefinition", Try},
                 {"exitNamespace", Try},
                 {"exitScope", Try},
-                //TODO rstoll TINS-162 definition phase - scopes
-//                {"foreachLoop", Try},
+                {"foreachLoop", Try},
                 //TODO rstoll TINS-161 inference OOP
 //                {"interfaceDefinition", Try},
 //                {"methodFunctionCall", Try},
                 {"namespaceDefinition", Try},
-                //TODO rstoll TINS-162 definition phase - scopes
+                //TODO rstoll TINS-154 definition phase - variables
 //                {"parameterDeclaration", Try},
 //                {"parameterDeclarationList", Try},
+                //TODO rstoll TINS-162 definition phase - scopes
 //                {"primitiveTypesWithoutResource",Try},
 //                {"returnBreakContinue", Try},
                 {"topdown", Try},
-                //TODO rstoll TINS-162 definition phase - scopes
+                //TODO rstoll TINS-163 definition phase - use
 //                {"useDeclaration", Try},
 //                {"useDefinitionList", Try},
         });

@@ -28,7 +28,7 @@ import ch.tsphp.tinsphp.inference_engine.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.inference_engine.symbols.ModifierHelper;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.ATest;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.TestDefinitionPhaseController;
-import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.TestScopeFactory;
+import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.TestNamespaceScopeFactory;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.TestSymbolFactory;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.WriteExceptionToConsole;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
@@ -44,7 +44,7 @@ public abstract class ADefinitionTest extends ATest
     protected String testString;
     protected String errorMessagePrefix;
     protected TestDefinitionPhaseController definitionPhaseController;
-    protected TestScopeFactory scopeFactory;
+    protected TestNamespaceScopeFactory scopeFactory;
     protected ITSPHPAst ast;
     protected CommonTreeNodeStream commonTreeNodeStream;
     protected ITSPHPAstAdaptor adaptor;
@@ -117,9 +117,9 @@ public abstract class ADefinitionTest extends ATest
         return new TSPHPAstAdaptor();
     }
 
-    protected TestScopeFactory createTestScopeFactory(
+    protected TestNamespaceScopeFactory createTestScopeFactory(
             IScopeHelper theScopeHelper, IInferenceErrorReporter theInferenceErrorReporter) {
-        return new TestScopeFactory(theScopeHelper, theInferenceErrorReporter);
+        return new TestNamespaceScopeFactory(theScopeHelper, theInferenceErrorReporter);
     }
 
     protected IModifierHelper createModifierHelper() {
@@ -137,7 +137,7 @@ public abstract class ADefinitionTest extends ATest
     }
 
     protected TestDefinitionPhaseController createTestDefiner(TestSymbolFactory theSymbolFactory,
-            TestScopeFactory theScopeFactory) {
+            TestNamespaceScopeFactory theScopeFactory) {
         return new TestDefinitionPhaseController(theSymbolFactory, theScopeFactory);
     }
 }
