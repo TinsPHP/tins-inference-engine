@@ -13,6 +13,7 @@
 package ch.tsphp.tinsphp.inference_engine.scopes;
 
 import ch.tsphp.common.symbols.ISymbol;
+import ch.tsphp.tinsphp.inference_engine.symbols.IAliasSymbol;
 
 import java.util.List;
 import java.util.Map;
@@ -22,8 +23,7 @@ import java.util.Map;
  */
 public interface INamespaceScope extends ICaseInsensitiveScope
 {
-    //TODO rstoll TINS-163 definition phase - use
-    //void defineUse(IAliasSymbol symbol);
+    void defineUse(IAliasSymbol symbol);
 
     //boolean useDefinitionCheck(IAliasSymbol symbol);
 

@@ -14,6 +14,7 @@ package ch.tsphp.tinsphp.inference_engine;
 
 import ch.tsphp.common.ILowerCaseStringMap;
 import ch.tsphp.common.IScope;
+import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.tinsphp.inference_engine.scopes.IConditionalScope;
 import ch.tsphp.tinsphp.inference_engine.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.inference_engine.scopes.INamespaceScope;
@@ -30,8 +31,7 @@ public interface IDefinitionPhaseController
 
     INamespaceScope defineNamespace(String name);
 
-    //TODO rstoll TINS-163 definition phase - use
-    //void defineUse(INamespaceScope currentScope, ITSPHPAst type, ITSPHPAst alias);
+    void defineUse(INamespaceScope currentScope, ITSPHPAst type, ITSPHPAst alias);
 
     //TODO rstoll TINS-161 inference OOP
 //    @SuppressWarnings("checkstyle:parameternumber")

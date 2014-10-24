@@ -49,8 +49,7 @@ public TinsPHPDefinitionWalker(TreeNodeStream input, IDefinitionPhaseController 
 topdown
         //scoped symbols
     :   namespaceDefinition   
-    //TODO rstoll TINS-163 definition phase - use
-    //|   useDefinitionList
+    |   useDefinitionList
     //TODO rstoll TINS-161 inference OOP
     //|   interfaceDefinition
     //|   classDefinition
@@ -110,16 +109,14 @@ namespaceDefinition
         {currentScope = definer.defineNamespace($t.text); }
     ;
 
-//TODO rstoll TINS-163 definition phase - use
-/*useDefinitionList
-    :   ^('use'    useDeclaration+)
+useDefinitionList
+    :   ^('use' useDeclaration+)
     ;
     
 useDeclaration
     :   ^(USE_DECLARATION type=TYPE_NAME alias=Identifier)
         {definer.defineUse((INamespaceScope) currentScope, $type, $alias);}
     ;
- */
 
 //TODO rstoll TINS-161 inference OOP    
 /*interfaceDefinition

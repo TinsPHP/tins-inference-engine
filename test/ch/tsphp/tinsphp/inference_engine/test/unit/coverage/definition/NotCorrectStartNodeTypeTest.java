@@ -98,13 +98,11 @@ public class NotCorrectStartNodeTypeTest extends ADefinitionWalkerTest
                 //TODO rstoll TINS-154 definition phase - variables
 //                {"parameterDeclaration", Try},
 //                {"parameterDeclarationList", Try},
-                //TODO rstoll TINS-162 definition phase - scopes
-//                {"primitiveTypesWithoutResource",Try},
+                {"primitiveTypesWithoutResource", Try},
                 {"returnBreakContinue", Try},
                 {"topdown", Try},
-                //TODO rstoll TINS-163 definition phase - use
-//                {"useDeclaration", Try},
-//                {"useDefinitionList", Try},
+                {"useDeclaration", Try},
+                {"useDefinitionList", Try},
         });
     }
 }

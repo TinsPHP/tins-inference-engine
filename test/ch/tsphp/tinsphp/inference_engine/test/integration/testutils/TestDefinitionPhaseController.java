@@ -16,9 +16,11 @@ import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.tinsphp.inference_engine.DefinitionPhaseController;
 import ch.tsphp.tinsphp.inference_engine.IDefinitionPhaseController;
+import ch.tsphp.tinsphp.inference_engine.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.inference_engine.scopes.IScopeFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,13 +40,13 @@ public class TestDefinitionPhaseController extends DefinitionPhaseController imp
         return symbols;
     }
 
-//    @Override
-//    public void defineUse(INamespaceScope currentScope, ITSPHPAst type, ITSPHPAst alias) {
-//        super.defineUse(currentScope, type, alias);
-//        symbols.add(new HashMap.SimpleEntry<>(alias.getSymbol(), type));
-//    }
+    @Override
+    public void defineUse(INamespaceScope currentScope, ITSPHPAst type, ITSPHPAst alias) {
+        super.defineUse(currentScope, type, alias);
+        symbols.add(new HashMap.SimpleEntry<>(alias.getSymbol(), type));
+    }
 
-
+    //TODO rstoll TINS-161 inference OOP
 //    @Override
 //    @SuppressWarnings("checkstyle:parameternumber")
 //    public IInterfaceTypeSymbol defineInterface(IScope currentScope, ITSPHPAst modifier, ITSPHPAst identifier,
@@ -86,6 +88,7 @@ public class TestDefinitionPhaseController extends DefinitionPhaseController imp
 //        return scope;
 //    }
 
+    //TODO rstoll TINS-154 definition phase - variables
 //    @Override
 //    public void defineVariable(IScope currentScope, ITSPHPAst modifier, ITSPHPAst type, ITSPHPAst variableId) {
 //        super.defineVariable(currentScope, modifier, type, variableId);

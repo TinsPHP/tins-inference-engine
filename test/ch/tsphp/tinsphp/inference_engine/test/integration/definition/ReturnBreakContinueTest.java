@@ -35,24 +35,25 @@ public class ReturnBreakContinueTest extends ADefinitionScopeTest
     @Parameterized.Parameters
     public static Collection<Object[]> testStrings() {
         List<Object[]> collection = new ArrayList<>();
-        Integer[] emptyStepIn = new Integer[]{};
-        collection.addAll(getVariations("", "", "\\.\\.", new Integer[]{1}, emptyStepIn));
-        collection.addAll(getVariations("namespace{", "}", "\\.\\.", new Integer[]{1}, emptyStepIn));
+
+        collection.addAll(getVariations("", "", "\\.\\.", new Integer[]{1}));
+        collection.addAll(getVariations("namespace{", "}", "\\.\\.", new Integer[]{1}));
 
         //TODO rstoll TINS-155 definition phase - functions
         //nBody function block
 //        collection.addAll(getVariations("function void foo(){", "}",
-//                "\\.\\.foo().", new Integer[]{1, 0, 4}, emptyStepIn));
+//                "\\.\\.foo().", new Integer[]{1, 0, 4}));
 
         //TODO rstoll TINS-161 inference OOP
         //nBody class classBody mDecl block
-//        collection.addAll(ScopeTestHelper.getVariations("class a{ function void foo(){", "}}",
-//                "\\.\\.a.foo().", new Integer[]{1, 0, 4, 0, 4}, new Integer[]{0, 1}));
+//        collection.addAll(getVariations("class a{ function void foo(){", "}}",
+//                "\\.\\.a.foo().", new Integer[]{1, 0, 4, 0, 4}));
         return collection;
     }
 
     public static Collection<Object[]> getVariations(String prefix, String appendix,
-            String fullScopeName, Integer[] accessToScope, Integer[] stepIn) {
+            String fullScopeName, Integer[] accessToScope) {
+        Integer[] stepIn = new Integer[]{};
         return Arrays.asList(new Object[][]{
                 {prefix + "return;" + appendix, new ScopeTestStruct[]{
                         new ScopeTestStruct("return", fullScopeName,

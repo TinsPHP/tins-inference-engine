@@ -12,6 +12,7 @@
 
 package ch.tsphp.tinsphp.inference_engine.symbols;
 
+import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.inference_engine.scopes.IScopeHelper;
 
@@ -70,12 +71,12 @@ public class SymbolFactory implements ISymbolFactory
 //    public IPseudoTypeSymbol createPseudoTypeSymbol(String name) {
 //        return new PseudoTypeSymbol(name, mixedTypeSymbol);
 //    }
-//
-//    @Override
-//    public IAliasSymbol createAliasSymbol(ITSPHPAst useDefinition, String alias) {
-//        return new AliasSymbol(useDefinition, alias);
-//    }
-//
+
+    @Override
+    public IAliasSymbol createAliasSymbol(ITSPHPAst useDefinition, String alias) {
+        return new AliasSymbol(useDefinition, alias);
+    }
+
 //    @Override
 //    public IAliasTypeSymbol createAliasTypeSymbol(ITSPHPAst definitionAst, String name) {
 //        return new AliasTypeSymbol(definitionAst, name, mixedTypeSymbol);

@@ -12,12 +12,17 @@
 
 package ch.tsphp.tinsphp.inference_engine.scopes;
 
+import ch.tsphp.common.ILowerCaseStringMap;
 import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
+import ch.tsphp.common.LowerCaseStringMap;
 import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
+import ch.tsphp.tinsphp.inference_engine.symbols.IAliasSymbol;
+import ch.tsphp.tinsphp.inference_engine.utils.MapHelper;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,8 +30,9 @@ public class NamespaceScope implements INamespaceScope
 {
 
 
-    //    private final ILowerCaseStringMap<List<IAliasSymbol>> usesCaseInsensitive = new LowerCaseStringMap<>();
-//    private final Map<String, List<IAliasSymbol>> uses = new LinkedHashMap<>();
+    private final ILowerCaseStringMap<List<IAliasSymbol>> usesCaseInsensitive = new LowerCaseStringMap<>();
+    private final Map<String, List<IAliasSymbol>> uses = new LinkedHashMap<>();
+
     private final IScopeHelper scopeHelper;
     private final String scopeName;
     private final IGlobalNamespaceScope globalNamespaceScope;
@@ -75,14 +81,14 @@ public class NamespaceScope implements INamespaceScope
         return globalNamespaceScope.doubleDefinitionCheckCaseInsensitive(symbol);
     }
 
-    //TODO rstoll TINS-163 definition phase - use
-//    @Override
-//    public void defineUse(IAliasSymbol symbol) {
-//        MapHelper.addToListMap(usesCaseInsensitive, symbol.getName(), symbol);
-//        MapHelper.addToListMap(uses, symbol.getName(), symbol);
-//        symbol.setDefinitionScope(this);
-//    }
-//
+
+    @Override
+    public void defineUse(IAliasSymbol symbol) {
+        MapHelper.addToListMap(usesCaseInsensitive, symbol.getName(), symbol);
+        MapHelper.addToListMap(uses, symbol.getName(), symbol);
+        symbol.setDefinitionScope(this);
+    }
+
 //    @Override
 //    public boolean useDefinitionCheck(IAliasSymbol symbol) {
 //        boolean isNotDoubleDefined = scopeHelper.checkIsNotDoubleDefinition(
@@ -90,7 +96,7 @@ public class NamespaceScope implements INamespaceScope
 //        return isNotDoubleDefined && isNotAlreadyDefinedAsType(symbol);
 //
 //    }
-
+//
 //    @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
 //    private boolean isNotAlreadyDefinedAsType(IAliasSymbol symbol) {
 //        ITypeSymbol typeSymbol = globalNamespaceScope.getTypeSymbolWhichClashesWithUse(symbol.getDefinitionAst());

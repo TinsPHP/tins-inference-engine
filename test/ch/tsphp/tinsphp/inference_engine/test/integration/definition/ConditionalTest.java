@@ -55,7 +55,7 @@ public class ConditionalTest extends ADefinitionTest
         String deflt = "\\.\\.";
         String b = "\\b\\.\\b\\.";
         String ab = "\\a\\b\\.\\a\\b\\.";
-        String foreach = "foreach([1] as $k){$a=1;}";
+        String foreach = "foreach([1] as $v){$a=1;}";
         String tryCatch = "try{}catch(Exception $e){}";
 
         return Arrays.asList(new Object[][]{

@@ -12,10 +12,12 @@
 
 package ch.tsphp.tinsphp.inference_engine.symbols;
 
+import ch.tsphp.common.ITSPHPAst;
+
 public interface ISymbolFactory
 {
 
-//    void setMixedTypeSymbol(ITypeSymbol typeSymbol);
+    //    void setMixedTypeSymbol(ITypeSymbol typeSymbol);
 //
 //    INullTypeSymbol createNullTypeSymbol();
 //
@@ -29,7 +31,7 @@ public interface ISymbolFactory
 //
 //    IPseudoTypeSymbol createPseudoTypeSymbol(String name);
 //
-//    IAliasSymbol createAliasSymbol(ITSPHPAst useDefinition, String alias);
+    IAliasSymbol createAliasSymbol(ITSPHPAst useDefinition, String alias);
 //
 //    IAliasTypeSymbol createAliasTypeSymbol(ITSPHPAst definitionAst, String name);
 //

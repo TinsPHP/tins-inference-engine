@@ -14,11 +14,13 @@ package ch.tsphp.tinsphp.inference_engine;
 
 import ch.tsphp.common.ILowerCaseStringMap;
 import ch.tsphp.common.IScope;
+import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.LowerCaseStringMap;
 import ch.tsphp.tinsphp.inference_engine.scopes.IConditionalScope;
 import ch.tsphp.tinsphp.inference_engine.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.inference_engine.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.inference_engine.scopes.IScopeFactory;
+import ch.tsphp.tinsphp.inference_engine.symbols.IAliasSymbol;
 import ch.tsphp.tinsphp.inference_engine.symbols.ISymbolFactory;
 
 public class DefinitionPhaseController implements IDefinitionPhaseController
@@ -62,16 +64,16 @@ public class DefinitionPhaseController implements IDefinitionPhaseController
         return scope;
     }
 
-    //TODO rstoll TINS-163 definition phase - use
-//    @Override
-//    public void defineUse(INamespaceScope currentScope, ITSPHPAst type, ITSPHPAst alias) {
-//        type.setScope(currentScope);
-//        IAliasSymbol aliasSymbol = symbolFactory.createAliasSymbol(alias, alias.getText());
-//        alias.setSymbol(aliasSymbol);
-//        alias.setScope(currentScope);
-//        currentScope.defineUse(aliasSymbol);
-//    }
-//
+    @Override
+    public void defineUse(INamespaceScope currentScope, ITSPHPAst type, ITSPHPAst alias) {
+        type.setScope(currentScope);
+        IAliasSymbol aliasSymbol = symbolFactory.createAliasSymbol(alias, alias.getText());
+        alias.setSymbol(aliasSymbol);
+        alias.setScope(currentScope);
+        currentScope.defineUse(aliasSymbol);
+    }
+
+    //TODO rstoll TINS-156 definition phase - constants
 //    @Override
 //    public void defineConstant(IScope currentScope, ITSPHPAst modifier, ITSPHPAst type, ITSPHPAst identifier) {
 //        defineVariable(currentScope, modifier, type, identifier);
