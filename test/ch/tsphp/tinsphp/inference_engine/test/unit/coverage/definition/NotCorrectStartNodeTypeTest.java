@@ -78,17 +78,16 @@ public class NotCorrectStartNodeTypeTest extends ADefinitionWalkerTest
     @Parameterized.Parameters
     public static Collection<Object[]> testStrings() {
         return Arrays.asList(new Object[][]{
-                //TODO rstoll TINS-162 definition phase - scopes
-//                {"atom", Try},
+                {"exitScope", Try},
                 {"blockConditional", Try},
                 {"bottomup", Try},
                 //TODO rstoll TINS-161 inference OOP
 //                {"classDefinition", Try},
                 //TODO rstoll TINS-156 definition phase - constants
-//                {"constant", Try},
 //                {"constantDefinitionList", Try},
                 //TODO rstoll TINS-161 inference OOP
 //                {"constructDefinition", Try},
+                {"expression", Try},
                 {"exitNamespace", Try},
                 {"exitScope", Try},
                 {"foreachLoop", Try},
@@ -101,7 +100,7 @@ public class NotCorrectStartNodeTypeTest extends ADefinitionWalkerTest
 //                {"parameterDeclarationList", Try},
                 //TODO rstoll TINS-162 definition phase - scopes
 //                {"primitiveTypesWithoutResource",Try},
-//                {"returnBreakContinue", Try},
+                {"returnBreakContinue", Try},
                 {"topdown", Try},
                 //TODO rstoll TINS-163 definition phase - use
 //                {"useDeclaration", Try},

@@ -93,7 +93,7 @@ public abstract class ADefinitionTest extends ATest
         commonTreeNodeStream = new CommonTreeNodeStream(adaptor, ast);
         commonTreeNodeStream.setTokenStream(parserUnit.tokenStream);
 
-        definition = new ErrorReportingTinsPHPDefinitionWalker(commonTreeNodeStream, definitionPhaseController);
+        definition = createDefinitionWalker();
         definition.registerErrorLogger(new WriteExceptionToConsole());
         try {
             definition.downup(ast);
@@ -107,6 +107,10 @@ public abstract class ADefinitionTest extends ATest
                 definition.hasFoundError());
 
         verifyDefinitions();
+    }
+
+    protected ErrorReportingTinsPHPDefinitionWalker createDefinitionWalker() {
+        return new ErrorReportingTinsPHPDefinitionWalker(commonTreeNodeStream, definitionPhaseController);
     }
 
     protected IScopeHelper createScopeHelper(IInferenceErrorReporter theInferenceErrorReporter) {

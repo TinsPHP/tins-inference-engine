@@ -69,12 +69,11 @@ topdown
     //|   parameterDeclarationList
     //variables are implicitly defined in PHP
     //|   variableDeclarationList
-    //TODO rstoll TINS-162 definition phase - scopes
-    /*|   methodFunctionCall
-    |   atom
-    |   constant
+    
+    //TODO rstoll TINS-155 definition phase - functions
+    //|   methodFunctionCall
+    |   expression
     |   returnBreakContinue
-    */
     ;
 
 bottomup
@@ -85,9 +84,7 @@ bottomup
 exitNamespace
     :   Namespace
         {currentScope = currentScope.getEnclosingScope().getEnclosingScope();}
-    ;
-    
-
+    ;   
 
 exitScope
     :   (   //TODO rstoll TINS-161 inference OOP
@@ -200,8 +197,8 @@ variableDeclaration[ITSPHPAst tMod, ITSPHPAst type]
     ;
 */
   
-//TODO rstoll TINS-162 definition phase - scopes 
-/*    
+//TODO rstoll TINS-155 definition phase - functions   
+/*
 methodFunctionCall
     :   //TODO rstoll TINS-161 inference OOP    
     //    ^(METHOD_CALL callee=. identifier=Identifier .)
@@ -213,19 +210,23 @@ methodFunctionCall
         ^(FUNCTION_CALL identifier=TYPE_NAME .)
         {$identifier.setScope(currentScope);}
     ;
-
-atom    
-    :   (   identifier='$this'
-        |   identifier=VariableId
+*/
+expression    
+    :   (   //TODO rstoll TINS-156 definition phase - constants
+            //identifier=CONSTANT
+            identifier=VariableId
         //TODO rstoll TINS-161 inference OOP  
-        //|    identifier='parent'
-        //|    identifier='self'
+        //|   identifier='$this'
+        //|   identifier='parent'
+        //|   identifier='self'
             //self and parent are already covered above
-        //|    ^(CLASS_STATIC_ACCESS identifier=(TYPE_NAME|'self'|'parent') .)
+        //|   ^(CLASS_STATIC_ACCESS identifier=(TYPE_NAME|'self'|'parent') .)
         
-        |    ^(CAST ^(TYPE . type=primitiveTypesWithoutResource) .) {$identifier=$type.start;}
-        |    ^('instanceof' . (identifier=VariableId | identifier=TYPE_NAME))
-        |    ^('new' identifier=TYPE_NAME .)
+        |   ^(CAST ^(TYPE . type=primitiveTypesWithoutResource) .) {$identifier=$type.start;}
+        //TODO rstoll TINS-154 definition phase - variables
+        //|   ^('instanceof' . (identifier=VariableId | identifier=TYPE_NAME))
+        //TODO rstoll TINS-161 inference OOP          
+        //|   ^('new' identifier=TYPE_NAME .)
         )
         {$identifier.setScope(currentScope);}
     ;
@@ -238,12 +239,6 @@ primitiveTypesWithoutResource
     |   'array'
     ;
 
-
-constant
-    :   cst=CONSTANT
-        {$cst.setScope(currentScope);}
-    ;
-
 returnBreakContinue
     :   (   Return
         |   Break
@@ -251,4 +246,3 @@ returnBreakContinue
         )
         {$start.setScope(currentScope);}
     ;
-*/

@@ -45,7 +45,8 @@ public class ScopeTestHelper
 
         String[][] variableIds = new String[][]{
                 {"$b", "$b"},
-                {"$this", "$this"}
+                //TODO rstoll TINS-161 inference OOP
+//                {"$this", "$this"}
         };
 
         for (String[] variableId : variableIds) {
@@ -56,13 +57,14 @@ public class ScopeTestHelper
         }
 
         variableIds = new String[][]{
-                {"self::$b", "self"},
-                {"parent::$b", "parent"},
-                {"foo()", "foo()"},
-                {"$a->foo()", "$a"},
-                {"$this->foo()", "$this"},
-                {"self::foo()", "self"},
-                {"parent::foo()", "parent"}
+                //TODO rstoll TINS-161 inference OOP
+//                {"self::$b", "self"},
+//                {"parent::$b", "parent"},
+//                {"foo()", "foo()"},
+//                {"$a->foo()", "$a"},
+//                {"$this->foo()", "$this"},
+//                {"self::foo()", "self"},
+//                {"parent::foo()", "parent"}
         };
 
         for (String[] variableId : variableIds) {
@@ -72,24 +74,26 @@ public class ScopeTestHelper
                     fullScopeName, accessToScope, new Integer[]{0}));
         }
 
-        collection.addAll(getVariations(prefix, appendix, "b", "b#",
-                fullScopeName, accessToScope));
-        collection.addAll(getVariations(prefix, appendix, "self::b", "self",
-                fullScopeName, accessToScope, new Integer[]{0}));
-        collection.addAll(getVariations(prefix, appendix, "parent::b", "parent",
-                fullScopeName, accessToScope, new Integer[]{0}));
-
-        String[] types = TypeHelper.getClassInterfaceTypes();
-        for (String type : types) {
-            collection.addAll(getVariations(prefix, appendix, type + "::b", type,
-                    fullScopeName, accessToScope, new Integer[]{0}));
-            collection.addAll(getVariations(prefix, appendix, type + "::$b", type,
-                    fullScopeName, accessToScope, new Integer[]{0}));
-            collection.addAll(getAccessVariations(prefix, appendix, type + "::$b", type,
-                    fullScopeName, accessToScope, new Integer[]{0}));
-            collection.addAll(getAccessVariations(prefix, appendix, type + "::foo()", type,
-                    fullScopeName, accessToScope, new Integer[]{0}));
-        }
+        //TODO rstoll TINS-156 definition phase - constants
+//        collection.addAll(getVariations(prefix, appendix, "b", "b#",
+//                fullScopeName, accessToScope));
+        //TODO rstoll TINS-161 inference OOP
+//        collection.addAll(getVariations(prefix, appendix, "self::b", "self",
+//                fullScopeName, accessToScope, new Integer[]{0}));
+//        collection.addAll(getVariations(prefix, appendix, "parent::b", "parent",
+//                fullScopeName, accessToScope, new Integer[]{0}));
+//
+//        String[] types = TypeHelper.getClassInterfaceTypes();
+//        for (String type : types) {
+//            collection.addAll(getVariations(prefix, appendix, type + "::b", type,
+//                    fullScopeName, accessToScope, new Integer[]{0}));
+//            collection.addAll(getVariations(prefix, appendix, type + "::$b", type,
+//                    fullScopeName, accessToScope, new Integer[]{0}));
+//            collection.addAll(getAccessVariations(prefix, appendix, type + "::$b", type,
+//                    fullScopeName, accessToScope, new Integer[]{0}));
+//            collection.addAll(getAccessVariations(prefix, appendix, type + "::foo()", type,
+//                    fullScopeName, accessToScope, new Integer[]{0}));
+//        }
 
 
         return collection;
@@ -104,71 +108,66 @@ public class ScopeTestHelper
             String fullScopeName, Integer[] accessToScope, Integer[] stepIn) {
         Integer[] emptyStepIn = new Integer[]{};
         return Arrays.asList(new Object[][]{
-                {prefix + "int $a = " + variableId + ";" + appendix, new ScopeTestStruct[]{
-                        // vars $a $b
-                        new ScopeTestStruct(astText, fullScopeName,
-                                getAstAccessOrder(accessToScope, stepIn, 0, 1, 0))
-                }
-                },
-                {prefix + "int $a = " + variableId + " + $c;" + appendix, new ScopeTestStruct[]{
-                        //vars $a + variableId
-                        new ScopeTestStruct(astText, fullScopeName,
-                                getAstAccessOrder(accessToScope, stepIn, 0, 1, 0, 0)),
-                        //vars $a + $c
-                        new ScopeTestStruct("$c", fullScopeName,
-                                getAstAccessOrder(accessToScope, emptyStepIn, 0, 1, 0, 1))
-                }
-                },
-                {prefix + "int $a = $c + " + variableId + ";" + appendix, new ScopeTestStruct[]{
-                        //vars $a + $c
-                        new ScopeTestStruct("$c", fullScopeName,
-                                getAstAccessOrder(accessToScope, emptyStepIn, 0, 1, 0, 0)),
-                        //vars $a + variableId
-                        new ScopeTestStruct(astText, fullScopeName,
-                                getAstAccessOrder(accessToScope, stepIn, 0, 1, 0, 1))
-                }
-                },
-                {prefix + "int $a = 1 + " + variableId + " + $c;" + appendix, new ScopeTestStruct[]{
-                        //vars $a + + variableId
-                        new ScopeTestStruct(astText, fullScopeName,
-                                getAstAccessOrder(accessToScope, stepIn, 0, 1, 0, 0, 1)),
-                        //vars $a + $c
-                        new ScopeTestStruct("$c", fullScopeName,
-                                getAstAccessOrder(accessToScope, emptyStepIn, 0, 1, 0, 1))
-                }
-                },
+                //(expr (= variableId $a))
                 {prefix + variableId + " = $a;" + appendix, new ScopeTestStruct[]{
-                        //expr = variableId
                         new ScopeTestStruct(astText, fullScopeName,
                                 getAstAccessOrder(accessToScope, stepIn, 0, 0, 0)),
-                        //expr = $a
                         new ScopeTestStruct("$a", fullScopeName,
                                 getAstAccessOrder(accessToScope, emptyStepIn, 0, 0, 1))
-                }
-                },
-                //there are no nested local scopes
-                {prefix + " { " + variableId + " = $a; } " + appendix, new ScopeTestStruct[]{
-                        //expr = variableId
-                        new ScopeTestStruct(astText, fullScopeName,
-                                getAstAccessOrder(accessToScope, stepIn, 0, 0, 0)),
-                        //expr = $a
-                        new ScopeTestStruct("$a", fullScopeName,
-                                getAstAccessOrder(accessToScope, emptyStepIn, 0, 0, 1))
-                }
-                },
-                //there are no nested local scopes, does not matter how many {} we declare
-                {prefix + " { { $a = " + variableId + ";} int $a = $c; } " + appendix, new ScopeTestStruct[]{
-                        //expr = $a
+                }},
+                //(expr (= $a variableId))
+                {prefix + "$a = " + variableId + ";" + appendix, new ScopeTestStruct[]{
                         new ScopeTestStruct("$a", fullScopeName,
                                 getAstAccessOrder(accessToScope, emptyStepIn, 0, 0, 0)),
-                        //expr = variableId
+                        new ScopeTestStruct(astText, fullScopeName,
+                                getAstAccessOrder(accessToScope, stepIn, 0, 0, 1))
+                }},
+                //(expr (= $a (+ variableId $b))
+                {prefix + "$a = " + variableId + " + $c;" + appendix, new ScopeTestStruct[]{
+                        new ScopeTestStruct("$a", fullScopeName,
+                                getAstAccessOrder(accessToScope, emptyStepIn, 0, 0, 0)),
+                        new ScopeTestStruct(astText, fullScopeName,
+                                getAstAccessOrder(accessToScope, stepIn, 0, 0, 1, 0)),
+                        new ScopeTestStruct("$c", fullScopeName,
+                                getAstAccessOrder(accessToScope, emptyStepIn, 0, 0, 1, 1))
+                }},
+                //(expr (= $a (+ $c variableId))
+                {prefix + "$a = $c + " + variableId + ";" + appendix, new ScopeTestStruct[]{
+                        new ScopeTestStruct("$a", fullScopeName,
+                                getAstAccessOrder(accessToScope, emptyStepIn, 0, 0, 0)),
+                        new ScopeTestStruct("$c", fullScopeName,
+                                getAstAccessOrder(accessToScope, emptyStepIn, 0, 0, 1, 0)),
+                        new ScopeTestStruct(astText, fullScopeName,
+                                getAstAccessOrder(accessToScope, stepIn, 0, 0, 1, 1))
+                }},
+                //(expr (= $a (+ 1 (+ variableId $c))
+                {prefix + "$a = 1 + " + variableId + " + $c;" + appendix, new ScopeTestStruct[]{
+                        new ScopeTestStruct("$a", fullScopeName,
+                                getAstAccessOrder(accessToScope, emptyStepIn, 0, 0, 0)),
+                        new ScopeTestStruct(astText, fullScopeName,
+                                getAstAccessOrder(accessToScope, stepIn, 0, 0, 1, 0, 1)),
+                        new ScopeTestStruct("$c", fullScopeName,
+                                getAstAccessOrder(accessToScope, emptyStepIn, 0, 0, 1, 1))
+                }},
+                //there are no nested local scopes
+                //(expr (= variableId $a))
+                {prefix + " { " + variableId + " = $a; } " + appendix, new ScopeTestStruct[]{
+                        new ScopeTestStruct(astText, fullScopeName,
+                                getAstAccessOrder(accessToScope, stepIn, 0, 0, 0)),
+                        new ScopeTestStruct("$a", fullScopeName,
+                                getAstAccessOrder(accessToScope, emptyStepIn, 0, 0, 1))
+                }},
+                //there are no nested local scopes, does not matter how many {} we declare
+                {prefix + " { { $a = " + variableId + ";} $a = $c; } " + appendix, new ScopeTestStruct[]{
+                        new ScopeTestStruct("$a", fullScopeName,
+                                getAstAccessOrder(accessToScope, emptyStepIn, 0, 0, 0)),
                         new ScopeTestStruct(astText, fullScopeName,
                                 getAstAccessOrder(accessToScope, stepIn, 0, 0, 1)),
-                        //vars $a $c
+                        new ScopeTestStruct("$a", fullScopeName,
+                                getAstAccessOrder(accessToScope, emptyStepIn, 1, 0, 0)),
                         new ScopeTestStruct("$c", fullScopeName,
-                                getAstAccessOrder(accessToScope, emptyStepIn, 1, 1, 0))
-                }
-                }
+                                getAstAccessOrder(accessToScope, emptyStepIn, 1, 0, 1))
+                }}
         });
     }
 
@@ -187,30 +186,27 @@ public class ScopeTestHelper
                         //expr arrAccess variableId
                         new ScopeTestStruct(astText, fullScopeName,
                                 getAstAccessOrder(accessToScope, stepIn, 0, 0, 0))
-                }
-                },
+                }},
                 {prefix + variableId + "[1+1][0];" + appendix, new ScopeTestStruct[]{
                         //arrAccess arrAccess variableId
                         new ScopeTestStruct(astText, fullScopeName,
                                 getAstAccessOrder(accessToScope, stepIn, 0, 0, 0, 0))
-                }
-                },
-                {prefix + variableId + "->foo();" + appendix, new ScopeTestStruct[]{
-                        //smCall/mCall/fCall variableId
-                        new ScopeTestStruct(astText, fullScopeName,
-                                getAstAccessOrder(accessToScope, stepIn, 0, 0, 0))
-                }
-                },
-                {prefix + variableId + "->foo()->bar();" + appendix, new ScopeTestStruct[]{
-                        //smCall/mCall/fCall smCall/mCall/fCall variableId
-                        new ScopeTestStruct(astText, fullScopeName,
-                                getAstAccessOrder(accessToScope, stepIn, 0, 0, 0, 0))
-                }
-                }
+                }},
+                //TODO rstoll TINS-161 inference OOP
+//                {prefix + variableId + "->foo();" + appendix, new ScopeTestStruct[]{
+//                        //smCall/mCall/fCall variableId
+//                        new ScopeTestStruct(astText, fullScopeName,
+//                                getAstAccessOrder(accessToScope, stepIn, 0, 0, 0))
+//                }},
+//                {prefix + variableId + "->foo()->bar();" + appendix, new ScopeTestStruct[]{
+//                        //smCall/mCall/fCall smCall/mCall/fCall variableId
+//                        new ScopeTestStruct(astText, fullScopeName,
+//                                getAstAccessOrder(accessToScope, stepIn, 0, 0, 0, 0))
+//                }}
         });
     }
 
-    private static List<Integer> getAstAccessOrder(Integer[] accessToScope, Integer[] stepIn,
+    public static List<Integer> getAstAccessOrder(Integer[] accessToScope, Integer[] stepIn,
             Integer... accessToTestCandidate) {
         List<Integer> accessOrder = new ArrayList<>();
         accessOrder.addAll(Arrays.asList(accessToScope));
