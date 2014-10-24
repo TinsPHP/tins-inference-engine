@@ -38,11 +38,9 @@ public interface IDefinitionPhaseController
 //    IClassTypeSymbol defineClass(IScope currentScope, ITSPHPAst modifier, ITSPHPAst identifier,
 //            ITSPHPAst extendsIds, ITSPHPAst implementsIds);
 
-
     IConditionalScope defineConditionalScope(IScope currentScope);
 
-    //TODO rstoll TINS-156 definition phase - constants
-    //void defineConstant(IScope currentScope, ITSPHPAst modifier, ITSPHPAst type, ITSPHPAst identifier);
+    void defineConstant(IScope currentScope, ITSPHPAst modifier, ITSPHPAst type, ITSPHPAst identifier);
 
     //TODO rstoll TINS-161 inference OOP
 //    @SuppressWarnings("checkstyle:parameternumber")
@@ -57,6 +55,5 @@ public interface IDefinitionPhaseController
 //    IMethodSymbol defineMethod(IScope currentScope, ITSPHPAst methodModifier,
 //            ITSPHPAst returnTypeModifier, ITSPHPAst returnType, ITSPHPAst identifier);
 
-    //TODO rstoll TINS-154 definition phase - variables
-    //void defineVariable(IScope currentScope, ITSPHPAst modifier, ITSPHPAst type, ITSPHPAst variableId);
+    void defineVariable(IScope currentScope, ITSPHPAst modifier, ITSPHPAst type, ITSPHPAst variableId);
 }

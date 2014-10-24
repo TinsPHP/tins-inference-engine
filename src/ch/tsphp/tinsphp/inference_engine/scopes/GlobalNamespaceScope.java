@@ -79,7 +79,7 @@ public class GlobalNamespaceScope extends AScope implements IGlobalNamespaceScop
         return typeNameWithoutPrefix;
     }
 
-    //TODO rstoll TINS-163 definition phase - use
+    //TODO rstoll TINS-179 reference phase - use
 //    @Override
 //    public ITypeSymbol getTypeSymbolWhichClashesWithUse(ITSPHPAst identifier) {
 //        String typeName = identifier.getText();

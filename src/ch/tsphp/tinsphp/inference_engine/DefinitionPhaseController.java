@@ -16,12 +16,14 @@ import ch.tsphp.common.ILowerCaseStringMap;
 import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.LowerCaseStringMap;
+import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.tinsphp.inference_engine.scopes.IConditionalScope;
 import ch.tsphp.tinsphp.inference_engine.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.inference_engine.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.inference_engine.scopes.IScopeFactory;
 import ch.tsphp.tinsphp.inference_engine.symbols.IAliasSymbol;
 import ch.tsphp.tinsphp.inference_engine.symbols.ISymbolFactory;
+import ch.tsphp.tinsphp.inference_engine.symbols.IVariableSymbol;
 
 public class DefinitionPhaseController implements IDefinitionPhaseController
 {
@@ -73,11 +75,10 @@ public class DefinitionPhaseController implements IDefinitionPhaseController
         currentScope.defineUse(aliasSymbol);
     }
 
-    //TODO rstoll TINS-156 definition phase - constants
-//    @Override
-//    public void defineConstant(IScope currentScope, ITSPHPAst modifier, ITSPHPAst type, ITSPHPAst identifier) {
-//        defineVariable(currentScope, modifier, type, identifier);
-//    }
+    @Override
+    public void defineConstant(IScope currentScope, ITSPHPAst modifier, ITSPHPAst type, ITSPHPAst identifier) {
+        defineVariable(currentScope, modifier, type, identifier);
+    }
 
     //TODO rstoll TINS-161 inference OOP
 //    @Override
@@ -93,7 +94,7 @@ public class DefinitionPhaseController implements IDefinitionPhaseController
 //        return interfaceSymbol;
 //    }
 
-//    private void assignScopeToIdentifiers(IScope currentScope, ITSPHPAst identifierList) {
+    //    private void assignScopeToIdentifiers(IScope currentScope, ITSPHPAst identifierList) {
 //        int length = identifierList.getChildCount();
 //        for (int i = 0; i < length; ++i) {
 //            ITSPHPAst ast = identifierList.getChild(i);
@@ -101,11 +102,11 @@ public class DefinitionPhaseController implements IDefinitionPhaseController
 //        }
 //    }
 //
-//    private void define(IScope currentScope, ITSPHPAst identifier, ISymbol symbol) {
-//        identifier.setSymbol(symbol);
-//        identifier.setScope(currentScope);
-//        currentScope.define(symbol);
-//    }
+    private void define(IScope currentScope, ITSPHPAst identifier, ISymbol symbol) {
+        identifier.setSymbol(symbol);
+        identifier.setScope(currentScope);
+        currentScope.define(symbol);
+    }
 //
 //
 //    @Override
@@ -150,11 +151,10 @@ public class DefinitionPhaseController implements IDefinitionPhaseController
         return scopeFactory.createConditionalScope(currentScope);
     }
 
-    //TODO rstoll TINS-154 definition phase - variables
-//    @Override
-//    public void defineVariable(IScope currentScope, ITSPHPAst modifier, ITSPHPAst type, ITSPHPAst variableId) {
-//        type.setScope(currentScope);
-//        IVariableSymbol variableSymbol = symbolFactory.createVariableSymbol(modifier, variableId);
-//        define(currentScope, variableId, variableSymbol);
-//    }
+    @Override
+    public void defineVariable(IScope currentScope, ITSPHPAst modifier, ITSPHPAst type, ITSPHPAst variableId) {
+        type.setScope(currentScope);
+        IVariableSymbol variableSymbol = symbolFactory.createVariableSymbol(modifier, variableId);
+        define(currentScope, variableId, variableSymbol);
+    }
 }

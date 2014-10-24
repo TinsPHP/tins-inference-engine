@@ -21,7 +21,6 @@ import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.symbols.IAliasSymbol;
 import ch.tsphp.tinsphp.inference_engine.utils.MapHelper;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,6 +88,7 @@ public class NamespaceScope implements INamespaceScope
         symbol.setDefinitionScope(this);
     }
 
+    //TODO rstoll TINS-179 reference phase - use
 //    @Override
 //    public boolean useDefinitionCheck(IAliasSymbol symbol) {
 //        boolean isNotDoubleDefined = scopeHelper.checkIsNotDoubleDefinition(
@@ -129,9 +129,7 @@ public class NamespaceScope implements INamespaceScope
 
     @Override
     public Map<String, List<ISymbol>> getSymbols() {
-        return new HashMap<>();
-        //TODO rstoll TINS-163 definition phase - use
-//        return unsafeCast(uses);
+        return unsafeCast(uses);
     }
 
     @SuppressWarnings("unchecked")
@@ -159,7 +157,7 @@ public class NamespaceScope implements INamespaceScope
         return globalNamespaceScope.isPartiallyInitialised(symbol);
     }
 
-    //TODO rstoll TINS-163 definition phase - use
+    //TODO rstoll TINS-179 reference phase - use
 //    @Override
 //    public List<IAliasSymbol> getUse(String alias) {
 //        return uses.get(alias);

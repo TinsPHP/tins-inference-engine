@@ -12,6 +12,7 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.testutils;
 
+import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.tinsphp.inference_engine.DefinitionPhaseController;
@@ -88,12 +89,11 @@ public class TestDefinitionPhaseController extends DefinitionPhaseController imp
 //        return scope;
 //    }
 
-    //TODO rstoll TINS-154 definition phase - variables
-//    @Override
-//    public void defineVariable(IScope currentScope, ITSPHPAst modifier, ITSPHPAst type, ITSPHPAst variableId) {
-//        super.defineVariable(currentScope, modifier, type, variableId);
-//        symbols.add(new HashMap.SimpleEntry<>(newlyCreatedSymbol, type));
-//    }
+    @Override
+    public void defineVariable(IScope currentScope, ITSPHPAst modifier, ITSPHPAst type, ITSPHPAst variableId) {
+        super.defineVariable(currentScope, modifier, type, variableId);
+        symbols.add(new HashMap.SimpleEntry<>(newlyCreatedSymbol, type));
+    }
 
     @Override
     public void setNewlyCreatedSymbol(ISymbol symbol) {

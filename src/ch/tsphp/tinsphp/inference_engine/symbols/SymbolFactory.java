@@ -14,6 +14,7 @@ package ch.tsphp.tinsphp.inference_engine.symbols;
 
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ITypeSymbol;
+import ch.tsphp.common.symbols.modifiers.IModifierSet;
 import ch.tsphp.tinsphp.inference_engine.scopes.IScopeHelper;
 
 public class SymbolFactory implements ISymbolFactory
@@ -122,13 +123,13 @@ public class SymbolFactory implements ISymbolFactory
 //    public IVariableSymbol createThisSymbol(ITSPHPAst variableId, IPolymorphicTypeSymbol polymorphicTypeSymbol) {
 //        return new ThisSymbol(variableId, variableId.getText(), polymorphicTypeSymbol);
 //    }
-//
-//    @Override
-//    public IVariableSymbol createVariableSymbol(ITSPHPAst typeModifier, ITSPHPAst variableId) {
-//        IModifierSet modifiers = typeModifier != null ? modifierHelper.getModifiers(typeModifier) : new ModifierSet();
-//        return new VariableSymbol(variableId, modifiers, variableId.getText());
-//    }
-//
+
+    @Override
+    public IVariableSymbol createVariableSymbol(ITSPHPAst typeModifier, ITSPHPAst variableId) {
+        IModifierSet modifiers = typeModifier != null ? modifierHelper.getModifiers(typeModifier) : new ModifierSet();
+        return new VariableSymbol(variableId, modifiers, variableId.getText());
+    }
+
 //    @Override
 //    public IErroneousTypeSymbol createErroneousTypeSymbol(ITSPHPAst ast, TSPHPException exception) {
 //        IMethodSymbol methodSymbol = createErroneousMethodSymbol(ast, exception);

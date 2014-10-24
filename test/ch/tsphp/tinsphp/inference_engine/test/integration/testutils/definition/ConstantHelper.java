@@ -40,33 +40,35 @@ public class ConstantHelper
 
         for (String type : types) {
             String typeExpected = isDefinitionPhase ? "" : type;
-            collection.add(new Object[]{
-                    prefix + "const " + type + " a=true;" + appendix,
-                    prefixExpected + scopeName + type + " " + scopeName + "a#" + typeExpected + mod
-            });
-            collection.add(new Object[]{
-                    prefix + "const " + type + " a=true, b=false;" + appendix,
-                    prefixExpected + scopeName + type + " " + scopeName + "a#" + typeExpected + mod + " "
-                            + scopeName + type + " " + scopeName + "b#" + typeExpected + mod
-            });
-            collection.add(new Object[]{
-                    prefix + "const " + type + " a=1,b=2;" + appendix,
-                    prefixExpected + scopeName + type + " " + scopeName + "a#" + typeExpected + mod + " "
-                            + scopeName + type + " " + scopeName + "b#" + typeExpected + mod
-            });
-            collection.add(new Object[]{
-                    prefix + "const " + type + " a=1.0,b=2.0,c=null;" + appendix,
-                    prefixExpected + scopeName + type + " " + scopeName + "a#" + typeExpected + mod + " "
-                            + scopeName + type + " " + scopeName + "b#" + typeExpected + mod + " "
-                            + scopeName + type + " " + scopeName + "c#" + typeExpected + mod
-            });
-            collection.add(new Object[]{
-                    prefix + "const " + type + " a=1,b=\"2\",c=null,d='2';" + appendix,
-                    prefixExpected + scopeName + type + " " + scopeName + "a#" + typeExpected + mod + " "
-                            + scopeName + type + " " + scopeName + "b#" + typeExpected + mod + " "
-                            + scopeName + type + " " + scopeName + "c#" + typeExpected + mod + " "
-                            + scopeName + type + " " + scopeName + "d#" + typeExpected + mod
-            });
+            collection.addAll(Arrays.asList(new Object[][]{
+                    {
+                            prefix + "const a=true;" + appendix,
+                            prefixExpected + scopeName + "? " + scopeName + "a#" + typeExpected + mod
+                    },
+                    {
+                            prefix + "const a=true, b=false;" + appendix,
+                            prefixExpected + scopeName + "? " + scopeName + "a#" + typeExpected + mod + " "
+                                    + scopeName + "? " + scopeName + "b#" + typeExpected + mod
+                    },
+                    {
+                            prefix + "const a=1,b=2;" + appendix,
+                            prefixExpected + scopeName + "? " + scopeName + "a#" + typeExpected + mod + " "
+                                    + scopeName + "? " + scopeName + "b#" + typeExpected + mod
+                    },
+                    {
+                            prefix + "const a=1.0,b=2.0,c=null;" + appendix,
+                            prefixExpected + scopeName + "? " + scopeName + "a#" + typeExpected + mod + " "
+                                    + scopeName + "? " + scopeName + "b#" + typeExpected + mod + " "
+                                    + scopeName + "? " + scopeName + "c#" + typeExpected + mod
+                    },
+                    {
+                            prefix + "const a=1,b=\"2\",c=null,d='2';" + appendix,
+                            prefixExpected + scopeName + "? " + scopeName + "a#" + typeExpected + mod + " "
+                                    + scopeName + "? " + scopeName + "b#" + typeExpected + mod + " "
+                                    + scopeName + "? " + scopeName + "c#" + typeExpected + mod + " "
+                                    + scopeName + "? " + scopeName + "d#" + typeExpected + mod
+                    }
+            }));
         }
         return collection;
     }

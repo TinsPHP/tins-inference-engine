@@ -74,9 +74,7 @@ public class ScopeTestHelper
                     fullScopeName, accessToScope, new Integer[]{0}));
         }
 
-        //TODO rstoll TINS-156 definition phase - constants
-//        collection.addAll(getVariations(prefix, appendix, "b", "b#",
-//                fullScopeName, accessToScope));
+        collection.addAll(getVariations(prefix, appendix, "b", "b#", fullScopeName, accessToScope));
         //TODO rstoll TINS-161 inference OOP
 //        collection.addAll(getVariations(prefix, appendix, "self::b", "self",
 //                fullScopeName, accessToScope, new Integer[]{0}));

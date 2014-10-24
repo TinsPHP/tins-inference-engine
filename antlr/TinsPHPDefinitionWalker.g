@@ -62,11 +62,10 @@ topdown
     |   foreachLoop
     
         //symbols
-    //TODO rstoll TINS-156 definition phase - constants
-    //|   constantDefinitionList
-    //TODO rstoll TINS-154 definition phase - variables
+    |   constantDefinitionList
+    //TODO rstoll TINS-155 definition phase - functions
     //|   parameterDeclarationList
-    //variables are implicitly defined in PHP
+    //TODO rstoll TINS-154 definition phase - variables
     //|   variableDeclarationList
     
     //TODO rstoll TINS-155 definition phase - functions
@@ -163,8 +162,7 @@ foreachLoop
         }    
     ;
 
-//TODO rstoll TINS-156 definition phase - constants    
-/*constantDefinitionList
+constantDefinitionList
     :   ^(CONSTANT_DECLARATION_LIST ^(TYPE tMod=. type=.) constantDeclaration[$tMod, $type]+)
     ;
 
@@ -172,7 +170,6 @@ constantDeclaration[ITSPHPAst tMod, ITSPHPAst type]
     :   ^(identifier=Identifier .)
         { definer.defineConstant(currentScope,$tMod, $type,$identifier); }
     ;
-*/
 
 //TODO rstoll TINS-154 definition phase - variables
 /*parameterDeclarationList
@@ -209,9 +206,8 @@ methodFunctionCall
     ;
 */
 expression    
-    :   (   //TODO rstoll TINS-156 definition phase - constants
-            //identifier=CONSTANT
-            identifier=VariableId
+    :   (   identifier=CONSTANT
+        |   identifier=VariableId
         //TODO rstoll TINS-161 inference OOP  
         //|   identifier='$this'
         //|   identifier='parent'

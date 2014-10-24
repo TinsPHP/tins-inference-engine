@@ -12,9 +12,11 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.testutils;
 
+import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.tinsphp.inference_engine.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.inference_engine.symbols.IModifierHelper;
+import ch.tsphp.tinsphp.inference_engine.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.inference_engine.symbols.SymbolFactory;
 
 import java.util.ArrayList;
@@ -29,6 +31,7 @@ public class TestSymbolFactory extends SymbolFactory
         super(theScopeHelper, theModifierHelper);
     }
 
+    //TODO rstoll TINS-161 inference OOP
 //    @Override
 //    public IInterfaceTypeSymbol createInterfaceTypeSymbol(ITSPHPAst modifier, ITSPHPAst identifier,
 //            IScope currentScope) {
@@ -53,13 +56,13 @@ public class TestSymbolFactory extends SymbolFactory
 //        updateListener(symbol);
 //        return symbol;
 //    }
-//
-//    @Override
-//    public IVariableSymbol createVariableSymbol(ITSPHPAst typeModifierAst, ITSPHPAst variableId) {
-//        IVariableSymbol symbol = super.createVariableSymbol(typeModifierAst, variableId);
-//        updateListener(symbol);
-//        return symbol;
-//    }
+
+    @Override
+    public IVariableSymbol createVariableSymbol(ITSPHPAst typeModifierAst, ITSPHPAst variableId) {
+        IVariableSymbol symbol = super.createVariableSymbol(typeModifierAst, variableId);
+        updateListener(symbol);
+        return symbol;
+    }
 
     public void registerListener(ICreateSymbolListener listener) {
         listeners.add(listener);

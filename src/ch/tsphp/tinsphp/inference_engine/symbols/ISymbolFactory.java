@@ -32,7 +32,8 @@ public interface ISymbolFactory
 //    IPseudoTypeSymbol createPseudoTypeSymbol(String name);
 //
     IAliasSymbol createAliasSymbol(ITSPHPAst useDefinition, String alias);
-//
+
+    //
 //    IAliasTypeSymbol createAliasTypeSymbol(ITSPHPAst definitionAst, String name);
 //
 //    IInterfaceTypeSymbol createInterfaceTypeSymbol(ITSPHPAst modifier, ITSPHPAst identifier, IScope currentScope);
@@ -44,7 +45,7 @@ public interface ISymbolFactory
 //
 //    IVariableSymbol createThisSymbol(ITSPHPAst variableId, IPolymorphicTypeSymbol polymorphicTypeSymbol);
 //
-//    IVariableSymbol createVariableSymbol(ITSPHPAst typeModifier, ITSPHPAst variableId);
+    IVariableSymbol createVariableSymbol(ITSPHPAst typeModifier, ITSPHPAst variableId);
 //
 //    IErroneousTypeSymbol createErroneousTypeSymbol(ITSPHPAst ast, TSPHPException exception);
 //
