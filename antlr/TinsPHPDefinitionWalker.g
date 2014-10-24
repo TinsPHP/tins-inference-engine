@@ -58,8 +58,9 @@ topdown
     
     //TODO rstoll TINS-155 definition phase - functions
     //|   methodFunctionDefinition
+
+    |   blockConditional
     //TODO rstoll TINS-162 definition phase - scopes
-    //|   blockConditional
     //|   foreachLoop
     
         //symbols
@@ -79,8 +80,7 @@ topdown
 
 bottomup
     :   exitNamespace
-    //TODO rstoll TINS-162 definition phase - scopes
-    //|   exitScope
+    |   exitScope
     ;
 
 exitNamespace
@@ -88,17 +88,19 @@ exitNamespace
         {currentScope = currentScope.getEnclosingScope().getEnclosingScope();}
     ;
     
-//TODO rstoll TINS-162 definition phase - scopes
-/*
+
+
 exitScope
     :   (   //TODO rstoll TINS-161 inference OOP
             // 'interface'
         //|   'class'
         //|   '__construct'
-        //|   METHOD_DECLARATION
-            Function
-        |   BLOCK_CONDITIONAL
-        |   Foreach
+        //|   METHOD_DECLARATION        
+        //TODO rstoll TINS-155 definition phase - functions
+        //|    Function
+           BLOCK_CONDITIONAL
+        //TODO rstoll TINS-162 definition phase - scopes
+        //|   Foreach
         ) 
         {
             //only get enclosing scope if a scope was defined - might not be the case due to syntax errors
@@ -107,7 +109,6 @@ exitScope
             }
         }
     ;   
-    */
     
 namespaceDefinition
     :   ^(Namespace t=(TYPE_NAME|DEFAULT_NAMESPACE) .)
@@ -142,7 +143,7 @@ constructDefinition
     ;
 */
 
-//TODO rstoll TINS-162 definition phase - scopes
+//TODO rstoll TINS-155 definition phase - functions
 /*
 methodFunctionDefinition
     :   ^(  //TODO rstoll TINS-161 inference OOP  
@@ -153,7 +154,7 @@ methodFunctionDefinition
         )
         {currentScope = definer.defineMethod(currentScope,$mMod, $rtMod, $returnType, $Identifier); }
     ;
- 
+*/
 blockConditional
     :   ^(block=BLOCK_CONDITIONAL .*)
         {
@@ -161,7 +162,9 @@ blockConditional
             $block.setScope(currentScope);
         }    
     ;
-    
+
+//TODO rstoll TINS-162 definition phase - scopes
+/*
 foreachLoop
     :   ^(Foreach .*)
         {

@@ -13,6 +13,8 @@
 package ch.tsphp.tinsphp.inference_engine;
 
 import ch.tsphp.common.ILowerCaseStringMap;
+import ch.tsphp.common.IScope;
+import ch.tsphp.tinsphp.inference_engine.scopes.IConditionalScope;
 import ch.tsphp.tinsphp.inference_engine.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.inference_engine.scopes.INamespaceScope;
 
@@ -36,8 +38,8 @@ public interface IDefinitionPhaseController
 //    IClassTypeSymbol defineClass(IScope currentScope, ITSPHPAst modifier, ITSPHPAst identifier,
 //            ITSPHPAst extendsIds, ITSPHPAst implementsIds);
 
-    //TODO rstoll TINS-162 definition phase - scopes
-//    IConditionalScope defineConditionalScope(IScope currentScope);
+
+    IConditionalScope defineConditionalScope(IScope currentScope);
 
     //TODO rstoll TINS-156 definition phase - constants
     //void defineConstant(IScope currentScope, ITSPHPAst modifier, ITSPHPAst type, ITSPHPAst identifier);

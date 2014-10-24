@@ -5,7 +5,7 @@
  */
 
 /*
- * This class is based on the class IScopeFactory from the TSPHP project.
+ * This class is based on the class IConditionalScope from the TSPHP project.
  * TSPHP is also published under the Apache License 2.0
  * For more information see http://tsphp.ch/wiki/display/TSPHP/License
  */
@@ -14,12 +14,12 @@ package ch.tsphp.tinsphp.inference_engine.scopes;
 
 import ch.tsphp.common.IScope;
 
-public interface IScopeFactory
+/**
+ * A scope guarded by a condition.
+ * <p/>
+ * See http://tsphp.ch/wiki/display/TSPHP/Variable+Scope#VariableScope-ConditionalScopes for more information
+ */
+public interface IConditionalScope extends IScope
 {
 
-    IGlobalNamespaceScope createGlobalNamespaceScope(String name);
-
-    INamespaceScope createNamespaceScope(String name, IGlobalNamespaceScope currentScope);
-
-    IConditionalScope createConditionalScope(IScope currentScope);
 }

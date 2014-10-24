@@ -13,4 +13,6 @@ import ch.tsphp.common.symbols.ISymbol;
 public interface IInferenceErrorReporter extends IErrorReporter
 {
     DefinitionException alreadyDefined(ISymbol existingSymbol, ISymbol newSymbol);
+
+    DefinitionException definedInOuterScope(ISymbol firstDefinition, ISymbol symbolToCheck);
 }

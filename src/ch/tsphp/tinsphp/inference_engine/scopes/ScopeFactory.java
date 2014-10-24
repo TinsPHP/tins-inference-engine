@@ -12,6 +12,7 @@
 
 package ch.tsphp.tinsphp.inference_engine.scopes;
 
+import ch.tsphp.common.IScope;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 
 public class ScopeFactory implements IScopeFactory
@@ -34,9 +35,8 @@ public class ScopeFactory implements IScopeFactory
         return new NamespaceScope(scopeHelper, name, currentScope, typeCheckerErrorReporter);
     }
 
-//TODO rstoll TINS-162 definition phase - scopes
-//    @Override
-//    public IConditionalScope createConditionalScope(IScope currentScope) {
-//        return new ConditionalScope(scopeHelper, currentScope, typeCheckerErrorReporter);
-//    }
+    @Override
+    public IConditionalScope createConditionalScope(IScope currentScope) {
+        return new ConditionalScope(scopeHelper, currentScope, typeCheckerErrorReporter);
+    }
 }

@@ -13,7 +13,9 @@
 package ch.tsphp.tinsphp.inference_engine;
 
 import ch.tsphp.common.ILowerCaseStringMap;
+import ch.tsphp.common.IScope;
 import ch.tsphp.common.LowerCaseStringMap;
+import ch.tsphp.tinsphp.inference_engine.scopes.IConditionalScope;
 import ch.tsphp.tinsphp.inference_engine.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.inference_engine.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.inference_engine.scopes.IScopeFactory;
@@ -140,11 +142,11 @@ public class DefinitionPhaseController implements IDefinitionPhaseController
 //        return methodSymbol;
 //    }
 
-    //TODO rstoll TINS-162 definition phase - scopes
-//    @Override
-//    public IConditionalScope defineConditionalScope(IScope currentScope) {
-//        return scopeFactory.createConditionalScope(currentScope);
-//    }
+
+    @Override
+    public IConditionalScope defineConditionalScope(IScope currentScope) {
+        return scopeFactory.createConditionalScope(currentScope);
+    }
 
     //TODO rstoll TINS-154 definition phase - variables
 //    @Override

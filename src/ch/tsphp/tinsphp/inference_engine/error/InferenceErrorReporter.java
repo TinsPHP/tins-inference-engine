@@ -48,4 +48,9 @@ public class InferenceErrorReporter implements IInferenceErrorReporter
         throw new UnsupportedOperationException("not yet implemented");
     }
 
+    @Override
+    public DefinitionException definedInOuterScope(ISymbol firstDefinition, ISymbol symbolToCheck) {
+        //TODO rstoll TINS-174 inference engine and error reporting
+        throw new UnsupportedOperationException("not yet implemented");
+    }
 }
