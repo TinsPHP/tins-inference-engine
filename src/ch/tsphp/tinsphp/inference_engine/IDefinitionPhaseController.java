@@ -18,6 +18,7 @@ import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.tinsphp.inference_engine.scopes.IConditionalScope;
 import ch.tsphp.tinsphp.inference_engine.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.inference_engine.scopes.INamespaceScope;
+import ch.tsphp.tinsphp.inference_engine.symbols.IMethodSymbol;
 
 /**
  * Represents the interface between the TSPHPDefinitionWalker (ANTLR generated) and the logic.
@@ -51,9 +52,9 @@ public interface IDefinitionPhaseController
 //    IInterfaceTypeSymbol defineInterface(IScope currentScope, ITSPHPAst modifier, ITSPHPAst identifier,
 //            ITSPHPAst extendsIds);
 //
-//    @SuppressWarnings("checkstyle:parameternumber")
-//    IMethodSymbol defineMethod(IScope currentScope, ITSPHPAst methodModifier,
-//            ITSPHPAst returnTypeModifier, ITSPHPAst returnType, ITSPHPAst identifier);
+    @SuppressWarnings("checkstyle:parameternumber")
+    IMethodSymbol defineMethod(IScope currentScope, ITSPHPAst methodModifier,
+            ITSPHPAst returnTypeModifier, ITSPHPAst returnType, ITSPHPAst identifier);
 
     void defineVariable(IScope currentScope, ITSPHPAst modifier, ITSPHPAst type, ITSPHPAst variableId);
 }

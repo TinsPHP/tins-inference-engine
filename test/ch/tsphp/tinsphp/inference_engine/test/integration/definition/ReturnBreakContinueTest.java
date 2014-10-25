@@ -39,10 +39,9 @@ public class ReturnBreakContinueTest extends ADefinitionScopeTest
         collection.addAll(getVariations("", "", "\\.\\.", new Integer[]{1}));
         collection.addAll(getVariations("namespace{", "}", "\\.\\.", new Integer[]{1}));
 
-        //TODO rstoll TINS-155 definition phase - functions
         //nBody function block
-//        collection.addAll(getVariations("function void foo(){", "}",
-//                "\\.\\.foo().", new Integer[]{1, 0, 4}));
+        collection.addAll(getVariations("function foo(){", "}",
+                "\\.\\.foo().", new Integer[]{1, 0, 4}));
 
         //TODO rstoll TINS-161 inference OOP
         //nBody class classBody mDecl block

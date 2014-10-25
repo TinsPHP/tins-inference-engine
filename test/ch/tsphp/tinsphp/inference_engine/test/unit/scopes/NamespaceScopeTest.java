@@ -126,7 +126,7 @@ public class NamespaceScopeTest
         verify(globalNamespaceScope).doubleDefinitionCheckCaseInsensitive(symbol);
     }
 
-//TODO rstoll TINS-163 definition phase - use
+//TODO rstoll TINS-179 reference phase - use
 //    @Test
 //    public void defineUse_Standard_SetDefinitionScope() {
 //        IAliasSymbol aliasSymbol = createAliasSymbol("aliasName");
@@ -148,7 +148,7 @@ public class NamespaceScopeTest
         assertTrue(symbols.isEmpty());
     }
 
-    //TODO rstoll TINS-163 definition phase - use
+    //TODO rstoll TINS-179 reference phase - use
 //    @Test
 //    public void getUse_NothingDefined_ReturnNull() {
 //        //no arrange needed
@@ -582,7 +582,7 @@ public class NamespaceScopeTest
         return typeSymbol;
     }
 
-    //TODO rstoll TINS-163 definition phase - use
+    //TODO rstoll TINS-179 reference phase - use
 //    private IAliasSymbol createAliasSymbol(String name) {
 //        IAliasSymbol aliasSymbol = mock(IAliasSymbol.class);
 //        when(aliasSymbol.getName()).thenReturn(name);

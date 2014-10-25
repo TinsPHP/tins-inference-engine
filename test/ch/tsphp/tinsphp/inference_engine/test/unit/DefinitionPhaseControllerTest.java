@@ -18,10 +18,13 @@ import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.tinsphp.inference_engine.DefinitionPhaseController;
 import ch.tsphp.tinsphp.inference_engine.IDefinitionPhaseController;
+import ch.tsphp.tinsphp.inference_engine.scopes.IConditionalScope;
 import ch.tsphp.tinsphp.inference_engine.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.inference_engine.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.inference_engine.scopes.IScopeFactory;
+import ch.tsphp.tinsphp.inference_engine.symbols.IAliasSymbol;
 import ch.tsphp.tinsphp.inference_engine.symbols.ISymbolFactory;
+import ch.tsphp.tinsphp.inference_engine.symbols.IVariableSymbol;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -31,6 +34,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class DefinitionPhaseControllerTest
@@ -129,61 +133,58 @@ public class DefinitionPhaseControllerTest
         assertThat(scopes, hasEntry("name", namespaceAndGlobal.globalNamespaceScope));
     }
 
-    //TODO rstoll TINS-163 definition phase - use
-//    @Test
-//    public void defineUse_standard_SetScopeForTypeAndCreateAliasSymbolAndDefineIt() {
-//        INamespaceScope namespaceScope = mock(INamespaceScope.class);
-//        ITSPHPAst typeAst = mock(ITSPHPAst.class);
-//        ITSPHPAst aliasAst = mock(ITSPHPAst.class);
-//        when(aliasAst.getText()).thenReturn("alias");
-//        IAliasSymbol aliasSymbol = mock(IAliasSymbol.class);
-//        when(symbolFactory.createAliasSymbol(aliasAst, "alias")).thenReturn(aliasSymbol);
-//
-//        IDefinitionPhaseController controller = createDefinitionPhaseController();
-//        controller.defineUse(namespaceScope, typeAst, aliasAst);
-//
-//        verify(typeAst).setScope(namespaceScope);
-//        verify(aliasAst).setSymbol(aliasSymbol);
-//        verify(aliasAst).setScope(namespaceScope);
-//        verify(namespaceScope).defineUse(aliasSymbol);
-//        verify(symbolFactory).createAliasSymbol(aliasAst, "alias");
-//    }
+    @Test
+    public void defineUse_standard_SetScopeForTypeAndCreateAliasSymbolAndDefineIt() {
+        INamespaceScope namespaceScope = mock(INamespaceScope.class);
+        ITSPHPAst typeAst = mock(ITSPHPAst.class);
+        ITSPHPAst aliasAst = mock(ITSPHPAst.class);
+        when(aliasAst.getText()).thenReturn("alias");
+        IAliasSymbol aliasSymbol = mock(IAliasSymbol.class);
+        when(symbolFactory.createAliasSymbol(aliasAst, "alias")).thenReturn(aliasSymbol);
 
-    //TODO rstoll TINS-154 definition phase - variables
-//    @Test
-//    public void defineVariable_Standard_SetScopeForTypeAndCreateVariableSymbolAndDefineIt() {
-//        INamespaceScope namespaceScope = mock(INamespaceScope.class);
-//        ITSPHPAst modifierAst = mock(ITSPHPAst.class);
-//        ITSPHPAst typeAst = mock(ITSPHPAst.class);
-//        ITSPHPAst identifierAst = mock(ITSPHPAst.class);
-//        IVariableSymbol variableSymbol = mock(IVariableSymbol.class);
-//        when(symbolFactory.createVariableSymbol(modifierAst, identifierAst)).thenReturn(variableSymbol);
-//
-//        IDefinitionPhaseController controller = createDefinitionPhaseController();
-//        controller.defineVariable(namespaceScope, modifierAst, typeAst, identifierAst);
-//
-//        verify(typeAst).setScope(namespaceScope);
-//        verifyScopeSymbolAndDefine(namespaceScope, identifierAst, variableSymbol);
-//        verify(symbolFactory).createVariableSymbol(modifierAst, identifierAst);
-//    }
+        IDefinitionPhaseController controller = createDefinitionPhaseController();
+        controller.defineUse(namespaceScope, typeAst, aliasAst);
 
-    //TODO rstoll TINS-156 definition phase - constants
-//    @Test
-//    public void defineConstant_Standard_SetScopeForTypeAndCreateVariableSymbolAndDefineIt() {
-//        INamespaceScope namespaceScope = mock(INamespaceScope.class);
-//        ITSPHPAst modifierAst = mock(ITSPHPAst.class);
-//        ITSPHPAst typeAst = mock(ITSPHPAst.class);
-//        ITSPHPAst identifierAst = mock(ITSPHPAst.class);
-//        IVariableSymbol variableSymbol = mock(IVariableSymbol.class);
-//        when(symbolFactory.createVariableSymbol(modifierAst, identifierAst)).thenReturn(variableSymbol);
-//
-//        IDefinitionPhaseController controller = createDefinitionPhaseController();
-//        controller.defineConstant(namespaceScope, modifierAst, typeAst, identifierAst);
-//
-//        verify(typeAst).setScope(namespaceScope);
-//        verifyScopeSymbolAndDefine(namespaceScope, identifierAst, variableSymbol);
-//        verify(symbolFactory).createVariableSymbol(modifierAst, identifierAst);
-//    }
+        verify(typeAst).setScope(namespaceScope);
+        verify(aliasAst).setSymbol(aliasSymbol);
+        verify(aliasAst).setScope(namespaceScope);
+        verify(namespaceScope).defineUse(aliasSymbol);
+        verify(symbolFactory).createAliasSymbol(aliasAst, "alias");
+    }
+
+    @Test
+    public void defineVariable_Standard_SetScopeForTypeAndCreateVariableSymbolAndDefineIt() {
+        INamespaceScope namespaceScope = mock(INamespaceScope.class);
+        ITSPHPAst modifierAst = mock(ITSPHPAst.class);
+        ITSPHPAst typeAst = mock(ITSPHPAst.class);
+        ITSPHPAst identifierAst = mock(ITSPHPAst.class);
+        IVariableSymbol variableSymbol = mock(IVariableSymbol.class);
+        when(symbolFactory.createVariableSymbol(modifierAst, identifierAst)).thenReturn(variableSymbol);
+
+        IDefinitionPhaseController controller = createDefinitionPhaseController();
+        controller.defineVariable(namespaceScope, modifierAst, typeAst, identifierAst);
+
+        verify(typeAst).setScope(namespaceScope);
+        verifyScopeSymbolAndDefine(namespaceScope, identifierAst, variableSymbol);
+        verify(symbolFactory).createVariableSymbol(modifierAst, identifierAst);
+    }
+
+    @Test
+    public void defineConstant_Standard_SetScopeForTypeAndCreateVariableSymbolAndDefineIt() {
+        INamespaceScope namespaceScope = mock(INamespaceScope.class);
+        ITSPHPAst modifierAst = mock(ITSPHPAst.class);
+        ITSPHPAst typeAst = mock(ITSPHPAst.class);
+        ITSPHPAst identifierAst = mock(ITSPHPAst.class);
+        IVariableSymbol variableSymbol = mock(IVariableSymbol.class);
+        when(symbolFactory.createVariableSymbol(modifierAst, identifierAst)).thenReturn(variableSymbol);
+
+        IDefinitionPhaseController controller = createDefinitionPhaseController();
+        controller.defineConstant(namespaceScope, modifierAst, typeAst, identifierAst);
+
+        verify(typeAst).setScope(namespaceScope);
+        verifyScopeSymbolAndDefine(namespaceScope, identifierAst, variableSymbol);
+        verify(symbolFactory).createVariableSymbol(modifierAst, identifierAst);
+    }
 
     //TODO rstoll TINS-161 inference OOP
 //    @Test
@@ -356,22 +357,21 @@ public class DefinitionPhaseControllerTest
 //        verify(symbolFactory).createMethodSymbol(modifierAst, returnTypeModifierAst, identifierAst, namespaceScope);
 //    }
 
-    //TODO rstoll TINS-162 definition phase - scopes
-//    @Test
-//    public void defineConditionalScope_Standard_CallScopeFactory() {
-//        IScope parentScope = mock(IScope.class);
-//        IConditionalScope conditionalScope = mock(IConditionalScope.class);
-//        when(scopeFactory.createConditionalScope(parentScope)).thenReturn(conditionalScope);
-//
-//        IDefinitionPhaseController controller = createDefinitionPhaseController();
-//        IConditionalScope scope = controller.defineConditionalScope(parentScope);
-//
-//        assertThat(scope, is(conditionalScope));
-//        verify(scopeFactory).createConditionalScope(parentScope);
-//        //shouldn't have any additional interaction with scopeFactory than creating the global default namespace
-//        verify(scopeFactory).createGlobalNamespaceScope("\\");
-//        verifyNoMoreInteractions(scopeFactory);
-//    }
+    @Test
+    public void defineConditionalScope_Standard_CallScopeFactory() {
+        IScope parentScope = mock(IScope.class);
+        IConditionalScope conditionalScope = mock(IConditionalScope.class);
+        when(scopeFactory.createConditionalScope(parentScope)).thenReturn(conditionalScope);
+
+        IDefinitionPhaseController controller = createDefinitionPhaseController();
+        IConditionalScope scope = controller.defineConditionalScope(parentScope);
+
+        assertThat(scope, is(conditionalScope));
+        verify(scopeFactory).createConditionalScope(parentScope);
+        //shouldn't have any additional interaction with scopeFactory than creating the global default namespace
+        verify(scopeFactory).createGlobalNamespaceScope("\\");
+        verifyNoMoreInteractions(scopeFactory);
+    }
 
     private IDefinitionPhaseController createDefinitionPhaseController() {
         return new DefinitionPhaseController(symbolFactory, scopeFactory);

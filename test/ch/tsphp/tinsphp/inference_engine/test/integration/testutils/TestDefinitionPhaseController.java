@@ -19,6 +19,7 @@ import ch.tsphp.tinsphp.inference_engine.DefinitionPhaseController;
 import ch.tsphp.tinsphp.inference_engine.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.inference_engine.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.inference_engine.scopes.IScopeFactory;
+import ch.tsphp.tinsphp.inference_engine.symbols.IMethodSymbol;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -79,15 +80,15 @@ public class TestDefinitionPhaseController extends DefinitionPhaseController imp
 //        return scope;
 //    }
 
-//    @Override
-//    @SuppressWarnings("checkstyle:parameternumber")
-//    public IMethodSymbol defineMethod(IScope currentScope, ITSPHPAst methodModifier,
-//            ITSPHPAst returnTypeModifier, ITSPHPAst returnType, ITSPHPAst identifier) {
-//        IMethodSymbol scope = super.defineMethod(currentScope, methodModifier, returnTypeModifier, returnType,
-//                identifier);
-//        symbols.add(new HashMap.SimpleEntry<>(newlyCreatedSymbol, returnType));
-//        return scope;
-//    }
+    @Override
+    @SuppressWarnings("checkstyle:parameternumber")
+    public IMethodSymbol defineMethod(IScope currentScope, ITSPHPAst methodModifier,
+            ITSPHPAst returnTypeModifier, ITSPHPAst returnType, ITSPHPAst identifier) {
+        IMethodSymbol scope = super.defineMethod(currentScope, methodModifier, returnTypeModifier, returnType,
+                identifier);
+        symbols.add(new HashMap.SimpleEntry<>(newlyCreatedSymbol, returnType));
+        return scope;
+    }
 
     @Override
     public void defineVariable(IScope currentScope, ITSPHPAst modifier, ITSPHPAst type, ITSPHPAst variableId) {

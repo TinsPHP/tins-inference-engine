@@ -55,18 +55,15 @@ topdown
     //|   classDefinition
     //|   constructDefinition
     
-    //TODO rstoll TINS-155 definition phase - functions
-    //|   methodFunctionDefinition
-
+    |   methodFunctionDefinition
     |   blockConditional
     |   foreachLoop
     
         //symbols
     |   constantDefinitionList
     |   variableDeclarationList
-    //TODO rstoll TINS-155 definition phase - functions
-    //|   parameterDeclarationList
-    //|   methodFunctionCall
+    |   parameterDeclarationList
+    |   methodFunctionCall
     |   expression
     |   returnBreakContinue
     ;
@@ -87,9 +84,8 @@ exitScope
         //|   'class'
         //|   '__construct'
         //|   METHOD_DECLARATION        
-        //TODO rstoll TINS-155 definition phase - functions
-        //|    Function
-            BLOCK_CONDITIONAL
+            Function
+        |   BLOCK_CONDITIONAL
         |   Foreach
         ) 
         {
@@ -131,8 +127,6 @@ constructDefinition
     ;
 */
 
-//TODO rstoll TINS-155 definition phase - functions
-/*
 methodFunctionDefinition
     :   ^(  //TODO rstoll TINS-161 inference OOP  
             //(   METHOD_DECLARATION
@@ -142,7 +136,7 @@ methodFunctionDefinition
         )
         {currentScope = definer.defineMethod(currentScope,$mMod, $rtMod, $returnType, $Identifier); }
     ;
-*/
+
 blockConditional
     :   ^(block=BLOCK_CONDITIONAL .*)
         {
@@ -168,8 +162,7 @@ constantDeclaration[ITSPHPAst tMod, ITSPHPAst type]
         { definer.defineConstant(currentScope,$tMod, $type,$identifier); }
     ;
 
-//TODO rstoll TINS-155 definition phase - functions   
-/*parameterDeclarationList
+parameterDeclarationList
     :   ^(PARAMETER_LIST parameterDeclaration+)
     ;
 
@@ -178,7 +171,6 @@ parameterDeclaration
             ^(TYPE tMod=. type=.) variableDeclaration[$tMod,$type]
         )
     ;
-    */
 
 variableDeclarationList 
     :   ^(VARIABLE_DECLARATION_LIST
@@ -195,8 +187,6 @@ variableDeclaration[ITSPHPAst tMod, ITSPHPAst type]
         {definer.defineVariable(currentScope, $tMod, $type, $variableId);}
     ;
   
-//TODO rstoll TINS-155 definition phase - functions   
-/*
 methodFunctionCall
     :   //TODO rstoll TINS-161 inference OOP    
     //    ^(METHOD_CALL callee=. identifier=Identifier .)
@@ -208,7 +198,7 @@ methodFunctionCall
         ^(FUNCTION_CALL identifier=TYPE_NAME .)
         {$identifier.setScope(currentScope);}
     ;
-*/
+
 expression    
     :   (   identifier=CONSTANT
         |   identifier=VariableId
@@ -220,7 +210,7 @@ expression
         //|   ^(CLASS_STATIC_ACCESS identifier=(TYPE_NAME|'self'|'parent') .)
         
         |   ^(CAST ^(TYPE . type=primitiveTypesWithoutResource) .) {$identifier=$type.start;}
-        |   ^('instanceof' . (identifier=VariableId | identifier=TYPE_NAME))
+        |   ^('instanceof' . (identifier=VariableId /* | TODO rstoll TINS-161 inference OOP identifier=TYPE_NAME*/))
         //TODO rstoll TINS-161 inference OOP          
         //|   ^('new' identifier=TYPE_NAME .)
         )

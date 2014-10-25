@@ -12,6 +12,7 @@
 
 package ch.tsphp.tinsphp.inference_engine.symbols;
 
+import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 
 public interface ISymbolFactory
@@ -39,10 +40,11 @@ public interface ISymbolFactory
 //    IInterfaceTypeSymbol createInterfaceTypeSymbol(ITSPHPAst modifier, ITSPHPAst identifier, IScope currentScope);
 //
 //    IClassTypeSymbol createClassTypeSymbol(ITSPHPAst classModifier, ITSPHPAst identifier, IScope currentScope);
-//
-//    IMethodSymbol createMethodSymbol(ITSPHPAst methodModifier, ITSPHPAst returnTypeModifier, ITSPHPAst identifier,
-//            IScope currentScope);
-//
+
+    IMethodSymbol createMethodSymbol(ITSPHPAst methodModifier, ITSPHPAst returnTypeModifier, ITSPHPAst identifier,
+            IScope currentScope);
+
+    //
 //    IVariableSymbol createThisSymbol(ITSPHPAst variableId, IPolymorphicTypeSymbol polymorphicTypeSymbol);
 //
     IVariableSymbol createVariableSymbol(ITSPHPAst typeModifier, ITSPHPAst variableId);

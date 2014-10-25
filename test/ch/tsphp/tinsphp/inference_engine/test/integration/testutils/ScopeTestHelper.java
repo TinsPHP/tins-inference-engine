@@ -75,7 +75,7 @@ public class ScopeTestHelper
                 //TODO rstoll TINS-161 inference OOP
 //                {"self::$b", "self"},
 //                {"parent::$b", "parent"},
-//                {"foo()", "foo()"},
+                {"foo()", "foo()"},
 //                {"$a->foo()", "$a"},
 //                {"$this->foo()", "$this"},
 //                {"self::foo()", "self"},
@@ -107,7 +107,6 @@ public class ScopeTestHelper
 //            collection.addAll(getAccessVariations(prefix, appendix, type + "::foo()", type,
 //                    fullScopeName, accessToScope, new Integer[]{0}));
 //        }
-
 
         return collection;
     }

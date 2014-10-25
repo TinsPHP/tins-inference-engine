@@ -12,9 +12,11 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.testutils;
 
+import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.tinsphp.inference_engine.scopes.IScopeHelper;
+import ch.tsphp.tinsphp.inference_engine.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.inference_engine.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.inference_engine.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.inference_engine.symbols.SymbolFactory;
@@ -47,15 +49,15 @@ public class TestSymbolFactory extends SymbolFactory
 //        updateListener(symbol);
 //        return symbol;
 //    }
-//
-//    @Override
-//    public IMethodSymbol createMethodSymbol(ITSPHPAst methodModifier, ITSPHPAst returnTypeModifier,
-//            ITSPHPAst identifier,
-//            IScope currentScope) {
-//        IMethodSymbol symbol = super.createMethodSymbol(methodModifier, returnTypeModifier, identifier, currentScope);
-//        updateListener(symbol);
-//        return symbol;
-//    }
+
+    @Override
+    public IMethodSymbol createMethodSymbol(ITSPHPAst methodModifier, ITSPHPAst returnTypeModifier,
+            ITSPHPAst identifier,
+            IScope currentScope) {
+        IMethodSymbol symbol = super.createMethodSymbol(methodModifier, returnTypeModifier, identifier, currentScope);
+        updateListener(symbol);
+        return symbol;
+    }
 
     @Override
     public IVariableSymbol createVariableSymbol(ITSPHPAst typeModifierAst, ITSPHPAst variableId) {

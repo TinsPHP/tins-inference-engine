@@ -12,6 +12,7 @@
 
 package ch.tsphp.tinsphp.inference_engine.symbols;
 
+import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.common.symbols.modifiers.IModifierSet;
@@ -78,7 +79,7 @@ public class SymbolFactory implements ISymbolFactory
         return new AliasSymbol(useDefinition, alias);
     }
 
-//    @Override
+    //    @Override
 //    public IAliasTypeSymbol createAliasTypeSymbol(ITSPHPAst definitionAst, String name) {
 //        return new AliasTypeSymbol(definitionAst, name, mixedTypeSymbol);
 //    }
@@ -107,17 +108,17 @@ public class SymbolFactory implements ISymbolFactory
 //                mixedTypeSymbol);
 //    }
 //
-//    @Override
-//    public IMethodSymbol createMethodSymbol(ITSPHPAst methodModifier, ITSPHPAst returnTypeModifier,
-//            ITSPHPAst identifier, IScope currentScope) {
-//        return new MethodSymbol(
-//                scopeHelper,
-//                identifier,
-//                modifierHelper.getModifiers(methodModifier),
-//                modifierHelper.getModifiers(returnTypeModifier),
-//                identifier.getText(),
-//                currentScope);
-//    }
+    @Override
+    public IMethodSymbol createMethodSymbol(ITSPHPAst methodModifier, ITSPHPAst returnTypeModifier,
+            ITSPHPAst identifier, IScope currentScope) {
+        return new MethodSymbol(
+                scopeHelper,
+                identifier,
+                modifierHelper.getModifiers(methodModifier),
+                modifierHelper.getModifiers(returnTypeModifier),
+                identifier.getText(),
+                currentScope);
+    }
 //
 //    @Override
 //    public IVariableSymbol createThisSymbol(ITSPHPAst variableId, IPolymorphicTypeSymbol polymorphicTypeSymbol) {

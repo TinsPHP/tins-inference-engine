@@ -22,6 +22,7 @@ import ch.tsphp.tinsphp.inference_engine.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.inference_engine.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.inference_engine.scopes.IScopeFactory;
 import ch.tsphp.tinsphp.inference_engine.symbols.IAliasSymbol;
+import ch.tsphp.tinsphp.inference_engine.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.inference_engine.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.inference_engine.symbols.IVariableSymbol;
 
@@ -131,19 +132,19 @@ public class DefinitionPhaseController implements IDefinitionPhaseController
 //        ((IClassTypeSymbol) currentScope).setConstruct(methodSymbol);
 //        return methodSymbol;
 //    }
-//
-//    @Override
-//    @SuppressWarnings("checkstyle:parameternumber")
-//    public IMethodSymbol defineMethod(IScope currentScope, ITSPHPAst methodModifier,
-//            ITSPHPAst returnTypeModifier, ITSPHPAst returnType, ITSPHPAst identifier) {
-//        returnType.setScope(currentScope);
-//
-//        IMethodSymbol methodSymbol = symbolFactory.createMethodSymbol(methodModifier,
-//                returnTypeModifier, identifier, currentScope);
-//
-//        define(currentScope, identifier, methodSymbol);
-//        return methodSymbol;
-//    }
+
+    @Override
+    @SuppressWarnings("checkstyle:parameternumber")
+    public IMethodSymbol defineMethod(IScope currentScope, ITSPHPAst methodModifier,
+            ITSPHPAst returnTypeModifier, ITSPHPAst returnType, ITSPHPAst identifier) {
+        returnType.setScope(currentScope);
+
+        IMethodSymbol methodSymbol = symbolFactory.createMethodSymbol(methodModifier,
+                returnTypeModifier, identifier, currentScope);
+
+        define(currentScope, identifier, methodSymbol);
+        return methodSymbol;
+    }
 
 
     @Override

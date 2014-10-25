@@ -71,10 +71,9 @@ public class ExpressionTest extends ADefinitionScopeTest
                 }},
         }));
 
-        //TODO rstoll TINS-155 definition phase - functions
         //nBody function block
-//        collection.addAll(ScopeTestHelper.testStrings("function void foo(){", "}", "\\.\\.foo()",
-//                new Integer[]{1, 0, 4}));
+        collection.addAll(ScopeTestHelper.testStrings("function foo(){", "}", "\\.\\.foo()",
+                new Integer[]{1, 0, 4}));
 
         //TODO rstoll TINS-161 inference OOP
         //nBody class classBody mDecl block

@@ -14,6 +14,7 @@ package ch.tsphp.tinsphp.inference_engine.test.unit.scopes;
 
 import ch.tsphp.common.IScope;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
+import ch.tsphp.tinsphp.inference_engine.scopes.IConditionalScope;
 import ch.tsphp.tinsphp.inference_engine.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.inference_engine.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.inference_engine.scopes.IScopeFactory;
@@ -47,16 +48,15 @@ public class ScopeFactoryTest
         assertThat(result.getScopeName(), is(SCOPE_NAME));
     }
 
-    //TODO rstoll TINS-162 definition phase - scopes
-//    @Test
-//    public void createConditionalScope_GetEnclosingScopeAfterwards_ReturnPassedScope() {
-//        INamespaceScope namespaceScope = mock(INamespaceScope.class);
-//
-//        IScopeFactory scopeFactory = createScopeFactory();
-//        IConditionalScope result = scopeFactory.createConditionalScope(namespaceScope);
-//
-//        assertThat(result.getEnclosingScope(), is((IScope) namespaceScope));
-//    }
+    @Test
+    public void createConditionalScope_GetEnclosingScopeAfterwards_ReturnPassedScope() {
+        INamespaceScope namespaceScope = mock(INamespaceScope.class);
+
+        IScopeFactory scopeFactory = createScopeFactory();
+        IConditionalScope result = scopeFactory.createConditionalScope(namespaceScope);
+
+        assertThat(result.getEnclosingScope(), is((IScope) namespaceScope));
+    }
 
     @Test
     public void createNamespaceScope_GetEnclosingScopeAfterwards_ReturnPassedScope() {
@@ -89,17 +89,16 @@ public class ScopeFactoryTest
         assertThat(result, not(result2));
     }
 
-    //TODO rstoll TINS-162 definition phase - scopes
-//    @Test
-//    public void createConditionalScope_Twice_ReturnToDifferentObjects() {
-//        INamespaceScope namespaceScope = mock(INamespaceScope.class);
-//
-//        IScopeFactory scopeFactory = createScopeFactory();
-//        IConditionalScope result = scopeFactory.createConditionalScope(namespaceScope);
-//        IConditionalScope result2 = scopeFactory.createConditionalScope(namespaceScope);
-//
-//        assertThat(result, not(result2));
-//    }
+    @Test
+    public void createConditionalScope_Twice_ReturnToDifferentObjects() {
+        INamespaceScope namespaceScope = mock(INamespaceScope.class);
+
+        IScopeFactory scopeFactory = createScopeFactory();
+        IConditionalScope result = scopeFactory.createConditionalScope(namespaceScope);
+        IConditionalScope result2 = scopeFactory.createConditionalScope(namespaceScope);
+
+        assertThat(result, not(result2));
+    }
 
     @Test
     public void createNamespaceScope_Twice_ReturnToDifferentObjects() {
