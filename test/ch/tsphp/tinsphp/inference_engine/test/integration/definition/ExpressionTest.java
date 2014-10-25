@@ -21,6 +21,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -44,6 +45,31 @@ public class ExpressionTest extends ADefinitionScopeTest
         collection.addAll(ScopeTestHelper.testStringsDefaultNamespace());
         collection.addAll(ScopeTestHelper.testStrings("namespace a;", "", "\\a\\.\\a\\", new Integer[]{1}));
         collection.addAll(ScopeTestHelper.testStrings("namespace a\\b{", "}", "\\a\\b\\.\\a\\b\\", new Integer[]{1}));
+
+        //for header does not build a conditional scope
+        collection.addAll(Arrays.asList(new Object[][]{
+                {"for($a=1;;){}", new ScopeTestStruct[]{
+                        new ScopeTestStruct("$a", "\\.\\.", Arrays.asList(1, 0, 0, 0, 0))
+                }},
+                {"for($a=1, $b=1;;){}", new ScopeTestStruct[]{
+                        new ScopeTestStruct("$a", "\\.\\.", Arrays.asList(1, 0, 0, 0, 0)),
+                        new ScopeTestStruct("$b", "\\.\\.", Arrays.asList(1, 0, 0, 1, 0))
+                }},
+                {"for(;$a=1;){}", new ScopeTestStruct[]{
+                        new ScopeTestStruct("$a", "\\.\\.", Arrays.asList(1, 0, 1, 0, 0)),
+                }},
+                {"for(;$a=1, $b=1;){}", new ScopeTestStruct[]{
+                        new ScopeTestStruct("$a", "\\.\\.", Arrays.asList(1, 0, 1, 0, 0)),
+                        new ScopeTestStruct("$b", "\\.\\.", Arrays.asList(1, 0, 1, 1, 0))
+                }},
+                {"for(;; $a=1){}", new ScopeTestStruct[]{
+                        new ScopeTestStruct("$a", "\\.\\.", Arrays.asList(1, 0, 2, 0, 0)),
+                }},
+                {"for(;;$a=1, $b=1){}", new ScopeTestStruct[]{
+                        new ScopeTestStruct("$a", "\\.\\.", Arrays.asList(1, 0, 2, 0, 0)),
+                        new ScopeTestStruct("$b", "\\.\\.", Arrays.asList(1, 0, 2, 1, 0))
+                }},
+        }));
 
         //TODO rstoll TINS-155 definition phase - functions
         //nBody function block

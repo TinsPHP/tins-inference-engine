@@ -57,6 +57,21 @@ public class ScopeTestHelper
         }
 
         variableIds = new String[][]{
+                {"$b", "$b"},
+                //TODO rstoll TINS-180 add $this/self/parent to instanceof
+//                {"$this", "$this"},
+//                {"self", "self"},
+//                {"parent", "parent"}
+        };
+        for (String[] variableId : variableIds) {
+            collection.add(new Object[]{prefix + "$a instanceof " + variableId[0] + ";" + appendix,
+                    new ScopeTestStruct[]{new ScopeTestStruct(
+                            variableId[1], fullScopeName, getAstAccessOrder(accessToScope, new Integer[]{}, 0, 0, 1)
+                    )}
+            });
+        }
+
+        variableIds = new String[][]{
                 //TODO rstoll TINS-161 inference OOP
 //                {"self::$b", "self"},
 //                {"parent::$b", "parent"},

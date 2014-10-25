@@ -63,12 +63,9 @@ topdown
     
         //symbols
     |   constantDefinitionList
+    |   variableDeclarationList
     //TODO rstoll TINS-155 definition phase - functions
     //|   parameterDeclarationList
-    //TODO rstoll TINS-154 definition phase - variables
-    //|   variableDeclarationList
-    
-    //TODO rstoll TINS-155 definition phase - functions
     //|   methodFunctionCall
     |   expression
     |   returnBreakContinue
@@ -171,7 +168,7 @@ constantDeclaration[ITSPHPAst tMod, ITSPHPAst type]
         { definer.defineConstant(currentScope,$tMod, $type,$identifier); }
     ;
 
-//TODO rstoll TINS-154 definition phase - variables
+//TODO rstoll TINS-155 definition phase - functions   
 /*parameterDeclarationList
     :   ^(PARAMETER_LIST parameterDeclaration+)
     ;
@@ -181,7 +178,15 @@ parameterDeclaration
             ^(TYPE tMod=. type=.) variableDeclaration[$tMod,$type]
         )
     ;
-    
+    */
+
+variableDeclarationList 
+    :   ^(VARIABLE_DECLARATION_LIST
+            ^(TYPE tMod=. type=.)
+                variableDeclaration[$tMod,$type]+
+            )
+    ;
+        
 variableDeclaration[ITSPHPAst tMod, ITSPHPAst type]
     :
         (   ^(variableId=VariableId .)
@@ -189,7 +194,6 @@ variableDeclaration[ITSPHPAst tMod, ITSPHPAst type]
         )
         {definer.defineVariable(currentScope, $tMod, $type, $variableId);}
     ;
-*/
   
 //TODO rstoll TINS-155 definition phase - functions   
 /*
@@ -216,8 +220,7 @@ expression
         //|   ^(CLASS_STATIC_ACCESS identifier=(TYPE_NAME|'self'|'parent') .)
         
         |   ^(CAST ^(TYPE . type=primitiveTypesWithoutResource) .) {$identifier=$type.start;}
-        //TODO rstoll TINS-154 definition phase - variables
-        //|   ^('instanceof' . (identifier=VariableId | identifier=TYPE_NAME))
+        |   ^('instanceof' . (identifier=VariableId | identifier=TYPE_NAME))
         //TODO rstoll TINS-161 inference OOP          
         //|   ^('new' identifier=TYPE_NAME .)
         )
