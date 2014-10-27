@@ -62,7 +62,7 @@ public class NotCorrectStartNodeTypeTest extends ADefinitionWalkerTest
     }
 
     @Test
-    public void withBacktracking_stateFailedIsTrue()
+    public void withBacktracking_StateFailedIsTrue()
             throws RecognitionException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         ITSPHPAst ast = createAst(tokenType);
 
@@ -83,7 +83,7 @@ public class NotCorrectStartNodeTypeTest extends ADefinitionWalkerTest
                 {"bottomup", Try},
                 //TODO rstoll TINS-161 inference OOP
 //                {"classDefinition", Try},
-                //requires parameters
+                //requires parameters - see NotCorrectStartNodeTypeForRulesWithParamsTest
 //                {"constantDeclaration", Try},
                 {"constantDefinitionList", Try},
                 //TODO rstoll TINS-161 inference OOP
@@ -104,7 +104,7 @@ public class NotCorrectStartNodeTypeTest extends ADefinitionWalkerTest
                 {"topdown", Try},
                 {"useDeclaration", Try},
                 {"useDefinitionList", Try},
-                //requires parameters
+                //requires parameters - see NotCorrectStartNodeTypeForRulesWithParamsTest
 //                {"variableDeclaration", Try},
                 {"variableDeclarationList", Try},
         });

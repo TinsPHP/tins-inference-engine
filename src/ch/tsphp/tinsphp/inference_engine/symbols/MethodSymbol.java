@@ -87,12 +87,12 @@ public class MethodSymbol extends AScopedSymbol implements IMethodSymbol
 
     @Override
     public boolean isFalseable() {
-        return modifiers.isFalseable();
+        return returnTypeModifiers.isFalseable();
     }
 
     @Override
     public boolean isNullable() {
-        return modifiers.isNullable();
+        return returnTypeModifiers.isNullable();
     }
 
     @Override

@@ -15,10 +15,14 @@ package ch.tsphp.tinsphp.inference_engine.test.unit.testutils;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.TSPHPAst;
 import ch.tsphp.common.TSPHPAstAdaptor;
+import ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPDefinitionWalker;
+import ch.tsphp.tinsphp.inference_engine.symbols.IVariableSymbol;
 import org.antlr.runtime.CommonToken;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 import org.antlr.runtime.tree.TreeNodeStream;
 import org.junit.Ignore;
+
+import static org.mockito.Mockito.mock;
 
 @Ignore
 public abstract class AWalkerTest
@@ -32,9 +36,9 @@ public abstract class AWalkerTest
         return new TSPHPAst(new CommonToken(tokenType));
     }
 
-//    protected ITSPHPAst createVariable() {
-//        ITSPHPAst variable = createAst(VariableId);
-//        variable.setSymbol(mock(IVariableSymbol.class));
-//        return variable;
-//    }
+    protected ITSPHPAst createVariable() {
+        ITSPHPAst variable = createAst(TinsPHPDefinitionWalker.VariableId);
+        variable.setSymbol(mock(IVariableSymbol.class));
+        return variable;
+    }
 }
