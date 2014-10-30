@@ -10,6 +10,12 @@ import ch.tsphp.common.IErrorReporter;
 import ch.tsphp.common.exceptions.DefinitionException;
 import ch.tsphp.common.symbols.ISymbol;
 
+/**
+ * Represents the type inference engine's error reporter.
+ * <p/>
+ * What ever error occurs in the definition, reference or inference phase will be reported using an instance of
+ * this interface.ant
+ */
 public interface IInferenceErrorReporter extends IErrorReporter
 {
     DefinitionException alreadyDefined(ISymbol existingSymbol, ISymbol newSymbol);
