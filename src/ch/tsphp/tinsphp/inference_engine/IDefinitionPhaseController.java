@@ -15,10 +15,10 @@ package ch.tsphp.tinsphp.inference_engine;
 import ch.tsphp.common.ILowerCaseStringMap;
 import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
-import ch.tsphp.tinsphp.inference_engine.scopes.IConditionalScope;
-import ch.tsphp.tinsphp.inference_engine.scopes.IGlobalNamespaceScope;
-import ch.tsphp.tinsphp.inference_engine.scopes.INamespaceScope;
-import ch.tsphp.tinsphp.inference_engine.symbols.IMethodSymbol;
+import ch.tsphp.tinsphp.common.scopes.IConditionalScope;
+import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
+import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
+import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 
 /**
  * Represents the interface between the TSPHPDefinitionWalker (ANTLR generated) and the logic.

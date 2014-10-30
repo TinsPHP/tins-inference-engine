@@ -13,8 +13,8 @@
 package ch.tsphp.tinsphp.inference_engine.test.integration.definition;
 
 import ch.tsphp.common.IScope;
+import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
-import ch.tsphp.tinsphp.inference_engine.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.ScopeTestHelper;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.TestConditionalScopeFactory;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.TestNamespaceScopeFactory;

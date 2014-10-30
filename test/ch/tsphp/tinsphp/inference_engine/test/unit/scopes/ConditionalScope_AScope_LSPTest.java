@@ -13,10 +13,10 @@
 package ch.tsphp.tinsphp.inference_engine.test.unit.scopes;
 
 import ch.tsphp.common.IScope;
+import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.scopes.AScope;
 import ch.tsphp.tinsphp.inference_engine.scopes.ConditionalScope;
-import ch.tsphp.tinsphp.inference_engine.scopes.IScopeHelper;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;

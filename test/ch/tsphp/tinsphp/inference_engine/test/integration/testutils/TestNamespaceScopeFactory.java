@@ -13,10 +13,10 @@
 package ch.tsphp.tinsphp.inference_engine.test.integration.testutils;
 
 import ch.tsphp.common.IScope;
+import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
+import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
+import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
-import ch.tsphp.tinsphp.inference_engine.scopes.IGlobalNamespaceScope;
-import ch.tsphp.tinsphp.inference_engine.scopes.INamespaceScope;
-import ch.tsphp.tinsphp.inference_engine.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.inference_engine.scopes.ScopeFactory;
 
 import java.util.ArrayList;

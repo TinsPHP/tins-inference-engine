@@ -28,8 +28,8 @@ package ch.tsphp.tinsphp.inference_engine.antlr;
 
 import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
+import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.inference_engine.IDefinitionPhaseController;
-import ch.tsphp.tinsphp.inference_engine.scopes.INamespaceScope;
 
 }
 

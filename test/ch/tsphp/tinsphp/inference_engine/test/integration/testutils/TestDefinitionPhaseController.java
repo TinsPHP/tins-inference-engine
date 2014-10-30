@@ -15,11 +15,11 @@ package ch.tsphp.tinsphp.inference_engine.test.integration.testutils;
 import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ISymbol;
+import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
+import ch.tsphp.tinsphp.common.scopes.IScopeFactory;
+import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.inference_engine.DefinitionPhaseController;
 import ch.tsphp.tinsphp.inference_engine.IDefinitionPhaseController;
-import ch.tsphp.tinsphp.inference_engine.scopes.INamespaceScope;
-import ch.tsphp.tinsphp.inference_engine.scopes.IScopeFactory;
-import ch.tsphp.tinsphp.inference_engine.symbols.IMethodSymbol;
 
 import java.util.ArrayList;
 import java.util.HashMap;

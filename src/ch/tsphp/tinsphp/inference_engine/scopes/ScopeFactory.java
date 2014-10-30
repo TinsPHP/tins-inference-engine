@@ -13,6 +13,11 @@
 package ch.tsphp.tinsphp.inference_engine.scopes;
 
 import ch.tsphp.common.IScope;
+import ch.tsphp.tinsphp.common.scopes.IConditionalScope;
+import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
+import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
+import ch.tsphp.tinsphp.common.scopes.IScopeFactory;
+import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 
 public class ScopeFactory implements IScopeFactory

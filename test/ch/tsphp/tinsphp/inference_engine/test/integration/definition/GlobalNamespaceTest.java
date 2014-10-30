@@ -13,7 +13,7 @@
 package ch.tsphp.tinsphp.inference_engine.test.integration.definition;
 
 import ch.tsphp.common.ILowerCaseStringMap;
-import ch.tsphp.tinsphp.inference_engine.scopes.IGlobalNamespaceScope;
+import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.definition.ADefinitionTest;
 import org.antlr.runtime.RecognitionException;
 import org.junit.Test;

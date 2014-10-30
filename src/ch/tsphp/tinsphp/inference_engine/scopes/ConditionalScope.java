@@ -15,8 +15,11 @@ package ch.tsphp.tinsphp.inference_engine.scopes;
 import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ISymbol;
+import ch.tsphp.tinsphp.common.scopes.IAlreadyDefinedMethodCaller;
+import ch.tsphp.tinsphp.common.scopes.IConditionalScope;
+import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
+import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
-
 
 public class ConditionalScope extends AScope implements IConditionalScope
 {

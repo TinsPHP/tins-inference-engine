@@ -14,6 +14,7 @@ package ch.tsphp.tinsphp.inference_engine.scopes;
 
 import ch.tsphp.common.IScope;
 import ch.tsphp.common.symbols.ISymbol;
+import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;

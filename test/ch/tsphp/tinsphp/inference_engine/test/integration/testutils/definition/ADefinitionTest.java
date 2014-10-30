@@ -17,20 +17,20 @@ import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.ITSPHPAstAdaptor;
 import ch.tsphp.common.ParserUnitDto;
 import ch.tsphp.common.TSPHPAstAdaptor;
-import ch.tsphp.tinsphp.inference_engine.ITypeSystem;
-import ch.tsphp.tinsphp.inference_engine.TypeSystem;
+import ch.tsphp.tinsphp.common.ICore;
+import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
+import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
+import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
+import ch.tsphp.tinsphp.inference_engine.Core;
 import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPDefinitionWalker;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
-import ch.tsphp.tinsphp.inference_engine.scopes.IGlobalNamespaceScope;
-import ch.tsphp.tinsphp.inference_engine.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.inference_engine.scopes.ScopeHelper;
-import ch.tsphp.tinsphp.inference_engine.symbols.IModifierHelper;
-import ch.tsphp.tinsphp.inference_engine.symbols.ModifierHelper;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.ATest;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.TestDefinitionPhaseController;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.TestNamespaceScopeFactory;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.TestSymbolFactory;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.WriteExceptionToConsole;
+import ch.tsphp.tinsphp.symbols.ModifierHelper;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -53,7 +53,7 @@ public abstract class ADefinitionTest extends ATest
     protected TestSymbolFactory symbolFactory;
     protected IScopeHelper scopeHelper;
     protected IModifierHelper modifierHelper;
-    protected ITypeSystem typeSystem;
+    protected ICore core;
 
 
     protected void verifyDefinitions() {
@@ -77,7 +77,7 @@ public abstract class ADefinitionTest extends ATest
         symbolFactory = createTestSymbolFactory(scopeHelper, modifierHelper);
 
         definitionPhaseController = createTestDefiner(symbolFactory, scopeFactory);
-        typeSystem = createTypeSystem(symbolFactory, definitionPhaseController.getGlobalDefaultNamespace());
+        core = createTypeSystem(symbolFactory, definitionPhaseController.getGlobalDefaultNamespace());
     }
 
     protected void verifyParser() {
@@ -135,9 +135,9 @@ public abstract class ADefinitionTest extends ATest
         return new TestSymbolFactory(theScopeHelper, theModifierHelper);
     }
 
-    protected ITypeSystem createTypeSystem(
+    protected ICore createTypeSystem(
             TestSymbolFactory symbolFactory, IGlobalNamespaceScope theGlobalNamespaceScope) {
-        return new TypeSystem(symbolFactory, AstHelperRegistry.get(), theGlobalNamespaceScope);
+        return new Core(symbolFactory, AstHelperRegistry.get(), theGlobalNamespaceScope);
     }
 
     protected TestDefinitionPhaseController createTestDefiner(TestSymbolFactory theSymbolFactory,

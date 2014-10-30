@@ -17,11 +17,11 @@ import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.LowerCaseStringMap;
 import ch.tsphp.common.symbols.ISymbol;
+import ch.tsphp.tinsphp.common.scopes.IAlreadyDefinedMethodCaller;
+import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
+import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
+import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
-import ch.tsphp.tinsphp.inference_engine.scopes.IAlreadyDefinedMethodCaller;
-import ch.tsphp.tinsphp.inference_engine.scopes.IGlobalNamespaceScope;
-import ch.tsphp.tinsphp.inference_engine.scopes.INamespaceScope;
-import ch.tsphp.tinsphp.inference_engine.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.inference_engine.scopes.ScopeHelper;
 import org.junit.Test;
 

@@ -17,14 +17,15 @@ import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.LowerCaseStringMap;
 import ch.tsphp.common.symbols.ISymbol;
-import ch.tsphp.tinsphp.inference_engine.scopes.IConditionalScope;
-import ch.tsphp.tinsphp.inference_engine.scopes.IGlobalNamespaceScope;
-import ch.tsphp.tinsphp.inference_engine.scopes.INamespaceScope;
-import ch.tsphp.tinsphp.inference_engine.scopes.IScopeFactory;
-import ch.tsphp.tinsphp.inference_engine.symbols.IAliasSymbol;
-import ch.tsphp.tinsphp.inference_engine.symbols.IMethodSymbol;
-import ch.tsphp.tinsphp.inference_engine.symbols.ISymbolFactory;
-import ch.tsphp.tinsphp.inference_engine.symbols.IVariableSymbol;
+import ch.tsphp.tinsphp.common.scopes.IConditionalScope;
+import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
+import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
+import ch.tsphp.tinsphp.common.scopes.IScopeFactory;
+import ch.tsphp.tinsphp.common.symbols.IAliasSymbol;
+import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
+import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
+import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
+
 
 public class DefinitionPhaseController implements IDefinitionPhaseController
 {

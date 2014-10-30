@@ -13,9 +13,9 @@
 package ch.tsphp.tinsphp.inference_engine.test.integration.testutils;
 
 import ch.tsphp.common.IScope;
+import ch.tsphp.tinsphp.common.scopes.IConditionalScope;
+import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
-import ch.tsphp.tinsphp.inference_engine.scopes.IConditionalScope;
-import ch.tsphp.tinsphp.inference_engine.scopes.IScopeHelper;
 
 public class TestConditionalScopeFactory extends TestNamespaceScopeFactory
 {

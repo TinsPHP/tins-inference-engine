@@ -11,7 +11,8 @@
     <import file="${basedir}/ant/copyCommon.xml" as="cp"/>
     <import file="${basedir}/ant/copyParserCommonToLibDev.xml" as="cp"/>
     <import file="${basedir}/ant/copyTinsCommon.xml" as="cpt"/>
-    <import file="${basedir}/ant/copyTinsParser.xml" as="cp"/>
+    <import file="${basedir}/ant/copyTinsParser.xml" as="cpt"/>
+    <import file="${basedir}/ant/copyTinsSymbols.xml" as="cpt"/>
     <import file="${basedir}/ant/copyAntlr.xml" as="cp"/>
     <import file="${basedir}/ant/copyQA.xml" as="copy"/>
 
@@ -55,6 +56,7 @@
         </java>
     </target>
 
-    <target name="cp.all" depends="cp.common, cpt.common, cp.parser, cp.parser-common"/>
+    <target name="cp.all" depends="cp.common, cpt.common, cpt.parser, cp.parser-common, cpt.symbols"/>
 
 </project>
+

@@ -13,9 +13,9 @@
 package ch.tsphp.tinsphp.inference_engine.test.unit.scopes;
 
 import ch.tsphp.common.symbols.ISymbol;
+import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
+import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.inference_engine.scopes.GlobalNamespaceScope;
-import ch.tsphp.tinsphp.inference_engine.scopes.IGlobalNamespaceScope;
-import ch.tsphp.tinsphp.inference_engine.scopes.IScopeHelper;
 import org.junit.Before;
 import org.junit.Test;
 

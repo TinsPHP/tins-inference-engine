@@ -15,7 +15,7 @@ package ch.tsphp.tinsphp.inference_engine.test.integration.testutils.definition;
 import ch.tsphp.common.ILowerCaseStringMap;
 import ch.tsphp.common.IScope;
 import ch.tsphp.common.symbols.ISymbol;
-import ch.tsphp.tinsphp.inference_engine.scopes.IGlobalNamespaceScope;
+import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.ScopeTestStruct;
 import org.junit.Assert;
 import org.junit.Ignore;

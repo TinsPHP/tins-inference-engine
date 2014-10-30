@@ -14,7 +14,7 @@ package ch.tsphp.tinsphp.inference_engine.test.integration.testutils.definition;
 
 import ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPDefinitionWalker;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.TypeHelper;
-import ch.tsphp.tinsphp.inference_engine.utils.ModifierHelper;
+import ch.tsphp.tinsphp.symbols.ModifierHelper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
