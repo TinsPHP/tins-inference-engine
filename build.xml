@@ -49,6 +49,7 @@
             <arg value="-o"/>
             <arg path="${antlr.copyLocation}"/>
             <arg path="${src.antlr}/TinsPHPDefinitionWalker.g"/>
+            <arg path="${src.antlr}/TinsPHPReferenceWalker.g"/>
             <classpath>
                 <fileset dir="${lib}">
                     <include name="*.jar"/>

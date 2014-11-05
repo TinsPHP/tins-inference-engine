@@ -5,7 +5,7 @@
  */
 
 /*
- * This class is based on the class ErrorReportingTSPHPDefinitionWalker from the TSPHP project.
+ * This class is based on the class ErrorReportingTSPHPReferenceWalker from the TSPHP project.
  * TSPHP is also published under the Apache License 2.0
  * For more information see http://tsphp.ch/wiki/display/TSPHP/License
  */
@@ -15,8 +15,8 @@ package ch.tsphp.tinsphp.inference_engine.antlrmod;
 import ch.tsphp.common.ErrorReporterHelper;
 import ch.tsphp.common.IErrorLogger;
 import ch.tsphp.common.IErrorReporter;
-import ch.tsphp.tinsphp.inference_engine.IDefinitionPhaseController;
-import ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPDefinitionWalker;
+import ch.tsphp.tinsphp.inference_engine.IReferencePhaseController;
+import ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.TreeNodeStream;
 
@@ -26,13 +26,13 @@ import java.util.Collection;
 /**
  * Extends TinsPHPDefinitionWalker by IErrorReporter.
  */
-public class ErrorReportingTinsPHPDefinitionWalker extends TinsPHPDefinitionWalker implements IErrorReporter
+public class ErrorReportingTinsPHPReferenceWalker extends TinsPHPReferenceWalker implements IErrorReporter
 {
 
     private final Collection<IErrorLogger> errorLoggers = new ArrayDeque<>();
     private boolean hasFoundError;
 
-    public ErrorReportingTinsPHPDefinitionWalker(TreeNodeStream input, IDefinitionPhaseController controller) {
+    public ErrorReportingTinsPHPReferenceWalker(TreeNodeStream input, IReferencePhaseController controller) {
         super(input, controller);
     }
 
@@ -44,7 +44,7 @@ public class ErrorReportingTinsPHPDefinitionWalker extends TinsPHPDefinitionWalk
     @Override
     public void reportError(RecognitionException exception) {
         hasFoundError = true;
-        ErrorReporterHelper.reportError(errorLoggers, exception, "definition");
+        ErrorReporterHelper.reportError(errorLoggers, exception, "reference");
     }
 
     @Override

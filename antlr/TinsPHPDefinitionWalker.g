@@ -4,11 +4,12 @@
  * root folder or visit the project's website http://tsphp.ch/wiki/display/TINS/License
  */
  
- /* This file was created based on TSPHPDefinitionWalker.g - the tree grammar file for the definition phase of
-  * TSPHP's type checker - and reuses TSPHP's AST class as well as other classes/files related to the AST generation.
-  * TSPHP is also licenced under the Apache License 2.0
-  * For more information see http://tsphp.ch/wiki/display/TSPHP/License
-  */
+/*
+ * This file was created based on TSPHPDefinitionWalker.g - the tree grammar file for the definition phase of
+ * TSPHP's type checker - and reuses TSPHP's AST class as well as other classes/files related to the AST generation.
+ * TSPHP is also licenced under the Apache License 2.0
+ * For more information see http://tsphp.ch/wiki/display/TSPHP/License
+ */
 
 tree grammar TinsPHPDefinitionWalker;
 options {

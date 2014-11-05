@@ -4,7 +4,7 @@
   root folder or visit the project's website http://tsphp.ch/wiki/display/TSPHP/License
   -->
 
-<project name="copyTinsSymbols" basedir="../">
+<project name="copyTinsCore" basedir="../">
 
     <import file="${basedir}/ant/build-common.xml" as="common"/>
 

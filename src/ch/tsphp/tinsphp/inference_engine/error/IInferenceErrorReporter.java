@@ -7,6 +7,7 @@
 package ch.tsphp.tinsphp.inference_engine.error;
 
 import ch.tsphp.common.IErrorReporter;
+import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.exceptions.DefinitionException;
 import ch.tsphp.common.symbols.ISymbol;
 
@@ -21,4 +22,8 @@ public interface IInferenceErrorReporter extends IErrorReporter
     DefinitionException alreadyDefined(ISymbol existingSymbol, ISymbol newSymbol);
 
     DefinitionException definedInOuterScope(ISymbol firstDefinition, ISymbol symbolToCheck);
+
+    void partialReturnFromFunction(ITSPHPAst identifier);
+
+    void noReturnFromFunction(ITSPHPAst identifier);
 }
