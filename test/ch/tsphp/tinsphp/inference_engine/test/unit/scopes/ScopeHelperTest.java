@@ -35,10 +35,8 @@ import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.collection.IsMapContaining.hasKey;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -48,6 +46,106 @@ public class ScopeHelperTest
 {
 
     public static final String SYMBOL_NAME = "symbolName";
+
+    @Test
+    public void isAbsoluteIdentifier_AbsoluteFromDefaultNamespace_ReturnsTrue() {
+        //no arrange needed
+
+        IScopeHelper scopeHelper = createScopeHelper();
+        boolean result = scopeHelper.isAbsoluteIdentifier("\\a");
+
+        assertThat(result, is(true));
+    }
+
+    @Test
+    public void isAbsoluteIdentifier_AbsoluteFromNamespace_ReturnsTrue() {
+        //no arrange needed
+
+        IScopeHelper scopeHelper = createScopeHelper();
+        boolean result = scopeHelper.isAbsoluteIdentifier("\\a\\a");
+
+        assertThat(result, is(true));
+    }
+
+    @Test
+    public void isAbsoluteIdentifier_AbsoluteFromSubNamespace_ReturnsTrue() {
+        //no arrange needed
+
+        IScopeHelper scopeHelper = createScopeHelper();
+        boolean result = scopeHelper.isAbsoluteIdentifier("\\a\\b\\a");
+
+        assertThat(result, is(true));
+    }
+
+    @Test
+    public void isAbsoluteIdentifier_RelativeFromSubNamespace_ReturnsFalse() {
+        //no arrange needed
+
+        IScopeHelper scopeHelper = createScopeHelper();
+        boolean result = scopeHelper.isAbsoluteIdentifier("a\\a");
+
+        assertThat(result, is(false));
+    }
+
+    @Test
+    public void isAbsoluteIdentifier_Local_ReturnsFalse() {
+        //no arrange needed
+
+        IScopeHelper scopeHelper = createScopeHelper();
+        boolean result = scopeHelper.isAbsoluteIdentifier("a");
+
+        assertThat(result, is(false));
+    }
+
+    @Test
+    public void isRelativeIdentifier_AbsoluteFromDefaultNamespace_ReturnsFalse() {
+        //no arrange needed
+
+        IScopeHelper scopeHelper = createScopeHelper();
+        boolean result = scopeHelper.isRelativeIdentifier("\\a");
+
+        assertThat(result, is(false));
+    }
+
+    @Test
+    public void isRelativeIdentifier_AbsoluteFromNamespace_ReturnsFalse() {
+        //no arrange needed
+
+        IScopeHelper scopeHelper = createScopeHelper();
+        boolean result = scopeHelper.isRelativeIdentifier("\\a\\a");
+
+        assertThat(result, is(false));
+    }
+
+    @Test
+    public void isRelativeIdentifier_AbsoluteFromSubNamespace_ReturnsFalse() {
+        //no arrange needed
+
+        IScopeHelper scopeHelper = createScopeHelper();
+        boolean result = scopeHelper.isRelativeIdentifier("\\a\\b\\a");
+
+        assertThat(result, is(false));
+    }
+
+    @Test
+    public void isRelativeIdentifier_RelativeFromSubNamespace_ReturnsTrue() {
+        //no arrange needed
+
+        IScopeHelper scopeHelper = createScopeHelper();
+        boolean result = scopeHelper.isRelativeIdentifier("a\\a");
+
+        assertThat(result, is(true));
+    }
+
+    @Test
+    public void isRelativeIdentifier_Local_ReturnsFalse() {
+        //no arrange needed
+
+        IScopeHelper scopeHelper = createScopeHelper();
+        boolean result = scopeHelper.isRelativeIdentifier("a");
+
+        assertThat(result, is(false));
+    }
 
     @Test
     public void define_OneSymbol_AddToScopeSymbolsAndSetDefinitionScope() {
@@ -152,18 +250,18 @@ public class ScopeHelperTest
     }
 
     @Test
-    public void doubleDefinitionCheck_DefinedOnce_ReturnTrue() {
+    public void doubleDefinitionCheck_DefinedOnce_ReturnsTrue() {
         ISymbol symbol = createSymbol(SYMBOL_NAME);
         Map<String, List<ISymbol>> symbols = createSymbolsForStandardName(symbol);
 
         IScopeHelper scopeHelper = createScopeHelper();
         boolean result = scopeHelper.checkIsNotDoubleDefinition(symbols, symbol);
 
-        assertTrue(result);
+        assertThat(result, is(true));
     }
 
     @Test
-    public void doubleDefinitionCheckWithReporter_DefinedOnce_ReturnTrue() {
+    public void doubleDefinitionCheckWithReporter_DefinedOnce_ReturnsTrue() {
         ISymbol symbol = createSymbol(SYMBOL_NAME);
         Map<String, List<ISymbol>> symbols = createSymbolsForStandardName(symbol);
         IAlreadyDefinedMethodCaller reporter = mock(IAlreadyDefinedMethodCaller.class);
@@ -171,12 +269,12 @@ public class ScopeHelperTest
         IScopeHelper scopeHelper = createScopeHelper();
         boolean result = scopeHelper.checkIsNotDoubleDefinition(symbols, symbol, reporter);
 
-        assertTrue(result);
+        assertThat(result, is(true));
         verifyNoMoreInteractions(reporter);
     }
 
     @Test
-    public void doubleDefinitionCheck_DefinedTwiceCheckingFirst_ReturnTrue() {
+    public void doubleDefinitionCheck_DefinedTwiceCheckingFirst_ReturnsTrue() {
         ISymbol symbol1 = createSymbol(SYMBOL_NAME);
         ISymbol symbol2 = createSymbol(SYMBOL_NAME);
         Map<String, List<ISymbol>> symbols = createSymbolsForStandardName(symbol1, symbol2);
@@ -184,11 +282,11 @@ public class ScopeHelperTest
         IScopeHelper scopeHelper = createScopeHelper();
         boolean result = scopeHelper.checkIsNotDoubleDefinition(symbols, symbol1);
 
-        assertTrue(result);
+        assertThat(result, is(true));
     }
 
     @Test
-    public void doubleDefinitionCheckWithReporter_DefinedTwiceCheckingFirst_ReturnTrue() {
+    public void doubleDefinitionCheckWithReporter_DefinedTwiceCheckingFirst_ReturnsTrue() {
         ISymbol symbol1 = createSymbol(SYMBOL_NAME);
         ISymbol symbol2 = createSymbol(SYMBOL_NAME);
         Map<String, List<ISymbol>> symbols = createSymbolsForStandardName(symbol1, symbol2);
@@ -197,13 +295,13 @@ public class ScopeHelperTest
         IScopeHelper scopeHelper = createScopeHelper();
         boolean result = scopeHelper.checkIsNotDoubleDefinition(symbols, symbol1, reporter);
 
-        assertTrue(result);
+        assertThat(result, is(true));
         verifyNoMoreInteractions(reporter);
     }
 
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     @Test
-    public void doubleDefinitionCheck_DefinedTwiceCheckingSecond_ReturnFalse() {
+    public void doubleDefinitionCheck_DefinedTwiceCheckingSecond_ReturnsFalse() {
         IInferenceErrorReporter errorReporter = mock(IInferenceErrorReporter.class);
         ISymbol symbol1 = createSymbol(SYMBOL_NAME);
         ISymbol symbol2 = createSymbol(SYMBOL_NAME);
@@ -212,12 +310,12 @@ public class ScopeHelperTest
         IScopeHelper scopeHelper = createScopeHelper(errorReporter);
         boolean result = scopeHelper.checkIsNotDoubleDefinition(symbols, symbol2);
 
-        assertFalse(result);
+        assertThat(result, is(false));
         verify(errorReporter).alreadyDefined(symbol1, symbol2);
     }
 
     @Test
-    public void doubleDefinitionCheckWithReport_DefinedTwiceCheckingSecond_ReturnFalse() {
+    public void doubleDefinitionCheckWithReport_DefinedTwiceCheckingSecond_ReturnsFalse() {
         ISymbol symbol1 = createSymbol(SYMBOL_NAME);
         ISymbol symbol2 = createSymbol(SYMBOL_NAME);
         Map<String, List<ISymbol>> symbols = createSymbolsForStandardName(symbol1, symbol2);
@@ -226,7 +324,7 @@ public class ScopeHelperTest
         IScopeHelper scopeHelper = createScopeHelper();
         boolean result = scopeHelper.checkIsNotDoubleDefinition(symbols, symbol2, reporter);
 
-        assertFalse(result);
+        assertThat(result, is(false));
         verify(reporter).callAccordingAlreadyDefinedMethod(symbol1, symbol2);
     }
 

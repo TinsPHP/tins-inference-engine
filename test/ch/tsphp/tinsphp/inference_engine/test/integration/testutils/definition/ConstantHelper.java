@@ -15,13 +15,12 @@ package ch.tsphp.tinsphp.inference_engine.test.integration.testutils.definition;
 import ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPDefinitionWalker;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.TypeHelper;
 import ch.tsphp.tinsphp.symbols.ModifierHelper;
+import ch.tsphp.tinsphp.symbols.ModifierSet;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 public class ConstantHelper
 {
@@ -31,11 +30,11 @@ public class ConstantHelper
 
         List<Object[]> collection = new ArrayList<>();
         String[] types = TypeHelper.getScalarTypes();
-        SortedSet<Integer> modifiers = new TreeSet<>(Arrays.asList(new Integer[]{
+        ModifierSet modifiers = new ModifierSet(Arrays.asList(
                 TinsPHPDefinitionWalker.Public,
                 TinsPHPDefinitionWalker.Static,
-                TinsPHPDefinitionWalker.Final
-        }));
+                TinsPHPDefinitionWalker.Final));
+
         String mod = ModifierHelper.getModifiersAsString(modifiers);
 
         for (String type : types) {

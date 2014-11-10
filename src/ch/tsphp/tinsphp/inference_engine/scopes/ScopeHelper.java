@@ -35,6 +35,16 @@ public class ScopeHelper implements IScopeHelper
     }
 
     @Override
+    public boolean isAbsoluteIdentifier(String identifier) {
+        return identifier.substring(0, 1).equals("\\");
+    }
+
+    @Override
+    public boolean isRelativeIdentifier(String identifier) {
+        return identifier.indexOf("\\") > 0;
+    }
+
+    @Override
     public void define(IScope definitionScope, ISymbol symbol) {
         MapHelper.addToListMap(definitionScope.getSymbols(), symbol.getName(), symbol);
         symbol.setDefinitionScope(definitionScope);

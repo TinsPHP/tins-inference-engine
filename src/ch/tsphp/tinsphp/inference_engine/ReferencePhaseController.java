@@ -17,6 +17,8 @@ import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
+import ch.tsphp.tinsphp.common.symbols.ISymbolResolver;
+import ch.tsphp.tinsphp.common.symbols.ITypeSymbolResolver;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 
@@ -26,6 +28,8 @@ public class ReferencePhaseController implements IReferencePhaseController
     private final IInferenceErrorReporter inferenceErrorReporter;
     private final IAstModificationHelper astModificationHelper;
     private final IModifierHelper modifierHelper;
+    private final ISymbolResolver symbolResolver;
+    private final ITypeSymbolResolver typeSymbolResolver;
     private final ICore core;
     private final IGlobalNamespaceScope globalDefaultNamespace;
 
@@ -33,12 +37,16 @@ public class ReferencePhaseController implements IReferencePhaseController
             ISymbolFactory theSymbolFactory,
             IInferenceErrorReporter theInferenceErrorReporter,
             IAstModificationHelper theAstModificationHelper,
+            ISymbolResolver theSymbolResolver,
+            ITypeSymbolResolver theTypeSymbolResolver,
             ICore theCore,
             IModifierHelper theModifierHelper,
             IGlobalNamespaceScope theGlobalDefaultNamespace) {
         symbolFactory = theSymbolFactory;
         inferenceErrorReporter = theInferenceErrorReporter;
         astModificationHelper = theAstModificationHelper;
+        symbolResolver = theSymbolResolver;
+        typeSymbolResolver = theTypeSymbolResolver;
         core = theCore;
         modifierHelper = theModifierHelper;
         globalDefaultNamespace = theGlobalDefaultNamespace;

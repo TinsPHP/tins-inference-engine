@@ -14,16 +14,21 @@ package ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference;
 
 import ch.tsphp.common.AstHelper;
 import ch.tsphp.common.IAstHelper;
+import ch.tsphp.common.ILowerCaseStringMap;
 import ch.tsphp.common.ITSPHPAstAdaptor;
 import ch.tsphp.common.TSPHPAstAdaptor;
 import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
+import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
+import ch.tsphp.tinsphp.common.symbols.ISymbolResolver;
+import ch.tsphp.tinsphp.common.symbols.ITypeSymbolResolver;
 import ch.tsphp.tinsphp.inference_engine.IReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.ReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPReferenceWalker;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
+import ch.tsphp.tinsphp.inference_engine.resolver.UserSymbolResolver;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.WriteExceptionToConsole;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.definition.ADefinitionTest;
 import ch.tsphp.tinsphp.inference_engine.utils.AstModificationHelper;
@@ -42,6 +47,8 @@ public abstract class AReferenceTest extends ADefinitionTest
     protected ErrorReportingTinsPHPReferenceWalker reference;
     protected IReferencePhaseController referencePhaseController;
     protected IAstModificationHelper astModificationHelper;
+    protected ISymbolResolver symbolResolver;
+    protected ITypeSymbolResolver typeSymbolResolver;
 
     protected ITSPHPAstAdaptor astAdaptor;
     protected IAstHelper astHelper;
@@ -57,11 +64,19 @@ public abstract class AReferenceTest extends ADefinitionTest
         astAdaptor = createAstAdaptor();
         astHelper = createAstHelper(astAdaptor);
         astModificationHelper = createAstModificationHelper(astHelper);
+        symbolResolver = createUserSymbolResolver(
+                scopeHelper,
+                definitionPhaseController.getGlobalNamespaceScopes(),
+                definitionPhaseController.getGlobalDefaultNamespace());
+
+        typeSymbolResolver = createTypeSymbolResolver();
 
         referencePhaseController = createReferencePhaseController(
                 symbolFactory,
                 inferenceErrorReporter,
                 astModificationHelper,
+                symbolResolver,
+                typeSymbolResolver,
                 core,
                 modifierHelper,
                 definitionPhaseController.getGlobalDefaultNamespace());
@@ -130,10 +145,23 @@ public abstract class AReferenceTest extends ADefinitionTest
         return new AstModificationHelper(theAstHelper);
     }
 
+    protected ISymbolResolver createUserSymbolResolver(IScopeHelper theScopeHelper,
+            ILowerCaseStringMap<IGlobalNamespaceScope> theGlobalNamespaceScopes,
+            IGlobalNamespaceScope theGlobalDefaultNamespace) {
+        return new UserSymbolResolver(theScopeHelper, theGlobalNamespaceScopes, theGlobalDefaultNamespace);
+    }
+
+    protected ITypeSymbolResolver createTypeSymbolResolver() {
+        return null;
+    }
+
+
     protected IReferencePhaseController createReferencePhaseController(
             ISymbolFactory theSymbolFactory,
             IInferenceErrorReporter theInferenceErrorReporter,
             IAstModificationHelper theAstModificationHelper,
+            ISymbolResolver theSymbolResolver,
+            ITypeSymbolResolver theTypeSymbolResolver,
             ICore theCore,
             IModifierHelper theModifierHelper,
             IGlobalNamespaceScope theGlobalDefaultNamespace) {
@@ -141,6 +169,8 @@ public abstract class AReferenceTest extends ADefinitionTest
                 theSymbolFactory,
                 theInferenceErrorReporter,
                 theAstModificationHelper,
+                theSymbolResolver,
+                theTypeSymbolResolver,
                 theCore,
                 theModifierHelper,
                 theGlobalDefaultNamespace

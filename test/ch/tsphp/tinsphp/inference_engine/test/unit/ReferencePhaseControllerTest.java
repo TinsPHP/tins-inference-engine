@@ -13,6 +13,8 @@ import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
+import ch.tsphp.tinsphp.common.symbols.ISymbolResolver;
+import ch.tsphp.tinsphp.common.symbols.ITypeSymbolResolver;
 import ch.tsphp.tinsphp.inference_engine.IReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.ReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
@@ -153,6 +155,8 @@ public class ReferencePhaseControllerTest
                 mock(ISymbolFactory.class),
                 inferenceErrorReporter,
                 astModificationHelper,
+                mock(ISymbolResolver.class),
+                mock(ITypeSymbolResolver.class),
                 mock(ICore.class),
                 mock(IModifierHelper.class),
                 mock(IGlobalNamespaceScope.class)
@@ -163,6 +167,8 @@ public class ReferencePhaseControllerTest
             ISymbolFactory symbolFactory,
             IInferenceErrorReporter inferenceErrorReporter,
             IAstModificationHelper astModificationHelper,
+            ISymbolResolver symbolResolver,
+            ITypeSymbolResolver typeSymbolResolver,
             ICore core,
             IModifierHelper modifierHelper,
             IGlobalNamespaceScope globalDefaultNamespace) {
@@ -170,6 +176,8 @@ public class ReferencePhaseControllerTest
                 symbolFactory,
                 inferenceErrorReporter,
                 astModificationHelper,
+                symbolResolver,
+                typeSymbolResolver,
                 core,
                 modifierHelper,
                 globalDefaultNamespace
