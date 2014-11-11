@@ -263,7 +263,7 @@ public class ReferencePhaseController implements IReferencePhaseController
 //                {
 //                    @Override
 //                    public ITypeSymbol resolve(ITSPHPAst typeAst) {
-//                        return (ITypeSymbol) symbolResolver.resolveGlobalIdentifier(typeAst);
+//                        return (ITypeSymbol) symbolResolver.resolveConstantLikeIdentifier(typeAst);
 //                    }
 //                },
 //                new ISymbolCreateCaller()

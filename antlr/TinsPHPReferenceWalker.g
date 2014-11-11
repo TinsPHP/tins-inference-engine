@@ -668,6 +668,8 @@ unaryOperator
     ;
     
 binaryOperatorExcludingAssign
+// operators can be overloaded and thus type information is needed to resolve them
+// they are resolved during the inference phase
     :   'or'
     |   'xor'
     |   'and'
@@ -701,6 +703,8 @@ binaryOperatorExcludingAssign
     ;
     
 assignOperator
+// operators can be overloaded and thus type information is needed to resolve them
+// they are resolved during the inference phase
     :   '='
     |   '+='
     |   '-='
@@ -714,17 +718,18 @@ assignOperator
     |   '<<='
     |   '>>='
     ;
-
-actualParameters
-    :   ^(ACTUAL_PARAMETERS expression+)
-    |   ACTUAL_PARAMETERS
-    ;
     
 functionCall
         // function call has no callee and is therefor not resolved in this phase.
         // resolving occurs in the type checking phase where overloads are taken into account
     :   ^(FUNCTION_CALL identifier=TYPE_NAME actualParameters)
     ;
+    
+actualParameters
+    :   ^(ACTUAL_PARAMETERS expression+)
+    |   ACTUAL_PARAMETERS
+    ; 
+  
 //TODO TINS-161 inference OOP    
 /*
 methodCall

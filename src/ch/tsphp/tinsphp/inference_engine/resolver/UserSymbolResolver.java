@@ -15,8 +15,8 @@ import ch.tsphp.tinsphp.common.symbols.ISymbolResolver;
 
 public class UserSymbolResolver implements ISymbolResolver
 {
-    private final IScopeHelper scopeHelper;
     private ISymbolResolver nextSymbolResolver;
+    private final IScopeHelper scopeHelper;
     private final ILowerCaseStringMap<IGlobalNamespaceScope> globalNamespaceScopes;
     private final IGlobalNamespaceScope globalDefaultNamespace;
 
@@ -57,7 +57,7 @@ public class UserSymbolResolver implements ISymbolResolver
     }
 
     @Override
-    public ISymbol resolveGlobalIdentifier(ITSPHPAst identifier) {
+    public ISymbol resolveConstantLikeIdentifier(ITSPHPAst identifier) {
         ISymbol symbol;
         if (scopeHelper.isAbsoluteIdentifier(identifier.getText())) {
             symbol = resolveAbsoluteIdentifier(identifier);
@@ -68,14 +68,20 @@ public class UserSymbolResolver implements ISymbolResolver
                     symbol = resolveRelativeIdentifier(identifier);
                 }
             } else {
-                throw new IllegalArgumentException("\"" + identifier.getText() + "\" is not a global identifier.");
+                symbol = resolveIdentifierWithFallback(identifier);
             }
         }
 
         if (symbol == null && nextSymbolResolver != null) {
-            nextSymbolResolver.resolveGlobalIdentifier(identifier);
+            nextSymbolResolver.resolveConstantLikeIdentifier(identifier);
         }
         return symbol;
+    }
+
+    @Override
+    public ISymbol resolveClassLikeIdentifier(ITSPHPAst itsphpAst) {
+        //TODO TINS-161 inference OOP
+        return null;
     }
 
     private ISymbol resolveAbsoluteIdentifier(ITSPHPAst typeAst) {
