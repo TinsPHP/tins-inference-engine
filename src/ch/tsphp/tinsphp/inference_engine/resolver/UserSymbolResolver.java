@@ -15,10 +15,11 @@ import ch.tsphp.tinsphp.common.symbols.ISymbolResolver;
 
 public class UserSymbolResolver implements ISymbolResolver
 {
-    private ISymbolResolver nextSymbolResolver;
     private final IScopeHelper scopeHelper;
     private final ILowerCaseStringMap<IGlobalNamespaceScope> globalNamespaceScopes;
     private final IGlobalNamespaceScope globalDefaultNamespace;
+
+    private ISymbolResolver nextSymbolResolver;
 
     public UserSymbolResolver(
             IScopeHelper theScopeHelper,
@@ -59,29 +60,32 @@ public class UserSymbolResolver implements ISymbolResolver
     @Override
     public ISymbol resolveConstantLikeIdentifier(ITSPHPAst identifier) {
         ISymbol symbol;
-        if (scopeHelper.isAbsoluteIdentifier(identifier.getText())) {
-            symbol = resolveAbsoluteIdentifier(identifier);
+        if (scopeHelper.isLocalIdentifier(identifier.getText())) {
+            //forward to nextSymbolResolver within resolveIdentifierWithFallback if necessary
+            symbol = resolveIdentifierWithFallback(identifier);
         } else {
-            if (scopeHelper.isRelativeIdentifier(identifier.getText())) {
-                symbol = resolveIdentifierCompriseAlias(identifier);
-                if (symbol == null) {
-                    symbol = resolveRelativeIdentifier(identifier);
-                }
-            } else {
-                symbol = resolveIdentifierWithFallback(identifier);
-            }
-        }
-
-        if (symbol == null && nextSymbolResolver != null) {
-            nextSymbolResolver.resolveConstantLikeIdentifier(identifier);
+            //forward to nextSymbolResolver within resolveClassLikeIdentifier if necessary
+            symbol = resolveClassLikeIdentifier(identifier);
         }
         return symbol;
     }
 
     @Override
-    public ISymbol resolveClassLikeIdentifier(ITSPHPAst itsphpAst) {
-        //TODO TINS-161 inference OOP
-        return null;
+    public ISymbol resolveClassLikeIdentifier(ITSPHPAst identifier) {
+        ISymbol symbol;
+        if (scopeHelper.isAbsoluteIdentifier(identifier.getText())) {
+            symbol = resolveAbsoluteIdentifier(identifier);
+        } else {
+            symbol = resolveIdentifierCompriseAlias(identifier);
+            if (symbol == null && scopeHelper.isRelativeIdentifier(identifier.getText())) {
+                symbol = resolveRelativeIdentifier(identifier);
+            }
+        }
+
+        if (symbol == null && nextSymbolResolver != null) {
+            nextSymbolResolver.resolveClassLikeIdentifier(identifier);
+        }
+        return symbol;
     }
 
     private ISymbol resolveAbsoluteIdentifier(ITSPHPAst typeAst) {

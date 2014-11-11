@@ -45,6 +45,11 @@ public class ScopeHelper implements IScopeHelper
     }
 
     @Override
+    public boolean isLocalIdentifier(String identifier) {
+        return !identifier.contains("\\");
+    }
+
+    @Override
     public void define(IScope definitionScope, ISymbol symbol) {
         MapHelper.addToListMap(definitionScope.getSymbols(), symbol.getName(), symbol);
         symbol.setDefinitionScope(definitionScope);

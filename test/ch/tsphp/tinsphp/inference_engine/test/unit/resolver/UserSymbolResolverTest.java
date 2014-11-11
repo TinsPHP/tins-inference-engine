@@ -16,10 +16,12 @@ import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolResolver;
 import ch.tsphp.tinsphp.inference_engine.resolver.UserSymbolResolver;
 import org.junit.Test;
+import org.mockito.exceptions.base.MockitoAssertionError;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -27,6 +29,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@SuppressWarnings("unchecked")
 public class UserSymbolResolverTest
 {
 
@@ -194,6 +197,7 @@ public class UserSymbolResolverTest
         ISymbolResolver symbolResolver = createSymbolResolver(scopeHelper);
         ISymbol result = symbolResolver.resolveConstantLikeIdentifier(ast);
 
+        verify(scopeHelper).isAbsoluteIdentifier(identifier);
         verify(globalNamespaceScope).resolve(ast);
         assertThat(result, is(symbol));
     }
@@ -218,6 +222,7 @@ public class UserSymbolResolverTest
         ISymbolResolver symbolResolver = createSymbolResolver(scopeHelper);
         ISymbol result = symbolResolver.resolveConstantLikeIdentifier(ast);
 
+        verify(scopeHelper).isRelativeIdentifier(identifier);
         verify(globalNamespaceScope).resolve(ast);
         assertThat(result, is(symbol));
     }
@@ -249,11 +254,10 @@ public class UserSymbolResolverTest
 
     @Test
     public void resolveConstantLikeIdentifier_LocalIdentifierFoundInCurrentScope_DelegatesToScopeOnly() {
-        String identifier = "name\\Symbol";
+        String identifier = "Symbol";
         ITSPHPAst ast = createAst(identifier);
         IScopeHelper scopeHelper = mock(IScopeHelper.class);
-        when(scopeHelper.isAbsoluteIdentifier(identifier)).thenReturn(false);
-        when(scopeHelper.isRelativeIdentifier(identifier)).thenReturn(false);
+        when(scopeHelper.isLocalIdentifier(identifier)).thenReturn(true);
         ISymbol symbol = mock(ISymbol.class);
         IScope scope = mock(IScope.class);
         when(scope.resolve(ast)).thenReturn(symbol);
@@ -262,18 +266,18 @@ public class UserSymbolResolverTest
         ISymbolResolver symbolResolver = createSymbolResolver(scopeHelper);
         ISymbol result = symbolResolver.resolveConstantLikeIdentifier(ast);
 
+        verify(scopeHelper).isLocalIdentifier(identifier);
         verify(scope).resolve(ast);
         assertThat(result, is(symbol));
     }
 
     @Test
     public void resolveConstantLikeIdentifier_LocalIdentifierNotFoundInCurrentScope_DelegatesToFallback() {
-        String identifier = "name\\Symbol";
+        String identifier = "Symbol";
+        ITSPHPAst ast = createAst(identifier);
         IScopeHelper scopeHelper = mock(IScopeHelper.class);
-        when(scopeHelper.isAbsoluteIdentifier(identifier)).thenReturn(false);
-        when(scopeHelper.isRelativeIdentifier(identifier)).thenReturn(false);
+        when(scopeHelper.isLocalIdentifier(identifier)).thenReturn(true);
         IScope scope = mock(IScope.class);
-        ITSPHPAst ast = mock(ITSPHPAst.class);
         when(ast.getScope()).thenReturn(scope);
         ISymbol symbol = mock(ISymbol.class);
         when(scope.resolve(ast)).thenReturn(null);
@@ -281,16 +285,17 @@ public class UserSymbolResolverTest
         when(globalDefaultNamespaceScope.resolve(ast)).thenReturn(symbol);
 
         ISymbolResolver symbolResolver = createSymbolResolver(
-                mock(IScopeHelper.class), mock(ILowerCaseStringMap.class), globalDefaultNamespaceScope);
+                scopeHelper, mock(ILowerCaseStringMap.class), globalDefaultNamespaceScope);
         ISymbol result = symbolResolver.resolveConstantLikeIdentifier(ast);
 
+        verify(scopeHelper).isLocalIdentifier(identifier);
         verify(scope).resolve(ast);
         verify(globalDefaultNamespaceScope).resolve(ast);
         assertThat(result, is(symbol));
     }
 
     @Test
-    public void resolveConstantLikeIdentifier_NonExistingAbsoluteSymbol_DelegatesToNextInChain() {
+    public void resolveConstantLikeIdentifier_NonExistingAbsoluteSymbol_DelegatesToNextInChainClassLikeIdentifier() {
         ISymbolResolver nextSymbolResolver = mock(ISymbolResolver.class);
         String identifier = "\\nonExistingSymbol";
         ITSPHPAst ast = createAst(identifier);
@@ -306,7 +311,7 @@ public class UserSymbolResolverTest
         symbolResolver.resolveConstantLikeIdentifier(ast);
 
         verify(scopeHelper).isAbsoluteIdentifier(identifier);
-        verify(nextSymbolResolver).resolveConstantLikeIdentifier(ast);
+        verify(nextSymbolResolver).resolveClassLikeIdentifier(ast);
     }
 
     @Test
@@ -328,7 +333,8 @@ public class UserSymbolResolverTest
     }
 
     @Test
-    public void resolveConstantLikeIdentifier_NonExistingAbsoluteNamespaceSymbol_DelegatesToNextInChain() {
+    public void
+    resolveConstantLikeIdentifier_NonExistingAbsoluteNamespaceSymbol_DelegatesToNextInChainClassLikeIdentifier() {
         ISymbolResolver nextSymbolResolver = mock(ISymbolResolver.class);
         String identifier = "\\nonExistingNamespace\\Symbol";
         ITSPHPAst ast = createAst(identifier);
@@ -341,7 +347,7 @@ public class UserSymbolResolverTest
         symbolResolver.resolveConstantLikeIdentifier(ast);
 
         verify(scopeHelper).isAbsoluteIdentifier(identifier);
-        verify(nextSymbolResolver).resolveConstantLikeIdentifier(ast);
+        verify(nextSymbolResolver).resolveClassLikeIdentifier(ast);
     }
 
     @Test
@@ -360,7 +366,7 @@ public class UserSymbolResolverTest
     }
 
     @Test
-    public void resolveConstantLikeIdentifier_NonExistingRelativeSymbol_DelegatesToNextInChain() {
+    public void resolveConstantLikeIdentifier_NonExistingRelativeSymbol_DelegatesToNextInChainClassLikeIdentifier() {
         ISymbolResolver nextSymbolResolver = mock(ISymbolResolver.class);
         String identifier = "existingNamespace\\Symbol";
         ITSPHPAst ast = createAst(identifier);
@@ -380,9 +386,8 @@ public class UserSymbolResolverTest
         symbolResolver.resolveConstantLikeIdentifier(ast);
 
         verify(scopeHelper).isRelativeIdentifier(identifier);
-        verify(nextSymbolResolver).resolveConstantLikeIdentifier(ast);
+        verify(nextSymbolResolver).resolveClassLikeIdentifier(ast);
     }
-
 
     @Test
     public void resolveConstantLikeIdentifier_NonExistingRelativeSymbolAndLastInChain_ReturnsNull() {
@@ -408,7 +413,8 @@ public class UserSymbolResolverTest
     }
 
     @Test
-    public void resolveConstantLikeIdentifier_NonExistingRelativeNamespaceSymbol_DelegatesToNextInChain() {
+    public void
+    resolveConstantLikeIdentifier_NonExistingRelativeNamespaceSymbol_DelegatesNextInChainClassLikeIdentifier() {
         ISymbolResolver nextSymbolResolver = mock(ISymbolResolver.class);
         String identifier = "nonExistingNamespace\\Symbol";
         ITSPHPAst ast = createAst(identifier);
@@ -427,7 +433,7 @@ public class UserSymbolResolverTest
         symbolResolver.resolveConstantLikeIdentifier(ast);
 
         verify(scopeHelper).isRelativeIdentifier(identifier);
-        verify(nextSymbolResolver).resolveConstantLikeIdentifier(ast);
+        verify(nextSymbolResolver).resolveClassLikeIdentifier(ast);
     }
 
     @Test
@@ -452,7 +458,372 @@ public class UserSymbolResolverTest
     }
 
     @Test
-    public void resolveConstantLikeIdentifier_NonExistingLocalIdentifier_DelegatesToNextInChain() {
+    public void
+    resolveConstantLikeIdentifier_NonExistingLocalIdentifier_DelegatesToResolveIdentifierWithFallback() {
+        ISymbolResolver nextSymbolResolver = mock(ISymbolResolver.class);
+        String identifier = "nonExistingLocalSymbol";
+        ITSPHPAst ast = createAst(identifier);
+        IScopeHelper scopeHelper = mock(IScopeHelper.class);
+        when(scopeHelper.isLocalIdentifier(identifier)).thenReturn(true);
+        IScope scope = mock(IScope.class);
+        when(scope.resolve(ast)).thenReturn(null);
+        when(ast.getScope()).thenReturn(scope);
+
+        ISymbolResolver symbolResolver = createSymbolResolver(scopeHelper);
+        symbolResolver.setNextInChain(nextSymbolResolver);
+        symbolResolver.resolveConstantLikeIdentifier(ast);
+
+        verify(scopeHelper).isLocalIdentifier(identifier);
+        verify(nextSymbolResolver).resolveIdentifier(ast);
+        verify(nextSymbolResolver).resolveIdentifierFromFallback(ast);
+        try {
+            verify(nextSymbolResolver).resolveConstantLikeIdentifier(ast);
+            fail("resolveConstantLikeIdentifier called even though it was a local identifier "
+                    + "- should only delegate to resolveIdentifierWithFallback");
+        } catch (MockitoAssertionError er) {
+            //that ok, we expect that resolveConstantLikeIdentifier was not called
+        }
+    }
+
+    @Test
+    public void resolveConstantLikeIdentifier_NonExistingLocalIdentifierAndLastInChain_ReturnsNull() {
+        String identifier = "nonExistingLocalSymbol";
+        ITSPHPAst ast = createAst(identifier);
+        IScopeHelper scopeHelper = mock(IScopeHelper.class);
+        when(scopeHelper.isLocalIdentifier(identifier)).thenReturn(true);
+        IScope scope = mock(IScope.class);
+        when(scope.resolve(ast)).thenReturn(null);
+        when(ast.getScope()).thenReturn(scope);
+
+        ISymbolResolver symbolResolver = createSymbolResolver(scopeHelper);
+        ISymbol result = symbolResolver.resolveConstantLikeIdentifier(ast);
+
+        verify(scopeHelper).isLocalIdentifier(identifier);
+        assertThat(result, is(nullValue()));
+    }
+
+    @Test
+    public void resolveClassLikeIdentifier_AbsoluteIdentifier_DelegatesToGlobalNamespaceScope() {
+        String identifier = "\\Symbol";
+        ITSPHPAst ast = createAst(identifier);
+        IScopeHelper scopeHelper = mock(IScopeHelper.class);
+        when(scopeHelper.isAbsoluteIdentifier(identifier)).thenReturn(true);
+        IGlobalNamespaceScope globalNamespaceScope = mock(IGlobalNamespaceScope.class);
+        when(scopeHelper.getCorrespondingGlobalNamespace(any(ILowerCaseStringMap.class), anyString()))
+                .thenReturn(globalNamespaceScope);
+        ISymbol symbol = mock(ISymbol.class);
+        when(globalNamespaceScope.resolve(ast)).thenReturn(symbol);
+
+        ISymbolResolver symbolResolver = createSymbolResolver(scopeHelper);
+        ISymbol result = symbolResolver.resolveClassLikeIdentifier(ast);
+
+        verify(globalNamespaceScope).resolve(ast);
+        assertThat(result, is(symbol));
+    }
+
+    //TODO rstoll TINS-179 reference phase - resolve use
+//    @Test
+//    public void resolveClassLikeIdentifier_RelativeIdentifierCompriseAlias_DelegatesToGlobalNamespaceScope() {
+//        String identifier = "name\\Symbol";
+//        ITSPHPAst ast = createAst(identifier);
+//        IScopeHelper scopeHelper = mock(IScopeHelper.class);
+//        when(scopeHelper.isAbsoluteIdentifier(identifier)).thenReturn(false);
+//        when(scopeHelper.isRelativeIdentifier(identifier)).thenReturn(true);
+//        INamespaceScope namespaceScope = mock(INamespaceScope.class);
+//        IGlobalNamespaceScope enclosingGlobalNamespaceScope = mock(IGlobalNamespaceScope.class);
+//        when(namespaceScope.getEnclosingScope()).thenReturn(enclosingGlobalNamespaceScope);
+//        when(scopeHelper.getEnclosingNamespaceScope(ast)).thenReturn(namespaceScope);
+//        IGlobalNamespaceScope globalNamespaceScope = mock(IGlobalNamespaceScope.class);
+//        when(scopeHelper.getCorrespondingGlobalNamespace(any(ILowerCaseStringMap.class), anyString()))
+//                .thenReturn(globalNamespaceScope);
+//        ISymbol symbol = mock(ISymbol.class);
+//        when(globalNamespaceScope.resolve(ast)).thenReturn(symbol);
+//
+//        ISymbolResolver symbolResolver = createSymbolResolver(scopeHelper);
+//        ISymbol result = symbolResolver.resolveClassLikeIdentifier(ast);
+//
+//        verify(globalNamespaceScope).resolve(ast);
+//        assertThat(result, is(symbol));
+//    }
+//
+//    @Test
+//    public void resolveClassLikeIdentifier_RelativeIdentifierCompiseAlias_PassesAbsoluteNameButDoesNotChangeAst() {
+//        String identifier = "name\\Symbol";
+//        ITSPHPAst ast = createAst(identifier);
+//        IScopeHelper scopeHelper = mock(IScopeHelper.class);
+//        when(scopeHelper.isAbsoluteIdentifier(identifier)).thenReturn(false);
+//        when(scopeHelper.isRelativeIdentifier(identifier)).thenReturn(true);
+//        INamespaceScope namespaceScope = mock(INamespaceScope.class);
+//        IGlobalNamespaceScope enclosingGlobalNamespaceScope = mock(IGlobalNamespaceScope.class);
+//        when(namespaceScope.getEnclosingScope()).thenReturn(enclosingGlobalNamespaceScope);
+//        when(scopeHelper.getEnclosingNamespaceScope(ast)).thenReturn(namespaceScope);
+//        IGlobalNamespaceScope globalNamespaceScope = mock(IGlobalNamespaceScope.class);
+//        when(enclosingGlobalNamespaceScope.getScopeName()).thenReturn("\\a\\");
+//        when(scopeHelper.getCorrespondingGlobalNamespace(any(ILowerCaseStringMap.class), anyString()))
+//                .thenReturn(globalNamespaceScope);
+//
+//
+//        ISymbolResolver symbolResolver = createSymbolResolver(scopeHelper);
+//        symbolResolver.resolveClassLikeIdentifier(ast);
+//
+//        verify(ast).setText("\\a\\" + identifier);
+//        verify(ast).setText(identifier);
+//        verify(scopeHelper).getCorrespondingGlobalNamespace(any(ILowerCaseStringMap.class), eq("\\a\\" + identifier));
+//    }
+
+    @Test
+    public void resolveClassLikeIdentifier_RelativeIdentifierNoAlias_DelegatesToGlobalNamespaceScope() {
+        String identifier = "name\\Symbol";
+        ITSPHPAst ast = createAst(identifier);
+        IScopeHelper scopeHelper = mock(IScopeHelper.class);
+        when(scopeHelper.isAbsoluteIdentifier(identifier)).thenReturn(false);
+        when(scopeHelper.isRelativeIdentifier(identifier)).thenReturn(true);
+        INamespaceScope namespaceScope = mock(INamespaceScope.class);
+        IGlobalNamespaceScope enclosingGlobalNamespaceScope = mock(IGlobalNamespaceScope.class);
+        when(namespaceScope.getEnclosingScope()).thenReturn(enclosingGlobalNamespaceScope);
+        when(scopeHelper.getEnclosingNamespaceScope(ast)).thenReturn(namespaceScope);
+        IGlobalNamespaceScope globalNamespaceScope = mock(IGlobalNamespaceScope.class);
+        when(scopeHelper.getCorrespondingGlobalNamespace(any(ILowerCaseStringMap.class), anyString()))
+                .thenReturn(globalNamespaceScope);
+        ISymbol symbol = mock(ISymbol.class);
+        when(globalNamespaceScope.resolve(ast)).thenReturn(symbol);
+
+        ISymbolResolver symbolResolver = createSymbolResolver(scopeHelper);
+        ISymbol result = symbolResolver.resolveClassLikeIdentifier(ast);
+
+        verify(globalNamespaceScope).resolve(ast);
+        assertThat(result, is(symbol));
+    }
+
+    @Test
+    public void resolveClassLikeIdentifier_RelativeIdentifierNoAlias_PassesAbsoluteNameButDoesNotChangeAst() {
+        String identifier = "name\\Symbol";
+        ITSPHPAst ast = createAst(identifier);
+        IScopeHelper scopeHelper = mock(IScopeHelper.class);
+        when(scopeHelper.isAbsoluteIdentifier(identifier)).thenReturn(false);
+        when(scopeHelper.isRelativeIdentifier(identifier)).thenReturn(true);
+        INamespaceScope namespaceScope = mock(INamespaceScope.class);
+        IGlobalNamespaceScope enclosingGlobalNamespaceScope = mock(IGlobalNamespaceScope.class);
+        when(namespaceScope.getEnclosingScope()).thenReturn(enclosingGlobalNamespaceScope);
+        when(scopeHelper.getEnclosingNamespaceScope(ast)).thenReturn(namespaceScope);
+        IGlobalNamespaceScope globalNamespaceScope = mock(IGlobalNamespaceScope.class);
+        when(enclosingGlobalNamespaceScope.getScopeName()).thenReturn("\\a\\");
+        when(scopeHelper.getCorrespondingGlobalNamespace(any(ILowerCaseStringMap.class), anyString()))
+                .thenReturn(globalNamespaceScope);
+
+
+        ISymbolResolver symbolResolver = createSymbolResolver(scopeHelper);
+        symbolResolver.resolveClassLikeIdentifier(ast);
+
+        verify(ast).setText("\\a\\" + identifier);
+        verify(ast).setText(identifier);
+        verify(scopeHelper).getCorrespondingGlobalNamespace(any(ILowerCaseStringMap.class), eq("\\a\\" + identifier));
+    }
+
+    //TODO rstoll TINS-179 reference phase - resolve use
+    //copied only, logic needs modifications
+//    @Test
+//    public void resolveClassLikeIdentifier_LocalIdentifierCompriseAlias_DelegatesToScopeOnly() {
+//        String identifier = "name\\Symbol";
+//        ITSPHPAst ast = createAst(identifier);
+//        IScopeHelper scopeHelper = mock(IScopeHelper.class);
+//        when(scopeHelper.isAbsoluteIdentifier(identifier)).thenReturn(false);
+//        when(scopeHelper.isRelativeIdentifier(identifier)).thenReturn(false);
+//        ISymbol symbol = mock(ISymbol.class);
+//        IScope scope = mock(IScope.class);
+//        when(scope.resolve(ast)).thenReturn(symbol);
+//        when(ast.getScope()).thenReturn(scope);
+//
+//        ISymbolResolver symbolResolver = createSymbolResolver(scopeHelper);
+//        ISymbol result = symbolResolver.resolveClassLikeIdentifier(ast);
+//
+//        verify(scope).resolve(ast);
+//        assertThat(result, is(symbol));
+//    }
+//
+//    @Test
+//    public void resolveClassLikeIdentifier_LocalIdentifierNoAlias_DelegatesToScopeOnly() {
+//        String identifier = "name\\Symbol";
+//        ITSPHPAst ast = createAst(identifier);
+//        IScopeHelper scopeHelper = mock(IScopeHelper.class);
+//        when(scopeHelper.isAbsoluteIdentifier(identifier)).thenReturn(false);
+//        when(scopeHelper.isRelativeIdentifier(identifier)).thenReturn(false);
+//        ISymbol symbol = mock(ISymbol.class);
+//        IScope scope = mock(IScope.class);
+//        when(scope.resolve(ast)).thenReturn(symbol);
+//        when(ast.getScope()).thenReturn(scope);
+//
+//        ISymbolResolver symbolResolver = createSymbolResolver(scopeHelper);
+//        ISymbol result = symbolResolver.resolveClassLikeIdentifier(ast);
+//
+//        verify(scope).resolve(ast);
+//        assertThat(result, is(symbol));
+//    }
+
+    @Test
+    public void resolveClassLikeIdentifier_NonExistingAbsoluteSymbol_DelegatesToNextInChain() {
+        ISymbolResolver nextSymbolResolver = mock(ISymbolResolver.class);
+        String identifier = "\\nonExistingSymbol";
+        ITSPHPAst ast = createAst(identifier);
+        IScopeHelper scopeHelper = mock(IScopeHelper.class);
+        when(scopeHelper.isAbsoluteIdentifier(identifier)).thenReturn(true);
+        IGlobalNamespaceScope globalNamespaceScope = mock(IGlobalNamespaceScope.class);
+        when(scopeHelper.getCorrespondingGlobalNamespace(any(ILowerCaseStringMap.class), anyString()))
+                .thenReturn(globalNamespaceScope);
+        when(globalNamespaceScope.resolve(ast)).thenReturn(null);
+
+        ISymbolResolver symbolResolver = createSymbolResolver(scopeHelper);
+        symbolResolver.setNextInChain(nextSymbolResolver);
+        symbolResolver.resolveClassLikeIdentifier(ast);
+
+        verify(scopeHelper).isAbsoluteIdentifier(identifier);
+        verify(nextSymbolResolver).resolveClassLikeIdentifier(ast);
+    }
+
+    @Test
+    public void resolveClassLikeIdentifier_NonExistingAbsoluteSymbolAndLastMemberInChain_ReturnsNull() {
+        String identifier = "\\nonExistingSymbol";
+        ITSPHPAst ast = createAst(identifier);
+        IScopeHelper scopeHelper = mock(IScopeHelper.class);
+        when(scopeHelper.isAbsoluteIdentifier(identifier)).thenReturn(true);
+        IGlobalNamespaceScope globalNamespaceScope = mock(IGlobalNamespaceScope.class);
+        when(scopeHelper.getCorrespondingGlobalNamespace(any(ILowerCaseStringMap.class), anyString()))
+                .thenReturn(globalNamespaceScope);
+        when(globalNamespaceScope.resolve(ast)).thenReturn(null);
+
+        ISymbolResolver symbolResolver = createSymbolResolver(scopeHelper);
+        ISymbol result = symbolResolver.resolveClassLikeIdentifier(ast);
+
+        verify(scopeHelper).isAbsoluteIdentifier(identifier);
+        assertThat(result, is(nullValue()));
+    }
+
+    @Test
+    public void resolveClassLikeIdentifier_NonExistingAbsoluteNamespaceSymbol_DelegatesToNextInChain() {
+        ISymbolResolver nextSymbolResolver = mock(ISymbolResolver.class);
+        String identifier = "\\nonExistingNamespace\\Symbol";
+        ITSPHPAst ast = createAst(identifier);
+        IScopeHelper scopeHelper = mock(IScopeHelper.class);
+        when(scopeHelper.isAbsoluteIdentifier(identifier)).thenReturn(true);
+        when(scopeHelper.getCorrespondingGlobalNamespace(any(ILowerCaseStringMap.class), anyString())).thenReturn(null);
+
+        ISymbolResolver symbolResolver = createSymbolResolver(scopeHelper);
+        symbolResolver.setNextInChain(nextSymbolResolver);
+        symbolResolver.resolveClassLikeIdentifier(ast);
+
+        verify(scopeHelper).isAbsoluteIdentifier(identifier);
+        verify(nextSymbolResolver).resolveClassLikeIdentifier(ast);
+    }
+
+    @Test
+    public void resolveClassLikeIdentifier_NonExistingAbsoluteNamespaceSymbolAndLastInChain_ReturnsNull() {
+        String identifier = "\\nonExistingNamespace\\Symbol";
+        ITSPHPAst ast = createAst(identifier);
+        IScopeHelper scopeHelper = mock(IScopeHelper.class);
+        when(scopeHelper.isAbsoluteIdentifier(identifier)).thenReturn(true);
+        when(scopeHelper.getCorrespondingGlobalNamespace(any(ILowerCaseStringMap.class), anyString())).thenReturn(null);
+
+        ISymbolResolver symbolResolver = createSymbolResolver(scopeHelper);
+        ISymbol result = symbolResolver.resolveClassLikeIdentifier(ast);
+
+        verify(scopeHelper).isAbsoluteIdentifier(identifier);
+        assertThat(result, is(nullValue()));
+    }
+
+    @Test
+    public void resolveClassLikeIdentifier_NonExistingRelativeSymbol_DelegatesToNextInChain() {
+        ISymbolResolver nextSymbolResolver = mock(ISymbolResolver.class);
+        String identifier = "existingNamespace\\Symbol";
+        ITSPHPAst ast = createAst(identifier);
+        IScopeHelper scopeHelper = mock(IScopeHelper.class);
+        when(scopeHelper.isAbsoluteIdentifier(identifier)).thenReturn(false);
+        when(scopeHelper.isRelativeIdentifier(identifier)).thenReturn(true);
+        INamespaceScope namespaceScope = mock(INamespaceScope.class);
+        IGlobalNamespaceScope globalNamespaceScope = mock(IGlobalNamespaceScope.class);
+        when(namespaceScope.getEnclosingScope()).thenReturn(globalNamespaceScope);
+        when(scopeHelper.getEnclosingNamespaceScope(ast)).thenReturn(namespaceScope);
+        when(scopeHelper.getCorrespondingGlobalNamespace(any(ILowerCaseStringMap.class), anyString()))
+                .thenReturn(globalNamespaceScope);
+        when(globalNamespaceScope.resolve(ast)).thenReturn(null);
+
+        ISymbolResolver symbolResolver = createSymbolResolver(scopeHelper);
+        symbolResolver.setNextInChain(nextSymbolResolver);
+        symbolResolver.resolveClassLikeIdentifier(ast);
+
+        verify(scopeHelper).isRelativeIdentifier(identifier);
+        verify(nextSymbolResolver).resolveClassLikeIdentifier(ast);
+    }
+
+
+    @Test
+    public void resolveClassLikeIdentifier_NonExistingRelativeSymbolAndLastInChain_ReturnsNull() {
+        String identifier = "existingNamespace\\Symbol";
+        ITSPHPAst ast = createAst(identifier);
+        IScopeHelper scopeHelper = mock(IScopeHelper.class);
+        when(scopeHelper.isAbsoluteIdentifier(identifier)).thenReturn(false);
+        when(scopeHelper.isRelativeIdentifier(identifier)).thenReturn(true);
+        INamespaceScope namespaceScope = mock(INamespaceScope.class);
+        IGlobalNamespaceScope globalNamespaceScope = mock(IGlobalNamespaceScope.class);
+        when(namespaceScope.getEnclosingScope()).thenReturn(globalNamespaceScope);
+        when(scopeHelper.getEnclosingNamespaceScope(ast)).thenReturn(namespaceScope);
+        when(globalNamespaceScope.resolve(ast)).thenReturn(null);
+        when(scopeHelper.getCorrespondingGlobalNamespace(any(ILowerCaseStringMap.class), anyString()))
+                .thenReturn(globalNamespaceScope);
+        when(globalNamespaceScope.resolve(ast)).thenReturn(null);
+
+        ISymbolResolver symbolResolver = createSymbolResolver(scopeHelper);
+        ISymbol result = symbolResolver.resolveClassLikeIdentifier(ast);
+
+        verify(scopeHelper).isRelativeIdentifier(identifier);
+        assertThat(result, is(nullValue()));
+    }
+
+    @Test
+    public void resolveClassLikeIdentifier_NonExistingRelativeNamespaceSymbol_DelegatesToNextInChain() {
+        ISymbolResolver nextSymbolResolver = mock(ISymbolResolver.class);
+        String identifier = "nonExistingNamespace\\Symbol";
+        ITSPHPAst ast = createAst(identifier);
+        IScopeHelper scopeHelper = mock(IScopeHelper.class);
+        when(scopeHelper.isAbsoluteIdentifier(identifier)).thenReturn(false);
+        when(scopeHelper.isRelativeIdentifier(identifier)).thenReturn(true);
+        INamespaceScope namespaceScope = mock(INamespaceScope.class);
+        IGlobalNamespaceScope globalNamespaceScope = mock(IGlobalNamespaceScope.class);
+        when(namespaceScope.getEnclosingScope()).thenReturn(globalNamespaceScope);
+        when(scopeHelper.getEnclosingNamespaceScope(ast)).thenReturn(namespaceScope);
+        when(globalNamespaceScope.resolve(ast)).thenReturn(null);
+        when(scopeHelper.getCorrespondingGlobalNamespace(any(ILowerCaseStringMap.class), anyString())).thenReturn(null);
+
+        ISymbolResolver symbolResolver = createSymbolResolver(scopeHelper);
+        symbolResolver.setNextInChain(nextSymbolResolver);
+        symbolResolver.resolveClassLikeIdentifier(ast);
+
+        verify(scopeHelper).isRelativeIdentifier(identifier);
+        verify(nextSymbolResolver).resolveClassLikeIdentifier(ast);
+    }
+
+    @Test
+    public void resolveClassLikeIdentifier_NonExistingRelativeNamespaceSymbolAdLastInChain_ResultsNull() {
+        String identifier = "nonExistingNamespace\\Symbol";
+        ITSPHPAst ast = createAst(identifier);
+        IScopeHelper scopeHelper = mock(IScopeHelper.class);
+        when(scopeHelper.isAbsoluteIdentifier(identifier)).thenReturn(false);
+        when(scopeHelper.isRelativeIdentifier(identifier)).thenReturn(true);
+        INamespaceScope namespaceScope = mock(INamespaceScope.class);
+        IGlobalNamespaceScope globalNamespaceScope = mock(IGlobalNamespaceScope.class);
+        when(namespaceScope.getEnclosingScope()).thenReturn(globalNamespaceScope);
+        when(scopeHelper.getEnclosingNamespaceScope(ast)).thenReturn(namespaceScope);
+        when(globalNamespaceScope.resolve(ast)).thenReturn(null);
+        when(scopeHelper.getCorrespondingGlobalNamespace(any(ILowerCaseStringMap.class), anyString())).thenReturn(null);
+
+        ISymbolResolver symbolResolver = createSymbolResolver(scopeHelper);
+        ISymbol result = symbolResolver.resolveClassLikeIdentifier(ast);
+
+        verify(scopeHelper).isRelativeIdentifier(identifier);
+        assertThat(result, is(nullValue()));
+    }
+
+    @Test
+    public void resolveClassLikeIdentifier_NonExistingLocalIdentifier_DelegatesToNextInChain() {
         ISymbolResolver nextSymbolResolver = mock(ISymbolResolver.class);
         String identifier = "nonExistingLocalSymbol";
         ITSPHPAst ast = createAst(identifier);
@@ -465,14 +836,13 @@ public class UserSymbolResolverTest
 
         ISymbolResolver symbolResolver = createSymbolResolver();
         symbolResolver.setNextInChain(nextSymbolResolver);
-        symbolResolver.resolveConstantLikeIdentifier(ast);
+        symbolResolver.resolveClassLikeIdentifier(ast);
 
-        verify(nextSymbolResolver).resolveIdentifier(ast);
-        verify(nextSymbolResolver).resolveIdentifierFromFallback(ast);
+        verify(nextSymbolResolver).resolveClassLikeIdentifier(ast);
     }
 
     @Test
-    public void resolveConstantLikeIdentifier_NonExistingLocalIdentifierAndLastInChain_ReturnsNull() {
+    public void resolveClassLikeIdentifier_NonExistingLocalIdentifierAndLastInChain_ReturnsNull() {
         String identifier = "nonExistingLocalSymbol";
         ITSPHPAst ast = createAst(identifier);
         IScopeHelper scopeHelper = mock(IScopeHelper.class);
@@ -483,7 +853,7 @@ public class UserSymbolResolverTest
         when(ast.getScope()).thenReturn(scope);
 
         ISymbolResolver symbolResolver = createSymbolResolver();
-        ISymbol result = symbolResolver.resolveConstantLikeIdentifier(ast);
+        ISymbol result = symbolResolver.resolveClassLikeIdentifier(ast);
 
         assertThat(result, is(nullValue()));
     }
