@@ -14,6 +14,7 @@ package ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference;
 
 import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
+import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.ISymbolResolver;
@@ -55,6 +56,7 @@ public abstract class AVerifyTimesReferenceTest extends AReferenceTest
             IAstModificationHelper theAstModificationHelper,
             ISymbolResolver theSymbolResolver,
             ITypeSymbolResolver theTypeSymbolResolver,
+            IScopeHelper theScopeHelper,
             ICore theCore,
             IModifierHelper theModifierHelper,
             IGlobalNamespaceScope theGlobalDefaultNamespace) {
@@ -64,6 +66,7 @@ public abstract class AVerifyTimesReferenceTest extends AReferenceTest
                 theAstModificationHelper,
                 theSymbolResolver,
                 theTypeSymbolResolver,
+                theScopeHelper,
                 theCore,
                 theModifierHelper,
                 theGlobalDefaultNamespace

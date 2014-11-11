@@ -29,6 +29,7 @@ import ch.tsphp.tinsphp.inference_engine.ReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPReferenceWalker;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.resolver.UserSymbolResolver;
+import ch.tsphp.tinsphp.inference_engine.resolver.UserTypeSymbolResolver;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.WriteExceptionToConsole;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.definition.ADefinitionTest;
 import ch.tsphp.tinsphp.inference_engine.utils.AstModificationHelper;
@@ -69,7 +70,10 @@ public abstract class AReferenceTest extends ADefinitionTest
                 definitionPhaseController.getGlobalNamespaceScopes(),
                 definitionPhaseController.getGlobalDefaultNamespace());
 
-        typeSymbolResolver = createTypeSymbolResolver();
+        typeSymbolResolver = createTypeSymbolResolver(
+                scopeHelper,
+                definitionPhaseController.getGlobalNamespaceScopes(),
+                definitionPhaseController.getGlobalDefaultNamespace());
 
         referencePhaseController = createReferencePhaseController(
                 symbolFactory,
@@ -77,6 +81,7 @@ public abstract class AReferenceTest extends ADefinitionTest
                 astModificationHelper,
                 symbolResolver,
                 typeSymbolResolver,
+                scopeHelper,
                 core,
                 modifierHelper,
                 definitionPhaseController.getGlobalDefaultNamespace());
@@ -145,16 +150,19 @@ public abstract class AReferenceTest extends ADefinitionTest
         return new AstModificationHelper(theAstHelper);
     }
 
-    protected ISymbolResolver createUserSymbolResolver(IScopeHelper theScopeHelper,
+    protected ISymbolResolver createUserSymbolResolver(
+            IScopeHelper theScopeHelper,
             ILowerCaseStringMap<IGlobalNamespaceScope> theGlobalNamespaceScopes,
             IGlobalNamespaceScope theGlobalDefaultNamespace) {
         return new UserSymbolResolver(theScopeHelper, theGlobalNamespaceScopes, theGlobalDefaultNamespace);
     }
 
-    protected ITypeSymbolResolver createTypeSymbolResolver() {
-        return null;
+    protected ITypeSymbolResolver createTypeSymbolResolver(
+            IScopeHelper theScopeHelper,
+            ILowerCaseStringMap<IGlobalNamespaceScope> theGlobalNamespaceScopes,
+            IGlobalNamespaceScope theGlobalDefaultNamespace) {
+        return new UserTypeSymbolResolver(theScopeHelper, theGlobalNamespaceScopes, theGlobalDefaultNamespace);
     }
-
 
     protected IReferencePhaseController createReferencePhaseController(
             ISymbolFactory theSymbolFactory,
@@ -162,6 +170,7 @@ public abstract class AReferenceTest extends ADefinitionTest
             IAstModificationHelper theAstModificationHelper,
             ISymbolResolver theSymbolResolver,
             ITypeSymbolResolver theTypeSymbolResolver,
+            IScopeHelper theScopeHelper,
             ICore theCore,
             IModifierHelper theModifierHelper,
             IGlobalNamespaceScope theGlobalDefaultNamespace) {
@@ -171,6 +180,7 @@ public abstract class AReferenceTest extends ADefinitionTest
                 theAstModificationHelper,
                 theSymbolResolver,
                 theTypeSymbolResolver,
+                theScopeHelper,
                 theCore,
                 theModifierHelper,
                 theGlobalDefaultNamespace

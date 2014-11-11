@@ -57,14 +57,11 @@ namespaceBody
     ;
 
 statement
-    :   //TODO TINS-179 reference phase - use
-        //useDefinitionList
-       definition
+    :   useDefinitionList
+    |   definition
     |   instruction[false]
     ;
 
-//TODO TINS-179 reference phase - use
-/*    
 useDefinitionList
     :   ^(Use useDeclaration+)
     ;
@@ -81,8 +78,6 @@ useDeclaration
             //namespaceScope.useDefinitionCheck((IAliasSymbol) $alias.getSymbol());
         }
     ;
-*/
-
 
 definition
     :   //TODO TINS-210 - reference phase - class definitions

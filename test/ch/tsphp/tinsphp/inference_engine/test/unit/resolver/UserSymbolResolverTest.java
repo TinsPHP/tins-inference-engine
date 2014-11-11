@@ -16,7 +16,10 @@ import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolResolver;
 import ch.tsphp.tinsphp.inference_engine.resolver.UserSymbolResolver;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.exceptions.base.MockitoAssertionError;
+
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -26,6 +29,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -247,8 +251,11 @@ public class UserSymbolResolverTest
         ISymbolResolver symbolResolver = createSymbolResolver(scopeHelper);
         symbolResolver.resolveConstantLikeIdentifier(ast);
 
-        verify(ast).setText("\\a\\" + identifier);
-        verify(ast).setText(identifier);
+        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+        verify(ast, times(2)).setText(argumentCaptor.capture());
+        List<String> allValues = argumentCaptor.getAllValues();
+        assertThat(allValues.get(0), is("\\a\\" + identifier));
+        assertThat(allValues.get(1), is(identifier));
         verify(scopeHelper).getCorrespondingGlobalNamespace(any(ILowerCaseStringMap.class), eq("\\a\\" + identifier));
     }
 

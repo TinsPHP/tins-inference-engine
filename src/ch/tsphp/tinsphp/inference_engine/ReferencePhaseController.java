@@ -13,8 +13,10 @@
 package ch.tsphp.tinsphp.inference_engine;
 
 import ch.tsphp.common.ITSPHPAst;
+import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
+import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.ISymbolResolver;
@@ -30,6 +32,7 @@ public class ReferencePhaseController implements IReferencePhaseController
     private final IModifierHelper modifierHelper;
     private final ISymbolResolver symbolResolver;
     private final ITypeSymbolResolver typeSymbolResolver;
+    private final IScopeHelper scopeHelper;
     private final ICore core;
     private final IGlobalNamespaceScope globalDefaultNamespace;
 
@@ -39,6 +42,7 @@ public class ReferencePhaseController implements IReferencePhaseController
             IAstModificationHelper theAstModificationHelper,
             ISymbolResolver theSymbolResolver,
             ITypeSymbolResolver theTypeSymbolResolver,
+            IScopeHelper theScopeHelper,
             ICore theCore,
             IModifierHelper theModifierHelper,
             IGlobalNamespaceScope theGlobalDefaultNamespace) {
@@ -47,6 +51,7 @@ public class ReferencePhaseController implements IReferencePhaseController
         astModificationHelper = theAstModificationHelper;
         symbolResolver = theSymbolResolver;
         typeSymbolResolver = theTypeSymbolResolver;
+        scopeHelper = theScopeHelper;
         core = theCore;
         modifierHelper = theModifierHelper;
         globalDefaultNamespace = theGlobalDefaultNamespace;
@@ -313,16 +318,21 @@ public class ReferencePhaseController implements IReferencePhaseController
 //        return symbolFactory.createErroneousTypeSymbol(typeAst, new TSPHPException(ex));
 //    }
 
-    //TODO rstoll TINS-179 reference phase - resolve use
-//    @Override
-//    public ITypeSymbol resolveUseType(ITSPHPAst typeAst, ITSPHPAst alias) {
-//        ITypeSymbol aliasTypeSymbol = symbolResolver.resolveUseType(typeAst, alias);
-//        if (aliasTypeSymbol == null) {
-//            aliasTypeSymbol = symbolFactory.createAliasTypeSymbol(typeAst, typeAst.getText());
-//        }
-//        return aliasTypeSymbol;
-//    }
+    @Override
+    public ITypeSymbol resolveUseType(ITSPHPAst typeName, ITSPHPAst alias) {
+        //Alias is always pointing to a full type name. If user has omitted \ at the beginning, then we add it here
+        String identifier = typeName.getText();
+        if (!scopeHelper.isAbsoluteIdentifier(identifier)) {
+            identifier = "\\" + identifier;
+            typeName.setText(identifier);
+        }
 
+        ITypeSymbol aliasTypeSymbol = typeSymbolResolver.resolveTypeFor(typeName);
+        if (aliasTypeSymbol == null) {
+            aliasTypeSymbol = symbolFactory.createAliasTypeSymbol(typeName, typeName.getText());
+        }
+        return aliasTypeSymbol;
+    }
 
     //TODO rstoll TINS-219 reference phase - check are variables initialised
 //    @SuppressWarnings("ThrowableResultOfMethodCallIgnored")

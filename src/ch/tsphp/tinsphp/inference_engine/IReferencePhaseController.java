@@ -13,6 +13,7 @@
 package ch.tsphp.tinsphp.inference_engine;
 
 import ch.tsphp.common.ITSPHPAst;
+import ch.tsphp.common.symbols.ITypeSymbol;
 
 /**
  * Represents the interface between the TSPHPReferenceWalker (ANTLR generated) and the logic.
@@ -49,8 +50,7 @@ public interface IReferencePhaseController
 //
 //    IErroneousTypeSymbol createErroneousTypeSymbol(ITSPHPAst typeAst, RecognitionException ex);
 
-    //TODO rstoll TINS-179 reference phase - resolve use
-//    ITypeSymbol resolveUseType(ITSPHPAst typeAst, ITSPHPAst alias);
+    ITypeSymbol resolveUseType(ITSPHPAst typeAst, ITSPHPAst alias);
 
     //TODO rstoll TINS-219 reference phase - check are variables initialised
 //    boolean checkVariableIsInitialised(ITSPHPAst variableId);

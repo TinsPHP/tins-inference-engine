@@ -115,9 +115,8 @@ public class NotCorrectStartNodeTypeTest extends AReferenceWalkerTest
 //                {"thisVariable", Try},
                 {"unaryOperator", Try},
                 {"unaryPrimitiveAtom", Try},
-                //TODO TINS-179 reference phase - use
-//                {"useDeclaration", Try},
-//                {"useDefinitionList", Try},
+                {"useDeclaration", Try},
+                {"useDefinitionList", Try},
 
                 {"variable", Try},
                 {"whileLoop", Try},
