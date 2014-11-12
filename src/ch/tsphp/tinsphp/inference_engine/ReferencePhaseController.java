@@ -13,6 +13,7 @@
 package ch.tsphp.tinsphp.inference_engine;
 
 import ch.tsphp.common.ITSPHPAst;
+import ch.tsphp.common.exceptions.ReferenceException;
 import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
@@ -21,6 +22,7 @@ import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.ISymbolResolver;
 import ch.tsphp.tinsphp.common.symbols.ITypeSymbolResolver;
+import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 
@@ -57,17 +59,17 @@ public class ReferencePhaseController implements IReferencePhaseController
         globalDefaultNamespace = theGlobalDefaultNamespace;
     }
 
-    //TODO rstoll TINS-213 reference phase - resolve constants
-//    @Override
-//    public IVariableSymbol resolveConstant(ITSPHPAst ast) {
-//        IVariableSymbol symbol = symbolResolver.resolveConstant(ast);
-//        if (symbol == null) {
-//            ReferenceException exception = typeCheckErrorReporter.notDefined(ast);
-//            symbol = symbolFactory.createErroneousVariableSymbol(ast, exception);
-//        }
-//        return symbol;
-//    }
-//
+
+    @Override
+    public IVariableSymbol resolveConstant(ITSPHPAst ast) {
+        IVariableSymbol symbol = (IVariableSymbol) symbolResolver.resolveConstantLikeIdentifier(ast);
+        if (symbol == null) {
+            ReferenceException exception = inferenceErrorReporter.notDefined(ast);
+            symbol = symbolFactory.createErroneousVariableSymbol(ast, exception);
+        }
+        return symbol;
+    }
+
 
     //TODO rstoll TINS-223 reference phase - resolve this and self
 //    @Override

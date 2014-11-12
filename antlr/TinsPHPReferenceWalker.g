@@ -84,9 +84,8 @@ definition
         //classDefinition
         // TINS-211 - reference phase - interface definitions
     //|   interfaceDefinition
-       functionDefinition
-        //TODO TINS-214 reference phase - double definition check constants
-    //|   constDefinitionList
+        functionDefinition
+    |   constDefinitionList
     ;
     
 //TODO TINS-210 - reference phase - class definitions
@@ -143,10 +142,11 @@ classBodyDefinition
     ;
 */
 
-//TODO TINS-214 - reference phase - double definition check constants 
-/*
 constDefinitionList
-    :   ^(CONSTANT_DECLARATION_LIST ^(TYPE tMod=. scalarTypes[tMod]) constDeclaration[$scalarTypes.type]+)
+    :   ^(CONSTANT_DECLARATION_LIST 
+            ^(TYPE tMod=. scalarTypesOrUnknown[tMod]) 
+            constDeclaration[$scalarTypesOrUnknown.type]+
+        )
     ;
 
 constDeclaration[ITypeSymbol type]
@@ -154,11 +154,10 @@ constDeclaration[ITypeSymbol type]
         {
             IVariableSymbol variableSymbol = (IVariableSymbol) $identifier.getSymbol();
             variableSymbol.setType(type); 
-            $identifier.getScope().doubleDefinitionCheck(variableSymbol); 
+            //TODO TINS-214 - reference phase - double definition check constants 
+            //$identifier.getScope().doubleDefinitionCheck(variableSymbol); 
         }
     ;
-*/
-
 
 unaryPrimitiveAtom
     :   primitiveAtomWithConstant
@@ -177,12 +176,12 @@ primitiveAtomWithConstant
     |   Null
     |   array
     |   cnst=CONSTANT
-    //TODO TINS-213 reference phase - resolve constants
-    //    {
-    //        IVariableSymbol variableSymbol = controller.resolveConstant($cnst);
-    //        $cnst.setSymbol(variableSymbol);
-    //        controller.checkIsNotForwardReference($cnst);
-    //    }
+        {
+            IVariableSymbol variableSymbol = controller.resolveConstant($cnst);
+            $cnst.setSymbol(variableSymbol);
+            //TODO TINS-231 reference phase - forward reference check constants
+            //controller.checkIsNotForwardReference($cnst);
+        }
     
     //TODO TINS-217 reference phase - class constant access
     //|   ^(CLASS_STATIC_ACCESS accessor=staticAccessor identifier=CONSTANT)
@@ -225,8 +224,8 @@ fieldDefinition
 
 variableDeclarationList[boolean isImplicitlyInitialised] 
     :   ^(VARIABLE_DECLARATION_LIST
-            ^(TYPE tMod=. allTypes[$tMod]) 
-            variableDeclaration[$allTypes.type, isImplicitlyInitialised]+ 
+            ^(TYPE tMod=. allTypesOrUnknown[$tMod]) 
+            variableDeclaration[$allTypesOrUnknown.type, isImplicitlyInitialised]+ 
         )
     ;
 
@@ -356,8 +355,8 @@ parameterDeclarationList
 
 parameterDeclaration
     :   ^(PARAMETER_DECLARATION
-            ^(TYPE tMod=. allTypes[$tMod]) 
-            parameterNormalOrOptional[$allTypes.type]
+            ^(TYPE tMod=. allTypesOrUnknown[$tMod]) 
+            parameterNormalOrOptional[$allTypesOrUnknown.type]
         )
         //TODO TINS-208 reference phase - resolve variables
         /*{
@@ -768,11 +767,16 @@ exit
     |   'exit'
     ;
     
-allTypes[ITSPHPAst typeModifier] returns [ITypeSymbol type]
+allTypesOrUnknown[ITSPHPAst typeModifier] returns [ITypeSymbol type]
     :   scalarTypes[$typeModifier] {$type = $scalarTypes.type;}
     |   classInterfaceType[$typeModifier] {$type = $classInterfaceType.type;}
     |   arrayType[$typeModifier] {$type = $arrayType.type;}
     //unknown type - needs to be inferred during the inference phase
+    |   '?' {$type = null;}
+    ;
+
+scalarTypesOrUnknown[ITSPHPAst typeModifier] returns [ITypeSymbol type]
+    :   scalarTypes[typeModifier] {$type = $scalarTypes.type;}
     |   '?' {$type = null;}
     ;
     

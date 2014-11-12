@@ -36,24 +36,35 @@ public abstract class AReferenceTypeScopeTest extends AReferenceTest
     }
 
     public static void verifyReferences(TypeScopeTestStruct[] scopeTestStructs, ITSPHPAst ast, String testString) {
+        int counter = 0;
         for (TypeScopeTestStruct testStruct : scopeTestStructs) {
             ITSPHPAst testCandidate = ScopeTestHelper.getAst(ast, testString, testStruct);
-            Assert.assertNotNull(testString + " failed. testCandidate is null. should be " + testStruct.astText,
+            Assert.assertNotNull(testString + " failed (testStruct Nr " + counter + "). testCandidate is null. should" +
+                            " be " + testStruct.astText,
                     testCandidate);
-            Assert.assertEquals(testString + " failed. wrong ast text,", testStruct.astText,
+            Assert.assertEquals(testString + " failed (testStruct Nr " + counter + "). wrong ast text,", testStruct.astText,
                     testCandidate.toStringTree());
 
             ISymbol symbol = testCandidate.getSymbol();
-            Assert.assertNotNull(testString + " -- " + testStruct.astText + " failed. symbol was null", symbol);
-            Assert.assertEquals(testString + " -- " + testStruct.astText + " failed. wrong scope,",
+            Assert.assertNotNull(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + ")." +
+                    " symbol was null", symbol);
+            Assert.assertEquals(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). wrong scope,",
                     testStruct.astScope, ScopeTestHelper.getEnclosingScopeNames(symbol.getDefinitionScope()));
 
             ITypeSymbol typeSymbol = symbol.getType();
-            Assert.assertNotNull(testString + " -- " + testStruct.astText + " failed. type was null", typeSymbol);
-            Assert.assertEquals(testString + " -- " + testStruct.astText + " failed. wrong type scope,",
-                    testStruct.typeScope, ScopeTestHelper.getEnclosingScopeNames(typeSymbol.getDefinitionScope()));
-            Assert.assertEquals(testString + " -- " + testStruct.astText + " failed. wrong type text,",
-                    testStruct.typeText, typeSymbol.getName());
+            if (testStruct.typeText != null) {
+                Assert.assertNotNull(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter +
+                        "). type was null", typeSymbol);
+                Assert.assertEquals(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter +
+                                "). wrong type scope,",
+                        testStruct.typeScope, ScopeTestHelper.getEnclosingScopeNames(typeSymbol.getDefinitionScope()));
+                Assert.assertEquals(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter +
+                                "). wrong type text,",
+                        testStruct.typeText, typeSymbol.getName());
+            } else {
+                Assert.assertNull(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). type was not null", typeSymbol);
+            }
+            ++counter;
         }
     }
 }

@@ -66,4 +66,12 @@ public class InferenceErrorReporter implements IInferenceErrorReporter
         //TODO rstoll TINS-174 inference engine and error reporting
         reportError(new ReferenceException("noReturnFromFunction", identifier));
     }
+
+    @Override
+    public ReferenceException notDefined(ITSPHPAst identifier) {
+        //TODO rstoll TINS-174 inference engine and error reporting
+        ReferenceException ex = new ReferenceException("notDefined", identifier);
+        reportError(ex);
+        return ex;
+    }
 }

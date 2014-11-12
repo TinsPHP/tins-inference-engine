@@ -148,6 +148,56 @@ public class ScopeHelperTest
     }
 
     @Test
+    public void isLocalIdentifier_AbsoluteFromDefaultNamespace_ReturnsFalse() {
+        //no arrange needed
+
+        IScopeHelper scopeHelper = createScopeHelper();
+        boolean result = scopeHelper.isLocalIdentifier("\\a");
+
+        assertThat(result, is(false));
+    }
+
+    @Test
+    public void isLocalIdentifier_AbsoluteFromNamespace_ReturnsFalse() {
+        //no arrange needed
+
+        IScopeHelper scopeHelper = createScopeHelper();
+        boolean result = scopeHelper.isLocalIdentifier("\\a\\a");
+
+        assertThat(result, is(false));
+    }
+
+    @Test
+    public void isLocalIdentifier_AbsoluteFromSubNamespace_ReturnsFalse() {
+        //no arrange needed
+
+        IScopeHelper scopeHelper = createScopeHelper();
+        boolean result = scopeHelper.isLocalIdentifier("\\a\\b\\a");
+
+        assertThat(result, is(false));
+    }
+
+    @Test
+    public void isLocalIdentifier_RelativeFromSubNamespace_ReturnsFalse() {
+        //no arrange needed
+
+        IScopeHelper scopeHelper = createScopeHelper();
+        boolean result = scopeHelper.isLocalIdentifier("a\\a");
+
+        assertThat(result, is(false));
+    }
+
+    @Test
+    public void isLocalIdentifier_Local_ReturnsTrue() {
+        //no arrange needed
+
+        IScopeHelper scopeHelper = createScopeHelper();
+        boolean result = scopeHelper.isLocalIdentifier("a");
+
+        assertThat(result, is(true));
+    }
+
+    @Test
     public void define_OneSymbol_AddToScopeSymbolsAndSetDefinitionScope() {
         Map<String, List<ISymbol>> symbols = new HashMap<>();
         IScope scope = createScope(symbols);

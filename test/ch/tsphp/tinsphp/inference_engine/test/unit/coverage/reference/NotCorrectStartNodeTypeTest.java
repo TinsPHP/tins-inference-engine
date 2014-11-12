@@ -79,8 +79,9 @@ public class NotCorrectStartNodeTypeTest extends AReferenceWalkerTest
                 //TODO TINS-210 - reference phase - class definitions
 //                {"classStaticAccess", Try},
                 {"compilationUnit", Try},
-                //TODO TINS-214 - reference phase - double definition check constants
-//                {"constDefinitionList", Try},
+                //requires parameters - see NotCorrectStartNodeTypeForRulesWithParamsTest
+//                {"constantDeclaration", Try},
+                {"constDefinitionList", Try},
                 //TODO TINS-221 - reference phase - double definition check methods
 //                {"constructDefinition", Try},
                 {"definition", Try},

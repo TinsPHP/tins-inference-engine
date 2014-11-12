@@ -14,14 +14,15 @@ package ch.tsphp.tinsphp.inference_engine;
 
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ITypeSymbol;
+import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 
 /**
  * Represents the interface between the TSPHPReferenceWalker (ANTLR generated) and the logic.
  */
 public interface IReferencePhaseController
 {
-    //TODO rstoll TINS-213 reference phase - resolve constants
-//    IVariableSymbol resolveConstant(ITSPHPAst ast);
+
+    IVariableSymbol resolveConstant(ITSPHPAst ast);
 
     //TODO rstoll TINS-223 reference phase - resolve this and self
 //    IVariableSymbol resolveThisSelf(ITSPHPAst $this);

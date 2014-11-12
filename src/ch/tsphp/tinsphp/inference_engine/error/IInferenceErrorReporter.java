@@ -9,6 +9,7 @@ package ch.tsphp.tinsphp.inference_engine.error;
 import ch.tsphp.common.IErrorReporter;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.exceptions.DefinitionException;
+import ch.tsphp.common.exceptions.ReferenceException;
 import ch.tsphp.common.symbols.ISymbol;
 
 /**
@@ -26,4 +27,6 @@ public interface IInferenceErrorReporter extends IErrorReporter
     void partialReturnFromFunction(ITSPHPAst identifier);
 
     void noReturnFromFunction(ITSPHPAst identifier);
+
+    ReferenceException notDefined(ITSPHPAst identifier);
 }

@@ -32,12 +32,12 @@ import static org.mockito.Mockito.verify;
 public class NotCorrectStartNodeTypeForRulesWithParams extends AReferenceWalkerTest
 {
     @Test
-    public void allTypes_WrongStartNode_reportNoViableAltException()
+    public void allTypesOrUnknown_WrongStartNode_reportNoViableAltException()
             throws RecognitionException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         ITSPHPAst ast = createAst(Try);
 
         TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
-        walker.allTypes(new TSPHPAst());
+        walker.allTypesOrUnknown(new TSPHPAst());
 
         verify(walker).reportError(any(NoViableAltException.class));
     }
@@ -87,19 +87,6 @@ public class NotCorrectStartNodeTypeForRulesWithParams extends AReferenceWalkerT
 //        verify(walker).reportError(any(NoViableAltException.class));
 //    }
 
-
-    //TODO TINS-214 - reference phase - double definition check constants
-//    @Test
-//    public void constDeclaration_WrongStartNode_reportNoViableAltException()
-//            throws RecognitionException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-//        ITSPHPAst ast = createAst(Try);
-//
-//        TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
-//        walker.constDeclaration(mock(ITypeSymbol.class));
-//
-//        verify(walker).reportError(any(NoViableAltException.class));
-//    }
-//
 //    @Test
 //    public void implementsDeclaration_WrongStartNode_reportNoViableAltException()
 //            throws RecognitionException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
@@ -110,6 +97,18 @@ public class NotCorrectStartNodeTypeForRulesWithParams extends AReferenceWalkerT
 //
 //        verify(walker).reportError(any(NoViableAltException.class));
 //    }
+
+    @Test
+    public void constDeclaration_WrongStartNode_reportNoViableAltException()
+            throws RecognitionException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+
+        ITSPHPAst ast = createAst(Try);
+
+        TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
+        walker.constDeclaration(mock(ITypeSymbol.class));
+
+        verify(walker).reportError(any(NoViableAltException.class));
+    }
 
     @Test
     public void instructions_WrongStartNode_reportNoViableAltException()
@@ -233,6 +232,16 @@ public class NotCorrectStartNodeTypeForRulesWithParams extends AReferenceWalkerT
         verify(walker).reportError(any(NoViableAltException.class));
     }
 
+    @Test
+    public void scalarTypesOrUnknown_WrongStartNode_reportNoViableAltException()
+            throws RecognitionException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        ITSPHPAst ast = createAst(Try);
+
+        TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
+        walker.scalarTypesOrUnknown(new TSPHPAst());
+
+        verify(walker).reportError(any(NoViableAltException.class));
+    }
 
     @Test
     public void scalarTypes_WrongStartNode_reportNoViableAltException()
@@ -244,7 +253,6 @@ public class NotCorrectStartNodeTypeForRulesWithParams extends AReferenceWalkerT
 
         verify(walker).reportError(any(NoViableAltException.class));
     }
-
 
     @Test
     public void variableDeclaration_WrongStartNode_reportNoViableAltException()
