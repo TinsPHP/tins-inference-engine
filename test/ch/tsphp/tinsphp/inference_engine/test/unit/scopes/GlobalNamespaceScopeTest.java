@@ -171,7 +171,7 @@ public class GlobalNamespaceScopeTest
         assertThat(result, is(symbol));
     }
 
-    //TODO rstoll TINS-179 reference phase - use
+    //TODO rstoll TINS-233 reference phase - check type name clash with use statement
 //    @Test(expected = IllegalArgumentException.class)
 //    public void getTypeSymbolWhichClashesWithUse_AbsoluteName_ReturnNull() {
 //        ITSPHPAst ast = createAst("\\symbol");

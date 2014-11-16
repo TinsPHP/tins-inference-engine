@@ -11,8 +11,10 @@ import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
+import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.ISymbolResolver;
 import ch.tsphp.tinsphp.common.symbols.ITypeSymbolResolver;
+import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.resolver.UserTypeSymbolResolver;
 import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
 import org.junit.Test;
@@ -24,14 +26,20 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@SuppressWarnings("unchecked")
 public class UserTypeSymbolResolverTest
 {
     protected class DummyUserTypeSymbolResolver extends UserTypeSymbolResolver
     {
-        public DummyUserTypeSymbolResolver(ISymbolResolver theSymbolResolver, IScopeHelper theScopeHelper,
-                ILowerCaseStringMap<IGlobalNamespaceScope>
-                        theGlobalNamespaceScopes, IGlobalNamespaceScope theGlobalDefaultNamespace) {
-            super(theScopeHelper, theGlobalNamespaceScopes, theGlobalDefaultNamespace);
+        public DummyUserTypeSymbolResolver(
+                ISymbolResolver theSymbolResolver,
+                IScopeHelper theScopeHelper,
+                ISymbolFactory theSymbolFactory,
+                IInferenceErrorReporter theInferenceErrorReporter,
+                ILowerCaseStringMap<IGlobalNamespaceScope> theGlobalNamespaceScopes,
+                IGlobalNamespaceScope theGlobalDefaultNamespace) {
+            super(theScopeHelper, theSymbolFactory, theInferenceErrorReporter, theGlobalNamespaceScopes,
+                    theGlobalDefaultNamespace);
             symbolResolver = theSymbolResolver;
         }
 
@@ -103,6 +111,8 @@ public class UserTypeSymbolResolverTest
         return createTypeSymbolResolver(
                 theSymbolResolver,
                 mock(IScopeHelper.class),
+                mock(ISymbolFactory.class),
+                mock(IInferenceErrorReporter.class),
                 mock(ILowerCaseStringMap.class),
                 mock(IGlobalNamespaceScope.class));
     }
@@ -110,12 +120,16 @@ public class UserTypeSymbolResolverTest
     protected ITypeSymbolResolver createTypeSymbolResolver(
             ISymbolResolver theSymbolResolver,
             IScopeHelper theScopeHelper,
+            ISymbolFactory theSymbolFactory,
+            IInferenceErrorReporter theInferenceErrorReporter,
             ILowerCaseStringMap<IGlobalNamespaceScope> theGlobalNamespaceScopes,
             IGlobalNamespaceScope theGlobalDefaultNamespace) {
 
         return new DummyUserTypeSymbolResolver(
                 theSymbolResolver,
                 theScopeHelper,
+                theSymbolFactory,
+                theInferenceErrorReporter,
                 theGlobalNamespaceScopes,
                 theGlobalDefaultNamespace);
     }

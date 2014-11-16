@@ -11,8 +11,10 @@ import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
+import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.ISymbolResolver;
 import ch.tsphp.tinsphp.common.symbols.ITypeSymbolResolver;
+import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
 
 public class UserTypeSymbolResolver implements ITypeSymbolResolver
@@ -27,6 +29,8 @@ public class UserTypeSymbolResolver implements ITypeSymbolResolver
 
     public UserTypeSymbolResolver(
             IScopeHelper theScopeHelper,
+            ISymbolFactory theSymbolFactory,
+            IInferenceErrorReporter theInferenceErrorReporter,
             ILowerCaseStringMap<IGlobalNamespaceScope> theGlobalNamespaceScopes,
             IGlobalNamespaceScope theGlobalDefaultNamespace) {
         scopeHelper = theScopeHelper;
@@ -35,7 +39,10 @@ public class UserTypeSymbolResolver implements ITypeSymbolResolver
 
         // We use the UserSymbolResolver (without any following members in the chain) since resolving class/interface
         // types is nothing else than resolving class like symbols
-        symbolResolver = new UserSymbolResolver(theScopeHelper, theGlobalNamespaceScopes, theGlobalDefaultNamespace);
+        symbolResolver = new UserSymbolResolver(theScopeHelper, theSymbolFactory, theInferenceErrorReporter,
+                theGlobalNamespaceScopes, theGlobalDefaultNamespace
+
+        );
     }
 
     @Override

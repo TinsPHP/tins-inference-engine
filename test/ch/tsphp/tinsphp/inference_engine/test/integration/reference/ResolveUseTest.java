@@ -4,12 +4,6 @@
  * root folder or visit the project's website http://tsphp.ch/wiki/display/TINS/License
  */
 
-/*
- * This file is part of the TSPHP project published under the Apache License 2.0
- * For the full copyright and license information, please have a look at LICENSE in the
- * root folder or visit the project's website http://tsphp.ch/wiki/display/TSPHP/License
- */
-
 package ch.tsphp.tinsphp.inference_engine.test.integration.reference;
 
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference.AReferenceTypeScopeTest;
@@ -32,11 +26,6 @@ public class ResolveUseTest extends AReferenceTypeScopeTest
         super(testString, theTestStructs);
     }
 
-    @Override
-    protected void verifyReferences() {
-        //nothing to check, should just not cause an error
-    }
-
     @Test
     public void test() throws RecognitionException {
         check();
@@ -48,18 +37,17 @@ public class ResolveUseTest extends AReferenceTypeScopeTest
                 //TODO TINS-161 inference OOP
                 //use from default namespace
 //                {"namespace t{use \\A;} namespace{class A{}}", typeStruct("A", "\\t\\", "A", "\\", 0, 1, 0, 0, 1)}
-                //TODO rstoll TINS-213 reference phase - resolve constants
-//                {
-//                        "namespace t{use \\a\\b; a\\a;} namespace a\\b{const a = 1;}",
-//                        typeStruct("A", "\\t\\", "A", "\\", 0, 1, 0, 0, 1)
-//                }
+                {
+                        "namespace a\\b{const a = 1;} namespace t{use \\a\\b; b\\a;}",
+                        typeStruct("b\\a#", "\\a\\b\\.\\a\\b\\.", null, null, 1, 1, 1, 0)
+                }
         });
     }
 
     private static TypeScopeTestStruct[] typeStruct(
-            String astText, String astScope, String typeText, String typeScope, Integer... astAccessOrder) {
+            String astText, String symbolScope, String typeText, String typeScope, Integer... astAccessOrder) {
         return new TypeScopeTestStruct[]{
-                new TypeScopeTestStruct(astText, astScope, Arrays.asList(astAccessOrder), typeText, typeScope)
+                new TypeScopeTestStruct(astText, symbolScope, Arrays.asList(astAccessOrder), typeText, typeScope)
         };
 
     }

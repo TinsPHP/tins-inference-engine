@@ -91,7 +91,7 @@ public class NamespaceScope implements INamespaceScope
         symbol.setDefinitionScope(this);
     }
 
-    //TODO rstoll TINS-179 reference phase - use
+    //TODO rstoll TINS-215 reference phase - double definition check use
 //    @Override
 //    public boolean useDefinitionCheck(IAliasSymbol symbol) {
 //        boolean isNotDoubleDefined = scopeHelper.checkIsNotDoubleDefinition(
@@ -160,17 +160,11 @@ public class NamespaceScope implements INamespaceScope
         return globalNamespaceScope.isPartiallyInitialised(symbol);
     }
 
-    //TODO rstoll TINS-179 reference phase - use
-//    @Override
-//    public List<IAliasSymbol> getUse(String alias) {
-//        return uses.get(alias);
-//    }
-
-//    @Override
-//    public ITSPHPAst getCaseInsensitiveFirstUseDefinitionAst(String alias) {
-//        return usesCaseInsensitive.containsKey(alias)
-//                ? usesCaseInsensitive.get(alias).get(0).getDefinitionAst()
-//                : null;
-//    }
+    @Override
+    public ITSPHPAst getCaseInsensitiveFirstUseDefinitionAst(String alias) {
+        return usesCaseInsensitive.containsKey(alias)
+                ? usesCaseInsensitive.get(alias).get(0).getDefinitionAst()
+                : null;
+    }
 
 }

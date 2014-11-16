@@ -67,11 +67,15 @@ public abstract class AReferenceTest extends ADefinitionTest
         astModificationHelper = createAstModificationHelper(astHelper);
         symbolResolver = createUserSymbolResolver(
                 scopeHelper,
+                symbolFactory,
+                inferenceErrorReporter,
                 definitionPhaseController.getGlobalNamespaceScopes(),
                 definitionPhaseController.getGlobalDefaultNamespace());
 
         typeSymbolResolver = createTypeSymbolResolver(
                 scopeHelper,
+                symbolFactory,
+                inferenceErrorReporter,
                 definitionPhaseController.getGlobalNamespaceScopes(),
                 definitionPhaseController.getGlobalDefaultNamespace());
 
@@ -152,16 +156,24 @@ public abstract class AReferenceTest extends ADefinitionTest
 
     protected ISymbolResolver createUserSymbolResolver(
             IScopeHelper theScopeHelper,
+            ISymbolFactory theSymbolFactory,
+            IInferenceErrorReporter theInferenceErrorReporter,
             ILowerCaseStringMap<IGlobalNamespaceScope> theGlobalNamespaceScopes,
             IGlobalNamespaceScope theGlobalDefaultNamespace) {
-        return new UserSymbolResolver(theScopeHelper, theGlobalNamespaceScopes, theGlobalDefaultNamespace);
+        return new UserSymbolResolver(theScopeHelper, theSymbolFactory, theInferenceErrorReporter,
+                theGlobalNamespaceScopes, theGlobalDefaultNamespace
+
+        );
     }
 
     protected ITypeSymbolResolver createTypeSymbolResolver(
             IScopeHelper theScopeHelper,
+            ISymbolFactory theSymbolFactory,
+            IInferenceErrorReporter theInferenceErrorReporter,
             ILowerCaseStringMap<IGlobalNamespaceScope> theGlobalNamespaceScopes,
             IGlobalNamespaceScope theGlobalDefaultNamespace) {
-        return new UserTypeSymbolResolver(theScopeHelper, theGlobalNamespaceScopes, theGlobalDefaultNamespace);
+        return new UserTypeSymbolResolver(theScopeHelper, theSymbolFactory, theInferenceErrorReporter,
+                theGlobalNamespaceScopes, theGlobalDefaultNamespace);
     }
 
     protected IReferencePhaseController createReferencePhaseController(

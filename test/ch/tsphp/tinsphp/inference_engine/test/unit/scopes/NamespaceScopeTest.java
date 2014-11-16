@@ -19,6 +19,7 @@ import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
+import ch.tsphp.tinsphp.common.symbols.IAliasSymbol;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.scopes.NamespaceScope;
 import org.junit.Before;
@@ -29,6 +30,10 @@ import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.collection.IsMapContaining.hasKey;
+import static org.hamcrest.core.IsCollectionContaining.hasItem;
+import static org.hamcrest.core.IsCollectionContaining.hasItems;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -126,16 +131,15 @@ public class NamespaceScopeTest
         verify(globalNamespaceScope).doubleDefinitionCheckCaseInsensitive(symbol);
     }
 
-//TODO rstoll TINS-179 reference phase - use
-//    @Test
-//    public void defineUse_Standard_SetDefinitionScope() {
-//        IAliasSymbol aliasSymbol = createAliasSymbol("aliasName");
-//
-//        INamespaceScope namespaceScope = createNamespaceScope();
-//        namespaceScope.defineUse(aliasSymbol);
-//
-//        verify(aliasSymbol).setDefinitionScope(namespaceScope);
-//    }
+    @Test
+    public void defineUse_Standard_SetDefinitionScope() {
+        IAliasSymbol aliasSymbol = createAliasSymbol("aliasName");
+
+        INamespaceScope namespaceScope = createNamespaceScope();
+        namespaceScope.defineUse(aliasSymbol);
+
+        verify(aliasSymbol).setDefinitionScope(namespaceScope);
+    }
 
 
     @Test
@@ -148,184 +152,123 @@ public class NamespaceScopeTest
         assertTrue(symbols.isEmpty());
     }
 
-    //TODO rstoll TINS-179 reference phase - use
-//    @Test
-//    public void getUse_NothingDefined_ReturnNull() {
-//        //no arrange needed
-//
-//        INamespaceScope namespaceScope = createNamespaceScope();
-//        List<IAliasSymbol> symbols = namespaceScope.getUse("nonExistingAlias");
-//
-//        assertNull(symbols);
-//    }
+    @Test
+    public void getCaseInsensitiveFirstUseDefinitionAst_NothingDefined_ReturnNull() {
+        //no arrange needed
+
+        INamespaceScope namespaceScope = createNamespaceScope();
+        ITSPHPAst ast = namespaceScope.getCaseInsensitiveFirstUseDefinitionAst("nonExistingAlias");
+
+        assertNull(ast);
+    }
 
 
-//    @Test
-//    public void getCaseInsensitiveFirstUseDefinitionAst_NothingDefined_ReturnNull() {
-//        //no arrange needed
-//
-//        INamespaceScope namespaceScope = createNamespaceScope();
-//        ITSPHPAst ast = namespaceScope.getCaseInsensitiveFirstUseDefinitionAst("nonExistingAlias");
-//
-//        assertNull(ast);
-//    }
-//
-//    @Test
-//    public void getUse_WrongName_ReturnNull() {
-//        IAliasSymbol aliasSymbol = createAliasSymbol("aliasName");
-//
-//        INamespaceScope namespaceScope = createNamespaceScope();
-//        namespaceScope.defineUse(aliasSymbol);
-//        List<IAliasSymbol> symbols = namespaceScope.getUse("notExistingAlias");
-//
-//        assertNull(symbols);
-//    }
+    @Test
+    public void getCaseInsensitiveFirstUseDefinitionAst_WrongName_ReturnNull() {
+        IAliasSymbol aliasSymbol = createAliasSymbol("aliasName");
+
+        INamespaceScope namespaceScope = createNamespaceScope();
+        namespaceScope.defineUse(aliasSymbol);
+        ITSPHPAst ast = namespaceScope.getCaseInsensitiveFirstUseDefinitionAst("nonExistingAlias");
+
+        assertNull(ast);
+    }
+
+    @Test
+    public void getCaseInsensitiveFirstUseDefinitionAst_CaseWrong_ReturnAst() {
+        ITSPHPAst expectedAst = mock(ITSPHPAst.class);
+        IAliasSymbol aliasSymbol = createAliasSymbol("aliasName", expectedAst);
+
+        INamespaceScope namespaceScope = createNamespaceScope();
+        namespaceScope.defineUse(aliasSymbol);
+        ITSPHPAst ast = namespaceScope.getCaseInsensitiveFirstUseDefinitionAst("ALIASName");
+
+        assertThat(ast, is(expectedAst));
+    }
 
 
-//    @Test
-//    public void getCaseInsensitiveFirstUseDefinitionAst_WrongName_ReturnNull() {
-//        IAliasSymbol aliasSymbol = createAliasSymbol("aliasName");
-//
-//        INamespaceScope namespaceScope = createNamespaceScope();
-//        namespaceScope.defineUse(aliasSymbol);
-//        ITSPHPAst ast = namespaceScope.getCaseInsensitiveFirstUseDefinitionAst("nonExistingAlias");
-//
-//        assertNull(ast);
-//    }
-//
-//
-//    @Test
-//    public void getUse_CaseWrong_ReturnNull() {
-//        IAliasSymbol aliasSymbol = createAliasSymbol("aliasName");
-//
-//        INamespaceScope namespaceScope = createNamespaceScope();
-//        namespaceScope.defineUse(aliasSymbol);
-//        List<IAliasSymbol> symbols = namespaceScope.getUse("ALIASName");
-//
-//        assertNull(symbols);
-//    }
-//
-//    @Test
-//    public void getCaseInsensitiveFirstUseDefinitionAst_CaseWrong_ReturnAst() {
-//        ITSPHPAst expectedAst = mock(ITSPHPAst.class);
-//        IAliasSymbol aliasSymbol = createAliasSymbol("aliasName", expectedAst);
-//
-//        INamespaceScope namespaceScope = createNamespaceScope();
-//        namespaceScope.defineUse(aliasSymbol);
-//        ITSPHPAst ast = namespaceScope.getCaseInsensitiveFirstUseDefinitionAst("ALIASName");
-//
-//        assertThat(ast, is(expectedAst));
-//    }
-//
-//
-//    @Test
-//    public void getSymbols_OneDefined_ReturnMapWithOneListWithOne() {
-//        IAliasSymbol aliasSymbol = createAliasSymbol("aliasName");
-//
-//        INamespaceScope namespaceScope = createNamespaceScope();
-//        namespaceScope.defineUse(aliasSymbol);
-//        Map<String, List<ISymbol>> symbols = namespaceScope.getSymbols();
-//
-//        assertThat(symbols.size(), is(1));
-//        assertThat(symbols, hasKey("aliasName"));
-//        List<ISymbol> list = symbols.get("aliasName");
-//        assertThat(list.size(), is(1));
-//        assertThat(list, hasItem(aliasSymbol));
-//    }
-//
-//    @Test
-//    public void getUse_OneDefined_ReturnListWithOne() {
-//        IAliasSymbol aliasSymbol = createAliasSymbol("aliasName");
-//
-//        INamespaceScope namespaceScope = createNamespaceScope();
-//        namespaceScope.defineUse(aliasSymbol);
-//        List<IAliasSymbol> symbols = namespaceScope.getUse("aliasName");
-//
-//        assertThat(symbols.size(), is(1));
-//        assertThat(symbols, hasItem(aliasSymbol));
-//    }
-//
-//
-//    @Test
-//    public void getCaseInsensitiveFirstUseDefinitionAst_OneDefined_ReturnAst() {
-//        ITSPHPAst expectedAst = mock(ITSPHPAst.class);
-//        IAliasSymbol aliasSymbol = createAliasSymbol("aliasName", expectedAst);
-//
-//        INamespaceScope namespaceScope = createNamespaceScope();
-//        namespaceScope.defineUse(aliasSymbol);
-//        ITSPHPAst ast = namespaceScope.getCaseInsensitiveFirstUseDefinitionAst("aliasName");
-//
-//        assertThat(ast, is(expectedAst));
-//    }
-//
-//
-//    @Test
-//    public void getSymbols_TwoDefinedSameName_ReturnMapWithOneListWithTwo() {
-//        IAliasSymbol aliasSymbol1 = createAliasSymbol("aliasName");
-//        IAliasSymbol aliasSymbol2 = createAliasSymbol("aliasName");
-//
-//        INamespaceScope namespaceScope = createNamespaceScope();
-//        namespaceScope.defineUse(aliasSymbol1);
-//        namespaceScope.defineUse(aliasSymbol2);
-//        Map<String, List<ISymbol>> symbols = namespaceScope.getSymbols();
-//
-//        assertThat(symbols.size(), is(1));
-//        assertThat(symbols, hasKey("aliasName"));
-//        List<ISymbol> list = symbols.get("aliasName");
-//        assertThat(list.size(), is(2));
-//        assertThat(list, hasItems((ISymbol) aliasSymbol1, aliasSymbol2));
-//    }
-//
-//    @Test
-//    public void getSymbols_TwoDefinedDifferentName_ReturnMapWithTwoListWithOneEach() {
-//        IAliasSymbol aliasSymbol1 = createAliasSymbol("aliasName1");
-//        IAliasSymbol aliasSymbol2 = createAliasSymbol("aliasName2");
-//
-//        INamespaceScope namespaceScope = createNamespaceScope();
-//        namespaceScope.defineUse(aliasSymbol1);
-//        namespaceScope.defineUse(aliasSymbol2);
-//        Map<String, List<ISymbol>> symbols = namespaceScope.getSymbols();
-//
-//        assertThat(symbols.size(), is(2));
-//        assertThat(symbols, hasKey("aliasName1"));
-//        List<ISymbol> list1 = symbols.get("aliasName1");
-//        assertThat(list1.size(), is(1));
-//        assertThat(list1, hasItem(aliasSymbol1));
-//        List<ISymbol> list2 = symbols.get("aliasName2");
-//        assertThat(list2.size(), is(1));
-//        assertThat(list2, hasItem(aliasSymbol2));
-//
-//    }
-//
-//    @Test
-//    public void getUse_TwoDefined_ReturnListWithTwo() {
-//        IAliasSymbol aliasSymbol1 = createAliasSymbol("aliasName");
-//        IAliasSymbol aliasSymbol2 = createAliasSymbol("aliasName");
-//
-//        INamespaceScope namespaceScope = createNamespaceScope();
-//        namespaceScope.defineUse(aliasSymbol1);
-//        namespaceScope.defineUse(aliasSymbol2);
-//        List<IAliasSymbol> symbols = namespaceScope.getUse("aliasName");
-//
-//        assertThat(symbols.size(), is(2));
-//        assertThat(symbols, hasItems(aliasSymbol1, aliasSymbol2));
-//    }
-//
-//    @Test
-//    public void getCaseInsensitiveFirstUseDefinitionAst_TwoDefined_ReturnFirstAst() {
-//        ITSPHPAst expectedAst = mock(ITSPHPAst.class);
-//        IAliasSymbol aliasSymbol = createAliasSymbol("aliasName", expectedAst);
-//        ITSPHPAst notThisAst = mock(ITSPHPAst.class);
-//        IAliasSymbol aliasSymbol2 = createAliasSymbol("aliasName", notThisAst);
-//
-//        INamespaceScope namespaceScope = createNamespaceScope();
-//        namespaceScope.defineUse(aliasSymbol);
-//        namespaceScope.defineUse(aliasSymbol2);
-//        ITSPHPAst ast = namespaceScope.getCaseInsensitiveFirstUseDefinitionAst("aliasName");
-//
-//        assertThat(ast, is(expectedAst));
-//    }
-//
+    @Test
+    public void getSymbols_OneDefined_ReturnMapWithOneListWithOne() {
+        IAliasSymbol aliasSymbol = createAliasSymbol("aliasName");
+
+        INamespaceScope namespaceScope = createNamespaceScope();
+        namespaceScope.defineUse(aliasSymbol);
+        Map<String, List<ISymbol>> symbols = namespaceScope.getSymbols();
+
+        assertThat(symbols.size(), is(1));
+        assertThat(symbols, hasKey("aliasName"));
+        List<ISymbol> list = symbols.get("aliasName");
+        assertThat(list.size(), is(1));
+        assertThat(list, hasItem(aliasSymbol));
+    }
+
+    @Test
+    public void getCaseInsensitiveFirstUseDefinitionAst_OneDefined_ReturnAst() {
+        ITSPHPAst expectedAst = mock(ITSPHPAst.class);
+        IAliasSymbol aliasSymbol = createAliasSymbol("aliasName", expectedAst);
+
+        INamespaceScope namespaceScope = createNamespaceScope();
+        namespaceScope.defineUse(aliasSymbol);
+        ITSPHPAst ast = namespaceScope.getCaseInsensitiveFirstUseDefinitionAst("aliasName");
+
+        assertThat(ast, is(expectedAst));
+    }
+
+
+    @Test
+    public void getSymbols_TwoDefinedSameName_ReturnMapWithOneListWithTwo() {
+        IAliasSymbol aliasSymbol1 = createAliasSymbol("aliasName");
+        IAliasSymbol aliasSymbol2 = createAliasSymbol("aliasName");
+
+        INamespaceScope namespaceScope = createNamespaceScope();
+        namespaceScope.defineUse(aliasSymbol1);
+        namespaceScope.defineUse(aliasSymbol2);
+        Map<String, List<ISymbol>> symbols = namespaceScope.getSymbols();
+
+        assertThat(symbols.size(), is(1));
+        assertThat(symbols, hasKey("aliasName"));
+        List<ISymbol> list = symbols.get("aliasName");
+        assertThat(list.size(), is(2));
+        assertThat(list, hasItems((ISymbol) aliasSymbol1, aliasSymbol2));
+    }
+
+    @Test
+    public void getSymbols_TwoDefinedDifferentName_ReturnMapWithTwoListWithOneEach() {
+        IAliasSymbol aliasSymbol1 = createAliasSymbol("aliasName1");
+        IAliasSymbol aliasSymbol2 = createAliasSymbol("aliasName2");
+
+        INamespaceScope namespaceScope = createNamespaceScope();
+        namespaceScope.defineUse(aliasSymbol1);
+        namespaceScope.defineUse(aliasSymbol2);
+        Map<String, List<ISymbol>> symbols = namespaceScope.getSymbols();
+
+        assertThat(symbols.size(), is(2));
+        assertThat(symbols, hasKey("aliasName1"));
+        List<ISymbol> list1 = symbols.get("aliasName1");
+        assertThat(list1.size(), is(1));
+        assertThat(list1, hasItem(aliasSymbol1));
+        List<ISymbol> list2 = symbols.get("aliasName2");
+        assertThat(list2.size(), is(1));
+        assertThat(list2, hasItem(aliasSymbol2));
+
+    }
+
+    @Test
+    public void getCaseInsensitiveFirstUseDefinitionAst_TwoDefined_ReturnFirstAst() {
+        ITSPHPAst expectedAst = mock(ITSPHPAst.class);
+        IAliasSymbol aliasSymbol = createAliasSymbol("aliasName", expectedAst);
+        ITSPHPAst notThisAst = mock(ITSPHPAst.class);
+        IAliasSymbol aliasSymbol2 = createAliasSymbol("aliasName", notThisAst);
+
+        INamespaceScope namespaceScope = createNamespaceScope();
+        namespaceScope.defineUse(aliasSymbol);
+        namespaceScope.defineUse(aliasSymbol2);
+        ITSPHPAst ast = namespaceScope.getCaseInsensitiveFirstUseDefinitionAst("aliasName");
+
+        assertThat(ast, is(expectedAst));
+    }
+
+    //TODO rstoll TINS-233 reference phase - check type name clash with use statement
 //    @Test(expected = NullPointerException.class)
 //    /**
 //     * It is not possible to perform a useDefinitionCheck for a certain symbol which was never defined.
@@ -582,18 +525,17 @@ public class NamespaceScopeTest
         return typeSymbol;
     }
 
-    //TODO rstoll TINS-179 reference phase - use
-//    private IAliasSymbol createAliasSymbol(String name) {
-//        IAliasSymbol aliasSymbol = mock(IAliasSymbol.class);
-//        when(aliasSymbol.getName()).thenReturn(name);
-//        return aliasSymbol;
-//    }
-//
-//    private IAliasSymbol createAliasSymbol(String name, ITSPHPAst ast) {
-//        IAliasSymbol aliasSymbol = createAliasSymbol(name);
-//        when(aliasSymbol.getDefinitionAst()).thenReturn(ast);
-//        return aliasSymbol;
-//    }
+    private IAliasSymbol createAliasSymbol(String name) {
+        IAliasSymbol aliasSymbol = mock(IAliasSymbol.class);
+        when(aliasSymbol.getName()).thenReturn(name);
+        return aliasSymbol;
+    }
+
+    private IAliasSymbol createAliasSymbol(String name, ITSPHPAst ast) {
+        IAliasSymbol aliasSymbol = createAliasSymbol(name);
+        when(aliasSymbol.getDefinitionAst()).thenReturn(ast);
+        return aliasSymbol;
+    }
 
 
 }

@@ -22,9 +22,9 @@ public class TypeScopeTestStruct extends ScopeTestStruct
     public String typeText;
     public String typeScope;
 
-    public TypeScopeTestStruct(String theAstText, String theAstScope, List<Integer> theAstAccessOrder,
+    public TypeScopeTestStruct(String theAstText, String theSymbolScope, List<Integer> theAstAccessOrder,
             String theTypeText, String theTypeScope) {
-        super(theAstText, theAstScope, theAstAccessOrder);
+        super(theAstText, theSymbolScope, theAstAccessOrder);
         typeText = theTypeText;
         typeScope = theTypeScope;
 

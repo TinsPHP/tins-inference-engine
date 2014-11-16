@@ -5,9 +5,9 @@
  */
 
 /*
- * This file is part of the TSPHP project published under the Apache License 2.0
- * For the full copyright and license information, please have a look at LICENSE in the
- * root folder or visit the project's website http://tsphp.ch/wiki/display/TSPHP/License
+ * This class is based on the class ResolveConstantTest from the TSPHP project.
+ * TSPHP is also published under the Apache License 2.0
+ * For more information see http://tsphp.ch/wiki/display/TSPHP/License
  */
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.reference;
@@ -106,12 +106,11 @@ public class ResolveConstantTest extends AReferenceTypeScopeTest
                         "namespace a\\b{ const a=1;} namespace a{ b\\a;}",
                         struct("b\\", "\\a\\b\\.\\a\\b\\.", 1, 1, 0, 0)
                 },
-                //TODO rstoll TINS-179 reference phase - resolve use
                 //using an alias
-//                {
-//                        "namespace a\\b{ const a=1; } namespace x{ use a\\b as b; b\\a;}",
-//                        struct("b\\", "\\a\\b\\.\\a\\b\\.", 1, 1, 1, 0)
-//                },
+                {
+                        "namespace a\\b{ const a=1; } namespace x{ use a\\b as b; b\\a;}",
+                        struct("b\\", "\\a\\b\\.\\a\\b\\.", 1, 1, 1, 0)
+                },
                 //const have a fallback mechanism to default scope
                 {"namespace{ const a=1;} namespace a{a;}", structDefault("", 1, 1, 0, 0)},
                 {"namespace{ const a=1;} namespace a\\b{a;}", structDefault("", 1, 1, 0, 0)},
