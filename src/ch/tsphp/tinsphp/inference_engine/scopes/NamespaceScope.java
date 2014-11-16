@@ -19,9 +19,7 @@ import ch.tsphp.common.LowerCaseStringMap;
 import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
-import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IAliasSymbol;
-import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.utils.MapHelper;
 
 import java.util.LinkedHashMap;
@@ -35,21 +33,14 @@ public class NamespaceScope implements INamespaceScope
     private final ILowerCaseStringMap<List<IAliasSymbol>> usesCaseInsensitive = new LowerCaseStringMap<>();
     private final Map<String, List<IAliasSymbol>> uses = new LinkedHashMap<>();
 
-    private final IScopeHelper scopeHelper;
     private final String scopeName;
     private final IGlobalNamespaceScope globalNamespaceScope;
-    private final IInferenceErrorReporter inferenceErrorReporter;
 
     public NamespaceScope(
-            IScopeHelper theScopeHelper,
             String theScopeName,
-            IGlobalNamespaceScope theGlobalNamespaceScope,
-            IInferenceErrorReporter theInferenceErrorReporter) {
-
-        scopeHelper = theScopeHelper;
+            IGlobalNamespaceScope theGlobalNamespaceScope) {
         scopeName = theScopeName;
         globalNamespaceScope = theGlobalNamespaceScope;
-        inferenceErrorReporter = theInferenceErrorReporter;
     }
 
     @Override
@@ -83,46 +74,12 @@ public class NamespaceScope implements INamespaceScope
         return globalNamespaceScope.doubleDefinitionCheckCaseInsensitive(symbol);
     }
 
-
     @Override
     public void defineUse(IAliasSymbol symbol) {
         MapHelper.addToListMap(usesCaseInsensitive, symbol.getName(), symbol);
         MapHelper.addToListMap(uses, symbol.getName(), symbol);
         symbol.setDefinitionScope(this);
     }
-
-    //TODO rstoll TINS-215 reference phase - double definition check use
-//    @Override
-//    public boolean useDefinitionCheck(IAliasSymbol symbol) {
-//        boolean isNotDoubleDefined = scopeHelper.checkIsNotDoubleDefinition(
-//                usesCaseInsensitive.get(symbol.getName()).get(0), symbol);
-//        return isNotDoubleDefined && isNotAlreadyDefinedAsType(symbol);
-//
-//    }
-//
-//    @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-//    private boolean isNotAlreadyDefinedAsType(IAliasSymbol symbol) {
-//        ITypeSymbol typeSymbol = globalNamespaceScope.getTypeSymbolWhichClashesWithUse(symbol.getDefinitionAst());
-//        boolean ok = hasNoTypeNameClash(symbol.getDefinitionAst(), typeSymbol);
-//        if (!ok) {
-//            inferenceErrorReporter.determineAlreadyDefined(symbol, typeSymbol);
-//        }
-//        return ok;
-//    }
-//
-//    private boolean hasNoTypeNameClash(ITSPHPAst useDefinition, ITypeSymbol typeSymbol) {
-//        boolean hasNoTypeNameClash = typeSymbol == null;
-//        if (!hasNoTypeNameClash) {
-//            boolean isUseDefinedEarlier = useDefinition.isDefinedEarlierThan(typeSymbol.getDefinitionAst());
-//            boolean isUseInDifferentNamespaceStatement = typeSymbol.getDefinitionScope() != this;
-//
-//            //There is no type name clash in the following situation: namespace{use a as b;} namespace{ class b{}}
-//            //because: use is defined earlier and the use statement is in a different namespace statement
-//            hasNoTypeNameClash = isUseDefinedEarlier && isUseInDifferentNamespaceStatement;
-//        }
-//        return hasNoTypeNameClash;
-//
-//    }
 
     @Override
     public ISymbol resolve(ITSPHPAst ast) {

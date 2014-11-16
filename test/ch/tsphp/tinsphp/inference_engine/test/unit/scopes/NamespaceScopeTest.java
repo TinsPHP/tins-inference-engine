@@ -15,14 +15,10 @@ package ch.tsphp.tinsphp.inference_engine.test.unit.scopes;
 import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ISymbol;
-import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
-import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IAliasSymbol;
-import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.scopes.NamespaceScope;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -42,13 +38,6 @@ import static org.mockito.Mockito.when;
 
 public class NamespaceScopeTest
 {
-    private IScopeHelper scopeHelper;
-
-    @Before
-    public void setUp() {
-        scopeHelper = mock(IScopeHelper.class);
-    }
-
     @Test
     public void getScopeName_DefineTestAsScopeName_ReturnTest() {
         //no arrange necessary, createNamespaceScope passes "test" as name
@@ -503,26 +492,13 @@ public class NamespaceScopeTest
     }
 
     protected INamespaceScope createNamespaceScope(IGlobalNamespaceScope globalNamespaceScope) {
-        return createNamespaceScope(globalNamespaceScope, mock(IInferenceErrorReporter.class));
+        return new NamespaceScope("test", globalNamespaceScope);
     }
-
-    protected INamespaceScope createNamespaceScope(IGlobalNamespaceScope globalNamespaceScope,
-            IInferenceErrorReporter typeCheckerErrorReporter) {
-        return new NamespaceScope(scopeHelper, "test", globalNamespaceScope, typeCheckerErrorReporter);
-    }
-
 
     private ISymbol createSymbol(String name) {
         ISymbol symbol = mock(ISymbol.class);
         when(symbol.getName()).thenReturn(name);
         return symbol;
-    }
-
-    private ITypeSymbol createTypeSymbol(ITSPHPAst classDefinitionAst, IScope scope) {
-        ITypeSymbol typeSymbol = mock(ITypeSymbol.class);
-        when(typeSymbol.getDefinitionAst()).thenReturn(classDefinitionAst);
-        when(typeSymbol.getDefinitionScope()).thenReturn(scope);
-        return typeSymbol;
     }
 
     private IAliasSymbol createAliasSymbol(String name) {

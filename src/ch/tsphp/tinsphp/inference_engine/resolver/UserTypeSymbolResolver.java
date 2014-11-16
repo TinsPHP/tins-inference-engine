@@ -20,10 +20,6 @@ import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
 public class UserTypeSymbolResolver implements ITypeSymbolResolver
 {
 
-    private final IScopeHelper scopeHelper;
-    private final ILowerCaseStringMap<IGlobalNamespaceScope> globalNamespaceScopes;
-    private final IGlobalNamespaceScope globalDefaultNamespace;
-
     protected ISymbolResolver symbolResolver;
     private ITypeSymbolResolver nextSymbolResolver;
 
@@ -33,9 +29,6 @@ public class UserTypeSymbolResolver implements ITypeSymbolResolver
             IInferenceErrorReporter theInferenceErrorReporter,
             ILowerCaseStringMap<IGlobalNamespaceScope> theGlobalNamespaceScopes,
             IGlobalNamespaceScope theGlobalDefaultNamespace) {
-        scopeHelper = theScopeHelper;
-        globalNamespaceScopes = theGlobalNamespaceScopes;
-        globalDefaultNamespace = theGlobalDefaultNamespace;
 
         // We use the UserSymbolResolver (without any following members in the chain) since resolving class/interface
         // types is nothing else than resolving class like symbols
@@ -50,6 +43,9 @@ public class UserTypeSymbolResolver implements ITypeSymbolResolver
         ITypeSymbol typeSymbol;
         switch (ast.getType()) {
             case TokenTypes.TYPE_NAME:
+                typeSymbol = resolveTypeName(ast);
+                break;
+            case TokenTypes.Identifier:
                 typeSymbol = resolveTypeIdentifier(ast);
                 break;
             default:
@@ -62,7 +58,11 @@ public class UserTypeSymbolResolver implements ITypeSymbolResolver
         return typeSymbol;
     }
 
-    private ITypeSymbol resolveTypeIdentifier(ITSPHPAst typeName) {
+    private ITypeSymbol resolveTypeIdentifier(ITSPHPAst identifier) {
+        return (ITypeSymbol) symbolResolver.resolveLocalIdentifier(identifier);
+    }
+
+    private ITypeSymbol resolveTypeName(ITSPHPAst typeName) {
         return (ITypeSymbol) symbolResolver.resolveClassLikeIdentifier(typeName);
     }
 

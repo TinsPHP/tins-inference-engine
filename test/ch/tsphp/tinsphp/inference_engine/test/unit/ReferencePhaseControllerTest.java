@@ -13,6 +13,7 @@ import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
+import ch.tsphp.tinsphp.common.symbols.IAliasSymbol;
 import ch.tsphp.tinsphp.common.symbols.IAliasTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
@@ -89,7 +90,7 @@ public class ReferencePhaseControllerTest
     }
 
     @Test
-    public void resolveUserType_Standard_DelegatesToTypeSymbolResolver() {
+    public void resolveUseType_Standard_DelegatesToTypeSymbolResolver() {
         ITSPHPAst ast = createAst("Dummy");
         ITSPHPAst alias = mock(ITSPHPAst.class);
         ITypeSymbolResolver typeSymbolResolver = mock(ITypeSymbolResolver.class);
@@ -101,7 +102,7 @@ public class ReferencePhaseControllerTest
     }
 
     @Test
-    public void resolveUserType_TypeSymbolResolverFindsType_ReturnsType() {
+    public void resolveUseType_TypeSymbolResolverFindsType_ReturnsType() {
         ITSPHPAst ast = createAst("Dummy");
         ITSPHPAst alias = mock(ITSPHPAst.class);
         ITypeSymbolResolver typeSymbolResolver = mock(ITypeSymbolResolver.class);
@@ -115,7 +116,7 @@ public class ReferencePhaseControllerTest
     }
 
     @Test
-    public void resolveUserType_TypeSymbolResolverDoesNotFindType_ReturnsAliasTypeSymbol() {
+    public void resolveUseType_TypeSymbolResolverDoesNotFindType_ReturnsAliasTypeSymbol() {
         String aliasName = "Dummy";
         ITSPHPAst ast = createAst(aliasName);
         ITSPHPAst alias = mock(ITSPHPAst.class);
@@ -128,6 +129,124 @@ public class ReferencePhaseControllerTest
 
         verify(symbolFactory).createAliasTypeSymbol(ast, aliasName);
         assertThat(result, is((ITypeSymbol) aliasTypeSymbol));
+    }
+
+    @Test
+    public void useDefinitionCheck_DoesNotFindTypeForAlias_NoException() {
+        IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
+        IAliasSymbol aliasSymbol = mock(IAliasSymbol.class);
+        ITSPHPAst ast = mock(ITSPHPAst.class);
+        when(aliasSymbol.getDefinitionAst()).thenReturn(ast);
+        ITypeSymbolResolver typeSymbolResolver = mock(ITypeSymbolResolver.class);
+        when(typeSymbolResolver.resolveTypeFor(ast)).thenReturn(null);
+
+        IReferencePhaseController controller = createController(issueReporter, typeSymbolResolver);
+        controller.useDefinitionCheck(aliasSymbol);
+
+        verify(typeSymbolResolver).resolveTypeFor(ast);
+        verifyNoMoreInteractions(issueReporter);
+    }
+
+    @Test
+    public void useDefinitionCheck_UseDefinitionIsDefinedEarlierAndNotInSameNamespace_NoException() {
+        IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
+        IAliasSymbol aliasSymbol = mock(IAliasSymbol.class);
+        ITSPHPAst useDefinition = mock(ITSPHPAst.class);
+        when(aliasSymbol.getDefinitionAst()).thenReturn(useDefinition);
+        ITypeSymbolResolver typeSymbolResolver = mock(ITypeSymbolResolver.class);
+        ITypeSymbol typeSymbol = mock(ITypeSymbol.class);
+        when(typeSymbolResolver.resolveTypeFor(useDefinition)).thenReturn(typeSymbol);
+        ITSPHPAst definitionAst = mock(ITSPHPAst.class);
+        when(typeSymbol.getDefinitionAst()).thenReturn(definitionAst);
+        when(useDefinition.isDefinedEarlierThan(definitionAst)).thenReturn(true);
+        IScope scope1 = mock(IScope.class);
+        IScope scope2 = mock(IScope.class);
+        when(typeSymbol.getDefinitionScope()).thenReturn(scope1);
+        when(useDefinition.getScope()).thenReturn(scope2);
+
+        IReferencePhaseController controller = createController(issueReporter, typeSymbolResolver);
+        controller.useDefinitionCheck(aliasSymbol);
+
+        verify(useDefinition).isDefinedEarlierThan(definitionAst);
+        verify(useDefinition).getScope();
+        verify(typeSymbol).getDefinitionScope();
+        verifyNoMoreInteractions(issueReporter);
+    }
+
+    @Test
+    public void useDefinitionCheck_UseDefinitionIsDefinedEarlierButInSameNamespace_ReportNameClash() {
+        IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
+        IAliasSymbol aliasSymbol = mock(IAliasSymbol.class);
+        ITSPHPAst useDefinition = mock(ITSPHPAst.class);
+        when(aliasSymbol.getDefinitionAst()).thenReturn(useDefinition);
+        ITypeSymbolResolver typeSymbolResolver = mock(ITypeSymbolResolver.class);
+        ITypeSymbol typeSymbol = mock(ITypeSymbol.class);
+        when(typeSymbolResolver.resolveTypeFor(useDefinition)).thenReturn(typeSymbol);
+        ITSPHPAst definitionAst = mock(ITSPHPAst.class);
+        when(typeSymbol.getDefinitionAst()).thenReturn(definitionAst);
+        when(useDefinition.isDefinedEarlierThan(definitionAst)).thenReturn(true);
+        IScope scope = mock(IScope.class);
+        when(typeSymbol.getDefinitionScope()).thenReturn(scope);
+        when(useDefinition.getScope()).thenReturn(scope);
+
+        IReferencePhaseController controller = createController(issueReporter, typeSymbolResolver);
+        controller.useDefinitionCheck(aliasSymbol);
+
+        verify(useDefinition).isDefinedEarlierThan(definitionAst);
+        verify(useDefinition).getScope();
+        verify(typeSymbol).getDefinitionScope();
+        verify(issueReporter).determineAlreadyDefined(aliasSymbol, typeSymbol);
+    }
+
+    @Test
+    public void useDefinitionCheck_UseDefinitionIsDefinedLaterButNotInSameNamespace_ReportNameClash() {
+        IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
+        IAliasSymbol aliasSymbol = mock(IAliasSymbol.class);
+        ITSPHPAst useDefinition = mock(ITSPHPAst.class);
+        when(aliasSymbol.getDefinitionAst()).thenReturn(useDefinition);
+        ITypeSymbolResolver typeSymbolResolver = mock(ITypeSymbolResolver.class);
+        ITypeSymbol typeSymbol = mock(ITypeSymbol.class);
+        when(typeSymbolResolver.resolveTypeFor(useDefinition)).thenReturn(typeSymbol);
+        ITSPHPAst definitionAst = mock(ITSPHPAst.class);
+        when(typeSymbol.getDefinitionAst()).thenReturn(definitionAst);
+        when(useDefinition.isDefinedEarlierThan(definitionAst)).thenReturn(false);
+        IScope scope1 = mock(IScope.class);
+        IScope scope2 = mock(IScope.class);
+        when(typeSymbol.getDefinitionScope()).thenReturn(scope1);
+        when(useDefinition.getScope()).thenReturn(scope2);
+
+        IReferencePhaseController controller = createController(issueReporter, typeSymbolResolver);
+        controller.useDefinitionCheck(aliasSymbol);
+
+        verify(useDefinition).isDefinedEarlierThan(definitionAst);
+        verify(useDefinition).getScope();
+        verify(typeSymbol).getDefinitionScope();
+        verify(issueReporter).determineAlreadyDefined(aliasSymbol, typeSymbol);
+    }
+
+    @Test
+    public void useDefinitionCheck_UseDefinitionIsDefinedLaterAndInSameNamespace_ReportNameClash() {
+        IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
+        IAliasSymbol aliasSymbol = mock(IAliasSymbol.class);
+        ITSPHPAst useDefinition = mock(ITSPHPAst.class);
+        when(aliasSymbol.getDefinitionAst()).thenReturn(useDefinition);
+        ITypeSymbolResolver typeSymbolResolver = mock(ITypeSymbolResolver.class);
+        ITypeSymbol typeSymbol = mock(ITypeSymbol.class);
+        when(typeSymbolResolver.resolveTypeFor(useDefinition)).thenReturn(typeSymbol);
+        ITSPHPAst definitionAst = mock(ITSPHPAst.class);
+        when(typeSymbol.getDefinitionAst()).thenReturn(definitionAst);
+        when(useDefinition.isDefinedEarlierThan(definitionAst)).thenReturn(false);
+        IScope scope = mock(IScope.class);
+        when(typeSymbol.getDefinitionScope()).thenReturn(scope);
+        when(useDefinition.getScope()).thenReturn(scope);
+
+        IReferencePhaseController controller = createController(issueReporter, typeSymbolResolver);
+        controller.useDefinitionCheck(aliasSymbol);
+
+        verify(useDefinition).isDefinedEarlierThan(definitionAst);
+        verify(useDefinition).getScope();
+        verify(typeSymbol).getDefinitionScope();
+        verify(issueReporter).determineAlreadyDefined(aliasSymbol, typeSymbol);
     }
 
     @Test
@@ -245,6 +364,7 @@ public class ReferencePhaseControllerTest
         verify(returnAst).setEvalType(any(ITypeSymbol.class));
     }
 
+
     private ITSPHPAst createAst(String name) {
         ITSPHPAst ast = mock(ITSPHPAst.class);
         when(ast.getText()).thenReturn(name);
@@ -275,8 +395,16 @@ public class ReferencePhaseControllerTest
 
     private IReferencePhaseController createController(ITypeSymbolResolver typeSymbolResolver) {
         return createController(
+                mock(IInferenceErrorReporter.class), typeSymbolResolver
+        );
+    }
+
+
+    private IReferencePhaseController createController(
+            IInferenceErrorReporter issueReporter, ITypeSymbolResolver typeSymbolResolver) {
+        return createController(
                 mock(ISymbolFactory.class),
-                mock(IInferenceErrorReporter.class),
+                issueReporter,
                 mock(IAstModificationHelper.class),
                 mock(ISymbolResolver.class),
                 typeSymbolResolver,
@@ -286,6 +414,7 @@ public class ReferencePhaseControllerTest
                 mock(IGlobalNamespaceScope.class)
         );
     }
+
 
     private IReferencePhaseController createController(ISymbolFactory symbolFactory) {
         return createController(

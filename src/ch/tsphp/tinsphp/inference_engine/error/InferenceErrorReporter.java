@@ -44,6 +44,13 @@ public class InferenceErrorReporter implements IInferenceErrorReporter
     }
 
     @Override
+    public DefinitionException determineAlreadyDefined(ISymbol symbol1, ISymbol symbol2) {
+        return symbol1.getDefinitionAst().isDefinedEarlierThan(symbol2.getDefinitionAst())
+                ? alreadyDefined(symbol1, symbol2)
+                : alreadyDefined(symbol2, symbol1);
+    }
+
+    @Override
     public DefinitionException alreadyDefined(ISymbol existingSymbol, ISymbol newSymbol) {
         //TODO rstoll TINS-174 inference engine and error reporting
         throw new UnsupportedOperationException("not yet implemented");

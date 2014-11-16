@@ -30,6 +30,7 @@ import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.ITSPHPErrorAst;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
+import ch.tsphp.tinsphp.common.symbols.IAliasSymbol;
 import ch.tsphp.tinsphp.inference_engine.IReferencePhaseController;
 }
 
@@ -73,9 +74,7 @@ useDeclaration
             $typeName.setSymbol(typeSymbol);
             $alias.getSymbol().setType(typeSymbol);
             
-            //TODO TINS-215 - reference phase - double definition check use
-            //INamespaceScope namespaceScope = (INamespaceScope) $alias.getScope();
-            //namespaceScope.useDefinitionCheck((IAliasSymbol) $alias.getSymbol());
+            controller.useDefinitionCheck((IAliasSymbol) $alias.getSymbol());
         }
     ;
 

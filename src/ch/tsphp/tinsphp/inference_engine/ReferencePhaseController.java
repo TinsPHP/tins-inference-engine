@@ -18,6 +18,7 @@ import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
+import ch.tsphp.tinsphp.common.symbols.IAliasSymbol;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.ISymbolResolver;
@@ -58,7 +59,6 @@ public class ReferencePhaseController implements IReferencePhaseController
         modifierHelper = theModifierHelper;
         globalDefaultNamespace = theGlobalDefaultNamespace;
     }
-
 
     @Override
     public IVariableSymbol resolveConstant(ITSPHPAst ast) {
@@ -334,6 +334,42 @@ public class ReferencePhaseController implements IReferencePhaseController
             aliasTypeSymbol = symbolFactory.createAliasTypeSymbol(typeName, typeName.getText());
         }
         return aliasTypeSymbol;
+    }
+
+    @Override
+    public boolean useDefinitionCheck(IAliasSymbol symbol) {
+        boolean isNotDoubleDefined = true;
+        //TODO rstoll TINS-215 reference phase - double definition check use
+//        boolean isNotDoubleDefined = scopeHelper.checkIsNotDoubleDefinition(
+//                usesCaseInsensitive.get(symbol.getName()).get(0), symbol);
+        return isNotDoubleDefined && isNotAlreadyDefinedAsType(symbol);
+    }
+
+    @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+    private boolean isNotAlreadyDefinedAsType(IAliasSymbol symbol) {
+        ITSPHPAst definitionAst = symbol.getDefinitionAst();
+        ITypeSymbol typeSymbol = typeSymbolResolver.resolveTypeFor(definitionAst);
+
+//        ITypeSymbol typeSymbol = globalNamespaceScope.getTypeSymbolWhichClashesWithUse(symbol.getDefinitionAst());
+        boolean ok = hasNoTypeNameClash(definitionAst, typeSymbol);
+        if (!ok) {
+            inferenceErrorReporter.determineAlreadyDefined(symbol, typeSymbol);
+        }
+        return ok;
+    }
+
+    private boolean hasNoTypeNameClash(ITSPHPAst useDefinition, ITypeSymbol typeSymbol) {
+        boolean hasNoTypeNameClash = typeSymbol == null;
+        if (!hasNoTypeNameClash) {
+            boolean isUseDefinedEarlier = useDefinition.isDefinedEarlierThan(typeSymbol.getDefinitionAst());
+            boolean isUseInDifferentNamespaceStatement = useDefinition.getScope() != typeSymbol.getDefinitionScope();
+
+            //There is no type name clash in the following situation: namespace{use a as b;} namespace{ class b{}}
+            //because: use is defined earlier and the use statement is in a different namespace statement
+            hasNoTypeNameClash = isUseDefinedEarlier && isUseInDifferentNamespaceStatement;
+        }
+        return hasNoTypeNameClash;
+
     }
 
     //TODO rstoll TINS-219 reference phase - check are variables initialised

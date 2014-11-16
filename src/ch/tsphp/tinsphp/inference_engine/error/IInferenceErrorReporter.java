@@ -20,6 +20,8 @@ import ch.tsphp.common.symbols.ISymbol;
  */
 public interface IInferenceErrorReporter extends IErrorReporter
 {
+    DefinitionException determineAlreadyDefined(ISymbol existingSymbol, ISymbol typeSymbol);
+
     DefinitionException alreadyDefined(ISymbol existingSymbol, ISymbol newSymbol);
 
     DefinitionException definedInOuterScope(ISymbol firstDefinition, ISymbol symbolToCheck);
@@ -31,4 +33,6 @@ public interface IInferenceErrorReporter extends IErrorReporter
     void noReturnFromFunction(ITSPHPAst identifier);
 
     ReferenceException notDefined(ITSPHPAst identifier);
+
+
 }
