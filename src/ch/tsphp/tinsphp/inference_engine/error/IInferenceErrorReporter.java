@@ -24,6 +24,8 @@ public interface IInferenceErrorReporter extends IErrorReporter
 
     DefinitionException definedInOuterScope(ISymbol firstDefinition, ISymbol symbolToCheck);
 
+    DefinitionException aliasForwardReference(ITSPHPAst typeAst, ITSPHPAst useDefinition);
+
     void partialReturnFromFunction(ITSPHPAst identifier);
 
     void noReturnFromFunction(ITSPHPAst identifier);
