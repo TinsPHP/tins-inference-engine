@@ -14,9 +14,11 @@ package ch.tsphp.tinsphp.inference_engine;
 
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.exceptions.ReferenceException;
+import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
+import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IAliasSymbol;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
@@ -337,12 +339,11 @@ public class ReferencePhaseController implements IReferencePhaseController
     }
 
     @Override
-    public boolean useDefinitionCheck(IAliasSymbol symbol) {
-        boolean isNotDoubleDefined = true;
-        //TODO rstoll TINS-215 reference phase - double definition check use
-//        boolean isNotDoubleDefined = scopeHelper.checkIsNotDoubleDefinition(
-//                usesCaseInsensitive.get(symbol.getName()).get(0), symbol);
-        return isNotDoubleDefined && isNotAlreadyDefinedAsType(symbol);
+    public boolean useDefinitionCheck(IAliasSymbol aliasSymbol) {
+        INamespaceScope namespaceScope = (INamespaceScope) aliasSymbol.getDefinitionScope();
+        ISymbol useSymbol = namespaceScope.getCaseInsensitiveFirstUseSymbol(aliasSymbol.getName());
+        boolean isNotDoubleDefined = scopeHelper.checkIsNotDoubleDefinition(useSymbol, aliasSymbol);
+        return isNotDoubleDefined && isNotAlreadyDefinedAsType(aliasSymbol);
     }
 
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")

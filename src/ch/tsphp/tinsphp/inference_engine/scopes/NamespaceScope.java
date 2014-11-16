@@ -36,9 +36,7 @@ public class NamespaceScope implements INamespaceScope
     private final String scopeName;
     private final IGlobalNamespaceScope globalNamespaceScope;
 
-    public NamespaceScope(
-            String theScopeName,
-            IGlobalNamespaceScope theGlobalNamespaceScope) {
+    public NamespaceScope(String theScopeName, IGlobalNamespaceScope theGlobalNamespaceScope) {
         scopeName = theScopeName;
         globalNamespaceScope = theGlobalNamespaceScope;
     }
@@ -119,8 +117,16 @@ public class NamespaceScope implements INamespaceScope
 
     @Override
     public ITSPHPAst getCaseInsensitiveFirstUseDefinitionAst(String alias) {
+        ISymbol symbol = getCaseInsensitiveFirstUseSymbol(alias);
+        return symbol != null
+                ? symbol.getDefinitionAst()
+                : null;
+    }
+
+    @Override
+    public ISymbol getCaseInsensitiveFirstUseSymbol(String alias) {
         return usesCaseInsensitive.containsKey(alias)
-                ? usesCaseInsensitive.get(alias).get(0).getDefinitionAst()
+                ? usesCaseInsensitive.get(alias).get(0)
                 : null;
     }
 

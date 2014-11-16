@@ -9,9 +9,11 @@ package ch.tsphp.tinsphp.inference_engine.test.unit;
 import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.exceptions.TSPHPException;
+import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
+import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IAliasSymbol;
 import ch.tsphp.tinsphp.common.symbols.IAliasTypeSymbol;
@@ -38,6 +40,7 @@ import static org.mockito.Mockito.when;
 
 public class ReferencePhaseControllerTest
 {
+
     @Test
     public void resolveConstant_Standard_DelegatesToSymbolResolver() {
         ITSPHPAst ast = createAst("Dummy");
@@ -135,13 +138,25 @@ public class ReferencePhaseControllerTest
     public void useDefinitionCheck_DoesNotFindTypeForAlias_NoException() {
         IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
         IAliasSymbol aliasSymbol = mock(IAliasSymbol.class);
+        String alias = "Symbol";
+        when(aliasSymbol.getName()).thenReturn(alias);
+        INamespaceScope namespaceScope = mock(INamespaceScope.class);
+        when(aliasSymbol.getDefinitionScope()).thenReturn(namespaceScope);
+        ISymbol useSymbol = mock(ISymbol.class);
+        when(namespaceScope.getCaseInsensitiveFirstUseSymbol(alias)).thenReturn(useSymbol);
+        IScopeHelper scopeHelper = mock(IScopeHelper.class);
+        when(scopeHelper.checkIsNotDoubleDefinition(useSymbol, aliasSymbol)).thenReturn(true);
+
         ITSPHPAst ast = mock(ITSPHPAst.class);
         when(aliasSymbol.getDefinitionAst()).thenReturn(ast);
         ITypeSymbolResolver typeSymbolResolver = mock(ITypeSymbolResolver.class);
         when(typeSymbolResolver.resolveTypeFor(ast)).thenReturn(null);
 
-        IReferencePhaseController controller = createController(issueReporter, typeSymbolResolver);
+
+        //act
+        IReferencePhaseController controller = createController(issueReporter, typeSymbolResolver, scopeHelper);
         controller.useDefinitionCheck(aliasSymbol);
+
 
         verify(typeSymbolResolver).resolveTypeFor(ast);
         verifyNoMoreInteractions(issueReporter);
@@ -151,6 +166,15 @@ public class ReferencePhaseControllerTest
     public void useDefinitionCheck_UseDefinitionIsDefinedEarlierAndNotInSameNamespace_NoException() {
         IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
         IAliasSymbol aliasSymbol = mock(IAliasSymbol.class);
+        String alias = "Symbol";
+        when(aliasSymbol.getName()).thenReturn(alias);
+        INamespaceScope namespaceScope = mock(INamespaceScope.class);
+        when(aliasSymbol.getDefinitionScope()).thenReturn(namespaceScope);
+        ISymbol useSymbol = mock(ISymbol.class);
+        when(namespaceScope.getCaseInsensitiveFirstUseSymbol(alias)).thenReturn(useSymbol);
+        IScopeHelper scopeHelper = mock(IScopeHelper.class);
+        when(scopeHelper.checkIsNotDoubleDefinition(useSymbol, aliasSymbol)).thenReturn(true);
+
         ITSPHPAst useDefinition = mock(ITSPHPAst.class);
         when(aliasSymbol.getDefinitionAst()).thenReturn(useDefinition);
         ITypeSymbolResolver typeSymbolResolver = mock(ITypeSymbolResolver.class);
@@ -164,8 +188,11 @@ public class ReferencePhaseControllerTest
         when(typeSymbol.getDefinitionScope()).thenReturn(scope1);
         when(useDefinition.getScope()).thenReturn(scope2);
 
-        IReferencePhaseController controller = createController(issueReporter, typeSymbolResolver);
+
+        //act
+        IReferencePhaseController controller = createController(issueReporter, typeSymbolResolver, scopeHelper);
         controller.useDefinitionCheck(aliasSymbol);
+
 
         verify(useDefinition).isDefinedEarlierThan(definitionAst);
         verify(useDefinition).getScope();
@@ -177,6 +204,15 @@ public class ReferencePhaseControllerTest
     public void useDefinitionCheck_UseDefinitionIsDefinedEarlierButInSameNamespace_ReportNameClash() {
         IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
         IAliasSymbol aliasSymbol = mock(IAliasSymbol.class);
+        String alias = "Symbol";
+        when(aliasSymbol.getName()).thenReturn(alias);
+        INamespaceScope namespaceScope = mock(INamespaceScope.class);
+        when(aliasSymbol.getDefinitionScope()).thenReturn(namespaceScope);
+        ISymbol useSymbol = mock(ISymbol.class);
+        when(namespaceScope.getCaseInsensitiveFirstUseSymbol(alias)).thenReturn(useSymbol);
+        IScopeHelper scopeHelper = mock(IScopeHelper.class);
+        when(scopeHelper.checkIsNotDoubleDefinition(useSymbol, aliasSymbol)).thenReturn(true);
+
         ITSPHPAst useDefinition = mock(ITSPHPAst.class);
         when(aliasSymbol.getDefinitionAst()).thenReturn(useDefinition);
         ITypeSymbolResolver typeSymbolResolver = mock(ITypeSymbolResolver.class);
@@ -189,8 +225,11 @@ public class ReferencePhaseControllerTest
         when(typeSymbol.getDefinitionScope()).thenReturn(scope);
         when(useDefinition.getScope()).thenReturn(scope);
 
-        IReferencePhaseController controller = createController(issueReporter, typeSymbolResolver);
+
+        //act
+        IReferencePhaseController controller = createController(issueReporter, typeSymbolResolver, scopeHelper);
         controller.useDefinitionCheck(aliasSymbol);
+
 
         verify(useDefinition).isDefinedEarlierThan(definitionAst);
         verify(useDefinition).getScope();
@@ -202,6 +241,15 @@ public class ReferencePhaseControllerTest
     public void useDefinitionCheck_UseDefinitionIsDefinedLaterButNotInSameNamespace_ReportNameClash() {
         IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
         IAliasSymbol aliasSymbol = mock(IAliasSymbol.class);
+        String alias = "Symbol";
+        when(aliasSymbol.getName()).thenReturn(alias);
+        INamespaceScope namespaceScope = mock(INamespaceScope.class);
+        when(aliasSymbol.getDefinitionScope()).thenReturn(namespaceScope);
+        ISymbol useSymbol = mock(ISymbol.class);
+        when(namespaceScope.getCaseInsensitiveFirstUseSymbol(alias)).thenReturn(useSymbol);
+        IScopeHelper scopeHelper = mock(IScopeHelper.class);
+        when(scopeHelper.checkIsNotDoubleDefinition(useSymbol, aliasSymbol)).thenReturn(true);
+
         ITSPHPAst useDefinition = mock(ITSPHPAst.class);
         when(aliasSymbol.getDefinitionAst()).thenReturn(useDefinition);
         ITypeSymbolResolver typeSymbolResolver = mock(ITypeSymbolResolver.class);
@@ -215,8 +263,11 @@ public class ReferencePhaseControllerTest
         when(typeSymbol.getDefinitionScope()).thenReturn(scope1);
         when(useDefinition.getScope()).thenReturn(scope2);
 
-        IReferencePhaseController controller = createController(issueReporter, typeSymbolResolver);
+
+        //act
+        IReferencePhaseController controller = createController(issueReporter, typeSymbolResolver, scopeHelper);
         controller.useDefinitionCheck(aliasSymbol);
+
 
         verify(useDefinition).isDefinedEarlierThan(definitionAst);
         verify(useDefinition).getScope();
@@ -228,6 +279,15 @@ public class ReferencePhaseControllerTest
     public void useDefinitionCheck_UseDefinitionIsDefinedLaterAndInSameNamespace_ReportNameClash() {
         IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
         IAliasSymbol aliasSymbol = mock(IAliasSymbol.class);
+        String alias = "Symbol";
+        when(aliasSymbol.getName()).thenReturn(alias);
+        INamespaceScope namespaceScope = mock(INamespaceScope.class);
+        when(aliasSymbol.getDefinitionScope()).thenReturn(namespaceScope);
+        ISymbol useSymbol = mock(ISymbol.class);
+        when(namespaceScope.getCaseInsensitiveFirstUseSymbol(alias)).thenReturn(useSymbol);
+        IScopeHelper scopeHelper = mock(IScopeHelper.class);
+        when(scopeHelper.checkIsNotDoubleDefinition(useSymbol, aliasSymbol)).thenReturn(true);
+
         ITSPHPAst useDefinition = mock(ITSPHPAst.class);
         when(aliasSymbol.getDefinitionAst()).thenReturn(useDefinition);
         ITypeSymbolResolver typeSymbolResolver = mock(ITypeSymbolResolver.class);
@@ -240,13 +300,34 @@ public class ReferencePhaseControllerTest
         when(typeSymbol.getDefinitionScope()).thenReturn(scope);
         when(useDefinition.getScope()).thenReturn(scope);
 
-        IReferencePhaseController controller = createController(issueReporter, typeSymbolResolver);
+        //act
+        IReferencePhaseController controller = createController(issueReporter, typeSymbolResolver, scopeHelper);
         controller.useDefinitionCheck(aliasSymbol);
 
         verify(useDefinition).isDefinedEarlierThan(definitionAst);
         verify(useDefinition).getScope();
         verify(typeSymbol).getDefinitionScope();
         verify(issueReporter).determineAlreadyDefined(aliasSymbol, typeSymbol);
+    }
+
+    @Test
+    public void useDefinitionCheck_DoubleDefinitionCheck_DelegatesToScopeHelper() {
+        IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
+        IAliasSymbol aliasSymbol = mock(IAliasSymbol.class);
+        String alias = "Symbol";
+        when(aliasSymbol.getName()).thenReturn(alias);
+        INamespaceScope namespaceScope = mock(INamespaceScope.class);
+        when(aliasSymbol.getDefinitionScope()).thenReturn(namespaceScope);
+        ISymbol useSymbol = mock(ISymbol.class);
+        when(namespaceScope.getCaseInsensitiveFirstUseSymbol(alias)).thenReturn(useSymbol);
+        IScopeHelper scopeHelper = mock(IScopeHelper.class);
+        when(scopeHelper.checkIsNotDoubleDefinition(useSymbol, aliasSymbol)).thenReturn(false);
+
+        IReferencePhaseController controller = createController(issueReporter, scopeHelper);
+        controller.useDefinitionCheck(aliasSymbol);
+
+        verifyNoMoreInteractions(issueReporter);
+        verify(scopeHelper).checkIsNotDoubleDefinition(useSymbol, aliasSymbol);
     }
 
     @Test
@@ -379,6 +460,37 @@ public class ReferencePhaseControllerTest
         return createController(inferenceErrorReporter, mock(IAstModificationHelper.class));
     }
 
+
+    private IReferencePhaseController createController(
+            IInferenceErrorReporter inferenceErrorReporter, IAstModificationHelper astModificationHelper) {
+        return createController(
+                mock(ISymbolFactory.class),
+                inferenceErrorReporter,
+                astModificationHelper,
+                mock(ISymbolResolver.class),
+                mock(ITypeSymbolResolver.class),
+                mock(IScopeHelper.class),
+                mock(ICore.class),
+                mock(IModifierHelper.class),
+                mock(IGlobalNamespaceScope.class)
+        );
+    }
+
+    private IReferencePhaseController createController(IInferenceErrorReporter issueReporter,
+            IScopeHelper scopeHelper) {
+        return createController(
+                mock(ISymbolFactory.class),
+                issueReporter,
+                mock(IAstModificationHelper.class),
+                mock(ISymbolResolver.class),
+                mock(ITypeSymbolResolver.class),
+                scopeHelper,
+                mock(ICore.class),
+                mock(IModifierHelper.class),
+                mock(IGlobalNamespaceScope.class)
+        );
+    }
+
     private IReferencePhaseController createController(ISymbolResolver symbolResolver) {
         return createController(
                 mock(ISymbolFactory.class),
@@ -395,26 +507,24 @@ public class ReferencePhaseControllerTest
 
     private IReferencePhaseController createController(ITypeSymbolResolver typeSymbolResolver) {
         return createController(
-                mock(IInferenceErrorReporter.class), typeSymbolResolver
-        );
+                mock(IInferenceErrorReporter.class), typeSymbolResolver, mock(IScopeHelper.class));
     }
 
 
     private IReferencePhaseController createController(
-            IInferenceErrorReporter issueReporter, ITypeSymbolResolver typeSymbolResolver) {
+            IInferenceErrorReporter issueReporter, ITypeSymbolResolver typeSymbolResolver, IScopeHelper scopeHelper) {
         return createController(
                 mock(ISymbolFactory.class),
                 issueReporter,
                 mock(IAstModificationHelper.class),
                 mock(ISymbolResolver.class),
                 typeSymbolResolver,
-                mock(IScopeHelper.class),
+                scopeHelper,
                 mock(ICore.class),
                 mock(IModifierHelper.class),
                 mock(IGlobalNamespaceScope.class)
         );
     }
-
 
     private IReferencePhaseController createController(ISymbolFactory symbolFactory) {
         return createController(
@@ -430,20 +540,6 @@ public class ReferencePhaseControllerTest
         );
     }
 
-    private IReferencePhaseController createController(
-            IInferenceErrorReporter inferenceErrorReporter, IAstModificationHelper astModificationHelper) {
-        return createController(
-                mock(ISymbolFactory.class),
-                inferenceErrorReporter,
-                astModificationHelper,
-                mock(ISymbolResolver.class),
-                mock(ITypeSymbolResolver.class),
-                mock(IScopeHelper.class),
-                mock(ICore.class),
-                mock(IModifierHelper.class),
-                mock(IGlobalNamespaceScope.class)
-        );
-    }
 
     protected IReferencePhaseController createController(
             ISymbolFactory symbolFactory,
