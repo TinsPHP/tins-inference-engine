@@ -177,8 +177,7 @@ primitiveAtomWithConstant
         {
             IVariableSymbol variableSymbol = controller.resolveConstant($cnst);
             $cnst.setSymbol(variableSymbol);
-            //TODO TINS-231 reference phase - forward reference check constants
-            //controller.checkIsNotForwardReference($cnst);
+            controller.checkIsNotForwardReference($cnst);
         }
     
     //TODO TINS-217 reference phase - class constant access

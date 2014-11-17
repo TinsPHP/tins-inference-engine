@@ -56,6 +56,8 @@ public interface IReferencePhaseController
 
     boolean useDefinitionCheck(IAliasSymbol aliasSymbol);
 
+    boolean checkIsNotForwardReference(ITSPHPAst ast);
+
     //TODO rstoll TINS-219 reference phase - check are variables initialised
 //    boolean checkVariableIsInitialised(ITSPHPAst variableId);
 //

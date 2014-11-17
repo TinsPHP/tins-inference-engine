@@ -26,6 +26,7 @@ import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.ISymbolResolver;
 import ch.tsphp.tinsphp.common.symbols.ITypeSymbolResolver;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
+import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousSymbol;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 
@@ -371,6 +372,21 @@ public class ReferencePhaseController implements IReferencePhaseController
         }
         return hasNoTypeNameClash;
 
+    }
+
+    @Override
+    public boolean checkIsNotForwardReference(ITSPHPAst ast) {
+        ISymbol symbol = ast.getSymbol();
+        boolean isNotUsedBefore = true;
+        //only check if not already an error occurred in conjunction with this ast (for instance missing declaration)
+        if (!(symbol instanceof IErroneousSymbol)) {
+            ITSPHPAst definitionAst = symbol.getDefinitionAst();
+            isNotUsedBefore = definitionAst.isDefinedEarlierThan(ast);
+            if (!isNotUsedBefore) {
+                inferenceErrorReporter.forwardReference(definitionAst, ast);
+            }
+        }
+        return isNotUsedBefore;
     }
 
     //TODO rstoll TINS-219 reference phase - check are variables initialised

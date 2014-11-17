@@ -74,6 +74,14 @@ public class InferenceErrorReporter implements IInferenceErrorReporter
     }
 
     @Override
+    public DefinitionException forwardReference(ITSPHPAst definitionAst, ITSPHPAst identifier) {
+        //TODO rstoll TINS-174 inference engine and error reporting
+        DefinitionException ex = new DefinitionException("forwardReference", definitionAst, identifier);
+        reportError(ex);
+        return ex;
+    }
+
+    @Override
     public void partialReturnFromFunction(ITSPHPAst identifier) {
         //TODO rstoll TINS-174 inference engine and error reporting
         reportError(new ReferenceException("partialReturnFromFunction", identifier));

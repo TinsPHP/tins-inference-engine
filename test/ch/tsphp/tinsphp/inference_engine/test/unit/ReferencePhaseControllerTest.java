@@ -22,6 +22,7 @@ import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.ISymbolResolver;
 import ch.tsphp.tinsphp.common.symbols.ITypeSymbolResolver;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
+import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousSymbol;
 import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousVariableSymbol;
 import ch.tsphp.tinsphp.inference_engine.IReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.ReferencePhaseController;
@@ -328,6 +329,52 @@ public class ReferencePhaseControllerTest
 
         verifyNoMoreInteractions(issueReporter);
         verify(scopeHelper).checkIsNotDoubleDefinition(useSymbol, aliasSymbol);
+    }
+
+    @Test
+    public void checkIsNotForwardReference_IsErroneousSymbol_ReturnsTrue() {
+        IErroneousSymbol symbol = mock(IErroneousSymbol.class);
+        ITSPHPAst ast = mock(ITSPHPAst.class);
+        when(ast.getSymbol()).thenReturn(symbol);
+
+        IReferencePhaseController controller = createController();
+        boolean result = controller.checkIsNotForwardReference(ast);
+
+        assertThat(result, is(true));
+    }
+
+    @Test
+    public void checkIsNotForwardReference_IsDefinedEarlier_ReturnsTrue() {
+        ITSPHPAst ast = mock(ITSPHPAst.class);
+        ISymbol symbol = mock(ISymbol.class);
+        when(ast.getSymbol()).thenReturn(symbol);
+        ITSPHPAst definitionAst = mock(ITSPHPAst.class);
+        when(symbol.getDefinitionAst()).thenReturn(definitionAst);
+        when(definitionAst.isDefinedEarlierThan(ast)).thenReturn(true);
+
+        IReferencePhaseController controller = createController();
+        boolean result = controller.checkIsNotForwardReference(ast);
+
+        verify(definitionAst).isDefinedEarlierThan(ast);
+        assertThat(result, is(true));
+    }
+
+    @Test
+    public void checkIsNotForwardReference_IsDefinedLaterOwn_ReturnsFalseAndReportsForwardUsage() {
+        IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
+        ITSPHPAst ast = mock(ITSPHPAst.class);
+        ISymbol symbol = mock(ISymbol.class);
+        when(ast.getSymbol()).thenReturn(symbol);
+        ITSPHPAst definitionAst = mock(ITSPHPAst.class);
+        when(symbol.getDefinitionAst()).thenReturn(definitionAst);
+        when(definitionAst.isDefinedEarlierThan(ast)).thenReturn(false);
+
+        IReferencePhaseController controller = createController(issueReporter);
+        boolean result = controller.checkIsNotForwardReference(ast);
+
+        verify(definitionAst).isDefinedEarlierThan(ast);
+        verify(issueReporter).forwardReference(definitionAst, ast);
+        assertThat(result, is(false));
     }
 
     @Test

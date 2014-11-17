@@ -28,6 +28,8 @@ public interface IInferenceErrorReporter extends IErrorReporter
 
     DefinitionException aliasForwardReference(ITSPHPAst typeAst, ITSPHPAst useDefinition);
 
+    DefinitionException forwardReference(ITSPHPAst definitionAst, ITSPHPAst identifier);
+
     void partialReturnFromFunction(ITSPHPAst identifier);
 
     void noReturnFromFunction(ITSPHPAst identifier);
