@@ -533,10 +533,11 @@ foreachLoop
     :
         ^(foreach='foreach' 
             expression 
-            variableDeclarationList[true]
+            VariableId
             // corresponding to the parser the first variableDeclarationList (the key) should be optional
-            // however, it does not matter here since both are just variable declarations
-            variableDeclarationList[true]? 
+            // however, it does not matter here since both are just variable declarations.
+            // this way we can avoid an LL1 conflict
+            VariableId? 
             blockConditional[false]
         )
         //TODO TINS-219 reference phase - check are variables initialised           
@@ -575,8 +576,9 @@ catchBlocks[boolean shallCheckIfReturns] returns[boolean isReturning, List<ITSPH
     $asts = new ArrayList<>();
 }
 //Warning! start duplicated code as in switchContents
-    :   (   ^('catch' variableDeclarationList[true] blockConditional[$shallCheckIfReturns])
+    :   (   ^('catch' classInterfaceType[null] VariableId blockConditional[$shallCheckIfReturns])
             {
+            	$classInterfaceType.tree.setEvalType($classInterfaceType.type);
                 if(shallCheckIfReturns){
                     $isReturning = $blockConditional.isReturning && ($isReturning || isFirst);
                     isFirst = false;
@@ -616,11 +618,12 @@ atom
 
 variable    
     :   varId=VariableId
-        //TODO TINS-219 reference phase - check are variables initialised
-        //{
-        //    $varId.setSymbol(controller.resolveVariable($varId));
-        //    controller.checkVariableIsOkToUse($varId);
-        //}
+        {
+            //TODO TINS-208 reference phase - resolve variables
+            //$varId.setSymbol(controller.resolveVariable($varId));
+            //TODO TINS-219 reference phase - check are variables initialised
+            //controller.checkVariableIsOkToUse($varId);
+        }
     ;
 //TODO TINS-223 - reference phase - resolve this and self
 /*    
