@@ -153,8 +153,7 @@ constDeclaration[ITypeSymbol type]
         {
             IVariableSymbol variableSymbol = (IVariableSymbol) $identifier.getSymbol();
             variableSymbol.setType(type); 
-            //TODO TINS-214 - reference phase - double definition check constants 
-            //$identifier.getScope().doubleDefinitionCheck(variableSymbol); 
+            $identifier.getScope().doubleDefinitionCheck(variableSymbol); 
         }
     ;
 
