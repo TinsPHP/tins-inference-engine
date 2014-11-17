@@ -29,8 +29,10 @@ package ch.tsphp.tinsphp.inference_engine.antlr;
 import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.ITSPHPErrorAst;
-import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
+import ch.tsphp.tinsphp.common.scopes.ICaseInsensitiveScope;
 import ch.tsphp.tinsphp.common.symbols.IAliasSymbol;
+import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
+import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.inference_engine.IReferencePhaseController;
 }
 
@@ -331,14 +333,15 @@ functionDefinition
 //Warning! start duplicated code as in functionDeclaration
     :   ^('function'
             .
-            ^(TYPE rtMod=. returnType=.)  
+            ^(TYPE rtMod=. returnTypesOrUnknown[$rtMod])  
             identifier=Identifier parameterDeclarationList block[true]
         )
         {
         //Warning! start duplicated code as in functionDeclaration
-            //TODO TINS-226 - reference phase - double definition check functions
-            //ICaseInsensitiveScope scope = (ICaseInsensitiveScope) $identifier.getScope();
-            //scope.doubleDefinitionCheckCaseInsensitive(methodSymbol);
+            IMethodSymbol methodSymbol = (IMethodSymbol) $identifier.getSymbol();
+            methodSymbol.setType($returnTypesOrUnknown.type); 
+            ICaseInsensitiveScope scope = (ICaseInsensitiveScope) $identifier.getScope();
+            scope.doubleDefinitionCheckCaseInsensitive(methodSymbol);
         //Warning! end duplicated code as in functionDeclaration
             controller.addImplicitReturnStatementIfRequired(
                 $block.isReturning, hasAtLeastOneReturnOrThrow, $identifier, $block.start);
@@ -763,6 +766,11 @@ exit
     :   ^('exit' expression)
     |   'exit'
     ;
+
+returnTypesOrUnknown[ITSPHPAst typeModifier] returns [ITypeSymbol type]
+        //PHP does not allow to specify return types so far, hence only the unkown type is possible
+    :   '?' {$type = null;}
+    ;    
     
 allTypesOrUnknown[ITSPHPAst typeModifier] returns [ITypeSymbol type]
     :   scalarTypes[$typeModifier] {$type = $scalarTypes.type;}

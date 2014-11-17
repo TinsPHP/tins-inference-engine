@@ -64,6 +64,8 @@ public class NotCorrectStartNodeTypeTest extends AReferenceWalkerTest
         return Arrays.asList(new Object[][]{
 //                {"accessModifier", Try},
                 {"actualParameters", Try},
+                //requires parameters - see NotCorrectStartNodeTypeForRulesWithParamsTest
+                //{"allTypesOrUnknown", Try},
                 {"array", Try},
                 {"arrayKeyValue", Try},
                 {"assignOperator", Try},
@@ -109,6 +111,8 @@ public class NotCorrectStartNodeTypeTest extends AReferenceWalkerTest
                 {"parameterDeclarationList", Try},
                 {"postFixExpression", Try},
                 {"primitiveAtomWithConstant", Try},
+                //requires parameters - see NotCorrectStartNodeTypeForRulesWithParamsTest
+                //{"returnTypesOrUnknown", Try},
                 {"statement", Try},
                 //TODO TINS-217 reference phase - class constant access
 //                {"staticAccessor", Try},

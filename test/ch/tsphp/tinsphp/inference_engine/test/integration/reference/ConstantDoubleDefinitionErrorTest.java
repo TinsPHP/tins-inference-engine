@@ -50,9 +50,6 @@ public class ConstantDoubleDefinitionErrorTest extends AReferenceDefinitionError
         collection.addAll(Arrays.asList(new Object[][]{
                 {"const \n a=1; const \n a=1;", errorDto},
                 {"const \n a=1; const \n a=1; const \n a=1;", errorDtoTwo},
-                //TODO rstoll TINS-161 inference OOP
-//                {"class A{const \n a=1; const \n a=1;}", errorDto},
-//                {"class A{const \n a=1; const \n a=1; const \n a=1;}", errorDtoTwo},
                 //not in same namespace scope but in same global namespace scope
                 {"namespace{const \n a=1;} namespace{ const \n a=1;}", errorDto},
                 {"namespace a{const \n a=1;} namespace a{ const \n a=1;}", errorDto},
@@ -73,9 +70,6 @@ public class ConstantDoubleDefinitionErrorTest extends AReferenceDefinitionError
                 //does not matter if it is a comma initialisation
                 {"const \n a=1,\n a=1;", errorDto},
                 {"const \n a=1,\n a=1,\n a=2;", errorDtoTwo},
-                //TODO rstoll TINS-161 inference OOP
-//                {"class A{ const \n a=1,\n a=1;}", errorDto},
-//                {"class A{ const \n a=1,\n a=1,\n a=2;}", errorDtoTwo}
         }));
 
         return collection;
