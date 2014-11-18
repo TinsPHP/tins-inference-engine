@@ -59,7 +59,7 @@ public class UserTypeSymbolResolver implements ITypeSymbolResolver
     }
 
     private ITypeSymbol resolveTypeIdentifier(ITSPHPAst identifier) {
-        return (ITypeSymbol) symbolResolver.resolveLocalIdentifier(identifier);
+        return (ITypeSymbol) symbolResolver.resolveIdentifierFromItsNamespaceScope(identifier);
     }
 
     private ITypeSymbol resolveTypeName(ITSPHPAst typeName) {

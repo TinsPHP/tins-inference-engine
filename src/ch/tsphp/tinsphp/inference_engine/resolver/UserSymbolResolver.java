@@ -44,17 +44,17 @@ public class UserSymbolResolver implements ISymbolResolver
     }
 
     @Override
-    public ISymbol resolveIdentifier(ITSPHPAst identifier) {
+    public ISymbol resolveIdentifierFromItsScope(ITSPHPAst identifier) {
         ISymbol symbol = identifier.getScope().resolve(identifier);
         if (symbol == null && nextSymbolResolver != null) {
-            symbol = nextSymbolResolver.resolveIdentifier(identifier);
+            symbol = nextSymbolResolver.resolveIdentifierFromItsScope(identifier);
         }
         return symbol;
     }
 
     @Override
-    public ISymbol resolveIdentifierWithFallback(ITSPHPAst identifier) {
-        ISymbol symbol = resolveIdentifier(identifier);
+    public ISymbol resolveIdentifierFromItsScopeWithFallback(ITSPHPAst identifier) {
+        ISymbol symbol = resolveIdentifierFromItsScope(identifier);
         if (symbol == null) {
             symbol = resolveIdentifierFromFallback(identifier);
         }
@@ -74,8 +74,8 @@ public class UserSymbolResolver implements ISymbolResolver
     public ISymbol resolveConstantLikeIdentifier(ITSPHPAst identifier) {
         ISymbol symbol;
         if (scopeHelper.isLocalIdentifier(identifier.getText())) {
-            //forward to nextSymbolResolver within resolveIdentifierWithFallback if necessary
-            symbol = resolveIdentifierWithFallback(identifier);
+            //forward to nextSymbolResolver within resolveIdentifierFromItsScopeWithFallback if necessary
+            symbol = resolveIdentifierFromItsScopeWithFallback(identifier);
         } else {
             //forward to nextSymbolResolver within resolveClassLikeIdentifier if necessary
             symbol = resolveClassLikeIdentifier(identifier);
@@ -93,8 +93,8 @@ public class UserSymbolResolver implements ISymbolResolver
             //forward to nextSymbolResolver within resolveRelativeIdentifierConsiderAlias if necessary
             symbol = resolveRelativeIdentifierConsiderAlias(identifier);
         } else {
-            //forward to nextSymbolResolver within resolveLocalIdentifierConsiderAlias if necessary
-            symbol = resolveLocalIdentifierConsiderAlias(identifier);
+            //forward to nextSymbolResolver within resolveIdentifierFromItsNamespaceScopeConsiderAlias if necessary
+            symbol = resolveIdentifierFromItsNamespaceScopeConsiderAlias(identifier);
         }
         return symbol;
     }
@@ -208,8 +208,8 @@ public class UserSymbolResolver implements ISymbolResolver
         return symbol;
     }
 
-    private ISymbol resolveLocalIdentifierConsiderAlias(ITSPHPAst identifier) {
-        ISymbol symbol = resolveLocalIdentifier(identifier);
+    private ISymbol resolveIdentifierFromItsNamespaceScopeConsiderAlias(ITSPHPAst identifier) {
+        ISymbol symbol = resolveIdentifierFromItsNamespaceScope(identifier);
 
         INamespaceScope namespaceScope = scopeHelper.getEnclosingNamespaceScope(identifier);
         ITSPHPAst useDefinition = namespaceScope.getCaseInsensitiveFirstUseDefinitionAst(identifier.getText());
@@ -222,11 +222,11 @@ public class UserSymbolResolver implements ISymbolResolver
     }
 
     @Override
-    public ISymbol resolveLocalIdentifier(ITSPHPAst identifier) {
+    public ISymbol resolveIdentifierFromItsNamespaceScope(ITSPHPAst identifier) {
         ISymbol symbol = scopeHelper.getEnclosingNamespaceScope(identifier).resolve(identifier);
 
         if (symbol == null && nextSymbolResolver != null) {
-            symbol = nextSymbolResolver.resolveLocalIdentifier(identifier);
+            symbol = nextSymbolResolver.resolveIdentifierFromItsNamespaceScope(identifier);
         }
         return symbol;
     }

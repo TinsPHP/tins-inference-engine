@@ -45,7 +45,7 @@ public class UserSymbolResolverTest
 {
 
     @Test
-    public void resolveIdentifier_Standard_DelegatesToScope() {
+    public void resolveIdentifierFromItsScope_Standard_DelegatesToScope() {
         ITSPHPAst ast = mock(ITSPHPAst.class);
         ISymbol symbol = mock(ISymbol.class);
         IScope scope = mock(IScope.class);
@@ -53,14 +53,14 @@ public class UserSymbolResolverTest
         when(ast.getScope()).thenReturn(scope);
 
         ISymbolResolver symbolResolver = createSymbolResolver();
-        ISymbol result = symbolResolver.resolveIdentifier(ast);
+        ISymbol result = symbolResolver.resolveIdentifierFromItsScope(ast);
 
         verify(scope).resolve(ast);
         assertThat(result, is(symbol));
     }
 
     @Test
-    public void resolveIdentifier_NonExistingSymbol_DelegatesToNextInChain() {
+    public void resolveIdentifierFromItsScope_NonExistingSymbol_DelegatesToNextInChain() {
         ISymbolResolver nextSymbolResolver = mock(ISymbolResolver.class);
         ITSPHPAst ast = mock(ITSPHPAst.class);
         IScope scope = mock(IScope.class);
@@ -69,27 +69,27 @@ public class UserSymbolResolverTest
 
         ISymbolResolver symbolResolver = createSymbolResolver();
         symbolResolver.setNextInChain(nextSymbolResolver);
-        symbolResolver.resolveIdentifier(ast);
+        symbolResolver.resolveIdentifierFromItsScope(ast);
 
-        verify(nextSymbolResolver).resolveIdentifier(ast);
+        verify(nextSymbolResolver).resolveIdentifierFromItsScope(ast);
     }
 
 
     @Test
-    public void resolveIdentifier_NonExistingSymbolAndLastMemberOfTheChain_ReturnsNull() {
+    public void resolveIdentifierFromItsScope_NonExistingSymbolAndLastMemberOfTheChain_ReturnsNull() {
         ITSPHPAst ast = mock(ITSPHPAst.class);
         IScope scope = mock(IScope.class);
         when(scope.resolve(ast)).thenReturn(null);
         when(ast.getScope()).thenReturn(scope);
 
         ISymbolResolver symbolResolver = createSymbolResolver();
-        ISymbol result = symbolResolver.resolveIdentifier(ast);
+        ISymbol result = symbolResolver.resolveIdentifierFromItsScope(ast);
 
         assertThat(result, is(nullValue()));
     }
 
     @Test
-    public void resolveIdentifierWithFallback_IsInCurrentScope_DelegatesToScopeOnly() {
+    public void resolveIdentifierFromItsScopeWithFallback_IsInCurrentScope_DelegatesToScopeOnly() {
         IScope scope = mock(IScope.class);
         ITSPHPAst ast = mock(ITSPHPAst.class);
         when(ast.getScope()).thenReturn(scope);
@@ -97,14 +97,14 @@ public class UserSymbolResolverTest
         when(scope.resolve(ast)).thenReturn(symbol);
 
         ISymbolResolver symbolResolver = createSymbolResolver();
-        ISymbol result = symbolResolver.resolveIdentifierWithFallback(ast);
+        ISymbol result = symbolResolver.resolveIdentifierFromItsScopeWithFallback(ast);
 
         verify(scope).resolve(ast);
         assertThat(result, is(symbol));
     }
 
     @Test
-    public void resolveIdentifierWithFallback_NotFoundInCurrentScope_DelegatesToFallback() {
+    public void resolveIdentifierFromItsScopeWithFallback_NotFoundInCurrentScope_DelegatesToFallback() {
         ISymbolResolver nextSymbolResolver = mock(ISymbolResolver.class);
         IScope scope = mock(IScope.class);
         ITSPHPAst ast = mock(ITSPHPAst.class);
@@ -121,7 +121,7 @@ public class UserSymbolResolverTest
                 mock(ILowerCaseStringMap.class),
                 globalDefaultNamespaceScope);
         symbolResolver.setNextInChain(nextSymbolResolver);
-        ISymbol result = symbolResolver.resolveIdentifierWithFallback(ast);
+        ISymbol result = symbolResolver.resolveIdentifierFromItsScopeWithFallback(ast);
 
         verify(scope).resolve(ast);
         verify(globalDefaultNamespaceScope).resolve(ast);
@@ -129,7 +129,7 @@ public class UserSymbolResolverTest
     }
 
     @Test
-    public void resolveIdentifierWithFallback_NonExistingSymbol_DelegatesToNextInChainTwice() {
+    public void resolveIdentifierFromItsScopeWithFallback_NonExistingSymbol_DelegatesToNextInChainTwice() {
         ISymbolResolver nextSymbolResolver = mock(ISymbolResolver.class);
         ITSPHPAst ast = mock(ITSPHPAst.class);
         IScope scope = mock(IScope.class);
@@ -138,21 +138,21 @@ public class UserSymbolResolverTest
 
         ISymbolResolver symbolResolver = createSymbolResolver();
         symbolResolver.setNextInChain(nextSymbolResolver);
-        symbolResolver.resolveIdentifierWithFallback(ast);
+        symbolResolver.resolveIdentifierFromItsScopeWithFallback(ast);
 
-        verify(nextSymbolResolver).resolveIdentifier(ast);
+        verify(nextSymbolResolver).resolveIdentifierFromItsScope(ast);
         verify(nextSymbolResolver).resolveIdentifierFromFallback(ast);
     }
 
     @Test
-    public void resolveIdentifierWithFallback_NonExistingSymbolAndLastMemberOfTheChain_ReturnsNull() {
+    public void resolveIdentifierFromItsScopeWithFallback_NonExistingSymbolAndLastMemberOfTheChain_ReturnsNull() {
         ITSPHPAst ast = mock(ITSPHPAst.class);
         IScope scope = mock(IScope.class);
         when(scope.resolve(ast)).thenReturn(null);
         when(ast.getScope()).thenReturn(scope);
 
         ISymbolResolver symbolResolver = createSymbolResolver();
-        ISymbol result = symbolResolver.resolveIdentifier(ast);
+        ISymbol result = symbolResolver.resolveIdentifierFromItsScope(ast);
 
         assertThat(result, is(nullValue()));
     }
@@ -496,12 +496,12 @@ public class UserSymbolResolverTest
         symbolResolver.resolveConstantLikeIdentifier(ast);
 
         verify(scopeHelper).isLocalIdentifier(identifier);
-        verify(nextSymbolResolver).resolveIdentifier(ast);
+        verify(nextSymbolResolver).resolveIdentifierFromItsScope(ast);
         verify(nextSymbolResolver).resolveIdentifierFromFallback(ast);
         try {
             verify(nextSymbolResolver).resolveConstantLikeIdentifier(ast);
             fail("resolveConstantLikeIdentifier called even though it was a local identifier "
-                    + "- should only delegate to resolveIdentifierWithFallback");
+                    + "- should only delegate to resolveIdentifierFromItsScopeWithFallback");
         } catch (MockitoAssertionError er) {
             //that ok, we expect that resolveConstantLikeIdentifier was not called
         }
@@ -1211,7 +1211,7 @@ public class UserSymbolResolverTest
 
         verify(scopeHelper).isAbsoluteIdentifier(identifier);
         verify(scopeHelper).isRelativeIdentifier(identifier);
-        verify(nextSymbolResolver).resolveLocalIdentifier(ast);
+        verify(nextSymbolResolver).resolveIdentifierFromItsNamespaceScope(ast);
     }
 
     @Test
@@ -1445,7 +1445,7 @@ public class UserSymbolResolverTest
     }
 
     @Test
-    public void resolveLocalIdentifier_Standard_DelegatesToNamespaceScope() {
+    public void resolveIdentifierFromItsNamespaceScope_Standard_DelegatesToNamespaceScope() {
         String identifier = "Symbol";
         ITSPHPAst ast = createAst(identifier);
         IScopeHelper scopeHelper = mock(IScopeHelper.class);
@@ -1457,14 +1457,14 @@ public class UserSymbolResolverTest
         when(scopeHelper.getEnclosingNamespaceScope(ast)).thenReturn(namespaceScope);
 
         ISymbolResolver symbolResolver = createSymbolResolver(scopeHelper);
-        ISymbol result = symbolResolver.resolveLocalIdentifier(ast);
+        ISymbol result = symbolResolver.resolveIdentifierFromItsNamespaceScope(ast);
 
         verify(namespaceScope).resolve(ast);
         assertThat(result, is(symbol));
     }
 
     @Test
-    public void resolveLocalIdentifier_Standard_DelegatesToNextInChain() {
+    public void resolveIdentifierFromItsNamespaceScope_Standard_DelegatesToNextInChain() {
         ISymbolResolver nextSymbolResolver = mock(ISymbolResolver.class);
         String identifier = "nonExistingLocalSymbol";
         ITSPHPAst ast = createAst(identifier);
@@ -1478,13 +1478,13 @@ public class UserSymbolResolverTest
 
         ISymbolResolver symbolResolver = createSymbolResolver(scopeHelper);
         symbolResolver.setNextInChain(nextSymbolResolver);
-        symbolResolver.resolveLocalIdentifier(ast);
+        symbolResolver.resolveIdentifierFromItsNamespaceScope(ast);
 
-        verify(nextSymbolResolver).resolveLocalIdentifier(ast);
+        verify(nextSymbolResolver).resolveIdentifierFromItsNamespaceScope(ast);
     }
 
     @Test
-    public void resolveLocalIdentifier_NonExistingLocalIdentifierAndLastInChain_ReturnsNull() {
+    public void resolveIdentifierFromItsNamespaceScope_NonExistingLocalIdentifierAndLastInChain_ReturnsNull() {
         String identifier = "nonExistingLocalSymbol";
         ITSPHPAst ast = createAst(identifier);
         IScopeHelper scopeHelper = mock(IScopeHelper.class);
@@ -1495,7 +1495,7 @@ public class UserSymbolResolverTest
         when(scopeHelper.getEnclosingNamespaceScope(ast)).thenReturn(namespaceScope);
 
         ISymbolResolver symbolResolver = createSymbolResolver(scopeHelper);
-        ISymbol result = symbolResolver.resolveLocalIdentifier(ast);
+        ISymbol result = symbolResolver.resolveIdentifierFromItsNamespaceScope(ast);
 
         assertThat(result, is(nullValue()));
     }
