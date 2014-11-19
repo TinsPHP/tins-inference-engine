@@ -99,6 +99,7 @@ public class ScopeHelper implements IScopeHelper
         return symbol;
     }
 
+    //Warning! start code duplication - same as in CoreSymbolResolver in core component
     @Override
     public INamespaceScope getEnclosingNamespaceScope(ITSPHPAst ast) {
         INamespaceScope namespaceScope = null;
@@ -112,6 +113,7 @@ public class ScopeHelper implements IScopeHelper
         }
         return namespaceScope;
     }
+    //Warning! end code duplication - same as in CoreSymbolResolver in core component
 
     /**
      * Represents a delegate which calls the appropriate method on TypeCheckerErrorReporter.

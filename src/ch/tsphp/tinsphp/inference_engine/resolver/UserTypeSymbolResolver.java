@@ -6,36 +6,23 @@
 
 package ch.tsphp.tinsphp.inference_engine.resolver;
 
-import ch.tsphp.common.ILowerCaseStringMap;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ITypeSymbol;
-import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
-import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
-import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
-import ch.tsphp.tinsphp.common.symbols.ISymbolResolver;
-import ch.tsphp.tinsphp.common.symbols.ITypeSymbolResolver;
-import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
+import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolverController;
+import ch.tsphp.tinsphp.common.symbols.resolver.ITypeSymbolResolver;
 import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
 
 public class UserTypeSymbolResolver implements ITypeSymbolResolver
 {
 
-    protected ISymbolResolver symbolResolver;
+    protected ISymbolResolverController symbolResolverController;
     private ITypeSymbolResolver nextSymbolResolver;
 
     public UserTypeSymbolResolver(
-            IScopeHelper theScopeHelper,
-            ISymbolFactory theSymbolFactory,
-            IInferenceErrorReporter theInferenceErrorReporter,
-            ILowerCaseStringMap<IGlobalNamespaceScope> theGlobalNamespaceScopes,
-            IGlobalNamespaceScope theGlobalDefaultNamespace) {
-
+            ISymbolResolverController theSymbolResolverController) {
         // We use the UserSymbolResolver (without any following members in the chain) since resolving class/interface
         // types is nothing else than resolving class like symbols
-        symbolResolver = new UserSymbolResolver(theScopeHelper, theSymbolFactory, theInferenceErrorReporter,
-                theGlobalNamespaceScopes, theGlobalDefaultNamespace
-
-        );
+        symbolResolverController = theSymbolResolverController;
     }
 
     @Override
@@ -59,11 +46,11 @@ public class UserTypeSymbolResolver implements ITypeSymbolResolver
     }
 
     private ITypeSymbol resolveTypeIdentifier(ITSPHPAst identifier) {
-        return (ITypeSymbol) symbolResolver.resolveIdentifierFromItsNamespaceScope(identifier);
+        return (ITypeSymbol) symbolResolverController.resolveIdentifierFromItsNamespaceScope(identifier);
     }
 
     private ITypeSymbol resolveTypeName(ITSPHPAst typeName) {
-        return (ITypeSymbol) symbolResolver.resolveClassLikeIdentifier(typeName);
+        return (ITypeSymbol) symbolResolverController.resolveClassLikeIdentifier(typeName);
     }
 
     @Override

@@ -22,12 +22,14 @@ import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
-import ch.tsphp.tinsphp.common.symbols.ISymbolResolver;
-import ch.tsphp.tinsphp.common.symbols.ITypeSymbolResolver;
+import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolver;
+import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolverController;
+import ch.tsphp.tinsphp.common.symbols.resolver.ITypeSymbolResolver;
 import ch.tsphp.tinsphp.inference_engine.IReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.ReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPReferenceWalker;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
+import ch.tsphp.tinsphp.inference_engine.resolver.SymbolResolverController;
 import ch.tsphp.tinsphp.inference_engine.resolver.UserSymbolResolver;
 import ch.tsphp.tinsphp.inference_engine.resolver.UserTypeSymbolResolver;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.WriteExceptionToConsole;
@@ -39,7 +41,11 @@ import org.antlr.runtime.tree.CommonTreeNodeStream;
 import org.junit.Assert;
 import org.junit.Ignore;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.Assert.assertFalse;
+import static org.mockito.Mockito.mock;
 
 @Ignore
 public abstract class AReferenceTest extends ADefinitionTest
@@ -48,8 +54,10 @@ public abstract class AReferenceTest extends ADefinitionTest
     protected ErrorReportingTinsPHPReferenceWalker reference;
     protected IReferencePhaseController referencePhaseController;
     protected IAstModificationHelper astModificationHelper;
-    protected ISymbolResolver symbolResolver;
+    protected ISymbolResolver userSymbolResolver;
+    protected ISymbolResolver coreSymbolResolver;
     protected ITypeSymbolResolver typeSymbolResolver;
+    protected ISymbolResolverController symbolResolverController;
 
     protected ITSPHPAstAdaptor astAdaptor;
     protected IAstHelper astHelper;
@@ -65,25 +73,30 @@ public abstract class AReferenceTest extends ADefinitionTest
         astAdaptor = createAstAdaptor();
         astHelper = createAstHelper(astAdaptor);
         astModificationHelper = createAstModificationHelper(astHelper);
-        symbolResolver = createUserSymbolResolver(
+
+        userSymbolResolver = createUserSymbolResolver(
                 scopeHelper,
-                symbolFactory,
-                inferenceErrorReporter,
                 definitionPhaseController.getGlobalNamespaceScopes(),
                 definitionPhaseController.getGlobalDefaultNamespace());
 
-        typeSymbolResolver = createTypeSymbolResolver(
+        coreSymbolResolver = createCoreSymbolResolver();
+
+        symbolResolverController = createSymbolResolverController(
+                userSymbolResolver,
+                coreSymbolResolver,
+                new ArrayList<ISymbolResolver>(),
                 scopeHelper,
                 symbolFactory,
-                inferenceErrorReporter,
-                definitionPhaseController.getGlobalNamespaceScopes(),
-                definitionPhaseController.getGlobalDefaultNamespace());
+                inferenceErrorReporter
+        );
+
+        typeSymbolResolver = createTypeSymbolResolver(symbolResolverController);
 
         referencePhaseController = createReferencePhaseController(
                 symbolFactory,
                 inferenceErrorReporter,
                 astModificationHelper,
-                symbolResolver,
+                symbolResolverController,
                 typeSymbolResolver,
                 scopeHelper,
                 core,
@@ -156,31 +169,41 @@ public abstract class AReferenceTest extends ADefinitionTest
 
     protected ISymbolResolver createUserSymbolResolver(
             IScopeHelper theScopeHelper,
-            ISymbolFactory theSymbolFactory,
-            IInferenceErrorReporter theInferenceErrorReporter,
             ILowerCaseStringMap<IGlobalNamespaceScope> theGlobalNamespaceScopes,
             IGlobalNamespaceScope theGlobalDefaultNamespace) {
-        return new UserSymbolResolver(theScopeHelper, theSymbolFactory, theInferenceErrorReporter,
-                theGlobalNamespaceScopes, theGlobalDefaultNamespace
+        return new UserSymbolResolver(theScopeHelper, theGlobalNamespaceScopes, theGlobalDefaultNamespace);
+    }
 
+    protected ISymbolResolver createCoreSymbolResolver() {
+        return mock(ISymbolResolver.class);
+    }
+
+    protected ISymbolResolverController createSymbolResolverController(
+            ISymbolResolver theUserSymbolResolver,
+            ISymbolResolver theCoreSymbolResolver,
+            List<ISymbolResolver> additionalSymbolResolvers,
+            IScopeHelper theScopeHelper,
+            ISymbolFactory theSymbolFactory,
+            IInferenceErrorReporter theInferenceErrorReporter) {
+        return new SymbolResolverController(
+                theUserSymbolResolver,
+                theCoreSymbolResolver,
+                additionalSymbolResolvers,
+                theScopeHelper,
+                theSymbolFactory,
+                theInferenceErrorReporter
         );
     }
 
-    protected ITypeSymbolResolver createTypeSymbolResolver(
-            IScopeHelper theScopeHelper,
-            ISymbolFactory theSymbolFactory,
-            IInferenceErrorReporter theInferenceErrorReporter,
-            ILowerCaseStringMap<IGlobalNamespaceScope> theGlobalNamespaceScopes,
-            IGlobalNamespaceScope theGlobalDefaultNamespace) {
-        return new UserTypeSymbolResolver(theScopeHelper, theSymbolFactory, theInferenceErrorReporter,
-                theGlobalNamespaceScopes, theGlobalDefaultNamespace);
+    protected ITypeSymbolResolver createTypeSymbolResolver(ISymbolResolverController theSymbolResolverController) {
+        return new UserTypeSymbolResolver(theSymbolResolverController);
     }
 
     protected IReferencePhaseController createReferencePhaseController(
             ISymbolFactory theSymbolFactory,
             IInferenceErrorReporter theInferenceErrorReporter,
             IAstModificationHelper theAstModificationHelper,
-            ISymbolResolver theSymbolResolver,
+            ISymbolResolverController theSymbolResolverController,
             ITypeSymbolResolver theTypeSymbolResolver,
             IScopeHelper theScopeHelper,
             ICore theCore,
@@ -190,7 +213,7 @@ public abstract class AReferenceTest extends ADefinitionTest
                 theSymbolFactory,
                 theInferenceErrorReporter,
                 theAstModificationHelper,
-                theSymbolResolver,
+                theSymbolResolverController,
                 theTypeSymbolResolver,
                 theScopeHelper,
                 theCore,

@@ -6,15 +6,10 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.unit.resolver;
 
-import ch.tsphp.common.ILowerCaseStringMap;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ITypeSymbol;
-import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
-import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
-import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
-import ch.tsphp.tinsphp.common.symbols.ISymbolResolver;
-import ch.tsphp.tinsphp.common.symbols.ITypeSymbolResolver;
-import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
+import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolverController;
+import ch.tsphp.tinsphp.common.symbols.resolver.ITypeSymbolResolver;
 import ch.tsphp.tinsphp.inference_engine.resolver.UserTypeSymbolResolver;
 import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
 import org.junit.Test;
@@ -29,21 +24,6 @@ import static org.mockito.Mockito.when;
 @SuppressWarnings("unchecked")
 public class UserTypeSymbolResolverTest
 {
-    protected class DummyUserTypeSymbolResolver extends UserTypeSymbolResolver
-    {
-        public DummyUserTypeSymbolResolver(
-                ISymbolResolver theSymbolResolver,
-                IScopeHelper theScopeHelper,
-                ISymbolFactory theSymbolFactory,
-                IInferenceErrorReporter theInferenceErrorReporter,
-                ILowerCaseStringMap<IGlobalNamespaceScope> theGlobalNamespaceScopes,
-                IGlobalNamespaceScope theGlobalDefaultNamespace) {
-            super(theScopeHelper, theSymbolFactory, theInferenceErrorReporter, theGlobalNamespaceScopes,
-                    theGlobalDefaultNamespace);
-            symbolResolver = theSymbolResolver;
-        }
-
-    }
 
     @Test
     public void resolveTypeFor_NotSupportedAstType_DelegatesToNextInChain() {
@@ -70,14 +50,14 @@ public class UserTypeSymbolResolverTest
     @Test
     public void resolveTypeFor_TypeName_DelegatesToSymbolResolver() {
         ITSPHPAst ast = createAst(TokenTypes.TYPE_NAME);
-        ISymbolResolver symbolResolver = mock(ISymbolResolver.class);
+        ISymbolResolverController symbolResolverController = mock(ISymbolResolverController.class);
         ITypeSymbol typeSymbol = mock(ITypeSymbol.class);
-        when(symbolResolver.resolveClassLikeIdentifier(ast)).thenReturn(typeSymbol);
+        when(symbolResolverController.resolveClassLikeIdentifier(ast)).thenReturn(typeSymbol);
 
-        ITypeSymbolResolver typeSymbolResolver = createTypeSymbolResolver(symbolResolver);
+        ITypeSymbolResolver typeSymbolResolver = createTypeSymbolResolver(symbolResolverController);
         ITypeSymbol result = typeSymbolResolver.resolveTypeFor(ast);
 
-        verify(symbolResolver).resolveClassLikeIdentifier(ast);
+        verify(symbolResolverController).resolveClassLikeIdentifier(ast);
         assertThat(result, is(typeSymbol));
     }
 
@@ -103,35 +83,12 @@ public class UserTypeSymbolResolverTest
         assertThat(result, is(nullValue()));
     }
 
-    protected ITypeSymbolResolver createTypeSymbolResolver() {
-        return createTypeSymbolResolver(mock(ISymbolResolver.class));
+    private ITypeSymbolResolver createTypeSymbolResolver() {
+        return createTypeSymbolResolver(mock(ISymbolResolverController.class));
     }
 
-    protected ITypeSymbolResolver createTypeSymbolResolver(ISymbolResolver theSymbolResolver) {
-        return createTypeSymbolResolver(
-                theSymbolResolver,
-                mock(IScopeHelper.class),
-                mock(ISymbolFactory.class),
-                mock(IInferenceErrorReporter.class),
-                mock(ILowerCaseStringMap.class),
-                mock(IGlobalNamespaceScope.class));
-    }
-
-    protected ITypeSymbolResolver createTypeSymbolResolver(
-            ISymbolResolver theSymbolResolver,
-            IScopeHelper theScopeHelper,
-            ISymbolFactory theSymbolFactory,
-            IInferenceErrorReporter theInferenceErrorReporter,
-            ILowerCaseStringMap<IGlobalNamespaceScope> theGlobalNamespaceScopes,
-            IGlobalNamespaceScope theGlobalDefaultNamespace) {
-
-        return new DummyUserTypeSymbolResolver(
-                theSymbolResolver,
-                theScopeHelper,
-                theSymbolFactory,
-                theInferenceErrorReporter,
-                theGlobalNamespaceScopes,
-                theGlobalDefaultNamespace);
+    protected ITypeSymbolResolver createTypeSymbolResolver(ISymbolResolverController theSymbolResolverController) {
+        return new UserTypeSymbolResolver(theSymbolResolverController);
     }
 
     private ITSPHPAst createAst(int tokenType) {

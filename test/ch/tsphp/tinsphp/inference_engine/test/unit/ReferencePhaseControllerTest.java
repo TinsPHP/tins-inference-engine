@@ -19,11 +19,11 @@ import ch.tsphp.tinsphp.common.symbols.IAliasSymbol;
 import ch.tsphp.tinsphp.common.symbols.IAliasTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
-import ch.tsphp.tinsphp.common.symbols.ISymbolResolver;
-import ch.tsphp.tinsphp.common.symbols.ITypeSymbolResolver;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousSymbol;
 import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousVariableSymbol;
+import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolverController;
+import ch.tsphp.tinsphp.common.symbols.resolver.ITypeSymbolResolver;
 import ch.tsphp.tinsphp.inference_engine.IReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.ReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
@@ -45,22 +45,22 @@ public class ReferencePhaseControllerTest
     @Test
     public void resolveConstant_Standard_DelegatesToSymbolResolver() {
         ITSPHPAst ast = createAst("Dummy");
-        ISymbolResolver symbolResolver = mock(ISymbolResolver.class);
+        ISymbolResolverController symbolResolverController = mock(ISymbolResolverController.class);
 
-        IReferencePhaseController controller = createController(symbolResolver);
+        IReferencePhaseController controller = createController(symbolResolverController);
         controller.resolveConstant(ast);
 
-        verify(symbolResolver).resolveConstantLikeIdentifier(ast);
+        verify(symbolResolverController).resolveConstantLikeIdentifier(ast);
     }
 
     @Test
     public void resolveConstant_SymbolResolverFindsSymbol_ReturnsSymbol() {
         ITSPHPAst ast = createAst("Dummy");
-        ISymbolResolver symbolResolver = mock(ISymbolResolver.class);
+        ISymbolResolverController symbolResolverController = mock(ISymbolResolverController.class);
         IVariableSymbol symbol = mock(IVariableSymbol.class);
-        when(symbolResolver.resolveConstantLikeIdentifier(ast)).thenReturn(symbol);
+        when(symbolResolverController.resolveConstantLikeIdentifier(ast)).thenReturn(symbol);
 
-        IReferencePhaseController controller = createController(symbolResolver);
+        IReferencePhaseController controller = createController(symbolResolverController);
         IVariableSymbol result = controller.resolveConstant(ast);
 
         assertThat(result, is(symbol));
@@ -492,7 +492,6 @@ public class ReferencePhaseControllerTest
         verify(returnAst).setEvalType(any(ITypeSymbol.class));
     }
 
-
     private ITSPHPAst createAst(String name) {
         ITSPHPAst ast = mock(ITSPHPAst.class);
         when(ast.getText()).thenReturn(name);
@@ -503,34 +502,42 @@ public class ReferencePhaseControllerTest
         return createController(mock(IInferenceErrorReporter.class));
     }
 
-    private IReferencePhaseController createController(IInferenceErrorReporter inferenceErrorReporter) {
-        return createController(inferenceErrorReporter, mock(IAstModificationHelper.class));
+    private IReferencePhaseController createController(IInferenceErrorReporter issueReporter) {
+        return createController(issueReporter, mock(IScopeHelper.class));
     }
 
+    private IReferencePhaseController createController(
+            IInferenceErrorReporter issueReporter, IScopeHelper scopeHelper) {
+        return createController(issueReporter, mock(ITypeSymbolResolver.class), scopeHelper);
+    }
 
     private IReferencePhaseController createController(
-            IInferenceErrorReporter inferenceErrorReporter, IAstModificationHelper astModificationHelper) {
+            IInferenceErrorReporter issueReporter, ITypeSymbolResolver typeSymbolResolver, IScopeHelper scopeHelper) {
         return createController(
-                mock(ISymbolFactory.class),
-                inferenceErrorReporter,
-                astModificationHelper,
-                mock(ISymbolResolver.class),
-                mock(ITypeSymbolResolver.class),
-                mock(IScopeHelper.class),
-                mock(ICore.class),
-                mock(IModifierHelper.class),
-                mock(IGlobalNamespaceScope.class)
+                issueReporter,
+                mock(IAstModificationHelper.class),
+                typeSymbolResolver,
+                scopeHelper
         );
     }
 
-    private IReferencePhaseController createController(IInferenceErrorReporter issueReporter,
+    private IReferencePhaseController createController(
+            IInferenceErrorReporter issueReporter, IAstModificationHelper astModificationHelper) {
+        return createController(
+                issueReporter, astModificationHelper, mock(ITypeSymbolResolver.class), mock(IScopeHelper.class));
+    }
+
+    private IReferencePhaseController createController(
+            IInferenceErrorReporter issueReporter,
+            IAstModificationHelper astModificationHelper,
+            ITypeSymbolResolver typeSymbolResolver,
             IScopeHelper scopeHelper) {
         return createController(
                 mock(ISymbolFactory.class),
                 issueReporter,
-                mock(IAstModificationHelper.class),
-                mock(ISymbolResolver.class),
-                mock(ITypeSymbolResolver.class),
+                astModificationHelper,
+                mock(ISymbolResolverController.class),
+                typeSymbolResolver,
                 scopeHelper,
                 mock(ICore.class),
                 mock(IModifierHelper.class),
@@ -538,12 +545,13 @@ public class ReferencePhaseControllerTest
         );
     }
 
-    private IReferencePhaseController createController(ISymbolResolver symbolResolver) {
+
+    private IReferencePhaseController createController(ISymbolFactory symbolFactory) {
         return createController(
-                mock(ISymbolFactory.class),
+                symbolFactory,
                 mock(IInferenceErrorReporter.class),
                 mock(IAstModificationHelper.class),
-                symbolResolver,
+                mock(ISymbolResolverController.class),
                 mock(ITypeSymbolResolver.class),
                 mock(IScopeHelper.class),
                 mock(ICore.class),
@@ -554,31 +562,24 @@ public class ReferencePhaseControllerTest
 
     private IReferencePhaseController createController(ITypeSymbolResolver typeSymbolResolver) {
         return createController(
-                mock(IInferenceErrorReporter.class), typeSymbolResolver, mock(IScopeHelper.class));
-    }
-
-
-    private IReferencePhaseController createController(
-            IInferenceErrorReporter issueReporter, ITypeSymbolResolver typeSymbolResolver, IScopeHelper scopeHelper) {
-        return createController(
                 mock(ISymbolFactory.class),
-                issueReporter,
+                mock(IInferenceErrorReporter.class),
                 mock(IAstModificationHelper.class),
-                mock(ISymbolResolver.class),
+                mock(ISymbolResolverController.class),
                 typeSymbolResolver,
-                scopeHelper,
+                mock(IScopeHelper.class),
                 mock(ICore.class),
                 mock(IModifierHelper.class),
                 mock(IGlobalNamespaceScope.class)
         );
     }
 
-    private IReferencePhaseController createController(ISymbolFactory symbolFactory) {
+    private IReferencePhaseController createController(ISymbolResolverController symbolResolverController) {
         return createController(
-                symbolFactory,
+                mock(ISymbolFactory.class),
                 mock(IInferenceErrorReporter.class),
                 mock(IAstModificationHelper.class),
-                mock(ISymbolResolver.class),
+                symbolResolverController,
                 mock(ITypeSymbolResolver.class),
                 mock(IScopeHelper.class),
                 mock(ICore.class),
@@ -587,12 +588,11 @@ public class ReferencePhaseControllerTest
         );
     }
 
-
     protected IReferencePhaseController createController(
             ISymbolFactory symbolFactory,
             IInferenceErrorReporter inferenceErrorReporter,
             IAstModificationHelper astModificationHelper,
-            ISymbolResolver symbolResolver,
+            ISymbolResolverController symbolResolverControllerController,
             ITypeSymbolResolver typeSymbolResolver,
             IScopeHelper scopeHelper,
             ICore core,
@@ -602,7 +602,7 @@ public class ReferencePhaseControllerTest
                 symbolFactory,
                 inferenceErrorReporter,
                 astModificationHelper,
-                symbolResolver,
+                symbolResolverControllerController,
                 typeSymbolResolver,
                 scopeHelper,
                 core,

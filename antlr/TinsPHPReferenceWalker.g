@@ -491,7 +491,7 @@ switchContents[boolean shallCheckIfReturns] returns[boolean isReturning, boolean
     boolean isFirst = true;
     List<ITSPHPAst> asts = new ArrayList<>();
 }
-//Warning! start duplicated code as in catchBlocks
+//Warning! end duplicated code as in catchBlocks
     :   (   ^(SWITCH_CASES caseLabels) blockConditional[$shallCheckIfReturns]
             {
                 if(shallCheckIfReturns){
@@ -575,10 +575,10 @@ catchBlocks[boolean shallCheckIfReturns] returns[boolean isReturning, List<ITSPH
     boolean isFirst = true;
     $asts = new ArrayList<>();
 }
-//Warning! start duplicated code as in switchContents
+//Warning! end duplicated code as in switchContents
     :   (   ^('catch' classInterfaceType[null] VariableId blockConditional[$shallCheckIfReturns])
             {
-            	$classInterfaceType.tree.setEvalType($classInterfaceType.type);
+            	$classInterfaceType.start.setEvalType($classInterfaceType.type);
                 if(shallCheckIfReturns){
                     $isReturning = $blockConditional.isReturning && ($isReturning || isFirst);
                     isFirst = false;

@@ -148,20 +148,20 @@ public class ReturnCheckHelper
                 },
                 {
                         prefix + "foreach([1,2] as $v){" + statement + "}" + appendix,
-                        expectedPrefix + "(foreach (array 1 2) (vars (type tMod ?) $v) "
+                        expectedPrefix + "(foreach (array 1 2) $v "
                                 + "(cBlock " + expectedStatement + ")) "
                                 + returnNull + expectedAppendix
                 },
                 {
                         prefix + "try{" + statement + "}catch(\\Exception $e){}" + appendix,
                         expectedPrefix + "(try (cBlock " + expectedStatement + ") "
-                                + "(catch (vars (type tMod \\Exception) $e) cBlock)) "
+                                + "(catch \\Exception $e cBlock)) "
                                 + returnNull + expectedAppendix
                 },
                 {
                         prefix + "try{}catch(\\Exception $e){" + statement + "}" + appendix,
                         expectedPrefix + "(try cBlock "
-                                + "(catch (vars (type tMod \\Exception) $e) (cBlock " + expectedStatement + "))) "
+                                + "(catch \\Exception $e (cBlock " + expectedStatement + "))) "
                                 + returnNull + expectedAppendix
                 },
                 //not all catch blocks return/throw
@@ -169,16 +169,16 @@ public class ReturnCheckHelper
                         prefix + "try{" + statement + "}"
                                 + "catch(\\ErrorException $e){} catch(\\Exception $e2){" + statement + "}" + appendix,
                         expectedPrefix + "(try (cBlock " + expectedStatement + ") "
-                                + "(catch (vars (type tMod \\ErrorException) $e) cBlock) "
-                                + "(catch (vars (type tMod \\Exception) $e2) (cBlock " + expectedStatement + "))) "
+                                + "(catch \\ErrorException $e cBlock) "
+                                + "(catch \\Exception $e2 (cBlock " + expectedStatement + "))) "
                                 + returnNull + expectedAppendix
                 },
                 {
                         prefix + "try{" + statement + "}"
                                 + "catch(\\ErrorException $e){" + statement + "} catch(\\Exception $e2){}" + appendix,
                         expectedPrefix + "(try (cBlock " + expectedStatement + ") "
-                                + "(catch (vars (type tMod \\ErrorException) $e) (cBlock " + expectedStatement + ")) "
-                                + "(catch (vars (type tMod \\Exception) $e2) cBlock)) "
+                                + "(catch \\ErrorException $e (cBlock " + expectedStatement + ")) "
+                                + "(catch \\Exception $e2 cBlock)) "
                                 + returnNull + expectedAppendix
                 },
                 //needs default case to be sure that it returns

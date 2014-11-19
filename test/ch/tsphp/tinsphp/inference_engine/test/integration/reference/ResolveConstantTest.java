@@ -60,7 +60,7 @@ public class ResolveConstantTest extends AReferenceTypeScopeTest
                 {"const a=1; do ; while(a==1);", structDefault("", 1, 1, 1, 0)},
                 {"const a=1; do a; while(true);", structDefault("", 1, 1, 0, 0, 0)},
                 {"const a=1; try{a;}catch(\\Exception $ex){}", structDefault("", 1, 1, 0, 0, 0)},
-                {"const a=1; try{}catch(\\Exception $ex){a;}", structDefault("", 1, 1, 1, 1, 0, 0)},
+                {"const a=1; try{}catch(\\Exception $ex){a;}", structDefault("", 1, 1, 1, 2, 0, 0)},
                 //in expression (ok a; is also an expression but at the top of the AST)
                 {
                         "const a=1; !(1+a-a/a*a && a) || a;",

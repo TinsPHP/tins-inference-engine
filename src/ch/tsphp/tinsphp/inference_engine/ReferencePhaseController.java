@@ -23,10 +23,10 @@ import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IAliasSymbol;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
-import ch.tsphp.tinsphp.common.symbols.ISymbolResolver;
-import ch.tsphp.tinsphp.common.symbols.ITypeSymbolResolver;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousSymbol;
+import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolverController;
+import ch.tsphp.tinsphp.common.symbols.resolver.ITypeSymbolResolver;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 
@@ -36,7 +36,7 @@ public class ReferencePhaseController implements IReferencePhaseController
     private final IInferenceErrorReporter inferenceErrorReporter;
     private final IAstModificationHelper astModificationHelper;
     private final IModifierHelper modifierHelper;
-    private final ISymbolResolver symbolResolver;
+    private final ISymbolResolverController symbolResolverController;
     private final ITypeSymbolResolver typeSymbolResolver;
     private final IScopeHelper scopeHelper;
     private final ICore core;
@@ -46,7 +46,7 @@ public class ReferencePhaseController implements IReferencePhaseController
             ISymbolFactory theSymbolFactory,
             IInferenceErrorReporter theInferenceErrorReporter,
             IAstModificationHelper theAstModificationHelper,
-            ISymbolResolver theSymbolResolver,
+            ISymbolResolverController theSymbolResolverController,
             ITypeSymbolResolver theTypeSymbolResolver,
             IScopeHelper theScopeHelper,
             ICore theCore,
@@ -55,7 +55,7 @@ public class ReferencePhaseController implements IReferencePhaseController
         symbolFactory = theSymbolFactory;
         inferenceErrorReporter = theInferenceErrorReporter;
         astModificationHelper = theAstModificationHelper;
-        symbolResolver = theSymbolResolver;
+        symbolResolverController = theSymbolResolverController;
         typeSymbolResolver = theTypeSymbolResolver;
         scopeHelper = theScopeHelper;
         core = theCore;
@@ -65,7 +65,7 @@ public class ReferencePhaseController implements IReferencePhaseController
 
     @Override
     public IVariableSymbol resolveConstant(ITSPHPAst ast) {
-        IVariableSymbol symbol = (IVariableSymbol) symbolResolver.resolveConstantLikeIdentifier(ast);
+        IVariableSymbol symbol = (IVariableSymbol) symbolResolverController.resolveConstantLikeIdentifier(ast);
         if (symbol == null) {
             ReferenceException exception = inferenceErrorReporter.notDefined(ast);
             symbol = symbolFactory.createErroneousVariableSymbol(ast, exception);
@@ -81,7 +81,7 @@ public class ReferencePhaseController implements IReferencePhaseController
 //    }
 
 //    private IClassTypeSymbol getEnclosingClass(ITSPHPAst ast) {
-//        IClassTypeSymbol classTypeSymbol = symbolResolver.getEnclosingClass(ast);
+//        IClassTypeSymbol classTypeSymbol = symbolResolverController.getEnclosingClass(ast);
 //        if (classTypeSymbol == null) {
 //            ReferenceException ex = typeCheckErrorReporter.notInClass(ast);
 //            classTypeSymbol = symbolFactory.createErroneousTypeSymbol(ast, ex);
@@ -261,8 +261,9 @@ public class ReferencePhaseController implements IReferencePhaseController
 //     */
 //    private void rewriteNameToAbsoluteType(ITSPHPAst typeAst) {
 //        String typeName = typeAst.getText();
-//        if (!symbolResolver.isAbsolute(typeName)) {
-//            String namespace = symbolResolver.getEnclosingGlobalNamespaceScope(typeAst.getScope()).getScopeName();
+//        if (!symbolResolverController.isAbsolute(typeName)) {
+//            String namespace = symbolResolverController.getEnclosingGlobalNamespaceScope(typeAst.getScope())
+// .getScopeName();
 //            typeAst.setText(namespace + typeName);
 //        }
 //    }
@@ -273,7 +274,7 @@ public class ReferencePhaseController implements IReferencePhaseController
 //                {
 //                    @Override
 //                    public ITypeSymbol resolve(ITSPHPAst typeAst) {
-//                        return (ITypeSymbol) symbolResolver.resolveConstantLikeIdentifier(typeAst);
+//                        return (ITypeSymbol) symbolResolverController.resolveConstantLikeIdentifier(typeAst);
 //                    }
 //                },
 //                new ISymbolCreateCaller()
