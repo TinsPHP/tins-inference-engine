@@ -15,20 +15,13 @@ package ch.tsphp.tinsphp.inference_engine.scopes;
 import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ISymbol;
-import ch.tsphp.tinsphp.common.scopes.IAlreadyDefinedMethodCaller;
 import ch.tsphp.tinsphp.common.scopes.IConditionalScope;
-import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
-import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 
 public class ConditionalScope extends AScope implements IConditionalScope
 {
-    private final IInferenceErrorReporter inferenceErrorReporter;
-
-    public ConditionalScope(
-            IScopeHelper scopeHelper, IScope enclosingScope, IInferenceErrorReporter theInferenceErrorReporter) {
+    public ConditionalScope(IScopeHelper scopeHelper, IScope enclosingScope) {
         super(scopeHelper, "cScope", enclosingScope);
-        inferenceErrorReporter = theInferenceErrorReporter;
     }
 
     @Override
@@ -39,28 +32,7 @@ public class ConditionalScope extends AScope implements IConditionalScope
 
     @Override
     public boolean doubleDefinitionCheck(ISymbol symbol) {
-        IScope scope = getEnclosingNonConditionalScope(symbol);
-        if (scope instanceof INamespaceScope) {
-            scope = scope.getEnclosingScope();
-        }
-        return scopeHelper.checkIsNotDoubleDefinition(scope.getSymbols(), symbol,
-                new IAlreadyDefinedMethodCaller()
-                {
-                    @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-                    @Override
-                    public void callAccordingAlreadyDefinedMethod(ISymbol firstDefinition, ISymbol symbolToCheck) {
-                        inferenceErrorReporter.definedInOuterScope(firstDefinition, symbolToCheck);
-                    }
-                }
-        );
-    }
-
-    private IScope getEnclosingNonConditionalScope(ISymbol symbol) {
-        IScope scope = symbol.getDefinitionAst().getScope();
-        while (scope instanceof IConditionalScope) {
-            scope = scope.getEnclosingScope();
-        }
-        return scope;
+        throw new UnsupportedOperationException("Is deprecated and should no longer be used");
     }
 
     @Override

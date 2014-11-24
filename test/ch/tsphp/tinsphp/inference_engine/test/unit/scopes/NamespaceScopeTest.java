@@ -86,7 +86,6 @@ public class NamespaceScopeTest
         verify(symbol2).setDefinitionScope(namespaceScope);
     }
 
-
     @Test
     public void resolve_Standard_DelegateToEnclosingScope() {
         IGlobalNamespaceScope globalNamespaceScope = mock(IGlobalNamespaceScope.class);
@@ -99,6 +98,17 @@ public class NamespaceScopeTest
     }
 
     @Test
+    public void resolveCaseInsensitive_Standard_DelegateToEnclosingScope() {
+        IGlobalNamespaceScope globalNamespaceScope = mock(IGlobalNamespaceScope.class);
+        ITSPHPAst ast = mock(ITSPHPAst.class);
+
+        INamespaceScope namespaceScope = createNamespaceScope(globalNamespaceScope);
+        namespaceScope.resolveCaseInsensitive(ast);
+
+        verify(globalNamespaceScope).resolveCaseInsensitive(ast);
+    }
+
+    @Test
     public void doubleDefinitionCheck_Standard_DelegateToEnclosingScope() {
         IGlobalNamespaceScope globalNamespaceScope = mock(IGlobalNamespaceScope.class);
         ISymbol symbol = mock(ISymbol.class);
@@ -107,17 +117,6 @@ public class NamespaceScopeTest
         namespaceScope.doubleDefinitionCheck(symbol);
 
         verify(globalNamespaceScope).doubleDefinitionCheck(symbol);
-    }
-
-    @Test
-    public void doubleDefinitionCheckCaseInsensitive_Standard_DelegateToEnclosingScope() {
-        IGlobalNamespaceScope globalNamespaceScope = mock(IGlobalNamespaceScope.class);
-        ISymbol symbol = mock(ISymbol.class);
-
-        INamespaceScope namespaceScope = createNamespaceScope(globalNamespaceScope);
-        namespaceScope.doubleDefinitionCheckCaseInsensitive(symbol);
-
-        verify(globalNamespaceScope).doubleDefinitionCheckCaseInsensitive(symbol);
     }
 
     @Test

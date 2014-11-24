@@ -7,8 +7,10 @@
 package ch.tsphp.tinsphp.inference_engine.resolver;
 
 import ch.tsphp.common.ILowerCaseStringMap;
+import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ISymbol;
+import ch.tsphp.tinsphp.common.scopes.ICaseInsensitiveScope;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolver;
@@ -31,6 +33,18 @@ public class UserSymbolResolver implements ISymbolResolver
     @Override
     public ISymbol resolveIdentifierFromItsScope(ITSPHPAst identifier) {
         return identifier.getScope().resolve(identifier);
+    }
+
+    @Override
+    public ISymbol resolveIdentifierFromItsScopeCaseInsensitive(ITSPHPAst identifier) {
+        ISymbol symbol;
+        IScope scope = identifier.getScope();
+        if (scope instanceof ICaseInsensitiveScope) {
+            symbol = ((ICaseInsensitiveScope) scope).resolveCaseInsensitive(identifier);
+        } else {
+            symbol = scope.resolve(identifier);
+        }
+        return symbol;
     }
 
     @Override

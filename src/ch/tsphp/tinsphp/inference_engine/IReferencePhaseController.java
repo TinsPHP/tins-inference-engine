@@ -14,7 +14,6 @@ package ch.tsphp.tinsphp.inference_engine;
 
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ITypeSymbol;
-import ch.tsphp.tinsphp.common.symbols.IAliasSymbol;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 
 /**
@@ -54,9 +53,14 @@ public interface IReferencePhaseController
 
     ITypeSymbol resolveUseType(ITSPHPAst typeAst, ITSPHPAst alias);
 
-    boolean useDefinitionCheck(IAliasSymbol aliasSymbol);
+    boolean checkUseDefinition(ITSPHPAst alias);
 
-    boolean checkIsNotForwardReference(ITSPHPAst ast);
+    boolean checkIsNotForwardReference(ITSPHPAst identifier);
+
+    boolean checkIsNotDoubleDefinition(ITSPHPAst identifier);
+
+    boolean checkIsNotDoubleDefinitionCaseInsensitive(ITSPHPAst identifier);
+
 
     //TODO rstoll TINS-219 reference phase - check are variables initialised
 //    boolean checkVariableIsInitialised(ITSPHPAst variableId);

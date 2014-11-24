@@ -205,15 +205,15 @@ public class AScopeTest
         MatcherAssert.assertThat(result, hasEntry("dummy", true));
     }
 
-    protected AScope createScope() {
+    private AScope createScope() {
         return createScope(mock(IScope.class));
     }
 
-    protected AScope createScope(IScope enclosingScope) {
+    private AScope createScope(IScope enclosingScope) {
         return createScope(mock(IScopeHelper.class), "foo", enclosingScope);
     }
 
-    protected AScope createScope(String name) {
+    private AScope createScope(String name) {
         return createScope(mock(IScopeHelper.class), name, mock(IScope.class));
     }
 

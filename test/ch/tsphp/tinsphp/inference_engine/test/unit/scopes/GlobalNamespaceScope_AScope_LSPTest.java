@@ -38,7 +38,7 @@ public class GlobalNamespaceScope_AScope_LSPTest extends AScopeTest
 
         IScope enclosingScope = mock(IScope.class);
 
-        AScope scope = createScope(enclosingScope);
+        AScope scope = createScope(mock(IScopeHelper.class), "foo", enclosingScope);
         IScope result = scope.getEnclosingScope();
 
         assertNull(result);

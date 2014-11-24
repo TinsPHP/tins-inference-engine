@@ -72,7 +72,7 @@ public abstract class ADefinitionTest extends ATest
         adaptor = createAstAdaptor();
 
         scopeHelper = createScopeHelper(inferenceErrorReporter);
-        scopeFactory = createTestScopeFactory(scopeHelper, inferenceErrorReporter);
+        scopeFactory = createTestScopeFactory(scopeHelper);
         modifierHelper = createModifierHelper();
         symbolFactory = createTestSymbolFactory(scopeHelper, modifierHelper);
 
@@ -121,9 +121,8 @@ public abstract class ADefinitionTest extends ATest
         return new TSPHPAstAdaptor();
     }
 
-    protected TestNamespaceScopeFactory createTestScopeFactory(
-            IScopeHelper theScopeHelper, IInferenceErrorReporter theInferenceErrorReporter) {
-        return new TestNamespaceScopeFactory(theScopeHelper, theInferenceErrorReporter);
+    protected TestNamespaceScopeFactory createTestScopeFactory(IScopeHelper theScopeHelper) {
+        return new TestNamespaceScopeFactory(theScopeHelper);
     }
 
     protected IModifierHelper createModifierHelper() {

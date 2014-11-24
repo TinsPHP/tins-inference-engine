@@ -21,12 +21,11 @@ import ch.tsphp.tinsphp.inference_engine.scopes.GlobalNamespaceScope;
 import ch.tsphp.tinsphp.inference_engine.utils.MapHelper;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Matchers;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertNull;
+import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -52,32 +51,14 @@ public class GlobalNamespaceScopeTest
         verify(scopeHelper).define(globalNamespaceScope, symbol);
     }
 
-    @SuppressWarnings("unchecked")
-    @Test
-    public void doubleDefinitionCheckCaseInsensitive_Standard_DelegateToScopeHelper() {
-        IScopeHelper scopeHelper = mock(IScopeHelper.class);
-        ISymbol symbol = createSymbol("symbol");
-
-        IGlobalNamespaceScope globalNamespaceScope = createGlobalNamespaceScope(scopeHelper);
-        globalNamespaceScope.doubleDefinitionCheckCaseInsensitive(symbol);
-
-        ArgumentCaptor<ISymbol> argument = ArgumentCaptor.forClass(ISymbol.class);
-        verify(scopeHelper).checkIsNotDoubleDefinition(Matchers.anyMap(), argument.capture());
-        assertThat(argument.getValue(), is(symbol));
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test
+    @Test(expected = UnsupportedOperationException.class)
     public void doubleDefinitionCheck_Standard_DelegateToScopeHelper() {
-        IScopeHelper scopeHelper = mock(IScopeHelper.class);
-        ISymbol symbol = createSymbol("symbol");
+        //no arrange necessary
 
-        IGlobalNamespaceScope globalNamespaceScope = createGlobalNamespaceScope(scopeHelper);
-        globalNamespaceScope.doubleDefinitionCheck(symbol);
+        IGlobalNamespaceScope globalNamespaceScope = createGlobalNamespaceScope();
+        globalNamespaceScope.doubleDefinitionCheck(mock(ISymbol.class));
 
-        ArgumentCaptor<ISymbol> argument = ArgumentCaptor.forClass(ISymbol.class);
-        verify(scopeHelper).checkIsNotDoubleDefinition(Matchers.anyMap(), argument.capture());
-        assertThat(argument.getValue(), is(symbol));
+        //assert in annotation - no longer supported
     }
 
     @Test
@@ -87,7 +68,7 @@ public class GlobalNamespaceScopeTest
         IGlobalNamespaceScope globalNamespaceScope = createGlobalNamespaceScope();
         ISymbol result = globalNamespaceScope.resolve(ast);
 
-        assertNull(result);
+        assertThat(result, is(nullValue()));
     }
 
     @Test
@@ -97,7 +78,7 @@ public class GlobalNamespaceScopeTest
         IGlobalNamespaceScope globalNamespaceScope = createGlobalNamespaceScope();
         ISymbol result = globalNamespaceScope.resolve(ast);
 
-        assertNull(result);
+        assertThat(result, is(nullValue()));
     }
 
     @Test
@@ -111,9 +92,8 @@ public class GlobalNamespaceScopeTest
         globalNamespaceScope.define(symbol);
         ISymbol result = globalNamespaceScope.resolve(ast);
 
-        assertNull(result);
+        assertThat(result, is(nullValue()));
     }
-
 
     @Test
     public void resolve_AbsoluteTypeDifferentNamespace_ReturnNull() {
@@ -126,7 +106,7 @@ public class GlobalNamespaceScopeTest
         globalNamespaceScope.define(symbol);
         ISymbol result = globalNamespaceScope.resolve(ast);
 
-        assertNull(result);
+        assertThat(result, is(nullValue()));
     }
 
     @Test
@@ -140,7 +120,7 @@ public class GlobalNamespaceScopeTest
         globalNamespaceScope.define(symbol);
         ISymbol result = globalNamespaceScope.resolve(ast);
 
-        assertNull(result);
+        assertThat(result, is(nullValue()));
     }
 
     @Test
@@ -170,6 +150,98 @@ public class GlobalNamespaceScopeTest
 
         assertThat(result, is(symbol));
     }
+
+
+    @Test
+    public void resolveCaseInsensitive_NothingDefined_ReturnNull() {
+        ITSPHPAst ast = createAst("symbol");
+
+        IGlobalNamespaceScope globalNamespaceScope = createGlobalNamespaceScope();
+        ISymbol result = globalNamespaceScope.resolveCaseInsensitive(ast);
+
+        assertThat(result, is(nullValue()));
+    }
+
+    @Test
+    public void resolveCaseInsensitive_AbsoluteTypeNothingDefined_ReturnNull() {
+        ITSPHPAst ast = createAst(GLOBAL_NAMESPACE_NAME + "symbol");
+
+        IGlobalNamespaceScope globalNamespaceScope = createGlobalNamespaceScope();
+        ISymbol result = globalNamespaceScope.resolveCaseInsensitive(ast);
+
+        assertThat(result, is(nullValue()));
+    }
+
+    @Test
+    public void resolveCaseInsensitive_CaseWrong_ReturnNull() {
+        ISymbol symbol = createSymbol("symbol");
+        ITSPHPAst ast = createAst("SYMBOL");
+        IScopeHelper scopeHelper = mock(IScopeHelper.class);
+        arrangeScopeHelperForDefine(scopeHelper);
+
+        IGlobalNamespaceScope globalNamespaceScope = createGlobalNamespaceScope(scopeHelper);
+        globalNamespaceScope.define(symbol);
+        ISymbol result = globalNamespaceScope.resolveCaseInsensitive(ast);
+
+        assertThat(result, is(symbol));
+    }
+
+    @Test
+    public void resolveCaseInsensitive_AbsoluteTypeDifferentNamespace_ReturnNull() {
+        ISymbol symbol = createSymbol("symbol");
+        ITSPHPAst ast = createAst("\\otherNamespace\\symbol");
+        IScopeHelper scopeHelper = mock(IScopeHelper.class);
+        arrangeScopeHelperForDefine(scopeHelper);
+
+        IGlobalNamespaceScope globalNamespaceScope = createGlobalNamespaceScope(scopeHelper);
+        globalNamespaceScope.define(symbol);
+        ISymbol result = globalNamespaceScope.resolveCaseInsensitive(ast);
+
+        assertThat(result, is(nullValue()));
+    }
+
+    @Test
+    public void resolveCaseInsensitive_AbsoluteTypeSubNamespace_ReturnNull() {
+        ISymbol symbol = createSymbol("symbol");
+        ITSPHPAst ast = createAst(GLOBAL_NAMESPACE_NAME + "a\\symbol");
+        IScopeHelper scopeHelper = mock(IScopeHelper.class);
+        arrangeScopeHelperForDefine(scopeHelper);
+
+        IGlobalNamespaceScope globalNamespaceScope = createGlobalNamespaceScope(scopeHelper);
+        globalNamespaceScope.define(symbol);
+        ISymbol result = globalNamespaceScope.resolveCaseInsensitive(ast);
+
+        assertThat(result, is(nullValue()));
+    }
+
+    @Test
+    public void resolveCaseInsensitive_Standard_ReturnSymbol() {
+        ISymbol symbol = createSymbol("symbol");
+        ITSPHPAst ast = createAst("symbol");
+        IScopeHelper scopeHelper = mock(IScopeHelper.class);
+        arrangeScopeHelperForDefine(scopeHelper);
+
+        IGlobalNamespaceScope globalNamespaceScope = createGlobalNamespaceScope(scopeHelper);
+        globalNamespaceScope.define(symbol);
+        ISymbol result = globalNamespaceScope.resolveCaseInsensitive(ast);
+
+        assertThat(result, is(symbol));
+    }
+
+    @Test
+    public void resolveCaseInsensitive_AbsoluteType_ReturnSymbol() {
+        ISymbol symbol = createSymbol("symbol");
+        ITSPHPAst ast = createAst(GLOBAL_NAMESPACE_NAME + "symbol");
+        IScopeHelper scopeHelper = mock(IScopeHelper.class);
+        arrangeScopeHelperForDefine(scopeHelper);
+
+        IGlobalNamespaceScope globalNamespaceScope = createGlobalNamespaceScope(scopeHelper);
+        globalNamespaceScope.define(symbol);
+        ISymbol result = globalNamespaceScope.resolveCaseInsensitive(ast);
+
+        assertThat(result, is(symbol));
+    }
+
 
     private IGlobalNamespaceScope createGlobalNamespaceScope() {
         return createGlobalNamespaceScope(mock(IScopeHelper.class));

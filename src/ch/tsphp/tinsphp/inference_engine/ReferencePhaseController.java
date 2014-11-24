@@ -14,17 +14,17 @@ package ch.tsphp.tinsphp.inference_engine;
 
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.exceptions.ReferenceException;
-import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
-import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
-import ch.tsphp.tinsphp.common.symbols.IAliasSymbol;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
-import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousSymbol;
+import ch.tsphp.tinsphp.common.symbols.resolver.AlreadyDefinedAsTypeResultDto;
+import ch.tsphp.tinsphp.common.symbols.resolver.DoubleDefinitionCheckResultDto;
+import ch.tsphp.tinsphp.common.symbols.resolver.ForwardReferenceCheckResultDto;
+import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolverController;
 import ch.tsphp.tinsphp.common.symbols.resolver.ITypeSymbolResolver;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
@@ -38,6 +38,7 @@ public class ReferencePhaseController implements IReferencePhaseController
     private final IModifierHelper modifierHelper;
     private final ISymbolResolverController symbolResolverController;
     private final ITypeSymbolResolver typeSymbolResolver;
+    private final ISymbolCheckController symbolCheckController;
     private final IScopeHelper scopeHelper;
     private final ICore core;
     private final IGlobalNamespaceScope globalDefaultNamespace;
@@ -48,6 +49,7 @@ public class ReferencePhaseController implements IReferencePhaseController
             IAstModificationHelper theAstModificationHelper,
             ISymbolResolverController theSymbolResolverController,
             ITypeSymbolResolver theTypeSymbolResolver,
+            ISymbolCheckController theSymbolCheckController,
             IScopeHelper theScopeHelper,
             ICore theCore,
             IModifierHelper theModifierHelper,
@@ -57,6 +59,7 @@ public class ReferencePhaseController implements IReferencePhaseController
         astModificationHelper = theAstModificationHelper;
         symbolResolverController = theSymbolResolverController;
         typeSymbolResolver = theTypeSymbolResolver;
+        symbolCheckController = theSymbolCheckController;
         scopeHelper = theScopeHelper;
         core = theCore;
         modifierHelper = theModifierHelper;
@@ -341,53 +344,54 @@ public class ReferencePhaseController implements IReferencePhaseController
     }
 
     @Override
-    public boolean useDefinitionCheck(IAliasSymbol aliasSymbol) {
-        INamespaceScope namespaceScope = (INamespaceScope) aliasSymbol.getDefinitionScope();
-        ISymbol useSymbol = namespaceScope.getCaseInsensitiveFirstUseSymbol(aliasSymbol.getName());
-        boolean isNotDoubleDefined = scopeHelper.checkIsNotDoubleDefinition(useSymbol, aliasSymbol);
-        return isNotDoubleDefined && isNotAlreadyDefinedAsType(aliasSymbol);
+    public boolean checkUseDefinition(ITSPHPAst alias) {
+        boolean isNotDoubleDefined = checkIsNotDoubleUseDefinition(alias);
+        return isNotDoubleDefined && isNotAlreadyDefinedAsType(alias);
+    }
+
+    private boolean checkIsNotDoubleUseDefinition(ITSPHPAst alias) {
+        DoubleDefinitionCheckResultDto result = symbolCheckController.isNotDoubleUseDefinition(alias);
+        if (!result.isNotDoubleDefinition) {
+            inferenceErrorReporter.alreadyDefined(result.existingSymbol, alias.getSymbol());
+        }
+        return result.isNotDoubleDefinition;
     }
 
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-    private boolean isNotAlreadyDefinedAsType(IAliasSymbol symbol) {
-        ITSPHPAst definitionAst = symbol.getDefinitionAst();
-        ITypeSymbol typeSymbol = typeSymbolResolver.resolveTypeFor(definitionAst);
-
-//        ITypeSymbol typeSymbol = globalNamespaceScope.getTypeSymbolWhichClashesWithUse(symbol.getDefinitionAst());
-        boolean ok = hasNoTypeNameClash(definitionAst, typeSymbol);
-        if (!ok) {
-            inferenceErrorReporter.determineAlreadyDefined(symbol, typeSymbol);
+    private boolean isNotAlreadyDefinedAsType(ITSPHPAst alias) {
+        AlreadyDefinedAsTypeResultDto result = symbolCheckController.isNotAlreadyDefinedAsType(alias);
+        if (!result.isNotAlreadyDefinedAsType) {
+            inferenceErrorReporter.determineAlreadyDefined(alias.getSymbol(), result.typeSymbol);
         }
-        return ok;
-    }
-
-    private boolean hasNoTypeNameClash(ITSPHPAst useDefinition, ITypeSymbol typeSymbol) {
-        boolean hasNoTypeNameClash = typeSymbol == null;
-        if (!hasNoTypeNameClash) {
-            boolean isUseDefinedEarlier = useDefinition.isDefinedEarlierThan(typeSymbol.getDefinitionAst());
-            boolean isUseInDifferentNamespaceStatement = useDefinition.getScope() != typeSymbol.getDefinitionScope();
-
-            //There is no type name clash in the following situation: namespace{use a as b;} namespace{ class b{}}
-            //because: use is defined earlier and the use statement is in a different namespace statement
-            hasNoTypeNameClash = isUseDefinedEarlier && isUseInDifferentNamespaceStatement;
-        }
-        return hasNoTypeNameClash;
-
+        return result.isNotAlreadyDefinedAsType;
     }
 
     @Override
-    public boolean checkIsNotForwardReference(ITSPHPAst ast) {
-        ISymbol symbol = ast.getSymbol();
-        boolean isNotUsedBefore = true;
-        //only check if not already an error occurred in conjunction with this ast (for instance missing declaration)
-        if (!(symbol instanceof IErroneousSymbol)) {
-            ITSPHPAst definitionAst = symbol.getDefinitionAst();
-            isNotUsedBefore = definitionAst.isDefinedEarlierThan(ast);
-            if (!isNotUsedBefore) {
-                inferenceErrorReporter.forwardReference(definitionAst, ast);
-            }
+    public boolean checkIsNotForwardReference(ITSPHPAst identifier) {
+        ForwardReferenceCheckResultDto result = symbolCheckController.isNotForwardReference(identifier);
+        if (!result.isNotForwardReference) {
+            inferenceErrorReporter.forwardReference(result.definitionAst, identifier);
         }
-        return isNotUsedBefore;
+        return result.isNotForwardReference;
+    }
+
+    @Override
+    public boolean checkIsNotDoubleDefinition(ITSPHPAst identifier) {
+        DoubleDefinitionCheckResultDto result = symbolCheckController.isNotDoubleDefinition(identifier);
+        if (!result.isNotDoubleDefinition) {
+            inferenceErrorReporter.alreadyDefined(result.existingSymbol, identifier.getSymbol());
+        }
+        return result.isNotDoubleDefinition;
+    }
+
+    @Override
+    public boolean checkIsNotDoubleDefinitionCaseInsensitive(ITSPHPAst identifier) {
+        DoubleDefinitionCheckResultDto result
+                = symbolCheckController.isNotDoubleDefinitionCaseInsensitive(identifier);
+        if (!result.isNotDoubleDefinition) {
+            inferenceErrorReporter.alreadyDefined(result.existingSymbol, identifier.getSymbol());
+        }
+        return result.isNotDoubleDefinition;
     }
 
     //TODO rstoll TINS-219 reference phase - check are variables initialised

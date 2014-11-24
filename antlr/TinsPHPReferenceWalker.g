@@ -30,7 +30,6 @@ import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.ITSPHPErrorAst;
 import ch.tsphp.tinsphp.common.scopes.ICaseInsensitiveScope;
-import ch.tsphp.tinsphp.common.symbols.IAliasSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.inference_engine.IReferencePhaseController;
@@ -76,7 +75,7 @@ useDeclaration
             $typeName.setSymbol(typeSymbol);
             $alias.getSymbol().setType(typeSymbol);
             
-            controller.useDefinitionCheck((IAliasSymbol) $alias.getSymbol());
+            controller.checkUseDefinition($alias);
         }
     ;
 
@@ -155,7 +154,7 @@ constDeclaration[ITypeSymbol type]
         {
             IVariableSymbol variableSymbol = (IVariableSymbol) $identifier.getSymbol();
             variableSymbol.setType(type); 
-            $identifier.getScope().doubleDefinitionCheck(variableSymbol); 
+            controller.checkIsNotDoubleDefinition($identifier); 
         }
     ;
 
@@ -340,8 +339,7 @@ functionDefinition
         //Warning! start duplicated code as in functionDeclaration
             IMethodSymbol methodSymbol = (IMethodSymbol) $identifier.getSymbol();
             methodSymbol.setType($returnTypesOrUnknown.type); 
-            ICaseInsensitiveScope scope = (ICaseInsensitiveScope) $identifier.getScope();
-            scope.doubleDefinitionCheckCaseInsensitive(methodSymbol);
+            controller.checkIsNotDoubleDefinitionCaseInsensitive($identifier);
         //Warning! end duplicated code as in functionDeclaration
             controller.addImplicitReturnStatementIfRequired(
                 $block.isReturning, hasAtLeastOneReturnOrThrow, $identifier, $block.start);

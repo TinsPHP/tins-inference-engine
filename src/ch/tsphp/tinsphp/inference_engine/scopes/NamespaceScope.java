@@ -67,12 +67,6 @@ public class NamespaceScope implements INamespaceScope
     }
 
     @Override
-    public boolean doubleDefinitionCheckCaseInsensitive(ISymbol symbol) {
-        //check in global namespace scope because they have been defined there
-        return globalNamespaceScope.doubleDefinitionCheckCaseInsensitive(symbol);
-    }
-
-    @Override
     public void defineUse(IAliasSymbol symbol) {
         MapHelper.addToListMap(usesCaseInsensitive, symbol.getName(), symbol);
         MapHelper.addToListMap(uses, symbol.getName(), symbol);
@@ -83,6 +77,12 @@ public class NamespaceScope implements INamespaceScope
     public ISymbol resolve(ITSPHPAst ast) {
         //we resolve from the corresponding global namespace scope 
         return globalNamespaceScope.resolve(ast);
+    }
+
+    @Override
+    public ISymbol resolveCaseInsensitive(ITSPHPAst identifier) {
+        //we resolve from the corresponding global namespace scope
+        return globalNamespaceScope.resolveCaseInsensitive(identifier);
     }
 
     @Override

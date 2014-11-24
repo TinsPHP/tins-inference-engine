@@ -36,7 +36,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unchecked")
@@ -60,7 +60,7 @@ public class SymbolResolverControllerTest
 
         verify(scopeHelper).isLocalIdentifier(identifier);
         verify(userSymbolResolver).resolveIdentifierFromItsScope(ast);
-        verifyNoMoreInteractions(coreSymbolResolver);
+        verifyZeroInteractions(coreSymbolResolver);
         assertThat(result, is(symbol));
     }
 
@@ -136,7 +136,7 @@ public class SymbolResolverControllerTest
 
         verify(scopeHelper).isAbsoluteIdentifier(identifier);
         verify(userSymbolResolver).resolveAbsoluteIdentifier(ast);
-        verifyNoMoreInteractions(coreSymbolResolver);
+        verifyZeroInteractions(coreSymbolResolver);
         assertThat(result, is(symbol));
     }
 
@@ -195,7 +195,7 @@ public class SymbolResolverControllerTest
 
         verify(scopeHelper).isRelativeIdentifier(identifier);
         verify(userSymbolResolver).resolveAbsoluteIdentifier(ast);
-        verifyNoMoreInteractions(coreSymbolResolver);
+        verifyZeroInteractions(coreSymbolResolver);
         assertThat(result, is(symbol));
     }
 
@@ -284,7 +284,7 @@ public class SymbolResolverControllerTest
 
         verify(scopeHelper).isAbsoluteIdentifier(identifier);
         verify(userSymbolResolver).resolveAbsoluteIdentifier(ast);
-        verifyNoMoreInteractions(coreSymbolResolver);
+        verifyZeroInteractions(coreSymbolResolver);
         assertThat(result, is(symbol));
     }
 
@@ -343,7 +343,7 @@ public class SymbolResolverControllerTest
 
         verify(scopeHelper).isRelativeIdentifier(identifier);
         verify(userSymbolResolver).resolveAbsoluteIdentifier(ast);
-        verifyNoMoreInteractions(coreSymbolResolver);
+        verifyZeroInteractions(coreSymbolResolver);
         assertThat(result, is(symbol));
     }
 
@@ -460,7 +460,7 @@ public class SymbolResolverControllerTest
         assertThat(values.get(0), is("\\a\\name\\Symbol"));
         assertThat(values.get(1), is("name\\Symbol"));
         verify(userSymbolResolver).resolveAbsoluteIdentifier(ast);
-        verifyNoMoreInteractions(coreSymbolResolver);
+        verifyZeroInteractions(coreSymbolResolver);
         assertThat(result, is(foundSymbol));
     }
 
@@ -563,7 +563,7 @@ public class SymbolResolverControllerTest
         assertThat(values.get(0), is("\\a\\name\\Symbol"));
         assertThat(values.get(1), is("name\\Symbol"));
         verify(userSymbolResolver).resolveAbsoluteIdentifier(ast);
-        verifyNoMoreInteractions(coreSymbolResolver);
+        verifyZeroInteractions(coreSymbolResolver);
         assertThat(result, is(foundSymbol));
     }
 
@@ -651,7 +651,7 @@ public class SymbolResolverControllerTest
         verify(scopeHelper).isRelativeIdentifier(identifier);
         verify(namespaceScope).getCaseInsensitiveFirstUseDefinitionAst(identifier);
         verify(userSymbolResolver).resolveIdentifierFromItsNamespaceScope(ast);
-        verifyNoMoreInteractions(coreSymbolResolver);
+        verifyZeroInteractions(coreSymbolResolver);
         assertThat(result, is(symbol));
     }
 
@@ -791,7 +791,7 @@ public class SymbolResolverControllerTest
         verify(useDefinition, times(1)).isDefinedEarlierThan(ast);
         verify(namespaceScope).getCaseInsensitiveFirstUseDefinitionAst(identifier);
         verify(userSymbolResolver).resolveIdentifierFromItsNamespaceScope(ast);
-        verifyNoMoreInteractions(coreSymbolResolver);
+        verifyZeroInteractions(coreSymbolResolver);
         assertThat(result, is((ISymbol) typeSymbol));
     }
 
@@ -842,7 +842,7 @@ public class SymbolResolverControllerTest
         assertThat(values.get(0), is(localDefinitionAst));
         assertThat(values.get(1), is(ast));
         verify(userSymbolResolver).resolveIdentifierFromItsNamespaceScope(ast);
-        verifyNoMoreInteractions(coreSymbolResolver);
+        verifyZeroInteractions(coreSymbolResolver);
         assertThat(result, is((ISymbol) typeSymbol));
     }
 
@@ -892,7 +892,7 @@ public class SymbolResolverControllerTest
         //only called once since the type symbol is used - no alias resolving should happen
         verify(useDefinition, times(1)).isDefinedEarlierThan(localDefinitionAst);
         verify(userSymbolResolver).resolveIdentifierFromItsNamespaceScope(ast);
-        verifyNoMoreInteractions(coreSymbolResolver);
+        verifyZeroInteractions(coreSymbolResolver);
         assertThat(result, is(localSymbol));
     }
 
@@ -915,9 +915,9 @@ public class SymbolResolverControllerTest
         ISymbol result = symbolResolverController.resolveIdentifierFromItsNamespaceScope(ast);
 
         verify(userSymbolResolver).resolveIdentifierFromItsNamespaceScope(ast);
-        verifyNoMoreInteractions(coreSymbolResolver);
-        verifyNoMoreInteractions(additionalSymbolResolver1);
-        verifyNoMoreInteractions(additionalSymbolResolver2);
+        verifyZeroInteractions(coreSymbolResolver);
+        verifyZeroInteractions(additionalSymbolResolver1);
+        verifyZeroInteractions(additionalSymbolResolver2);
         assertThat(result, is(symbol));
     }
 
@@ -941,8 +941,8 @@ public class SymbolResolverControllerTest
 
         verify(userSymbolResolver).resolveIdentifierFromItsNamespaceScope(ast);
         verify(coreSymbolResolver).resolveIdentifierFromItsNamespaceScope(ast);
-        verifyNoMoreInteractions(additionalSymbolResolver1);
-        verifyNoMoreInteractions(additionalSymbolResolver2);
+        verifyZeroInteractions(additionalSymbolResolver1);
+        verifyZeroInteractions(additionalSymbolResolver2);
         assertThat(result, is(symbol));
     }
 
@@ -968,7 +968,7 @@ public class SymbolResolverControllerTest
         verify(userSymbolResolver).resolveIdentifierFromItsNamespaceScope(ast);
         verify(coreSymbolResolver).resolveIdentifierFromItsNamespaceScope(ast);
         verify(additionalSymbolResolver1).resolveIdentifierFromItsNamespaceScope(ast);
-        verifyNoMoreInteractions(additionalSymbolResolver2);
+        verifyZeroInteractions(additionalSymbolResolver2);
         assertThat(result, is(symbol));
     }
 

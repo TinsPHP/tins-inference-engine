@@ -17,7 +17,6 @@ import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.tinsphp.common.scopes.IConditionalScope;
 import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
-import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.scopes.ConditionalScope;
 import org.junit.Before;
 import org.junit.Test;
@@ -270,7 +269,7 @@ public class ConditionalScopeIsInitialisedTest
     }
 
     protected IConditionalScope createConditionalScope(IScope scope) {
-        return new ConditionalScope(scopeHelper, scope, mock(IInferenceErrorReporter.class));
+        return new ConditionalScope(scopeHelper, scope);
     }
 
     private ISymbol createSymbol(String name) {

@@ -21,7 +21,6 @@ import ch.tsphp.tinsphp.common.scopes.IConditionalScope;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
-import ch.tsphp.tinsphp.inference_engine.error.InferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.scopes.ConditionalScope;
 import org.junit.Before;
 import org.junit.Test;
@@ -72,31 +71,14 @@ public class ConditionalScopeTest
     }
 
 
-    @Test
-    public void doubleDefinitionCheck_InNamespace_DelegateToScopeHelperAndUseGlobalNamespace() {
-        ILowerCaseStringMap symbols = mock(ILowerCaseStringMap.class);
-        IGlobalNamespaceScope globalNamespaceScope = createGlobalNamespaceScope(symbols);
-        INamespaceScope namespaceScope = createNamespaceScope(globalNamespaceScope);
-        ISymbol symbol = createSymbol("a", createAst(namespaceScope));
+    @Test(expected = UnsupportedOperationException.class)
+    public void doubleDefinitionCheck_Standard_DelegateToScopeHelper() {
+        //no arrange necessary
 
-        IConditionalScope conditionalScope = createConditionalScope(namespaceScope);
-        conditionalScope.doubleDefinitionCheck(symbol);
+        IConditionalScope conditionalScope = createConditionalScope(mock(IScope.class));
+        conditionalScope.doubleDefinitionCheck(mock(ISymbol.class));
 
-        verifyScopeWasUsed(globalNamespaceScope, symbols, symbol);
-    }
-
-    @Test
-    public void doubleDefinitionCheck_InConditionalScopeInNamespace_DelegateToScopeHelperAndUseGlobalNamespace() {
-        ILowerCaseStringMap symbols = mock(ILowerCaseStringMap.class);
-        IGlobalNamespaceScope globalNamespaceScope = createGlobalNamespaceScope(symbols);
-        INamespaceScope namespaceScope = createNamespaceScope(globalNamespaceScope);
-        IConditionalScope conditionalScopeOuter = createConditionalScope(namespaceScope);
-        ISymbol symbol = createSymbol("a", createAst(conditionalScopeOuter));
-
-        IConditionalScope conditionalScope = createConditionalScope(conditionalScopeOuter);
-        conditionalScope.doubleDefinitionCheck(symbol);
-
-        verifyScopeWasUsed(globalNamespaceScope, symbols, symbol);
+        //assert in annotation - no longer supported
     }
 
     //TODO rstoll TINS-161 inference OOP
@@ -190,11 +172,7 @@ public class ConditionalScopeTest
     }
 
     protected IConditionalScope createConditionalScope(IScope scope) {
-        return createConditionalScope(scope, mock(InferenceErrorReporter.class));
-    }
-
-    protected IConditionalScope createConditionalScope(IScope scope, InferenceErrorReporter typeCheckerErrorReporter) {
-        return new ConditionalScope(scopeHelper, scope, typeCheckerErrorReporter);
+        return new ConditionalScope(scopeHelper, scope);
     }
 
     @SuppressWarnings("unchecked")

@@ -18,16 +18,13 @@ import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeFactory;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
-import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 
 public class ScopeFactory implements IScopeFactory
 {
     private final IScopeHelper scopeHelper;
-    private final IInferenceErrorReporter typeCheckerErrorReporter;
 
-    public ScopeFactory(IScopeHelper theScopeHelper, IInferenceErrorReporter theTypeCheckerErrorReporter) {
+    public ScopeFactory(IScopeHelper theScopeHelper) {
         scopeHelper = theScopeHelper;
-        typeCheckerErrorReporter = theTypeCheckerErrorReporter;
     }
 
     @Override
@@ -42,6 +39,6 @@ public class ScopeFactory implements IScopeFactory
 
     @Override
     public IConditionalScope createConditionalScope(IScope currentScope) {
-        return new ConditionalScope(scopeHelper, currentScope, typeCheckerErrorReporter);
+        return new ConditionalScope(scopeHelper, currentScope);
     }
 }

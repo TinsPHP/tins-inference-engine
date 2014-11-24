@@ -40,20 +40,25 @@ public class GlobalNamespaceScope extends AScope implements IGlobalNamespaceScop
 
     @Override
     public boolean doubleDefinitionCheck(ISymbol symbol) {
-        return scopeHelper.checkIsNotDoubleDefinition(symbols, symbol);
+        throw new UnsupportedOperationException("Is deprecated and should no longer be used");
     }
 
     @Override
-    public boolean doubleDefinitionCheckCaseInsensitive(ISymbol symbol) {
-        return scopeHelper.checkIsNotDoubleDefinition(symbolsCaseInsensitive, symbol);
-    }
-
-    @Override
-    public ISymbol resolve(ITSPHPAst typeAst) {
+    public ISymbol resolve(ITSPHPAst identifier) {
         ISymbol symbol = null;
-        String typeName = getTypeNameWithoutNamespacePrefix(typeAst.getText());
+        String typeName = getTypeNameWithoutNamespacePrefix(identifier.getText());
         if (symbols.containsKey(typeName)) {
             symbol = symbols.get(typeName).get(0);
+        }
+        return symbol;
+    }
+
+    @Override
+    public ISymbol resolveCaseInsensitive(ITSPHPAst identifier) {
+        ISymbol symbol = null;
+        String typeName = getTypeNameWithoutNamespacePrefix(identifier.getText());
+        if (symbolsCaseInsensitive.containsKey(typeName)) {
+            symbol = symbolsCaseInsensitive.get(typeName).get(0);
         }
         return symbol;
     }

@@ -22,6 +22,7 @@ import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
+import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolver;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolverController;
 import ch.tsphp.tinsphp.common.symbols.resolver.ITypeSymbolResolver;
@@ -29,6 +30,7 @@ import ch.tsphp.tinsphp.inference_engine.IReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.ReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPReferenceWalker;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
+import ch.tsphp.tinsphp.inference_engine.resolver.SymbolCheckController;
 import ch.tsphp.tinsphp.inference_engine.resolver.SymbolResolverController;
 import ch.tsphp.tinsphp.inference_engine.resolver.UserSymbolResolver;
 import ch.tsphp.tinsphp.inference_engine.resolver.UserTypeSymbolResolver;
@@ -58,6 +60,7 @@ public abstract class AReferenceTest extends ADefinitionTest
     protected ISymbolResolver coreSymbolResolver;
     protected ITypeSymbolResolver typeSymbolResolver;
     protected ISymbolResolverController symbolResolverController;
+    protected ISymbolCheckController symbolCheckController;
 
     protected ITSPHPAstAdaptor astAdaptor;
     protected IAstHelper astHelper;
@@ -92,12 +95,20 @@ public abstract class AReferenceTest extends ADefinitionTest
 
         typeSymbolResolver = createTypeSymbolResolver(symbolResolverController);
 
+        symbolCheckController = createSymbolCheckController(
+                typeSymbolResolver,
+                userSymbolResolver,
+                coreSymbolResolver,
+                new ArrayList<ISymbolResolver>()
+        );
+
         referencePhaseController = createReferencePhaseController(
                 symbolFactory,
                 inferenceErrorReporter,
                 astModificationHelper,
                 symbolResolverController,
                 typeSymbolResolver,
+                symbolCheckController,
                 scopeHelper,
                 core,
                 modifierHelper,
@@ -199,12 +210,22 @@ public abstract class AReferenceTest extends ADefinitionTest
         return new UserTypeSymbolResolver(theSymbolResolverController);
     }
 
+    protected ISymbolCheckController createSymbolCheckController(
+            ITypeSymbolResolver theTypeSymbolResolver,
+            ISymbolResolver theUserSymbolResolver,
+            ISymbolResolver theCoreSymbolResolver,
+            List<ISymbolResolver> additionalSymbolResolvers) {
+        return new SymbolCheckController(theTypeSymbolResolver, theUserSymbolResolver, theCoreSymbolResolver,
+                additionalSymbolResolvers);
+    }
+
     protected IReferencePhaseController createReferencePhaseController(
             ISymbolFactory theSymbolFactory,
             IInferenceErrorReporter theInferenceErrorReporter,
             IAstModificationHelper theAstModificationHelper,
             ISymbolResolverController theSymbolResolverController,
             ITypeSymbolResolver theTypeSymbolResolver,
+            ISymbolCheckController theSymbolCheckController,
             IScopeHelper theScopeHelper,
             ICore theCore,
             IModifierHelper theModifierHelper,
@@ -215,6 +236,7 @@ public abstract class AReferenceTest extends ADefinitionTest
                 theAstModificationHelper,
                 theSymbolResolverController,
                 theTypeSymbolResolver,
+                theSymbolCheckController,
                 theScopeHelper,
                 theCore,
                 theModifierHelper,

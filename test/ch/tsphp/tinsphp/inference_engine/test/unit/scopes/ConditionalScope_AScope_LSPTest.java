@@ -14,7 +14,6 @@ package ch.tsphp.tinsphp.inference_engine.test.unit.scopes;
 
 import ch.tsphp.common.IScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
-import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.scopes.AScope;
 import ch.tsphp.tinsphp.inference_engine.scopes.ConditionalScope;
 import org.junit.Test;
@@ -28,7 +27,7 @@ public class ConditionalScope_AScope_LSPTest extends AScopeTest
 
     @Override
     protected AScope createScope(IScopeHelper scopeHelper, String name, IScope enclosingScope) {
-        return new ConditionalScope(scopeHelper, enclosingScope, mock(IInferenceErrorReporter.class));
+        return new ConditionalScope(scopeHelper, enclosingScope);
     }
 
     @Override
@@ -40,7 +39,7 @@ public class ConditionalScope_AScope_LSPTest extends AScopeTest
 
         String name = "doesn't matter";
 
-        AScope scope = createScope(mock(IScope.class));
+        AScope scope = createScope(mock(IScopeHelper.class), name, mock(IScope.class));
         String result = scope.getScopeName();
 
         assertThat(result, is("cScope"));

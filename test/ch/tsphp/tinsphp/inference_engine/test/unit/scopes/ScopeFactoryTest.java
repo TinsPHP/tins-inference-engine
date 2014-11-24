@@ -18,7 +18,6 @@ import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeFactory;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
-import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.scopes.ScopeFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -112,7 +111,7 @@ public class ScopeFactoryTest
     }
 
     private IScopeFactory createScopeFactory() {
-        return new ScopeFactory(scopeHelper, mock(IInferenceErrorReporter.class));
+        return new ScopeFactory(scopeHelper);
     }
 
 }
