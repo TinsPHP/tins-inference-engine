@@ -18,10 +18,7 @@ public class UserTypeSymbolResolver implements ITypeSymbolResolver
     protected ISymbolResolverController symbolResolverController;
     private ITypeSymbolResolver nextSymbolResolver;
 
-    public UserTypeSymbolResolver(
-            ISymbolResolverController theSymbolResolverController) {
-        // We use the UserSymbolResolver (without any following members in the chain) since resolving class/interface
-        // types is nothing else than resolving class like symbols
+    public UserTypeSymbolResolver(ISymbolResolverController theSymbolResolverController) {
         symbolResolverController = theSymbolResolverController;
     }
 

@@ -152,8 +152,7 @@ constDefinitionList
 constDeclaration[ITypeSymbol type]
     :   ^(identifier=Identifier unaryPrimitiveAtom)
         {
-            IVariableSymbol variableSymbol = (IVariableSymbol) $identifier.getSymbol();
-            variableSymbol.setType(type); 
+            $identifier.getSymbol().setType(type);
             controller.checkIsNotDoubleDefinition($identifier); 
         }
     ;
@@ -337,8 +336,7 @@ functionDefinition
         )
         {
         //Warning! start duplicated code as in functionDeclaration
-            IMethodSymbol methodSymbol = (IMethodSymbol) $identifier.getSymbol();
-            methodSymbol.setType($returnTypesOrUnknown.type); 
+            $identifier.getSymbol().setType($returnTypesOrUnknown.type);
             controller.checkIsNotDoubleDefinitionCaseInsensitive($identifier);
         //Warning! end duplicated code as in functionDeclaration
             controller.addImplicitReturnStatementIfRequired(
@@ -370,10 +368,8 @@ parameterNormalOrOptional[ITypeSymbol type] returns [IVariableSymbol variableSym
         )
         { 
             //Warning! start duplicated code as in variableDeclaration
-            $variableSymbol = (IVariableSymbol) $variableId.getSymbol();
-            $variableSymbol.setType(type); 
-            //TODO TINS-227 - reference phase - double definition check parameters
-            //$variableId.getScope().doubleDefinitionCheck($variableId.getSymbol());
+            $variableId.getSymbol().setType(type);
+            controller.checkIsNotDoubleDefinition($variableId);
             //Warning! end duplicated code as in variableDeclaration
             //TODO TINS-219 reference phase - check are variables initialised
             //$variableId.getScope().addToInitialisedSymbols($variableSymbol, true);
