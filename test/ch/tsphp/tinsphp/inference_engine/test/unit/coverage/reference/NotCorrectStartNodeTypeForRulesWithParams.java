@@ -232,15 +232,15 @@ public class NotCorrectStartNodeTypeForRulesWithParams extends AReferenceWalkerT
         verify(walker).reportError(any(NoViableAltException.class));
     }
 
-    @Test
-    public void variableDeclaration_WrongStartNode_reportNoViableAltException() throws RecognitionException {
-        ITSPHPAst ast = createAst(Try);
-
-        TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
-        walker.variableDeclaration(mock(ITypeSymbol.class), false);
-
-        verify(walker).reportError(any(NoViableAltException.class));
-    }
+//    @Test
+//    public void variableDeclaration_WrongStartNode_reportNoViableAltException() throws RecognitionException {
+//        ITSPHPAst ast = createAst(Try);
+//
+//        TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
+//        walker.variableDeclaration(mock(ITypeSymbol.class), false);
+//
+//        verify(walker).reportError(any(NoViableAltException.class));
+//    }
 
     @Test
     public void returnTypesOrUnknown_WrongStartNode_reportNoViableAltException() throws RecognitionException {

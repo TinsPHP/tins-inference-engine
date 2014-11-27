@@ -1021,6 +1021,131 @@ public class SymbolResolverControllerTest
         assertThat(result, is(nullValue()));
     }
 
+    @Test
+    public void resolveIdentifierFromItsScope_UserFindsIt_DelegatesToUserResolverOnly() {
+        String identifier = "\\Symbol";
+        ITSPHPAst ast = createAst(identifier);
+        ISymbolResolver userSymbolResolver = mock(ISymbolResolver.class);
+        ISymbolResolver coreSymbolResolver = mock(ISymbolResolver.class);
+        List<ISymbolResolver> symbolResolvers = new ArrayList<>();
+        ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
+        ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
+        symbolResolvers.add(additionalSymbolResolver1);
+        symbolResolvers.add(additionalSymbolResolver2);
+        ISymbol symbol = mock(ISymbol.class);
+        when(userSymbolResolver.resolveIdentifierFromItsScope(ast)).thenReturn(symbol);
+
+        ISymbolResolverController symbolResolverController
+                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, symbolResolvers);
+        ISymbol result = symbolResolverController.resolveIdentifierFromItsScope(ast);
+
+        verify(userSymbolResolver).resolveIdentifierFromItsScope(ast);
+        verifyZeroInteractions(coreSymbolResolver);
+        verifyZeroInteractions(additionalSymbolResolver1);
+        verifyZeroInteractions(additionalSymbolResolver2);
+        assertThat(result, is(symbol));
+    }
+
+    @Test
+    public void resolveIdentifierFromItsScope_UserDoesNotFindItButCore_DelegatesToUserAndCoreResolver() {
+        String identifier = "\\Symbol";
+        ITSPHPAst ast = createAst(identifier);
+        ISymbolResolver userSymbolResolver = mock(ISymbolResolver.class);
+        ISymbolResolver coreSymbolResolver = mock(ISymbolResolver.class);
+        List<ISymbolResolver> symbolResolvers = new ArrayList<>();
+        ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
+        ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
+        symbolResolvers.add(additionalSymbolResolver1);
+        symbolResolvers.add(additionalSymbolResolver2);
+        ISymbol symbol = mock(ISymbol.class);
+        when(coreSymbolResolver.resolveIdentifierFromItsScope(ast)).thenReturn(symbol);
+
+        ISymbolResolverController symbolResolverController
+                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, symbolResolvers);
+        ISymbol result = symbolResolverController.resolveIdentifierFromItsScope(ast);
+
+        verify(userSymbolResolver).resolveIdentifierFromItsScope(ast);
+        verify(coreSymbolResolver).resolveIdentifierFromItsScope(ast);
+        verifyZeroInteractions(additionalSymbolResolver1);
+        verifyZeroInteractions(additionalSymbolResolver2);
+        assertThat(result, is(symbol));
+    }
+
+    @Test
+    public void
+    resolveIdentifierFromItsScope_UserAndCoreDoNotFindItButAdditional1_DelegatesToUserCoreAndAdditional1Resolver() {
+        String identifier = "\\Symbol";
+        ITSPHPAst ast = createAst(identifier);
+        ISymbolResolver userSymbolResolver = mock(ISymbolResolver.class);
+        ISymbolResolver coreSymbolResolver = mock(ISymbolResolver.class);
+        List<ISymbolResolver> symbolResolvers = new ArrayList<>();
+        ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
+        ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
+        symbolResolvers.add(additionalSymbolResolver1);
+        symbolResolvers.add(additionalSymbolResolver2);
+        ISymbol symbol = mock(ISymbol.class);
+        when(additionalSymbolResolver1.resolveIdentifierFromItsScope(ast)).thenReturn(symbol);
+
+        ISymbolResolverController symbolResolverController
+                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, symbolResolvers);
+        ISymbol result = symbolResolverController.resolveIdentifierFromItsScope(ast);
+
+        verify(userSymbolResolver).resolveIdentifierFromItsScope(ast);
+        verify(coreSymbolResolver).resolveIdentifierFromItsScope(ast);
+        verify(additionalSymbolResolver1).resolveIdentifierFromItsScope(ast);
+        verifyZeroInteractions(additionalSymbolResolver2);
+        assertThat(result, is(symbol));
+    }
+
+    @Test
+    public void
+    resolveIdentifierFromItsScope_UserCoreAndAdditional1DoNotFindItButAdditional2_DelegatesToAllResolvers() {
+        String identifier = "\\Symbol";
+        ITSPHPAst ast = createAst(identifier);
+        ISymbolResolver userSymbolResolver = mock(ISymbolResolver.class);
+        ISymbolResolver coreSymbolResolver = mock(ISymbolResolver.class);
+        List<ISymbolResolver> symbolResolvers = new ArrayList<>();
+        ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
+        ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
+        symbolResolvers.add(additionalSymbolResolver1);
+        symbolResolvers.add(additionalSymbolResolver2);
+        ISymbol symbol = mock(ISymbol.class);
+        when(additionalSymbolResolver2.resolveIdentifierFromItsScope(ast)).thenReturn(symbol);
+
+        ISymbolResolverController symbolResolverController
+                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, symbolResolvers);
+        ISymbol result = symbolResolverController.resolveIdentifierFromItsScope(ast);
+
+        verify(userSymbolResolver).resolveIdentifierFromItsScope(ast);
+        verify(coreSymbolResolver).resolveIdentifierFromItsScope(ast);
+        verify(additionalSymbolResolver1).resolveIdentifierFromItsScope(ast);
+        verify(additionalSymbolResolver2).resolveIdentifierFromItsScope(ast);
+        assertThat(result, is(symbol));
+    }
+
+    @Test
+    public void resolveIdentifierFromItsScope_NonExistingSymbol_DelegatesToAllResolversAndReturnsNull() {
+        String identifier = "\\Symbol";
+        ITSPHPAst ast = createAst(identifier);
+        ISymbolResolver userSymbolResolver = mock(ISymbolResolver.class);
+        ISymbolResolver coreSymbolResolver = mock(ISymbolResolver.class);
+        List<ISymbolResolver> symbolResolvers = new ArrayList<>();
+        ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
+        ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
+        symbolResolvers.add(additionalSymbolResolver1);
+        symbolResolvers.add(additionalSymbolResolver2);
+
+        ISymbolResolverController symbolResolverController
+                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, symbolResolvers);
+        ISymbol result = symbolResolverController.resolveIdentifierFromItsScope(ast);
+
+        verify(userSymbolResolver).resolveIdentifierFromItsScope(ast);
+        verify(coreSymbolResolver).resolveIdentifierFromItsScope(ast);
+        verify(additionalSymbolResolver1).resolveIdentifierFromItsScope(ast);
+        verify(additionalSymbolResolver2).resolveIdentifierFromItsScope(ast);
+        assertThat(result, is(nullValue()));
+    }
+
     private ITSPHPAst createAst(String name) {
         ITSPHPAst ast = mock(ITSPHPAst.class);
         final String[] text = {name};

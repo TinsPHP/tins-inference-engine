@@ -26,6 +26,7 @@ import ch.tsphp.tinsphp.common.symbols.resolver.ForwardReferenceCheckResultDto;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolverController;
 import ch.tsphp.tinsphp.common.symbols.resolver.ITypeSymbolResolver;
+import ch.tsphp.tinsphp.common.symbols.resolver.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.inference_engine.IReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.ReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
@@ -83,6 +84,48 @@ public class ReferencePhaseControllerTest
 
         verify(symbolFactory).createErroneousVariableSymbol(eq(ast), any(TSPHPException.class));
         assertThat(result, is((IVariableSymbol) erroneousVariableSymbol));
+    }
+
+    @Test
+    public void resolveVariable_Standard_DelegatesToSymbolResolver() {
+        ITSPHPAst ast = createAst("Dummy");
+        ISymbolResolverController symbolResolverController = mock(ISymbolResolverController.class);
+
+        IReferencePhaseController controller = createController(symbolResolverController);
+        controller.resolveVariable(ast);
+
+        verify(symbolResolverController).resolveIdentifierFromItsScope(ast);
+    }
+
+    @Test
+    public void resolveVariable_SymbolResolverFindsSymbol_ReturnsSymbol() {
+        ITSPHPAst ast = createAst("Dummy");
+        ISymbolResolverController symbolResolverController = mock(ISymbolResolverController.class);
+        IVariableSymbol symbol = mock(IVariableSymbol.class);
+        when(symbolResolverController.resolveIdentifierFromItsScope(ast)).thenReturn(symbol);
+
+        IReferencePhaseController controller = createController(symbolResolverController);
+        IVariableSymbol result = controller.resolveVariable(ast);
+
+        assertThat(result, is(symbol));
+    }
+
+    @Test
+    public void
+    resolveVariable_SymbolResolverDoesNotFindSymbol_DelegatesToVariableDeclarationCreatorAndReturnsSymbol() {
+        String aliasName = "Dummy";
+        ITSPHPAst ast = createAst(aliasName);
+        ISymbolResolverController symbolResolverController = mock(ISymbolResolverController.class);
+        IVariableDeclarationCreator variableDeclarationCreator = mock(IVariableDeclarationCreator.class);
+        IVariableSymbol symbol = mock(IVariableSymbol.class);
+        when(variableDeclarationCreator.create(ast)).thenReturn(symbol);
+
+        IReferencePhaseController controller = createController(symbolResolverController, variableDeclarationCreator);
+        IVariableSymbol result = controller.resolveVariable(ast);
+
+        verify(symbolResolverController).resolveIdentifierFromItsScope(ast);
+        verify(variableDeclarationCreator).create(ast);
+        assertThat(result, is(symbol));
     }
 
     @Test
@@ -401,6 +444,7 @@ public class ReferencePhaseControllerTest
                 mock(ISymbolResolverController.class),
                 typeSymbolResolver,
                 mock(ISymbolCheckController.class),
+                mock(IVariableDeclarationCreator.class),
                 scopeHelper,
                 mock(ICore.class),
                 mock(IModifierHelper.class),
@@ -419,6 +463,7 @@ public class ReferencePhaseControllerTest
                 mock(ISymbolResolverController.class),
                 mock(ITypeSymbolResolver.class),
                 symbolCheckController,
+                mock(IVariableDeclarationCreator.class),
                 mock(IScopeHelper.class),
                 mock(ICore.class),
                 mock(IModifierHelper.class),
@@ -436,6 +481,7 @@ public class ReferencePhaseControllerTest
                 mock(ISymbolResolverController.class),
                 mock(ITypeSymbolResolver.class),
                 mock(ISymbolCheckController.class),
+                mock(IVariableDeclarationCreator.class),
                 mock(IScopeHelper.class),
                 mock(ICore.class),
                 mock(IModifierHelper.class),
@@ -451,6 +497,7 @@ public class ReferencePhaseControllerTest
                 mock(ISymbolResolverController.class),
                 typeSymbolResolver,
                 mock(ISymbolCheckController.class),
+                mock(IVariableDeclarationCreator.class),
                 mock(IScopeHelper.class),
                 mock(ICore.class),
                 mock(IModifierHelper.class),
@@ -459,6 +506,12 @@ public class ReferencePhaseControllerTest
     }
 
     private IReferencePhaseController createController(ISymbolResolverController symbolResolverController) {
+        return createController(symbolResolverController, mock(IVariableDeclarationCreator.class));
+    }
+
+    private IReferencePhaseController createController(
+            ISymbolResolverController symbolResolverController,
+            IVariableDeclarationCreator variableDeclarationCreator) {
         return createController(
                 mock(ISymbolFactory.class),
                 mock(IInferenceErrorReporter.class),
@@ -466,6 +519,7 @@ public class ReferencePhaseControllerTest
                 symbolResolverController,
                 mock(ITypeSymbolResolver.class),
                 mock(ISymbolCheckController.class),
+                variableDeclarationCreator,
                 mock(IScopeHelper.class),
                 mock(ICore.class),
                 mock(IModifierHelper.class),
@@ -480,6 +534,7 @@ public class ReferencePhaseControllerTest
             ISymbolResolverController symbolResolverControllerController,
             ITypeSymbolResolver typeSymbolResolver,
             ISymbolCheckController theSymbolCheckController,
+            IVariableDeclarationCreator theVariableDeclarationCreator,
             IScopeHelper scopeHelper,
             ICore core,
             IModifierHelper modifierHelper,
@@ -491,6 +546,7 @@ public class ReferencePhaseControllerTest
                 symbolResolverControllerController,
                 typeSymbolResolver,
                 theSymbolCheckController,
+                theVariableDeclarationCreator,
                 scopeHelper,
                 core,
                 modifierHelper,

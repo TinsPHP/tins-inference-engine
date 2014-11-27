@@ -30,8 +30,7 @@ public interface IReferencePhaseController
     //TODO rstoll TINS-225 reference phase - resolve parent
 //    IVariableSymbol resolveParent(ITSPHPAst $this);
 
-    //TODO TINS-208 reference phase - resolve variables
-//    IVariableSymbol resolveVariable(ITSPHPAst ast);
+    IVariableSymbol resolveVariable(ITSPHPAst variableId);
 
     //TODO rstoll TINS-224 reference phase - resolve types
 //    IScalarTypeSymbol resolveScalarType(ITSPHPAst typeAst, ITSPHPAst typeModifierAst);

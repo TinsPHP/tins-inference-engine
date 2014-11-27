@@ -27,6 +27,7 @@ import ch.tsphp.tinsphp.common.symbols.resolver.ForwardReferenceCheckResultDto;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolverController;
 import ch.tsphp.tinsphp.common.symbols.resolver.ITypeSymbolResolver;
+import ch.tsphp.tinsphp.common.symbols.resolver.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 
@@ -39,6 +40,7 @@ public class ReferencePhaseController implements IReferencePhaseController
     private final ISymbolResolverController symbolResolverController;
     private final ITypeSymbolResolver typeSymbolResolver;
     private final ISymbolCheckController symbolCheckController;
+    private final IVariableDeclarationCreator variableDeclarationCreator;
     private final IScopeHelper scopeHelper;
     private final ICore core;
     private final IGlobalNamespaceScope globalDefaultNamespace;
@@ -50,6 +52,7 @@ public class ReferencePhaseController implements IReferencePhaseController
             ISymbolResolverController theSymbolResolverController,
             ITypeSymbolResolver theTypeSymbolResolver,
             ISymbolCheckController theSymbolCheckController,
+            IVariableDeclarationCreator theVariableDeclarationCreator,
             IScopeHelper theScopeHelper,
             ICore theCore,
             IModifierHelper theModifierHelper,
@@ -60,6 +63,7 @@ public class ReferencePhaseController implements IReferencePhaseController
         symbolResolverController = theSymbolResolverController;
         typeSymbolResolver = theTypeSymbolResolver;
         symbolCheckController = theSymbolCheckController;
+        variableDeclarationCreator = theVariableDeclarationCreator;
         scopeHelper = theScopeHelper;
         core = theCore;
         modifierHelper = theModifierHelper;
@@ -123,16 +127,15 @@ public class ReferencePhaseController implements IReferencePhaseController
 //        return parent;
 //    }
 
-    //TODO TINS-208 reference phase - resolve variables
-//    @Override
-//    public IVariableSymbol resolveVariable(ITSPHPAst ast) {
-//        ISymbol symbol = ast.getScope().resolve(ast);
-//        if (symbol == null) {
-//            ReferenceException exception = typeCheckErrorReporter.notDefined(ast);
-//            symbol = symbolFactory.createErroneousVariableSymbol(ast, exception);
-//        }
-//        return (IVariableSymbol) symbol;
-//    }
+    @Override
+    public IVariableSymbol resolveVariable(ITSPHPAst variableId) {
+        IVariableSymbol variableSymbol =
+                (IVariableSymbol) symbolResolverController.resolveIdentifierFromItsScope(variableId);
+        if (variableSymbol == null) {
+            variableSymbol = variableDeclarationCreator.create(variableId);
+        }
+        return variableSymbol;
+    }
 
     //TODO rstoll TINS-224 reference phase - resolve types
 //    @Override

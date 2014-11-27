@@ -222,7 +222,8 @@ public class SymbolResolverController implements ISymbolResolverController
         return symbol;
     }
 
-    private ISymbol resolveIdentifierFromItsScope(ITSPHPAst identifier) {
+    @Override
+    public ISymbol resolveIdentifierFromItsScope(ITSPHPAst identifier) {
         return resolve(fromItsScopeResolverDelegate, identifier);
     }
 

@@ -26,6 +26,7 @@ import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolver;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolverController;
 import ch.tsphp.tinsphp.common.symbols.resolver.ITypeSymbolResolver;
+import ch.tsphp.tinsphp.common.symbols.resolver.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.inference_engine.IReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.ReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPReferenceWalker;
@@ -61,6 +62,7 @@ public abstract class AReferenceTest extends ADefinitionTest
     protected ITypeSymbolResolver typeSymbolResolver;
     protected ISymbolResolverController symbolResolverController;
     protected ISymbolCheckController symbolCheckController;
+    protected IVariableDeclarationCreator variableDeclarationCreator;
 
     protected ITSPHPAstAdaptor astAdaptor;
     protected IAstHelper astHelper;
@@ -102,6 +104,8 @@ public abstract class AReferenceTest extends ADefinitionTest
                 new ArrayList<ISymbolResolver>()
         );
 
+        variableDeclarationCreator = createVariableDeclarationCreator();
+
         referencePhaseController = createReferencePhaseController(
                 symbolFactory,
                 inferenceErrorReporter,
@@ -109,11 +113,13 @@ public abstract class AReferenceTest extends ADefinitionTest
                 symbolResolverController,
                 typeSymbolResolver,
                 symbolCheckController,
+                variableDeclarationCreator,
                 scopeHelper,
                 core,
                 modifierHelper,
                 definitionPhaseController.getGlobalDefaultNamespace());
     }
+
 
     protected abstract void verifyReferences();
 
@@ -219,6 +225,10 @@ public abstract class AReferenceTest extends ADefinitionTest
                 additionalSymbolResolvers);
     }
 
+    protected IVariableDeclarationCreator createVariableDeclarationCreator() {
+        return mock(IVariableDeclarationCreator.class);
+    }
+
     protected IReferencePhaseController createReferencePhaseController(
             ISymbolFactory theSymbolFactory,
             IInferenceErrorReporter theInferenceErrorReporter,
@@ -226,6 +236,7 @@ public abstract class AReferenceTest extends ADefinitionTest
             ISymbolResolverController theSymbolResolverController,
             ITypeSymbolResolver theTypeSymbolResolver,
             ISymbolCheckController theSymbolCheckController,
+            IVariableDeclarationCreator theVariableDeclarationCreator,
             IScopeHelper theScopeHelper,
             ICore theCore,
             IModifierHelper theModifierHelper,
@@ -237,6 +248,7 @@ public abstract class AReferenceTest extends ADefinitionTest
                 theSymbolResolverController,
                 theTypeSymbolResolver,
                 theSymbolCheckController,
+                theVariableDeclarationCreator,
                 theScopeHelper,
                 theCore,
                 theModifierHelper,

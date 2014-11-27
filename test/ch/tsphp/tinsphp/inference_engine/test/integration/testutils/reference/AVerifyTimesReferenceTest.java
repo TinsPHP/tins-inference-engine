@@ -20,6 +20,7 @@ import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolverController;
 import ch.tsphp.tinsphp.common.symbols.resolver.ITypeSymbolResolver;
+import ch.tsphp.tinsphp.common.symbols.resolver.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.inference_engine.IReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
@@ -58,6 +59,7 @@ public abstract class AVerifyTimesReferenceTest extends AReferenceTest
             ISymbolResolverController theSymbolResolverController,
             ITypeSymbolResolver theTypeSymbolResolver,
             ISymbolCheckController theSymbolCheckController,
+            IVariableDeclarationCreator theVariableDeclarationCreator,
             IScopeHelper theScopeHelper,
             ICore theCore,
             IModifierHelper theModifierHelper,
@@ -69,6 +71,7 @@ public abstract class AVerifyTimesReferenceTest extends AReferenceTest
                 theSymbolResolverController,
                 theTypeSymbolResolver,
                 theSymbolCheckController,
+                theVariableDeclarationCreator,
                 theScopeHelper,
                 theCore,
                 theModifierHelper,

@@ -217,7 +217,6 @@ staticAccessor
 fieldDefinition
     :   ^(FIELD variableDeclarationList[true])
     ;
-*/
 
 variableDeclarationList[boolean isImplicitlyInitialised] 
     :   ^(VARIABLE_DECLARATION_LIST
@@ -233,17 +232,18 @@ variableDeclaration[ITypeSymbol type, boolean isImplicitlyInitialised] returns [
         )
         { 
             //Warning! start duplicated code as in parameterNormalOrOptional
-            //TODO TINS-208 reference phase - resolve variables    
             //$variableSymbol = (IVariableSymbol) $variableId.getSymbol();
             //$variableSymbol.setType(type); 
             //$variableId.getScope().doubleDefinitionCheck($variableId.getSymbol());
             //Warning! end duplicated code as in parameterNormalOrOptional
-            //TODO TINS-219 - reference phase - check are variables initialised
+            //TODO Fields are always initially initialised. 
+            // Maybe it is better to rename this rule to fieldDeclaration (for now, static variables or global variables within function could not be initialised)
             //if(isInitialised || isImplicitlyInitialised){
             //    $variableId.getScope().addToInitialisedSymbols($variableSymbol, true);
             //}
         }
     ;
+*/
 
 //TODO TINS-221 - reference phase - double definition check methods 
 /*
@@ -352,28 +352,23 @@ parameterDeclarationList
 parameterDeclaration
     :   ^(PARAMETER_DECLARATION
             ^(TYPE tMod=. allTypesOrUnknown[$tMod]) 
-            parameterNormalOrOptional[$allTypesOrUnknown.type]
+            (   variableId=VariableId
+            |   ^(variableId=VariableId unaryPrimitiveAtom)
+            )
         )
-        //TODO TINS-208 reference phase - resolve variables
-        /*{
-            IVariableSymbol parameter = $parameterNormalOrOptional.variableSymbol;
-            IMethodSymbol methodSymbol = (IMethodSymbol) parameter.getDefinitionScope();
-            methodSymbol.addParameter(parameter);
-        }*/
-    ;
-
-parameterNormalOrOptional[ITypeSymbol type] returns [IVariableSymbol variableSymbol]
-    :   (    variableId=VariableId
-        |    ^(variableId=VariableId unaryPrimitiveAtom)
-        )
-        { 
+        {
             //Warning! start duplicated code as in variableDeclaration
-            $variableId.getSymbol().setType(type);
+            IVariableSymbol variableSymbol = (IVariableSymbol) $variableId.getSymbol();
+            variableSymbol.setType($allTypesOrUnknown.type); 
             controller.checkIsNotDoubleDefinition($variableId);
             //Warning! end duplicated code as in variableDeclaration
+
+            IMethodSymbol methodSymbol = (IMethodSymbol) $variableId.getScope();
+            methodSymbol.addParameter(variableSymbol);
             //TODO TINS-219 reference phase - check are variables initialised
-            //$variableId.getScope().addToInitialisedSymbols($variableSymbol, true);
-        } 
+            //methodSymbol.addToInitialisedSymbols(variableSymbol, true);
+
+        }
     ;
 
 block[boolean shallCheckIfReturns] returns[boolean isReturning]
@@ -527,18 +522,17 @@ foreachLoop
     :
         ^(foreach='foreach' 
             expression 
-            VariableId
-            // corresponding to the parser the first variableDeclarationList (the key) should be optional
-            // however, it does not matter here since both are just variable declarations.
-            // this way we can avoid an LL1 conflict
-            VariableId? 
+            variable
+            // Corresponding to the parser the first VariableId (the key) should be optional.
+            // However, it does not matter here since both are just VariableId this way we can avoid an LL1 conflict
+            variable?
             blockConditional[false]
         )
-        //TODO TINS-219 reference phase - check are variables initialised           
-        //{
-        //    controller.sendUpInitialisedSymbols($blockConditional.ast);
-        //    controller.sendUpInitialisedSymbols($foreach);
-        //}
+        {
+            //TODO TINS-219 reference phase - check are variables initialised           
+            //controller.sendUpInitialisedSymbols($blockConditional.ast);
+            //controller.sendUpInitialisedSymbols($foreach);
+        }
     ;
 
 whileLoop
@@ -570,9 +564,11 @@ catchBlocks[boolean shallCheckIfReturns] returns[boolean isReturning, List<ITSPH
     $asts = new ArrayList<>();
 }
 //Warning! end duplicated code as in switchContents
-    :   (   ^('catch' classInterfaceType[null] VariableId blockConditional[$shallCheckIfReturns])
+    :   (   ^('catch' classInterfaceType[null] variableId=VariableId blockConditional[$shallCheckIfReturns])
             {
             	$classInterfaceType.start.setEvalType($classInterfaceType.type);
+        	$variableId.setSymbol(controller.resolveVariable($variableId));
+        	
                 if(shallCheckIfReturns){
                     $isReturning = $blockConditional.isReturning && ($isReturning || isFirst);
                     isFirst = false;
@@ -594,7 +590,7 @@ expression
     :   atom
     |   operator
     |   functionCall
-    //TODO TINS-161 inference OOP    
+    //TODO rstoll TINS-161 inference OOP    
     //|   methodCall
     //|   methodCallStatic
     //|   classStaticAccess
@@ -606,15 +602,14 @@ atom
     :   
         primitiveAtomWithConstant
     |   variable
-    //TODO TINS-223 - reference phase - resolve this and self
+    //TODO rstoll TINS-223 - reference phase - resolve this and self
     //|   thisVariable
     ;
 
 variable    
     :   varId=VariableId
         {
-            //TODO TINS-208 reference phase - resolve variables
-            //$varId.setSymbol(controller.resolveVariable($varId));
+            $varId.setSymbol(controller.resolveVariable($varId));
             //TODO TINS-219 reference phase - check are variables initialised
             //controller.checkVariableIsOkToUse($varId);
         }
