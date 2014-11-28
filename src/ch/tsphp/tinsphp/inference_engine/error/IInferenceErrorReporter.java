@@ -24,17 +24,18 @@ public interface IInferenceErrorReporter extends IErrorReporter
 
     DefinitionException alreadyDefined(ISymbol existingSymbol, ISymbol newSymbol);
 
-    DefinitionException definedInOuterScope(ISymbol firstDefinition, ISymbol symbolToCheck);
-
     DefinitionException aliasForwardReference(ITSPHPAst typeAst, ITSPHPAst useDefinition);
 
     DefinitionException forwardReference(ITSPHPAst definitionAst, ITSPHPAst identifier);
+
+    DefinitionException variablePartiallyInitialised(ITSPHPAst definitionAst, ITSPHPAst variableId);
+
+    DefinitionException variableNotInitialised(ITSPHPAst definitionAst, ITSPHPAst variableId);
 
     void partialReturnFromFunction(ITSPHPAst identifier);
 
     void noReturnFromFunction(ITSPHPAst identifier);
 
     ReferenceException notDefined(ITSPHPAst identifier);
-
 
 }

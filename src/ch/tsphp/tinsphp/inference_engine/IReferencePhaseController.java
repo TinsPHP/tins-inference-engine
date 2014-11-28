@@ -16,6 +16,8 @@ import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 
+import java.util.List;
+
 /**
  * Represents the interface between the TSPHPReferenceWalker (ANTLR generated) and the logic.
  */
@@ -52,25 +54,23 @@ public interface IReferencePhaseController
 
     ITypeSymbol resolveUseType(ITSPHPAst typeAst, ITSPHPAst alias);
 
-    boolean checkUseDefinition(ITSPHPAst alias);
-
-    boolean checkIsNotForwardReference(ITSPHPAst identifier);
-
     boolean checkIsNotDoubleDefinition(ITSPHPAst identifier);
 
     boolean checkIsNotDoubleDefinitionCaseInsensitive(ITSPHPAst identifier);
 
+    boolean checkUseDefinition(ITSPHPAst alias);
 
-    //TODO rstoll TINS-219 reference phase - check are variables initialised
-//    boolean checkVariableIsInitialised(ITSPHPAst variableId);
-//
-//    void sendUpInitialisedSymbols(ITSPHPAst blockConditional);
-//
-//    void sendUpInitialisedSymbolsAfterIf(ITSPHPAst ifBlock, ITSPHPAst elseBlock);
-//
-//    void sendUpInitialisedSymbolsAfterSwitch(List<ITSPHPAst> conditionalBlocks, boolean hasDefaultLabel);
-//
-//    void sendUpInitialisedSymbolsAfterTryCatch(List<ITSPHPAst> conditionalBlocks);
+    boolean checkIsNotForwardReference(ITSPHPAst identifier);
+
+    boolean checkIsVariableInitialised(ITSPHPAst variableId);
+
+    void sendUpInitialisedSymbols(ITSPHPAst blockConditional);
+
+    void sendUpInitialisedSymbolsAfterIf(ITSPHPAst ifBlock, ITSPHPAst elseBlock);
+
+    void sendUpInitialisedSymbolsAfterSwitch(List<ITSPHPAst> conditionalBlocks, boolean hasDefaultLabel);
+
+    void sendUpInitialisedSymbolsAfterTryCatch(List<ITSPHPAst> conditionalBlocks);
 
     void addImplicitReturnStatementIfRequired(
             boolean isReturning, boolean hasAtLeastOneReturnOrThrow, ITSPHPAst identifier, ITSPHPAst block);

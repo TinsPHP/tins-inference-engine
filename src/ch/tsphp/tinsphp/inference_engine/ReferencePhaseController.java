@@ -12,6 +12,7 @@
 
 package ch.tsphp.tinsphp.inference_engine;
 
+import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.exceptions.ReferenceException;
 import ch.tsphp.common.symbols.ITypeSymbol;
@@ -28,8 +29,15 @@ import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolverController;
 import ch.tsphp.tinsphp.common.symbols.resolver.ITypeSymbolResolver;
 import ch.tsphp.tinsphp.common.symbols.resolver.IVariableDeclarationCreator;
+import ch.tsphp.tinsphp.common.symbols.resolver.VariableInitialisedResultDto;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class ReferencePhaseController implements IReferencePhaseController
 {
@@ -347,6 +355,25 @@ public class ReferencePhaseController implements IReferencePhaseController
     }
 
     @Override
+    public boolean checkIsNotDoubleDefinition(ITSPHPAst identifier) {
+        DoubleDefinitionCheckResultDto result = symbolCheckController.isNotDoubleDefinition(identifier);
+        if (!result.isNotDoubleDefinition) {
+            inferenceErrorReporter.alreadyDefined(result.existingSymbol, identifier.getSymbol());
+        }
+        return result.isNotDoubleDefinition;
+    }
+
+    @Override
+    public boolean checkIsNotDoubleDefinitionCaseInsensitive(ITSPHPAst identifier) {
+        DoubleDefinitionCheckResultDto result
+                = symbolCheckController.isNotDoubleDefinitionCaseInsensitive(identifier);
+        if (!result.isNotDoubleDefinition) {
+            inferenceErrorReporter.alreadyDefined(result.existingSymbol, identifier.getSymbol());
+        }
+        return result.isNotDoubleDefinition;
+    }
+
+    @Override
     public boolean checkUseDefinition(ITSPHPAst alias) {
         boolean isNotDoubleDefined = checkIsNotDoubleUseDefinition(alias);
         return isNotDoubleDefined && isNotAlreadyDefinedAsType(alias);
@@ -378,139 +405,109 @@ public class ReferencePhaseController implements IReferencePhaseController
         return result.isNotForwardReference;
     }
 
+    @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     @Override
-    public boolean checkIsNotDoubleDefinition(ITSPHPAst identifier) {
-        DoubleDefinitionCheckResultDto result = symbolCheckController.isNotDoubleDefinition(identifier);
-        if (!result.isNotDoubleDefinition) {
-            inferenceErrorReporter.alreadyDefined(result.existingSymbol, identifier.getSymbol());
+    public boolean checkIsVariableInitialised(ITSPHPAst variableId) {
+        VariableInitialisedResultDto result = symbolCheckController.isVariableInitialised(variableId);
+        if (!result.isFullyInitialised) {
+            if (result.isPartiallyInitialised) {
+                inferenceErrorReporter.variablePartiallyInitialised(
+                        variableId.getSymbol().getDefinitionAst(), variableId);
+            } else {
+                inferenceErrorReporter.variableNotInitialised(variableId.getSymbol().getDefinitionAst(), variableId);
+            }
         }
-        return result.isNotDoubleDefinition;
+        return result.isFullyInitialised;
     }
 
     @Override
-    public boolean checkIsNotDoubleDefinitionCaseInsensitive(ITSPHPAst identifier) {
-        DoubleDefinitionCheckResultDto result
-                = symbolCheckController.isNotDoubleDefinitionCaseInsensitive(identifier);
-        if (!result.isNotDoubleDefinition) {
-            inferenceErrorReporter.alreadyDefined(result.existingSymbol, identifier.getSymbol());
+    public void sendUpInitialisedSymbols(ITSPHPAst blockConditional) {
+        IScope scope = blockConditional.getScope();
+        Map<String, Boolean> enclosingInitialisedSymbols = scope.getEnclosingScope().getInitialisedSymbols();
+        for (Map.Entry<String, Boolean> entry : scope.getInitialisedSymbols().entrySet()) {
+            String symbolName = entry.getKey();
+            if (!enclosingInitialisedSymbols.containsKey(symbolName)) {
+                enclosingInitialisedSymbols.put(symbolName, false);
+            }
         }
-        return result.isNotDoubleDefinition;
     }
 
-    //TODO rstoll TINS-219 reference phase - check are variables initialised
-//    @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-//    @Override
-//    public boolean checkVariableIsInitialised(ITSPHPAst variableId) {
-//        IScope scope = variableId.getScope();
-//        ISymbol symbol = variableId.getSymbol();
-//        if (!(symbol instanceof IErroneousVariableSymbol)) {
-//            if (!scope.isFullyInitialised(symbol) && isNotLeftHandSideOfAssignment(variableId)) {
-//                ITypeCheckerErrorReporter errorReporter = typeCheckErrorReporter;
-//                if (scope.isPartiallyInitialised(symbol)) {
-//                    errorReporter.variablePartiallyInitialised(symbol.getDefinitionAst(), variableId);
-//                } else {
-//                    errorReporter.variableNotInitialised(symbol.getDefinitionAst(), variableId);
-//                }
-//                return false;
-//            }
-//        }
-//        return true;
-//    }
-//
-//    @Override
-//    public void sendUpInitialisedSymbols(ITSPHPAst blockConditional) {
-//        IScope scope = blockConditional.getScope();
-//        Map<String, Boolean> enclosingInitialisedSymbols = scope.getEnclosingScope().getInitialisedSymbols();
-//        for (Map.Entry<String, Boolean> entry : scope.getInitialisedSymbols().entrySet()) {
-//            String symbolName = entry.getKey();
-//            if (!enclosingInitialisedSymbols.containsKey(symbolName)) {
-//                enclosingInitialisedSymbols.put(symbolName, false);
-//            }
-//        }
-//    }
-//
-//
-//    @Override
-//    public void sendUpInitialisedSymbolsAfterIf(ITSPHPAst ifBlock, ITSPHPAst elseBlock) {
-//        if (elseBlock != null) {
-//            List<ITSPHPAst> conditionalBlocks = new ArrayList<>();
-//            conditionalBlocks.add(ifBlock);
-//            conditionalBlocks.add(elseBlock);
-//            sendUpInitialisedSymbolsAfterTryCatch(conditionalBlocks);
-//        } else {
-//            IScope scope = ifBlock.getScope();
-//            Map<String, Boolean> enclosingInitialisedSymbols = scope.getEnclosingScope().getInitialisedSymbols();
-//            for (String symbolName : scope.getInitialisedSymbols().keySet()) {
-//                if (!enclosingInitialisedSymbols.containsKey(symbolName)) {
-//                    enclosingInitialisedSymbols.put(symbolName, false);
-//                }
-//            }
-//        }
-//    }
-//
-//    @Override
-//    public void sendUpInitialisedSymbolsAfterSwitch(List<ITSPHPAst> conditionalBlocks, boolean hasDefaultLabel) {
-//        if (hasDefaultLabel) {
-//            sendUpInitialisedSymbolsAfterTryCatch(conditionalBlocks);
-//        } else {
-//            Map<String, Boolean> enclosingInitialisedSymbols =
-//                    conditionalBlocks.get(0).getScope().getEnclosingScope().getInitialisedSymbols();
-//            for (ITSPHPAst block : conditionalBlocks) {
-//                for (String symbolName : block.getScope().getInitialisedSymbols().keySet()) {
-//                    if (!enclosingInitialisedSymbols.containsKey(symbolName)) {
-//                        //without default label they are only partially initialised
-//                        enclosingInitialisedSymbols.put(symbolName, false);
-//                    }
-//                }
-//            }
-//        }
-//    }
-//
-//    @Override
-//    public void sendUpInitialisedSymbolsAfterTryCatch(List<ITSPHPAst> conditionalBlocks) {
-//        if (conditionalBlocks.size() > 0) {
-//            Set<String> allKeys = new HashSet<>();
-//            Set<String> commonKeys = new HashSet<>();
-//            boolean isFirst = true;
-//            for (ITSPHPAst block : conditionalBlocks) {
-//                Set<String> keys = block.getScope().getInitialisedSymbols().keySet();
-//                allKeys.addAll(keys);
-//                if (!isFirst) {
-//                    commonKeys.retainAll(keys);
-//                } else {
-//                    commonKeys.addAll(keys);
-//                    isFirst = false;
-//                }
-//            }
-//
-//            Map<String, Boolean> enclosingInitialisedSymbols =
-//                    conditionalBlocks.get(0).getScope().getEnclosingScope().getInitialisedSymbols();
-//
-//            for (String symbolName : allKeys) {
-//                if (!enclosingInitialisedSymbols.containsKey(symbolName)
-//                        || !enclosingInitialisedSymbols.get(symbolName)) {
-//
-//                    boolean isFullyInitialised = commonKeys.contains(symbolName);
-//                    if (isFullyInitialised) {
-//                        for (ITSPHPAst block : conditionalBlocks) {
-//                            if (!block.getScope().getInitialisedSymbols().get(symbolName)) {
-//                                isFullyInitialised = false;
-//                                break;
-//                            }
-//                        }
-//                    }
-//                    enclosingInitialisedSymbols.put(symbolName, isFullyInitialised);
-//                }
-//            }
-//        }
-//    }
-//
-//    private boolean isNotLeftHandSideOfAssignment(ITSPHPAst variableId) {
-//        ITSPHPAst parent = (ITSPHPAst) variableId.getParent();
-//        int type = parent.getType();
-//        return type != TSPHPDefinitionWalker.Assign && type != TSPHPDefinitionWalker.CAST_ASSIGN
-//                || !parent.getChild(0).equals(variableId);
-//    }
+
+    @Override
+    public void sendUpInitialisedSymbolsAfterIf(ITSPHPAst ifBlock, ITSPHPAst elseBlock) {
+        if (elseBlock != null) {
+            List<ITSPHPAst> conditionalBlocks = new ArrayList<>();
+            conditionalBlocks.add(ifBlock);
+            conditionalBlocks.add(elseBlock);
+            sendUpInitialisedSymbolsAfterTryCatch(conditionalBlocks);
+        } else {
+            IScope scope = ifBlock.getScope();
+            Map<String, Boolean> enclosingInitialisedSymbols = scope.getEnclosingScope().getInitialisedSymbols();
+            for (String symbolName : scope.getInitialisedSymbols().keySet()) {
+                if (!enclosingInitialisedSymbols.containsKey(symbolName)) {
+                    enclosingInitialisedSymbols.put(symbolName, false);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void sendUpInitialisedSymbolsAfterSwitch(List<ITSPHPAst> conditionalBlocks, boolean hasDefaultLabel) {
+        if (hasDefaultLabel) {
+            sendUpInitialisedSymbolsAfterTryCatch(conditionalBlocks);
+        } else {
+            Map<String, Boolean> enclosingInitialisedSymbols =
+                    conditionalBlocks.get(0).getScope().getEnclosingScope().getInitialisedSymbols();
+            for (ITSPHPAst block : conditionalBlocks) {
+                for (String symbolName : block.getScope().getInitialisedSymbols().keySet()) {
+                    if (!enclosingInitialisedSymbols.containsKey(symbolName)) {
+                        //without default label they are only partially initialised
+                        enclosingInitialisedSymbols.put(symbolName, false);
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public void sendUpInitialisedSymbolsAfterTryCatch(List<ITSPHPAst> conditionalBlocks) {
+        if (conditionalBlocks.size() > 0) {
+            Set<String> allKeys = new HashSet<>();
+            Set<String> commonKeys = new HashSet<>();
+            boolean isFirst = true;
+            for (ITSPHPAst block : conditionalBlocks) {
+                Set<String> keys = block.getScope().getInitialisedSymbols().keySet();
+                allKeys.addAll(keys);
+                if (!isFirst) {
+                    commonKeys.retainAll(keys);
+                } else {
+                    commonKeys.addAll(keys);
+                    isFirst = false;
+                }
+            }
+
+            Map<String, Boolean> enclosingInitialisedSymbols =
+                    conditionalBlocks.get(0).getScope().getEnclosingScope().getInitialisedSymbols();
+
+            for (String symbolName : allKeys) {
+                if (!enclosingInitialisedSymbols.containsKey(symbolName)
+                        || !enclosingInitialisedSymbols.get(symbolName)) {
+
+                    boolean isFullyInitialised = commonKeys.contains(symbolName);
+                    if (isFullyInitialised) {
+                        for (ITSPHPAst block : conditionalBlocks) {
+                            if (!block.getScope().getInitialisedSymbols().get(symbolName)) {
+                                isFullyInitialised = false;
+                                break;
+                            }
+                        }
+                    }
+                    enclosingInitialisedSymbols.put(symbolName, isFullyInitialised);
+                }
+            }
+        }
+    }
+
 
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     @Override

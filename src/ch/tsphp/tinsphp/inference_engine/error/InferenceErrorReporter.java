@@ -60,12 +60,6 @@ public class InferenceErrorReporter implements IInferenceErrorReporter
     }
 
     @Override
-    public DefinitionException definedInOuterScope(ISymbol firstDefinition, ISymbol symbolToCheck) {
-        //TODO rstoll TINS-174 inference engine and error reporting
-        throw new UnsupportedOperationException("not yet implemented");
-    }
-
-    @Override
     public DefinitionException aliasForwardReference(ITSPHPAst typeAst, ITSPHPAst useDefinition) {
         //TODO rstoll TINS-174 inference engine and error reporting
         DefinitionException ex = new DefinitionException("aliasForwardReference", typeAst, useDefinition);
@@ -77,6 +71,22 @@ public class InferenceErrorReporter implements IInferenceErrorReporter
     public DefinitionException forwardReference(ITSPHPAst definitionAst, ITSPHPAst identifier) {
         //TODO rstoll TINS-174 inference engine and error reporting
         DefinitionException ex = new DefinitionException("forwardReference", definitionAst, identifier);
+        reportError(ex);
+        return ex;
+    }
+
+    @Override
+    public DefinitionException variablePartiallyInitialised(ITSPHPAst definitionAst, ITSPHPAst variableId) {
+        //TODO rstoll TINS-174 inference engine and error reporting
+        DefinitionException ex = new DefinitionException("variablePartiallyInitialised", definitionAst, variableId);
+        reportError(ex);
+        return ex;
+    }
+
+    @Override
+    public DefinitionException variableNotInitialised(ITSPHPAst definitionAst, ITSPHPAst variableId) {
+        //TODO rstoll TINS-174 inference engine and error reporting
+        DefinitionException ex = new DefinitionException("variableNotInitialised", definitionAst, variableId);
         reportError(ex);
         return ex;
     }

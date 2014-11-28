@@ -6,17 +6,21 @@
 
 package ch.tsphp.tinsphp.inference_engine.resolver;
 
+import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousSymbol;
+import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.resolver.AlreadyDefinedAsTypeResultDto;
 import ch.tsphp.tinsphp.common.symbols.resolver.DoubleDefinitionCheckResultDto;
 import ch.tsphp.tinsphp.common.symbols.resolver.ForwardReferenceCheckResultDto;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolver;
 import ch.tsphp.tinsphp.common.symbols.resolver.ITypeSymbolResolver;
+import ch.tsphp.tinsphp.common.symbols.resolver.VariableInitialisedResultDto;
+import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
 
 import java.util.List;
 
@@ -118,4 +122,25 @@ public class SymbolCheckController implements ISymbolCheckController
         }
         return result;
     }
+
+    @Override
+    public VariableInitialisedResultDto isVariableInitialised(ITSPHPAst variableId) {
+        VariableInitialisedResultDto result = new VariableInitialisedResultDto();
+        result.isFullyInitialised = true;
+        ISymbol symbol = variableId.getSymbol();
+        if (!(symbol instanceof IErroneousVariableSymbol)) {
+            IScope scope = variableId.getScope();
+            result.isFullyInitialised = scope.isFullyInitialised(symbol) || isLeftHandSideOfAssignment(variableId);
+            if (!result.isFullyInitialised) {
+                result.isPartiallyInitialised = scope.isPartiallyInitialised(symbol);
+            }
+        }
+        return result;
+    }
+
+    private boolean isLeftHandSideOfAssignment(ITSPHPAst variableId) {
+        ITSPHPAst parent = (ITSPHPAst) variableId.getParent();
+        return parent.getType() == TokenTypes.Assign && parent.getChild(0).equals(variableId);
+    }
+
 }

@@ -365,9 +365,7 @@ parameterDeclaration
 
             IMethodSymbol methodSymbol = (IMethodSymbol) $variableId.getScope();
             methodSymbol.addParameter(variableSymbol);
-            //TODO TINS-219 reference phase - check are variables initialised
-            //methodSymbol.addToInitialisedSymbols(variableSymbol, true);
-
+            methodSymbol.addToInitialisedSymbols(variableSymbol, true);
         }
     ;
 
@@ -610,10 +608,10 @@ variable
     :   varId=VariableId
         {
             $varId.setSymbol(controller.resolveVariable($varId));
-            //TODO TINS-219 reference phase - check are variables initialised
-            //controller.checkVariableIsOkToUse($varId);
+            controller.checkIsVariableInitialised($varId);
         }
     ;
+    
 //TODO TINS-223 - reference phase - resolve this and self
 /*    
 thisVariable
