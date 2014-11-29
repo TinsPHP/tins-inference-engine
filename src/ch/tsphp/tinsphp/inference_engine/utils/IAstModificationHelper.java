@@ -11,4 +11,8 @@ import ch.tsphp.common.ITSPHPAst;
 public interface IAstModificationHelper
 {
     ITSPHPAst getNullReturnStatement();
+
+    ITSPHPAst getVariableDeclaration(String variableId);
+
+    void insertChildAt(ITSPHPAst parent, ITSPHPAst child, int index);
 }
