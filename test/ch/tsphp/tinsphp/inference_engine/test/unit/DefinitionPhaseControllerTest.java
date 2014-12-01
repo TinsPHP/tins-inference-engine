@@ -162,11 +162,12 @@ public class DefinitionPhaseControllerTest
         when(symbolFactory.createVariableSymbol(modifierAst, identifierAst)).thenReturn(variableSymbol);
 
         IDefinitionPhaseController controller = createDefinitionPhaseController();
-        controller.defineVariable(namespaceScope, modifierAst, typeAst, identifierAst);
+        IVariableSymbol result = controller.defineVariable(namespaceScope, modifierAst, typeAst, identifierAst);
 
         verify(typeAst).setScope(namespaceScope);
         verifyScopeSymbolAndDefine(namespaceScope, identifierAst, variableSymbol);
         verify(symbolFactory).createVariableSymbol(modifierAst, identifierAst);
+        assertThat(result, is(variableSymbol));
     }
 
     @Test

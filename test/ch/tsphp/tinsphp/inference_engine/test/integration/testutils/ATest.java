@@ -35,7 +35,7 @@ public abstract class ATest implements IErrorLogger
         parser = createParser();
         registerParserErrorLogger();
 
-        inferenceErrorReporter = createTypeCheckerErrorReporter();
+        inferenceErrorReporter = createInferenceErrorReporter();
         inferenceErrorReporter.registerErrorLogger(this);
     }
 
@@ -51,7 +51,7 @@ public abstract class ATest implements IErrorLogger
         parser.registerErrorLogger(new WriteExceptionToConsole());
     }
 
-    protected IInferenceErrorReporter createTypeCheckerErrorReporter() {
+    protected IInferenceErrorReporter createInferenceErrorReporter() {
         return new InferenceErrorReporter();
     }
 }

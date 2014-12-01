@@ -27,6 +27,7 @@ import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolver;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolverController;
 import ch.tsphp.tinsphp.common.symbols.resolver.ITypeSymbolResolver;
 import ch.tsphp.tinsphp.common.symbols.resolver.IVariableDeclarationCreator;
+import ch.tsphp.tinsphp.inference_engine.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.inference_engine.IReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.ReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPReferenceWalker;
@@ -104,7 +105,10 @@ public abstract class AReferenceTest extends ADefinitionTest
                 new ArrayList<ISymbolResolver>()
         );
 
-        variableDeclarationCreator = createVariableDeclarationCreator();
+        variableDeclarationCreator = createVariableDeclarationCreator(
+                astModificationHelper,
+                definitionPhaseController
+        );
 
         referencePhaseController = createReferencePhaseController(
                 symbolFactory,
@@ -225,8 +229,9 @@ public abstract class AReferenceTest extends ADefinitionTest
                 additionalSymbolResolvers);
     }
 
-    protected IVariableDeclarationCreator createVariableDeclarationCreator() {
-        return mock(IVariableDeclarationCreator.class);
+    protected IVariableDeclarationCreator createVariableDeclarationCreator(
+            IAstModificationHelper theAstModificationHelper, IDefinitionPhaseController theDefinitionPhaseController) {
+        return new TestPutAtTopVariableDeclarationCreator(theAstModificationHelper, theDefinitionPhaseController);
     }
 
     protected IReferencePhaseController createReferencePhaseController(

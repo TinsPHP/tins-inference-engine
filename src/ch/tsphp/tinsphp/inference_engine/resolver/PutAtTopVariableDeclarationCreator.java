@@ -14,6 +14,7 @@ import ch.tsphp.tinsphp.common.symbols.resolver.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.inference_engine.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
+import org.antlr.runtime.Token;
 
 public class PutAtTopVariableDeclarationCreator implements IVariableDeclarationCreator
 {
@@ -60,12 +61,21 @@ public class PutAtTopVariableDeclarationCreator implements IVariableDeclarationC
 
     private IVariableSymbol createVariableAtTop(ITSPHPAst block, IScope scope, ITSPHPAst variableId) {
         ITSPHPAst variableDeclarationList = astModificationHelper.getVariableDeclaration(variableId.getText());
-        astModificationHelper.insertChildAt(block, variableDeclarationList, 0);
+        ITSPHPAst variable = variableDeclarationList.getChild(1);
+        Token token = variable.getToken();
+        ITSPHPAst firstChild = block.getChild(0);
+        token.setLine(firstChild.getLine());
+        token.setCharPositionInLine(firstChild.getCharPositionInLine());
+        insertVariableDeclarationList(block, variableDeclarationList);
         return definitionPhaseController.defineVariable(
                 scope,
                 null,
                 variableDeclarationList.getChild(0),
-                variableDeclarationList.getChild(1));
+                variable);
+    }
+
+    protected void insertVariableDeclarationList(ITSPHPAst block, ITSPHPAst variableDeclarationList) {
+        astModificationHelper.insertChildAt(block, variableDeclarationList, 0);
     }
 
 }

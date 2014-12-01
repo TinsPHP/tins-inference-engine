@@ -16,11 +16,9 @@ import ch.tsphp.common.ILowerCaseStringMap;
 import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ISymbol;
-import ch.tsphp.tinsphp.common.scopes.IAlreadyDefinedMethodCaller;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
-import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.utils.MapHelper;
 
 import java.util.List;
@@ -28,11 +26,6 @@ import java.util.Map;
 
 public class ScopeHelper implements IScopeHelper
 {
-    private final IInferenceErrorReporter inferenceErrorReporter;
-
-    public ScopeHelper(IInferenceErrorReporter theTypeCheckerErrorReporter) {
-        inferenceErrorReporter = theTypeCheckerErrorReporter;
-    }
 
     @Override
     public boolean isAbsoluteIdentifier(String identifier) {
@@ -56,29 +49,13 @@ public class ScopeHelper implements IScopeHelper
     }
 
     @Override
-    public boolean checkIsNotDoubleDefinition(Map<String, List<ISymbol>> symbols, ISymbol symbol) {
-        return checkIsNotDoubleDefinition(symbols.get(symbol.getName()).get(0), symbol);
-    }
-
-    @Override
-    public boolean checkIsNotDoubleDefinition(Map<String, List<ISymbol>> symbols, ISymbol symbol,
-            IAlreadyDefinedMethodCaller errorMethodCaller) {
-        return checkIsNotDoubleDefinition(symbols.get(symbol.getName()).get(0), symbol, errorMethodCaller);
-    }
-
-    @Override
-    public boolean checkIsNotDoubleDefinition(ISymbol firstDefinition, ISymbol symbolToCheck) {
-        return checkIsNotDoubleDefinition(firstDefinition, symbolToCheck, new StandardAlreadyDefinedMethodCaller());
-    }
-
-    @Override
-    public boolean checkIsNotDoubleDefinition(ISymbol firstDefinition, ISymbol symbolToCheck,
-            IAlreadyDefinedMethodCaller errorMethodCaller) {
-        boolean isFirst = firstDefinition.equals(symbolToCheck);
-        if (!isFirst) {
-            errorMethodCaller.callAccordingAlreadyDefinedMethod(firstDefinition, symbolToCheck);
+    public ISymbol resolve(IScope scope, ITSPHPAst ast) {
+        ISymbol symbol = null;
+        Map<String, List<ISymbol>> symbols = scope.getSymbols();
+        if (symbols.containsKey(ast.getText())) {
+            symbol = symbols.get(ast.getText()).get(0);
         }
-        return isFirst;
+        return symbol;
     }
 
     @Override
@@ -89,15 +66,6 @@ public class ScopeHelper implements IScopeHelper
         return globalNamespaceScopes.get(namespaceName);
     }
 
-    @Override
-    public ISymbol resolve(IScope scope, ITSPHPAst ast) {
-        ISymbol symbol = null;
-        Map<String, List<ISymbol>> symbols = scope.getSymbols();
-        if (symbols.containsKey(ast.getText())) {
-            symbol = symbols.get(ast.getText()).get(0);
-        }
-        return symbol;
-    }
 
     //Warning! start code duplication - same as in CoreSymbolResolver in core component
     @Override
@@ -115,16 +83,4 @@ public class ScopeHelper implements IScopeHelper
     }
     //Warning! end code duplication - same as in CoreSymbolResolver in core component
 
-    /**
-     * Represents a delegate which calls the appropriate method on TypeCheckerErrorReporter.
-     */
-    private class StandardAlreadyDefinedMethodCaller implements IAlreadyDefinedMethodCaller
-    {
-
-        @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-        @Override
-        public void callAccordingAlreadyDefinedMethod(ISymbol firstDefinition, ISymbol symbolToCheck) {
-            inferenceErrorReporter.alreadyDefined(firstDefinition, symbolToCheck);
-        }
-    }
 }

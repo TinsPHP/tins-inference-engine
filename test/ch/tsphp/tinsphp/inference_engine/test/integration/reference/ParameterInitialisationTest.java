@@ -54,17 +54,11 @@ public class ParameterInitialisationTest extends AVerifyTimesReferenceTest
         collection = new ArrayList<>();
 
         addVariations("", "");
-        addVariations("namespace{", "}");
         addVariations("namespace a;", "");
-        addVariations("namespace a{", "}");
-        addVariations("namespace a\\b;", "");
         addVariations("namespace a\\b\\z{", "}");
         //TODO rstoll TINS-161 inference OOP
 //        addVariations("class a{", "}");
-//        addVariations("namespace{ class a{", "}}");
 //        addVariations("namespace a; class b{", "}");
-//        addVariations("namespace a{ class c{", "}}");
-//        addVariations("namespace a\\b; class e{", "}");
 //        addVariations("namespace a\\b\\z{ class m{", "}}");
         return collection;
     }

@@ -25,10 +25,10 @@ public class ReturnCheckHelper
     public static Collection<Object[]> getTestStringVariations(String prefix, String appendix) {
         List<Object[]> collection = new ArrayList<>();
         collection.addAll(getTestStringVariations(prefix, appendix, "return 12;"));
-        collection.addAll(getTestStringVariations(prefix, appendix, "throw $a;"));
+        collection.addAll(getTestStringVariations(prefix, appendix, "throw $a=1;"));
         collection.addAll(Arrays.asList(new Object[][]{
-                {prefix + "if(true){return 1;}else{throw $a;}" + appendix},
-                {prefix + "if(true){throw $a;}else{return 0;}" + appendix},
+                {prefix + "if(true){return 1;}else{throw $a=1;}" + appendix},
+                {prefix + "if(true){throw $a=1;}else{return 0;}" + appendix},
         }));
         return collection;
     }
@@ -38,8 +38,8 @@ public class ReturnCheckHelper
                 {prefix + statement + appendix},
                 {prefix + "{" + statement + "}" + appendix},
                 {prefix + "if(true){" + statement + "}else{" + statement + "}" + appendix},
-                {prefix + "$a; " + statement + appendix},
-                {prefix + "$a; {" + statement + "} $b;" + appendix},
+                {prefix + "$a=1; " + statement + appendix},
+                {prefix + "$a=1; {" + statement + "} $b=1;" + appendix},
                 {prefix + "do{" + statement + "}while(true);" + appendix},
                 {prefix + "switch(1){default:" + statement + "}" + appendix},
                 {prefix + "switch(1){case 1:" + statement + " default:" + statement + "}" + appendix},
@@ -55,9 +55,9 @@ public class ReturnCheckHelper
                                 + "catch(\\Exception $e2){" + statement + "}" +
                                 appendix
                 },
-                {prefix + "$a; if(true){ }" + statement + appendix},
+                {prefix + "$a=1; if(true){ }" + statement + appendix},
                 {
-                        prefix + "$a; if(true){ } $b;"
+                        prefix + "$a=1; if(true){ } $b=1;"
                                 + "if(true){"
                                 + "if(true){}"
                                 + "if(true){" + statement + "}else{" + statement + "}"
@@ -72,7 +72,7 @@ public class ReturnCheckHelper
             ReferenceErrorDto[] errorDto) {
         List<Object[]> collection = new ArrayList<>();
         collection.addAll(getErrorPairVariations(prefix, appendix, "return 12;", errorDto));
-        collection.addAll(getErrorPairVariations(prefix, appendix, "throw $a;", errorDto));
+        collection.addAll(getErrorPairVariations(prefix, appendix, "throw $a=1;", errorDto));
         return collection;
     }
 
@@ -80,8 +80,8 @@ public class ReturnCheckHelper
             ReferenceErrorDto[] errorDto) {
         return Arrays.asList(new Object[][]{
                 {prefix + "" + appendix, errorDto},
-                {prefix + "$a;" + appendix, errorDto},
-                {prefix + "$a; $f;" + appendix, errorDto},
+                {prefix + "$a=1;" + appendix, errorDto},
+                {prefix + "$a=1; $b=1;" + appendix, errorDto},
                 {prefix + "if(true){" + statement + "}" + appendix, errorDto},
                 {prefix + "while(true){" + statement + "}" + appendix, errorDto},
                 {prefix + "for(;;){" + statement + "}" + appendix, errorDto},
@@ -104,6 +104,8 @@ public class ReturnCheckHelper
                 //break before return/throw statement
                 {prefix + "switch(1){case 1: break; " + statement + "}" + appendix, errorDto},
                 {prefix + "switch(1){default: break; " + statement + "}" + appendix, errorDto},
+                //See TSPHP-903 return check wrong in conjunction with multiple statements in switch
+                {prefix + "switch(1){default: break; $a=1;" + statement + "}" + appendix, errorDto},
                 //not all cases return/throw
                 {
                         prefix + "switch(1){case 1: break; default: " + statement + "}" +
@@ -119,7 +121,7 @@ public class ReturnCheckHelper
         collection.addAll(getImplicitReturnAstVariations(
                 prefix, "return 12;", appendix, expectedStatement, "(return 12)", expectedAppendix));
         collection.addAll(getImplicitReturnAstVariations(
-                prefix, "throw $a;", appendix, expectedStatement, "(throw $a)", expectedAppendix));
+                prefix, "throw $a=1;", appendix, expectedStatement, "(throw (= $a 1))", expectedAppendix));
         return collection;
     }
 
@@ -129,9 +131,11 @@ public class ReturnCheckHelper
         String returnNull = "(return null)";
         return Arrays.asList(new Object[][]{
                 {prefix + "" + appendix, expectedPrefix + returnNull + expectedAppendix},
-                {prefix + "$a;" + appendix, expectedPrefix + "(expr $a) " + returnNull + expectedAppendix},
-                {prefix + "$a; $f;" + appendix, expectedPrefix + "(expr $a) (expr $f) " + returnNull +
-                        expectedAppendix},
+                {prefix + "$a=1;" + appendix, expectedPrefix + "(expr (= $a 1)) " + returnNull + expectedAppendix},
+                {
+                        prefix + "$a=1; $b=1;" + appendix,
+                        expectedPrefix + "(expr (= $a 1)) (expr (= $b 1)) " + returnNull + expectedAppendix
+                },
                 {
                         prefix + "if(true){" + statement + "}" + appendix,
                         expectedPrefix + "(if true (cBlock " + expectedStatement + ")) " + returnNull + expectedAppendix

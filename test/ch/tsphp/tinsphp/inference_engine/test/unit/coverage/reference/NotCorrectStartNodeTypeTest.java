@@ -26,6 +26,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
 
+import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker.Else;
 import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker.Try;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -71,8 +72,11 @@ public class NotCorrectStartNodeTypeTest extends AReferenceWalkerTest
                 {"assignOperator", Try},
                 {"atom", Try},
                 {"binaryOperatorExcludingAssign", Try},
+                {"block", Try},
+                {"blockConditional", Try},
                 {"breakContinue", Try},
                 {"caseLabels", Try},
+                {"catchBlocks", Try},
                 //TODO TINS-210 - reference phase - class definitions
 //                {"classBody", Try},
 //                {"classBodyDefinition", Try},
@@ -87,6 +91,7 @@ public class NotCorrectStartNodeTypeTest extends AReferenceWalkerTest
                 //TODO TINS-221 - reference phase - double definition check methods
 //                {"constructDefinition", Try},
                 {"definition", Try},
+                {"doWhileLoop", Try},
                 {"exit", Try},
                 {"expression", Try},
                 {"expressionList", Try},
@@ -94,10 +99,14 @@ public class NotCorrectStartNodeTypeTest extends AReferenceWalkerTest
                 {"forLoop", Try},
                 {"functionCall", Try},
                 {"functionDefinition", Try},
+                {"ifCondition", Try},
+                {"instruction", Try},
+                {"instructions", Try},
                 // TINS-211 - reference phase - interface definitions
 //                {"interfaceBody", Try},
 //                {"interfaceBodyDefinition", Try},
 //                {"interfaceDefinition", Try},
+
                 //TODO TINS-161 inference OOP
 //                {"methodCall", Try},
 //                {"methodCallee", Try},
@@ -116,8 +125,11 @@ public class NotCorrectStartNodeTypeTest extends AReferenceWalkerTest
                 {"statement", Try},
                 //TODO TINS-217 reference phase - class constant access
 //                {"staticAccessor", Try},
+                {"switchCondition", Try},
+                {"switchContents", Try},
                 //TODO TINS-223 - reference phase - resolve this and self
 //                {"thisVariable", Try},
+                {"tryCatch", Else},
                 {"unaryOperator", Try},
                 {"unaryPrimitiveAtom", Try},
                 {"useDeclaration", Try},

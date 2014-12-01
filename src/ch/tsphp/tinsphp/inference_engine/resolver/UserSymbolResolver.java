@@ -14,6 +14,7 @@ import ch.tsphp.tinsphp.common.scopes.ICaseInsensitiveScope;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolver;
+import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
 
 public class UserSymbolResolver implements ISymbolResolver
 {
@@ -32,7 +33,27 @@ public class UserSymbolResolver implements ISymbolResolver
 
     @Override
     public ISymbol resolveIdentifierFromItsScope(ITSPHPAst identifier) {
-        return identifier.getScope().resolve(identifier);
+        ISymbol symbol = identifier.getScope().resolve(identifier);
+        if (symbol == null && isVariableInNamespaceScope(identifier)) {
+            symbol = globalDefaultNamespace.resolve(identifier);
+        }
+        return symbol;
+    }
+
+    public boolean isVariableInNamespaceScope(ITSPHPAst identifier) {
+        boolean isVariableInNamespaceScope = identifier.getType() == TokenTypes.VariableId;
+        if (isVariableInNamespaceScope) {
+            ITSPHPAst parent = (ITSPHPAst) identifier.getParent();
+            int type = parent.getType();
+            while (type != TokenTypes.Function && type != TokenTypes.METHOD_DECLARATION && type != TokenTypes
+                    .Namespace) {
+
+                parent = (ITSPHPAst) parent.getParent();
+                type = parent.getType();
+            }
+            isVariableInNamespaceScope = type == TokenTypes.Namespace;
+        }
+        return isVariableInNamespaceScope;
     }
 
     @Override

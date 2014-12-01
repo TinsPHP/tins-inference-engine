@@ -15,6 +15,7 @@ import ch.tsphp.tinsphp.inference_engine.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.inference_engine.resolver.PutAtTopVariableDeclarationCreator;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
+import org.antlr.runtime.Token;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -45,6 +46,12 @@ public class PutAtTopVariableDeclarationCreatorTest
         when(variableDeclarationList.getChild(0)).thenReturn(type);
         ITSPHPAst variable = createAst(TokenTypes.VariableId, variableDeclarationList);
         when(variableDeclarationList.getChild(1)).thenReturn(variable);
+
+        //transfer line and position
+        ITSPHPAst firstChild = mock(ITSPHPAst.class);
+        when(block.getChild(0)).thenReturn(firstChild);
+        Token token = mock(Token.class);
+        when(variable.getToken()).thenReturn(token);
 
         //VariableSymbol
         IDefinitionPhaseController definitionPhaseController = mock(IDefinitionPhaseController.class);
@@ -82,6 +89,12 @@ public class PutAtTopVariableDeclarationCreatorTest
         when(variableDeclarationList.getChild(0)).thenReturn(type);
         ITSPHPAst variable = createAst(TokenTypes.VariableId, variableDeclarationList);
         when(variableDeclarationList.getChild(1)).thenReturn(variable);
+
+        //transfer line and position
+        ITSPHPAst firstChild = mock(ITSPHPAst.class);
+        when(block.getChild(0)).thenReturn(firstChild);
+        Token token = mock(Token.class);
+        when(variable.getToken()).thenReturn(token);
 
         //VariableSymbol
         IDefinitionPhaseController definitionPhaseController = mock(IDefinitionPhaseController.class);
@@ -121,6 +134,12 @@ public class PutAtTopVariableDeclarationCreatorTest
         ITSPHPAst variable = createAst(TokenTypes.VariableId, variableDeclarationList);
         when(variableDeclarationList.getChild(1)).thenReturn(variable);
 
+        //transfer line and position
+        ITSPHPAst firstChild = mock(ITSPHPAst.class);
+        when(block.getChild(0)).thenReturn(firstChild);
+        Token token = mock(Token.class);
+        when(variable.getToken()).thenReturn(token);
+
         //VariableSymbol
         IDefinitionPhaseController definitionPhaseController = mock(IDefinitionPhaseController.class);
         IVariableSymbol variableSymbol = mock(IVariableSymbol.class);
@@ -136,6 +155,55 @@ public class PutAtTopVariableDeclarationCreatorTest
 
 
         verify(astModificationHelper).insertChildAt(block, variableDeclarationList, 0);
+    }
+
+    @Test
+    public void create_InFunction_TransfersLineAndPositionsFromFirstChildToVariableDeclarationList() {
+        ITSPHPAst function = createAst(TokenTypes.Function, null);
+        IMethodSymbol scope = mock(IMethodSymbol.class);
+        when(function.getScope()).thenReturn(scope);
+        ITSPHPAst block = createAst(TokenTypes.BLOCK, function);
+        when(function.getChild(4)).thenReturn(block);
+        ITSPHPAst ast = createAst(TokenTypes.VariableId, block);
+        String variableId = "$a";
+        when(ast.getText()).thenReturn(variableId);
+
+        //variableDeclarationList
+        IAstModificationHelper astModificationHelper = mock(IAstModificationHelper.class);
+        ITSPHPAst variableDeclarationList = mock(ITSPHPAst.class);
+        when(astModificationHelper.getVariableDeclaration(variableId)).thenReturn(variableDeclarationList);
+        ITSPHPAst type = createAst(TokenTypes.TYPE, variableDeclarationList);
+        when(variableDeclarationList.getChild(0)).thenReturn(type);
+        ITSPHPAst variable = createAst(TokenTypes.VariableId, variableDeclarationList);
+        when(variableDeclarationList.getChild(1)).thenReturn(variable);
+
+        //transfer line and position
+        ITSPHPAst firstChild = mock(ITSPHPAst.class);
+        when(block.getChild(0)).thenReturn(firstChild);
+        int line = 12;
+        when(firstChild.getLine()).thenReturn(line);
+        int position = 98;
+        when(firstChild.getCharPositionInLine()).thenReturn(position);
+        Token token = mock(Token.class);
+        when(variable.getToken()).thenReturn(token);
+
+        //VariableSymbol
+        IDefinitionPhaseController definitionPhaseController = mock(IDefinitionPhaseController.class);
+        IVariableSymbol variableSymbol = mock(IVariableSymbol.class);
+        when(definitionPhaseController.defineVariable(
+                any(IScope.class), any(ITSPHPAst.class), any(ITSPHPAst.class), any(ITSPHPAst.class)))
+                .thenReturn(variableSymbol);
+
+
+        //act
+        IVariableDeclarationCreator variableDeclarationCreator
+                = createVariableDeclarationCreator(astModificationHelper, definitionPhaseController);
+        variableDeclarationCreator.create(ast);
+
+        verify(firstChild).getLine();
+        verify(firstChild).getCharPositionInLine();
+        verify(token).setLine(line);
+        verify(token).setCharPositionInLine(position);
     }
 
     @Test
@@ -157,6 +225,12 @@ public class PutAtTopVariableDeclarationCreatorTest
         when(variableDeclarationList.getChild(0)).thenReturn(type);
         ITSPHPAst variable = createAst(TokenTypes.VariableId, variableDeclarationList);
         when(variableDeclarationList.getChild(1)).thenReturn(variable);
+
+        //transfer line and position
+        ITSPHPAst firstChild = mock(ITSPHPAst.class);
+        when(block.getChild(0)).thenReturn(firstChild);
+        Token token = mock(Token.class);
+        when(variable.getToken()).thenReturn(token);
 
         //VariableSymbol
         IDefinitionPhaseController definitionPhaseController = mock(IDefinitionPhaseController.class);
@@ -194,6 +268,12 @@ public class PutAtTopVariableDeclarationCreatorTest
         when(variableDeclarationList.getChild(0)).thenReturn(type);
         ITSPHPAst variable = createAst(TokenTypes.VariableId, variableDeclarationList);
         when(variableDeclarationList.getChild(1)).thenReturn(variable);
+
+        //transfer line and position
+        ITSPHPAst firstChild = mock(ITSPHPAst.class);
+        when(block.getChild(0)).thenReturn(firstChild);
+        Token token = mock(Token.class);
+        when(variable.getToken()).thenReturn(token);
 
         //VariableSymbol
         IDefinitionPhaseController definitionPhaseController = mock(IDefinitionPhaseController.class);
@@ -233,6 +313,12 @@ public class PutAtTopVariableDeclarationCreatorTest
         ITSPHPAst variable = createAst(TokenTypes.VariableId, variableDeclarationList);
         when(variableDeclarationList.getChild(1)).thenReturn(variable);
 
+        //transfer line and position
+        ITSPHPAst firstChild = mock(ITSPHPAst.class);
+        when(block.getChild(0)).thenReturn(firstChild);
+        Token token = mock(Token.class);
+        when(variable.getToken()).thenReturn(token);
+
         //VariableSymbol
         IDefinitionPhaseController definitionPhaseController = mock(IDefinitionPhaseController.class);
         IVariableSymbol variableSymbol = mock(IVariableSymbol.class);
@@ -248,6 +334,55 @@ public class PutAtTopVariableDeclarationCreatorTest
 
 
         verify(astModificationHelper).insertChildAt(block, variableDeclarationList, 0);
+    }
+
+    @Test
+    public void create_InMethod_TransfersLineAndPositionsFromFirstChildToVariableDeclarationList() {
+        ITSPHPAst function = createAst(TokenTypes.METHOD_DECLARATION, null);
+        IMethodSymbol scope = mock(IMethodSymbol.class);
+        when(function.getScope()).thenReturn(scope);
+        ITSPHPAst block = createAst(TokenTypes.BLOCK, function);
+        when(function.getChild(4)).thenReturn(block);
+        ITSPHPAst ast = createAst(TokenTypes.VariableId, block);
+        String variableId = "$a";
+        when(ast.getText()).thenReturn(variableId);
+
+        //variableDeclarationList
+        IAstModificationHelper astModificationHelper = mock(IAstModificationHelper.class);
+        ITSPHPAst variableDeclarationList = mock(ITSPHPAst.class);
+        when(astModificationHelper.getVariableDeclaration(variableId)).thenReturn(variableDeclarationList);
+        ITSPHPAst type = createAst(TokenTypes.TYPE, variableDeclarationList);
+        when(variableDeclarationList.getChild(0)).thenReturn(type);
+        ITSPHPAst variable = createAst(TokenTypes.VariableId, variableDeclarationList);
+        when(variableDeclarationList.getChild(1)).thenReturn(variable);
+
+        //transfer line and position
+        ITSPHPAst firstChild = mock(ITSPHPAst.class);
+        when(block.getChild(0)).thenReturn(firstChild);
+        int line = 12;
+        when(firstChild.getLine()).thenReturn(line);
+        int position = 98;
+        when(firstChild.getCharPositionInLine()).thenReturn(position);
+        Token token = mock(Token.class);
+        when(variable.getToken()).thenReturn(token);
+
+        //VariableSymbol
+        IDefinitionPhaseController definitionPhaseController = mock(IDefinitionPhaseController.class);
+        IVariableSymbol variableSymbol = mock(IVariableSymbol.class);
+        when(definitionPhaseController.defineVariable(
+                any(IScope.class), any(ITSPHPAst.class), any(ITSPHPAst.class), any(ITSPHPAst.class)))
+                .thenReturn(variableSymbol);
+
+
+        //act
+        IVariableDeclarationCreator variableDeclarationCreator
+                = createVariableDeclarationCreator(astModificationHelper, definitionPhaseController);
+        variableDeclarationCreator.create(ast);
+
+        verify(firstChild).getLine();
+        verify(firstChild).getCharPositionInLine();
+        verify(token).setLine(line);
+        verify(token).setCharPositionInLine(position);
     }
 
     private ITSPHPAst createAst(int tokenTypes, ITSPHPAst parent) {

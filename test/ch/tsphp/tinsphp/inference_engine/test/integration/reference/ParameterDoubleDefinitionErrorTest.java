@@ -43,17 +43,11 @@ public class ParameterDoubleDefinitionErrorTest extends AReferenceDefinitionErro
         collection = new ArrayList<>();
 
         addVariations("function foo(", "){return ;}");
-        addVariations("namespace{ function foo(", "){return ;}}");
         addVariations("namespace a; function foo(", "){return ;}");
-        addVariations("namespace a{ function foo(", "){return ;}}");
-        addVariations("namespace a\\b; function foo(", "){return ;}");
         addVariations("namespace a\\b\\z{ function foo(", "){return ;}}");
         //TODO rstoll TINS-161 inference OOP
 //        addVariations("class a{ function void foo(", "){return ;}}");
-//        addVariations("namespace{ class a{function void foo(", "){return ;}}}");
 //        addVariations("namespace a; class b{function void foo(", "){return ;}}");
-//        addVariations("namespace a{ class c{function void foo(", "){return ;}}}");
-//        addVariations("namespace a\\b; class e{function void foo(", "){return ;}}");
 //        addVariations("namespace a\\b\\z{ class m{function void foo(", "){return ;}}}");
         return collection;
     }

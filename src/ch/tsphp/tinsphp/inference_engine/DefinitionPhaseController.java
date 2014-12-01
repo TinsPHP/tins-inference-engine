@@ -154,9 +154,11 @@ public class DefinitionPhaseController implements IDefinitionPhaseController
     }
 
     @Override
-    public void defineVariable(IScope currentScope, ITSPHPAst modifier, ITSPHPAst type, ITSPHPAst variableId) {
+    public IVariableSymbol defineVariable(
+            IScope currentScope, ITSPHPAst modifier, ITSPHPAst type, ITSPHPAst variableId) {
         type.setScope(currentScope);
         IVariableSymbol variableSymbol = symbolFactory.createVariableSymbol(modifier, variableId);
         define(currentScope, variableId, variableSymbol);
+        return variableSymbol;
     }
 }

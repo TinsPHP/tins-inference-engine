@@ -421,6 +421,33 @@ public class ReferencePhaseController implements IReferencePhaseController
     }
 
     @Override
+    public void transferInitialisedSymbolsFromGlobalDefault(ITSPHPAst namespace) {
+        //no need to transfer symbols from default to default
+        if (!namespace.getText().equals("\\")) {
+            transferInitialisedSymbolsFromTo(
+                    globalDefaultNamespace.getInitialisedSymbols(), namespace.getScope().getInitialisedSymbols());
+        }
+    }
+
+    @Override
+    public void transferInitialisedSymbolsToGlobalDefault(ITSPHPAst namespace) {
+        //no need to transfer symbols from default to default
+        if (!namespace.getText().equals("\\")) {
+            transferInitialisedSymbolsFromTo(
+                    namespace.getScope().getInitialisedSymbols(), globalDefaultNamespace.getInitialisedSymbols());
+        }
+    }
+
+    private void transferInitialisedSymbolsFromTo(Map<String, Boolean> from, Map<String, Boolean> to) {
+        for (Map.Entry<String, Boolean> entry : from.entrySet()) {
+            String symbolName = entry.getKey();
+            if (!to.containsKey(symbolName) || !to.get(symbolName)) {
+                to.put(symbolName, entry.getValue());
+            }
+        }
+    }
+
+    @Override
     public void sendUpInitialisedSymbols(ITSPHPAst blockConditional) {
         IScope scope = blockConditional.getScope();
         Map<String, Boolean> enclosingInitialisedSymbols = scope.getEnclosingScope().getInitialisedSymbols();

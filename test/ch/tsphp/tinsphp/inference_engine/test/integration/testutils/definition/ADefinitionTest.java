@@ -23,7 +23,6 @@ import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.core.Core;
 import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPDefinitionWalker;
-import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.scopes.ScopeHelper;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.ATest;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.TestDefinitionPhaseController;
@@ -71,7 +70,7 @@ public abstract class ADefinitionTest extends ATest
     private void init() {
         adaptor = createAstAdaptor();
 
-        scopeHelper = createScopeHelper(inferenceErrorReporter);
+        scopeHelper = createScopeHelper();
         scopeFactory = createTestScopeFactory(scopeHelper);
         modifierHelper = createModifierHelper();
         symbolFactory = createTestSymbolFactory(scopeHelper, modifierHelper);
@@ -113,8 +112,8 @@ public abstract class ADefinitionTest extends ATest
         return new ErrorReportingTinsPHPDefinitionWalker(commonTreeNodeStream, definitionPhaseController);
     }
 
-    protected IScopeHelper createScopeHelper(IInferenceErrorReporter theInferenceErrorReporter) {
-        return new ScopeHelper(theInferenceErrorReporter);
+    protected IScopeHelper createScopeHelper() {
+        return new ScopeHelper();
     }
 
     protected ITSPHPAstAdaptor createAstAdaptor() {

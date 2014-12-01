@@ -50,16 +50,6 @@ public class NotCorrectStartNodeTypeForRulesWithParams extends AReferenceWalkerT
     }
 
     @Test
-    public void block_WrongStartNode_reportNoViableAltException() throws RecognitionException {
-        ITSPHPAst ast = createAst(Try);
-
-        TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
-        walker.block(false);
-
-        verify(walker).reportError(any(NoViableAltException.class));
-    }
-
-    @Test
     public void classInterfaceType_WrongStartNode_reportNoViableAltException() throws RecognitionException {
         ITSPHPAst ast = createAst(Try);
 
@@ -97,96 +87,6 @@ public class NotCorrectStartNodeTypeForRulesWithParams extends AReferenceWalkerT
 
         TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
         walker.constDeclaration(mock(ITypeSymbol.class));
-
-        verify(walker).reportError(any(NoViableAltException.class));
-    }
-
-    @Test
-    public void instructions_WrongStartNode_reportNoViableAltException() throws RecognitionException {
-        ITSPHPAst ast = createAst(Try);
-
-        TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
-        walker.instructions(false);
-
-        verify(walker).reportError(any(NoViableAltException.class));
-    }
-
-    @Test
-    public void instruction_WrongStartNode_reportNoViableAltException() throws RecognitionException {
-        ITSPHPAst ast = createAst(Try);
-
-        TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
-        walker.instruction(false);
-
-        verify(walker).reportError(any(NoViableAltException.class));
-    }
-
-    @Test
-    public void ifCondition_WrongStartNode_reportNoViableAltException() throws RecognitionException {
-        ITSPHPAst ast = createAst(Try);
-
-        TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
-        walker.ifCondition(false);
-
-        verify(walker).reportError(any(NoViableAltException.class));
-    }
-
-    @Test
-    public void blockConditional_WrongStartNode_reportNoViableAltException() throws RecognitionException {
-        ITSPHPAst ast = createAst(Try);
-
-        TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
-        walker.blockConditional(false);
-
-        verify(walker).reportError(any(NoViableAltException.class));
-    }
-
-    @Test
-    public void switchCondition_WrongStartNode_reportNoViableAltException() throws RecognitionException {
-        ITSPHPAst ast = createAst(Try);
-
-        TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
-        walker.switchCondition(false);
-
-        verify(walker).reportError(any(NoViableAltException.class));
-    }
-
-    @Test
-    public void switchContents_WrongStartNode_reportNoViableAltException() throws RecognitionException {
-        ITSPHPAst ast = createAst(Try);
-
-        TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
-        walker.switchContents(false);
-
-        verify(walker).reportError(any(NoViableAltException.class));
-    }
-
-    @Test
-    public void doWhileLoop_WrongStartNode_reportNoViableAltException() throws RecognitionException {
-        ITSPHPAst ast = createAst(Try);
-
-        TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
-        walker.doWhileLoop(false);
-
-        verify(walker).reportError(any(NoViableAltException.class));
-    }
-
-    @Test
-    public void tryCatch_WrongStartNode_reportNoViableAltException() throws RecognitionException {
-        ITSPHPAst ast = createAst(Try);
-
-        TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
-        walker.tryCatch(false);
-
-        verify(walker).reportError(any(NoViableAltException.class));
-    }
-
-    @Test
-    public void catchBlocks_WrongStartNode_reportNoViableAltException() throws RecognitionException {
-        ITSPHPAst ast = createAst(Try);
-
-        TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
-        walker.catchBlocks(false);
 
         verify(walker).reportError(any(NoViableAltException.class));
     }

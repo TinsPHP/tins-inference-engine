@@ -17,11 +17,9 @@ import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.LowerCaseStringMap;
 import ch.tsphp.common.symbols.ISymbol;
-import ch.tsphp.tinsphp.common.scopes.IAlreadyDefinedMethodCaller;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
-import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.scopes.ScopeHelper;
 import org.junit.Test;
 
@@ -39,7 +37,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class ScopeHelperTest
@@ -257,174 +254,6 @@ public class ScopeHelperTest
         verify(symbol2).setDefinitionScope(scope);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void doubleDefinitionCheck_NoSymbol_ThrowNullPointer() {
-        ISymbol symbol = createSymbol(SYMBOL_NAME);
-        Map<String, List<ISymbol>> symbols = new HashMap<>();
-
-        IScopeHelper scopeHelper = createScopeHelper();
-        scopeHelper.checkIsNotDoubleDefinition(symbols, symbol);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void doubleDefinitionCheckWithReporter_NoSymbol_ThrowNullPointer() {
-        ISymbol symbol = createSymbol(SYMBOL_NAME);
-        Map<String, List<ISymbol>> symbols = new HashMap<>();
-        IAlreadyDefinedMethodCaller reporter = mock(IAlreadyDefinedMethodCaller.class);
-
-        IScopeHelper scopeHelper = createScopeHelper();
-        scopeHelper.checkIsNotDoubleDefinition(symbols, symbol, reporter);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void doubleDefinitionCheck_SymbolNotInSymbols_ThrowNullPointer() {
-        ISymbol symbol = createSymbol(SYMBOL_NAME);
-        Map<String, List<ISymbol>> symbols = createSymbolsForStandardName(symbol);
-
-        ISymbol wrongSymbol = createSymbol("wrongSymbol");
-
-        IScopeHelper scopeHelper = createScopeHelper();
-        scopeHelper.checkIsNotDoubleDefinition(symbols, wrongSymbol);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void doubleDefinitionCheckWithReporter_SymbolNotInSymbols_ThrowNullPointer() {
-        ISymbol symbol = createSymbol(SYMBOL_NAME);
-        Map<String, List<ISymbol>> symbols = createSymbolsForStandardName(symbol);
-        IAlreadyDefinedMethodCaller reporter = mock(IAlreadyDefinedMethodCaller.class);
-
-        ISymbol wrongSymbol = createSymbol("wrongSymbol");
-
-        IScopeHelper scopeHelper = createScopeHelper();
-        scopeHelper.checkIsNotDoubleDefinition(symbols, wrongSymbol, reporter);
-    }
-
-    @Test
-    public void doubleDefinitionCheck_DefinedOnce_ReturnsTrue() {
-        ISymbol symbol = createSymbol(SYMBOL_NAME);
-        Map<String, List<ISymbol>> symbols = createSymbolsForStandardName(symbol);
-
-        IScopeHelper scopeHelper = createScopeHelper();
-        boolean result = scopeHelper.checkIsNotDoubleDefinition(symbols, symbol);
-
-        assertThat(result, is(true));
-    }
-
-    @Test
-    public void doubleDefinitionCheckWithReporter_DefinedOnce_ReturnsTrue() {
-        ISymbol symbol = createSymbol(SYMBOL_NAME);
-        Map<String, List<ISymbol>> symbols = createSymbolsForStandardName(symbol);
-        IAlreadyDefinedMethodCaller reporter = mock(IAlreadyDefinedMethodCaller.class);
-
-        IScopeHelper scopeHelper = createScopeHelper();
-        boolean result = scopeHelper.checkIsNotDoubleDefinition(symbols, symbol, reporter);
-
-        assertThat(result, is(true));
-        verifyNoMoreInteractions(reporter);
-    }
-
-    @Test
-    public void doubleDefinitionCheck_DefinedTwiceCheckingFirst_ReturnsTrue() {
-        ISymbol symbol1 = createSymbol(SYMBOL_NAME);
-        ISymbol symbol2 = createSymbol(SYMBOL_NAME);
-        Map<String, List<ISymbol>> symbols = createSymbolsForStandardName(symbol1, symbol2);
-
-        IScopeHelper scopeHelper = createScopeHelper();
-        boolean result = scopeHelper.checkIsNotDoubleDefinition(symbols, symbol1);
-
-        assertThat(result, is(true));
-    }
-
-    @Test
-    public void doubleDefinitionCheckWithReporter_DefinedTwiceCheckingFirst_ReturnsTrue() {
-        ISymbol symbol1 = createSymbol(SYMBOL_NAME);
-        ISymbol symbol2 = createSymbol(SYMBOL_NAME);
-        Map<String, List<ISymbol>> symbols = createSymbolsForStandardName(symbol1, symbol2);
-        IAlreadyDefinedMethodCaller reporter = mock(IAlreadyDefinedMethodCaller.class);
-
-        IScopeHelper scopeHelper = createScopeHelper();
-        boolean result = scopeHelper.checkIsNotDoubleDefinition(symbols, symbol1, reporter);
-
-        assertThat(result, is(true));
-        verifyNoMoreInteractions(reporter);
-    }
-
-    @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-    @Test
-    public void doubleDefinitionCheck_DefinedTwiceCheckingSecond_ReturnsFalse() {
-        IInferenceErrorReporter errorReporter = mock(IInferenceErrorReporter.class);
-        ISymbol symbol1 = createSymbol(SYMBOL_NAME);
-        ISymbol symbol2 = createSymbol(SYMBOL_NAME);
-        Map<String, List<ISymbol>> symbols = createSymbolsForStandardName(symbol1, symbol2);
-
-        IScopeHelper scopeHelper = createScopeHelper(errorReporter);
-        boolean result = scopeHelper.checkIsNotDoubleDefinition(symbols, symbol2);
-
-        assertThat(result, is(false));
-        verify(errorReporter).alreadyDefined(symbol1, symbol2);
-    }
-
-    @Test
-    public void doubleDefinitionCheckWithReport_DefinedTwiceCheckingSecond_ReturnsFalse() {
-        ISymbol symbol1 = createSymbol(SYMBOL_NAME);
-        ISymbol symbol2 = createSymbol(SYMBOL_NAME);
-        Map<String, List<ISymbol>> symbols = createSymbolsForStandardName(symbol1, symbol2);
-        IAlreadyDefinedMethodCaller reporter = mock(IAlreadyDefinedMethodCaller.class);
-
-        IScopeHelper scopeHelper = createScopeHelper();
-        boolean result = scopeHelper.checkIsNotDoubleDefinition(symbols, symbol2, reporter);
-
-        assertThat(result, is(false));
-        verify(reporter).callAccordingAlreadyDefinedMethod(symbol1, symbol2);
-    }
-
-    @Test
-    public void getCorrespondingGlobalNamespace_GlobalNamespaceNotInMap_ReturnNull() {
-        ILowerCaseStringMap<IGlobalNamespaceScope> scopes = new LowerCaseStringMap<>();
-
-        IScopeHelper scopeHelper = createScopeHelper();
-        IGlobalNamespaceScope result = scopeHelper.getCorrespondingGlobalNamespace(scopes, "\\notExistingGlobalScope");
-
-        assertNull(result);
-    }
-
-    @Test
-    public void getCorrespondingGlobalNamespace_NamespaceInMapButNotSubNamespace_ReturnNull() {
-        ILowerCaseStringMap<IGlobalNamespaceScope> scopes = new LowerCaseStringMap<>();
-        IGlobalNamespaceScope globalNamespaceScope = mock(IGlobalNamespaceScope.class);
-        scopes.put("\\a\\", globalNamespaceScope);
-
-        IScopeHelper scopeHelper = createScopeHelper();
-        IGlobalNamespaceScope result = scopeHelper.getCorrespondingGlobalNamespace(scopes, "\\a\\b\\");
-
-        assertNull(result);
-    }
-
-
-    @Test
-    public void getCorrespondingGlobalNamespace_NamespaceName_ReturnCorrespondingGlobalNamespace() {
-        ILowerCaseStringMap<IGlobalNamespaceScope> scopes = new LowerCaseStringMap<>();
-        IGlobalNamespaceScope globalNamespaceScope = mock(IGlobalNamespaceScope.class);
-        scopes.put("\\a\\", globalNamespaceScope);
-
-        IScopeHelper scopeHelper = createScopeHelper();
-        IGlobalNamespaceScope result = scopeHelper.getCorrespondingGlobalNamespace(scopes, "\\a\\");
-
-        assertThat(result, is(globalNamespaceScope));
-    }
-
-    @Test
-    public void getCorrespondingGlobalNamespace_SubNamespaceName_ReturnCorrespondingGlobalNamespace() {
-        ILowerCaseStringMap<IGlobalNamespaceScope> scopes = new LowerCaseStringMap<>();
-        IGlobalNamespaceScope globalNamespaceScope = mock(IGlobalNamespaceScope.class);
-        scopes.put("\\a\\b\\", globalNamespaceScope);
-
-        IScopeHelper scopeHelper = createScopeHelper();
-        IGlobalNamespaceScope result = scopeHelper.getCorrespondingGlobalNamespace(scopes, "\\a\\b\\");
-
-        assertThat(result, is(globalNamespaceScope));
-    }
-
     @Test
     public void resolve_NotInScope_ReturnNull() {
         IScope scope = createScope(new HashMap<String, List<ISymbol>>());
@@ -459,6 +288,52 @@ public class ScopeHelperTest
         ISymbol result = scopeHelper.resolve(scope, ast);
 
         assertThat(result, is(symbol));
+    }
+
+    @Test
+    public void getCorrespondingGlobalNamespace_GlobalNamespaceNotInMap_ReturnNull() {
+        ILowerCaseStringMap<IGlobalNamespaceScope> scopes = new LowerCaseStringMap<>();
+
+        IScopeHelper scopeHelper = createScopeHelper();
+        IGlobalNamespaceScope result = scopeHelper.getCorrespondingGlobalNamespace(scopes, "\\notExistingGlobalScope");
+
+        assertNull(result);
+    }
+
+    @Test
+    public void getCorrespondingGlobalNamespace_NamespaceInMapButNotSubNamespace_ReturnNull() {
+        ILowerCaseStringMap<IGlobalNamespaceScope> scopes = new LowerCaseStringMap<>();
+        IGlobalNamespaceScope globalNamespaceScope = mock(IGlobalNamespaceScope.class);
+        scopes.put("\\a\\", globalNamespaceScope);
+
+        IScopeHelper scopeHelper = createScopeHelper();
+        IGlobalNamespaceScope result = scopeHelper.getCorrespondingGlobalNamespace(scopes, "\\a\\b\\");
+
+        assertNull(result);
+    }
+
+    @Test
+    public void getCorrespondingGlobalNamespace_NamespaceName_ReturnCorrespondingGlobalNamespace() {
+        ILowerCaseStringMap<IGlobalNamespaceScope> scopes = new LowerCaseStringMap<>();
+        IGlobalNamespaceScope globalNamespaceScope = mock(IGlobalNamespaceScope.class);
+        scopes.put("\\a\\", globalNamespaceScope);
+
+        IScopeHelper scopeHelper = createScopeHelper();
+        IGlobalNamespaceScope result = scopeHelper.getCorrespondingGlobalNamespace(scopes, "\\a\\");
+
+        assertThat(result, is(globalNamespaceScope));
+    }
+
+    @Test
+    public void getCorrespondingGlobalNamespace_SubNamespaceName_ReturnCorrespondingGlobalNamespace() {
+        ILowerCaseStringMap<IGlobalNamespaceScope> scopes = new LowerCaseStringMap<>();
+        IGlobalNamespaceScope globalNamespaceScope = mock(IGlobalNamespaceScope.class);
+        scopes.put("\\a\\b\\", globalNamespaceScope);
+
+        IScopeHelper scopeHelper = createScopeHelper();
+        IGlobalNamespaceScope result = scopeHelper.getCorrespondingGlobalNamespace(scopes, "\\a\\b\\");
+
+        assertThat(result, is(globalNamespaceScope));
     }
 
     @Test
@@ -513,13 +388,8 @@ public class ScopeHelperTest
 //    }
 
     protected ScopeHelper createScopeHelper() {
-        return createScopeHelper(mock(IInferenceErrorReporter.class));
+        return new ScopeHelper();
     }
-
-    protected ScopeHelper createScopeHelper(IInferenceErrorReporter typeCheckerErrorReporter) {
-        return new ScopeHelper(typeCheckerErrorReporter);
-    }
-
 
     private Map<String, List<ISymbol>> createSymbolsForStandardName(ISymbol... symbols) {
         Map<String, List<ISymbol>> map = new HashMap<>();
@@ -529,7 +399,6 @@ public class ScopeHelperTest
 
         return map;
     }
-
 
     private IScope createScope(Map<String, List<ISymbol>> symbols) {
         IScope scope = mock(IScope.class);

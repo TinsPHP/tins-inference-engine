@@ -18,6 +18,7 @@ import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeFactory;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
+import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.inference_engine.DefinitionPhaseController;
 import ch.tsphp.tinsphp.inference_engine.IDefinitionPhaseController;
 
@@ -91,9 +92,11 @@ public class TestDefinitionPhaseController extends DefinitionPhaseController imp
     }
 
     @Override
-    public void defineVariable(IScope currentScope, ITSPHPAst modifier, ITSPHPAst type, ITSPHPAst variableId) {
-        super.defineVariable(currentScope, modifier, type, variableId);
+    public IVariableSymbol defineVariable(IScope currentScope, ITSPHPAst modifier, ITSPHPAst type,
+            ITSPHPAst variableId) {
+        IVariableSymbol variableSymbol = super.defineVariable(currentScope, modifier, type, variableId);
         symbols.add(new HashMap.SimpleEntry<>(newlyCreatedSymbol, type));
+        return variableSymbol;
     }
 
     @Override

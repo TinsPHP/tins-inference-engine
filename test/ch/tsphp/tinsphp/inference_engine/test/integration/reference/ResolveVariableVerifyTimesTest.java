@@ -54,37 +54,28 @@ public class ResolveVariableVerifyTimesTest extends AVerifyTimesReferenceTest
 
         //global constants
         addVariations("", "");
-        addVariations("namespace{", "}");
         addVariations("namespace a;", "");
-        addVariations("namespace a{", "}");
-        addVariations("namespace a\\b;", "");
         addVariations("namespace a\\b\\z{", "}");
 
         //functions
         addVariations("function foo(){", "return;}");
-        addVariations("namespace{function foo(){", "return;}}");
         addVariations("namespace a;function foo(){", "return;}");
-        addVariations("namespace a{function foo(){", "return;}}");
-        addVariations("namespace a\\b;function foo(){", "return;}");
         addVariations("namespace a\\b\\z{function foo(){", "return;}}");
 
         //methods
         //TODO rstoll TINS-161 inference OOP
 //        addVariations("class a{ function foo(){", "return;}}");
-//        addVariations("namespace{ class a{ function foo(){", "return;}}}");
 //        addVariations("namespace a; class a{ function foo(){", "return;}}");
-//        addVariations("namespace a{ class a { function foo(){", "return;}}}");
-//        addVariations("namespace a\\b; class a{ function foo(){", "return;}}");
 //        addVariations("namespace a\\b\\z{ class a{ function foo(){", "return;}}}");
 
         collection.addAll(Arrays.asList(new Object[][]{
                 //same namespace
-                {"namespace{$a;} namespace{$a=1;}", 2},
-                {"namespace a{$a;} namespace a{$a=1;}", 2},
-                {"namespace b\\c{$a;} namespace b\\c{$a=1;}", 2},
-                {"namespace d\\e\\f{$a;} namespace d\\e\\f{$a=1;}", 2},
+                {"namespace{$a=1;} namespace{$a;}", 2},
+                {"namespace a{$a=1;} namespace a{$a;}", 2},
+                {"namespace b\\c{$a=1;} namespace b\\c{$a;}", 2},
+                {"namespace d\\e\\f{$a=1;} namespace d\\e\\f{$a;}", 2},
                 //different namespaces - no error since PHP namespace variables are implicitly global by default
-                {"namespace{$a;} namespace a{$a;} namespace b\\c{$a;}", 3}
+                {"namespace{$a=1;} namespace a{$a;} namespace b\\c{$a;}", 3}
         }));
 
         return collection;
@@ -121,7 +112,7 @@ public class ResolveVariableVerifyTimesTest extends AVerifyTimesReferenceTest
                 //definition in for header is accessible from outer scope in PHP
                 {prefix + "for($a=1;;){} $a;" + appendix, 2},
                 //definition in an catch header is accessible from outer scope
-                {prefix + "try{}catch(\\Exception $e){} $e;" + appendix, 2},
+                {prefix + "try{}catch(\\Exception $e){} $e=1;" + appendix, 2},
                 //do while does not create a conditional scope
                 {prefix + "do $a=0; while(true); $a;" + appendix, 2},
                 {prefix + "do{ $a=0; if(true){$a;} }while(true);" + appendix, 2},

@@ -64,6 +64,10 @@ public interface IReferencePhaseController
 
     boolean checkIsVariableInitialised(ITSPHPAst variableId);
 
+    void transferInitialisedSymbolsFromGlobalDefault(ITSPHPAst namespace);
+
+    void transferInitialisedSymbolsToGlobalDefault(ITSPHPAst namespace);
+
     void sendUpInitialisedSymbols(ITSPHPAst blockConditional);
 
     void sendUpInitialisedSymbolsAfterIf(ITSPHPAst ifBlock, ITSPHPAst elseBlock);

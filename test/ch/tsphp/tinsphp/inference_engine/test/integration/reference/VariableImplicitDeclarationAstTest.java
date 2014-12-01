@@ -6,7 +6,11 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.reference;
 
+import ch.tsphp.tinsphp.common.symbols.resolver.IVariableDeclarationCreator;
+import ch.tsphp.tinsphp.inference_engine.IDefinitionPhaseController;
+import ch.tsphp.tinsphp.inference_engine.resolver.PutAtTopVariableDeclarationCreator;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference.AReferenceAstTest;
+import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 import org.antlr.runtime.RecognitionException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,6 +30,11 @@ public class VariableImplicitDeclarationAstTest extends AReferenceAstTest
     @Test
     public void test() throws RecognitionException {
         check();
+    }
+
+    protected IVariableDeclarationCreator createVariableDeclarationCreator(
+            IAstModificationHelper theAstModificationHelper, IDefinitionPhaseController theDefinitionPhaseController) {
+        return new PutAtTopVariableDeclarationCreator(theAstModificationHelper, theDefinitionPhaseController);
     }
 
     @Parameterized.Parameters

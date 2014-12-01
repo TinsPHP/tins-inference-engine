@@ -99,7 +99,10 @@ exitScope
     
 namespaceDefinition
     :   ^(Namespace t=(TYPE_NAME|DEFAULT_NAMESPACE) .)
-        {currentScope = definer.defineNamespace($t.text); }
+        {
+            currentScope = definer.defineNamespace($t.text);
+            $Namespace.setScope(currentScope);
+        }
     ;
 
 useDefinitionList
@@ -131,11 +134,14 @@ constructDefinition
 methodFunctionDefinition
     :   ^(  //TODO rstoll TINS-161 inference OOP  
             //(   METHOD_DECLARATION
-               Function
+               def=Function
             //)
             mMod=. ^(TYPE rtMod=. returnType=.) Identifier . .
         )
-        {currentScope = definer.defineMethod(currentScope,$mMod, $rtMod, $returnType, $Identifier); }
+        {
+          currentScope = definer.defineMethod(currentScope,$mMod, $rtMod, $returnType, $Identifier); 
+          $def.setScope(currentScope);
+        }
     ;
 
 blockConditional
