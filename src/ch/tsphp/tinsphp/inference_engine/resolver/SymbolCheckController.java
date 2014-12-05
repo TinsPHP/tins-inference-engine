@@ -18,7 +18,6 @@ import ch.tsphp.tinsphp.common.symbols.resolver.DoubleDefinitionCheckResultDto;
 import ch.tsphp.tinsphp.common.symbols.resolver.ForwardReferenceCheckResultDto;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolver;
-import ch.tsphp.tinsphp.common.symbols.resolver.ITypeSymbolResolver;
 import ch.tsphp.tinsphp.common.symbols.resolver.VariableInitialisedResultDto;
 import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
 
@@ -26,19 +25,13 @@ import java.util.List;
 
 public class SymbolCheckController implements ISymbolCheckController
 {
-    private final ITypeSymbolResolver typeSymbolResolver;
     private final ISymbolResolver userSymbolResolver;
-    private final ISymbolResolver coreSymbolResolver;
     private final List<ISymbolResolver> symbolResolvers;
 
 
     public SymbolCheckController(
-            ITypeSymbolResolver theTypeSymbolResolver, ISymbolResolver theUserSymbolResolver,
-            ISymbolResolver theCoreSymbolResolver,
-            List<ISymbolResolver> additionalSymbolResolvers) {
-        typeSymbolResolver = theTypeSymbolResolver;
+            ISymbolResolver theUserSymbolResolver, List<ISymbolResolver> additionalSymbolResolvers) {
         userSymbolResolver = theUserSymbolResolver;
-        coreSymbolResolver = theCoreSymbolResolver;
         symbolResolvers = additionalSymbolResolvers;
     }
 
@@ -59,13 +52,11 @@ public class SymbolCheckController implements ISymbolCheckController
 
     @Override
     public DoubleDefinitionCheckResultDto isNotDoubleDefinition(ITSPHPAst identifier) {
-        ISymbol firstDefinitionSymbol = coreSymbolResolver.resolveIdentifierFromItsScope(identifier);
-        if (firstDefinitionSymbol == null) {
-            for (ISymbolResolver symbolResolver : symbolResolvers) {
-                firstDefinitionSymbol = symbolResolver.resolveIdentifierFromItsScope(identifier);
-                if (firstDefinitionSymbol != null) {
-                    break;
-                }
+        ISymbol firstDefinitionSymbol = null;
+        for (ISymbolResolver symbolResolver : symbolResolvers) {
+            firstDefinitionSymbol = symbolResolver.resolveIdentifierFromItsScope(identifier);
+            if (firstDefinitionSymbol != null) {
+                break;
             }
         }
         if (firstDefinitionSymbol == null) {
@@ -82,23 +73,26 @@ public class SymbolCheckController implements ISymbolCheckController
 
     @Override
     public DoubleDefinitionCheckResultDto isNotDoubleDefinitionCaseInsensitive(ITSPHPAst identifier) {
-        ISymbol firstDefinitionSymbol = coreSymbolResolver.resolveIdentifierFromItsScopeCaseInsensitive(identifier);
-        if (firstDefinitionSymbol == null) {
-            for (ISymbolResolver symbolResolver : symbolResolvers) {
-                firstDefinitionSymbol = symbolResolver.resolveIdentifierFromItsScopeCaseInsensitive(identifier);
-                if (firstDefinitionSymbol != null) {
-                    break;
-                }
+        ISymbol firstDefinitionSymbol = resolveIdentifierFromItsScopeCaseInsensitive(identifier);
+        return createDoubleDefinitionCheckResultDto(firstDefinitionSymbol, identifier.getSymbol());
+    }
+
+    private ISymbol resolveIdentifierFromItsScopeCaseInsensitive(ITSPHPAst identifier) {
+        ISymbol firstDefinitionSymbol = null;
+        for (ISymbolResolver symbolResolver : symbolResolvers) {
+            firstDefinitionSymbol = symbolResolver.resolveIdentifierFromItsScopeCaseInsensitive(identifier);
+            if (firstDefinitionSymbol != null) {
+                break;
             }
         }
         if (firstDefinitionSymbol == null) {
             firstDefinitionSymbol = userSymbolResolver.resolveIdentifierFromItsScopeCaseInsensitive(identifier);
         }
-        return createDoubleDefinitionCheckResultDto(firstDefinitionSymbol, identifier.getSymbol());
+        return firstDefinitionSymbol;
     }
 
     @Override
-    public DoubleDefinitionCheckResultDto isNotDoubleUseDefinition(ITSPHPAst alias) {
+    public DoubleDefinitionCheckResultDto isNotUseDoubleDefinition(ITSPHPAst alias) {
         ISymbol symbol = alias.getSymbol();
         ISymbol firstSymbol = ((INamespaceScope) symbol.getDefinitionScope())
                 .getCaseInsensitiveFirstUseSymbol(alias.getText());
@@ -108,7 +102,8 @@ public class SymbolCheckController implements ISymbolCheckController
 
     @Override
     public AlreadyDefinedAsTypeResultDto isNotAlreadyDefinedAsType(ITSPHPAst alias) {
-        ITypeSymbol typeSymbol = typeSymbolResolver.resolveTypeFor(alias);
+        ITypeSymbol typeSymbol = (ITypeSymbol) resolveIdentifierFromItsScopeCaseInsensitive(alias);
+
         AlreadyDefinedAsTypeResultDto result = new AlreadyDefinedAsTypeResultDto(typeSymbol == null, typeSymbol);
 
         if (!result.isNotAlreadyDefinedAsType) {

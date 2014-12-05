@@ -16,7 +16,6 @@ import ch.tsphp.tinsphp.common.symbols.resolver.DoubleDefinitionCheckResultDto;
 import ch.tsphp.tinsphp.common.symbols.resolver.ForwardReferenceCheckResultDto;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolver;
-import ch.tsphp.tinsphp.common.symbols.resolver.ITypeSymbolResolver;
 import ch.tsphp.tinsphp.inference_engine.resolver.SymbolCheckController;
 import org.junit.Test;
 
@@ -84,6 +83,33 @@ public class SymbolCheckControllerTest
     }
 
     @Test
+    public void isNotDoubleDefinition_IsFirstFoundByCore_ReturnsTrueAndSymbolFromCore() {
+        ISymbol firstSymbol = mock(ISymbol.class);
+        ITSPHPAst ast = mock(ITSPHPAst.class);
+        when(ast.getSymbol()).thenReturn(firstSymbol);
+        ISymbolResolver userSymbolResolver = mock(ISymbolResolver.class);
+        ISymbolResolver coreSymbolResolver = mock(ISymbolResolver.class);
+        ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
+        ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
+        List<ISymbolResolver> additionalSymbolResolvers = new ArrayList<>(Arrays.asList(
+                coreSymbolResolver,
+                additionalSymbolResolver1,
+                additionalSymbolResolver2));
+        when(coreSymbolResolver.resolveIdentifierFromItsScope(ast)).thenReturn(firstSymbol);
+
+        ISymbolCheckController controller
+                = createController(userSymbolResolver, additionalSymbolResolvers);
+        DoubleDefinitionCheckResultDto result = controller.isNotDoubleDefinition(ast);
+
+        verify(coreSymbolResolver).resolveIdentifierFromItsScope(ast);
+        verifyZeroInteractions(additionalSymbolResolver1);
+        verifyZeroInteractions(additionalSymbolResolver2);
+        verifyZeroInteractions(userSymbolResolver);
+        assertThat(result.isNotDoubleDefinition, is(true));
+        assertThat(result.existingSymbol, is(firstSymbol));
+    }
+
+    @Test
     public void isNotDoubleDefinition_IsNotFirstFoundByCore_ReturnsFalseAndSymbolFromCore() {
         ISymbol firstSymbol = mock(ISymbol.class);
         ITSPHPAst ast = mock(ITSPHPAst.class);
@@ -93,12 +119,14 @@ public class SymbolCheckControllerTest
         ISymbolResolver coreSymbolResolver = mock(ISymbolResolver.class);
         ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
         ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
-        List<ISymbolResolver> additionalSymbolResolvers
-                = new ArrayList<>(Arrays.asList(additionalSymbolResolver1, additionalSymbolResolver2));
+        List<ISymbolResolver> additionalSymbolResolvers = new ArrayList<>(Arrays.asList(
+                coreSymbolResolver,
+                additionalSymbolResolver1,
+                additionalSymbolResolver2));
         when(coreSymbolResolver.resolveIdentifierFromItsScope(ast)).thenReturn(firstSymbol);
 
         ISymbolCheckController controller
-                = createController(userSymbolResolver, coreSymbolResolver, additionalSymbolResolvers);
+                = createController(userSymbolResolver, additionalSymbolResolvers);
         DoubleDefinitionCheckResultDto result = controller.isNotDoubleDefinition(ast);
 
         verify(coreSymbolResolver).resolveIdentifierFromItsScope(ast);
@@ -106,6 +134,33 @@ public class SymbolCheckControllerTest
         verifyZeroInteractions(additionalSymbolResolver2);
         verifyZeroInteractions(userSymbolResolver);
         assertThat(result.isNotDoubleDefinition, is(false));
+        assertThat(result.existingSymbol, is(firstSymbol));
+    }
+
+    @Test
+    public void isNotDoubleDefinition_IsFirstFoundByAdditional1_ReturnsTrueAndSymbolFromAdditional1() {
+        ISymbol firstSymbol = mock(ISymbol.class);
+        ITSPHPAst ast = mock(ITSPHPAst.class);
+        when(ast.getSymbol()).thenReturn(firstSymbol);
+        ISymbolResolver userSymbolResolver = mock(ISymbolResolver.class);
+        ISymbolResolver coreSymbolResolver = mock(ISymbolResolver.class);
+        ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
+        ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
+        List<ISymbolResolver> additionalSymbolResolvers = new ArrayList<>(Arrays.asList(
+                coreSymbolResolver,
+                additionalSymbolResolver1,
+                additionalSymbolResolver2));
+        when(additionalSymbolResolver1.resolveIdentifierFromItsScope(ast)).thenReturn(firstSymbol);
+
+        ISymbolCheckController controller
+                = createController(userSymbolResolver, additionalSymbolResolvers);
+        DoubleDefinitionCheckResultDto result = controller.isNotDoubleDefinition(ast);
+
+        verify(coreSymbolResolver).resolveIdentifierFromItsScope(ast);
+        verify(additionalSymbolResolver1).resolveIdentifierFromItsScope(ast);
+        verifyZeroInteractions(additionalSymbolResolver2);
+        verifyZeroInteractions(userSymbolResolver);
+        assertThat(result.isNotDoubleDefinition, is(true));
         assertThat(result.existingSymbol, is(firstSymbol));
     }
 
@@ -119,12 +174,14 @@ public class SymbolCheckControllerTest
         ISymbolResolver coreSymbolResolver = mock(ISymbolResolver.class);
         ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
         ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
-        List<ISymbolResolver> additionalSymbolResolvers
-                = new ArrayList<>(Arrays.asList(additionalSymbolResolver1, additionalSymbolResolver2));
+        List<ISymbolResolver> additionalSymbolResolvers = new ArrayList<>(Arrays.asList(
+                coreSymbolResolver,
+                additionalSymbolResolver1,
+                additionalSymbolResolver2));
         when(additionalSymbolResolver1.resolveIdentifierFromItsScope(ast)).thenReturn(firstSymbol);
 
         ISymbolCheckController controller
-                = createController(userSymbolResolver, coreSymbolResolver, additionalSymbolResolvers);
+                = createController(userSymbolResolver, additionalSymbolResolvers);
         DoubleDefinitionCheckResultDto result = controller.isNotDoubleDefinition(ast);
 
         verify(coreSymbolResolver).resolveIdentifierFromItsScope(ast);
@@ -132,6 +189,33 @@ public class SymbolCheckControllerTest
         verifyZeroInteractions(additionalSymbolResolver2);
         verifyZeroInteractions(userSymbolResolver);
         assertThat(result.isNotDoubleDefinition, is(false));
+        assertThat(result.existingSymbol, is(firstSymbol));
+    }
+
+    @Test
+    public void isNotDoubleDefinition_IsFirstFoundByAdditional2_ReturnsTrueAndSymbolFromAdditional2() {
+        ISymbol firstSymbol = mock(ISymbol.class);
+        ITSPHPAst ast = mock(ITSPHPAst.class);
+        when(ast.getSymbol()).thenReturn(firstSymbol);
+        ISymbolResolver userSymbolResolver = mock(ISymbolResolver.class);
+        ISymbolResolver coreSymbolResolver = mock(ISymbolResolver.class);
+        ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
+        ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
+        List<ISymbolResolver> additionalSymbolResolvers = new ArrayList<>(Arrays.asList(
+                coreSymbolResolver,
+                additionalSymbolResolver1,
+                additionalSymbolResolver2));
+        when(additionalSymbolResolver2.resolveIdentifierFromItsScope(ast)).thenReturn(firstSymbol);
+
+        ISymbolCheckController controller
+                = createController(userSymbolResolver, additionalSymbolResolvers);
+        DoubleDefinitionCheckResultDto result = controller.isNotDoubleDefinition(ast);
+
+        verify(coreSymbolResolver).resolveIdentifierFromItsScope(ast);
+        verify(additionalSymbolResolver1).resolveIdentifierFromItsScope(ast);
+        verify(additionalSymbolResolver2).resolveIdentifierFromItsScope(ast);
+        verifyZeroInteractions(userSymbolResolver);
+        assertThat(result.isNotDoubleDefinition, is(true));
         assertThat(result.existingSymbol, is(firstSymbol));
     }
 
@@ -145,12 +229,14 @@ public class SymbolCheckControllerTest
         ISymbolResolver coreSymbolResolver = mock(ISymbolResolver.class);
         ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
         ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
-        List<ISymbolResolver> additionalSymbolResolvers
-                = new ArrayList<>(Arrays.asList(additionalSymbolResolver1, additionalSymbolResolver2));
+        List<ISymbolResolver> additionalSymbolResolvers = new ArrayList<>(Arrays.asList(
+                coreSymbolResolver,
+                additionalSymbolResolver1,
+                additionalSymbolResolver2));
         when(additionalSymbolResolver2.resolveIdentifierFromItsScope(ast)).thenReturn(firstSymbol);
 
         ISymbolCheckController controller
-                = createController(userSymbolResolver, coreSymbolResolver, additionalSymbolResolvers);
+                = createController(userSymbolResolver, additionalSymbolResolvers);
         DoubleDefinitionCheckResultDto result = controller.isNotDoubleDefinition(ast);
 
         verify(coreSymbolResolver).resolveIdentifierFromItsScope(ast);
@@ -158,6 +244,33 @@ public class SymbolCheckControllerTest
         verify(additionalSymbolResolver2).resolveIdentifierFromItsScope(ast);
         verifyZeroInteractions(userSymbolResolver);
         assertThat(result.isNotDoubleDefinition, is(false));
+        assertThat(result.existingSymbol, is(firstSymbol));
+    }
+
+    @Test
+    public void isNotDoubleDefinition_IsFirstFoundByUser_ReturnsTrueAndSymbolFromUser() {
+        ISymbol firstSymbol = mock(ISymbol.class);
+        ITSPHPAst ast = mock(ITSPHPAst.class);
+        when(ast.getSymbol()).thenReturn(firstSymbol);
+        ISymbolResolver userSymbolResolver = mock(ISymbolResolver.class);
+        ISymbolResolver coreSymbolResolver = mock(ISymbolResolver.class);
+        ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
+        ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
+        List<ISymbolResolver> additionalSymbolResolvers = new ArrayList<>(Arrays.asList(
+                coreSymbolResolver,
+                additionalSymbolResolver1,
+                additionalSymbolResolver2));
+        when(userSymbolResolver.resolveIdentifierFromItsScope(ast)).thenReturn(firstSymbol);
+
+        ISymbolCheckController controller
+                = createController(userSymbolResolver, additionalSymbolResolvers);
+        DoubleDefinitionCheckResultDto result = controller.isNotDoubleDefinition(ast);
+
+        verify(coreSymbolResolver).resolveIdentifierFromItsScope(ast);
+        verify(additionalSymbolResolver1).resolveIdentifierFromItsScope(ast);
+        verify(additionalSymbolResolver2).resolveIdentifierFromItsScope(ast);
+        verify(userSymbolResolver).resolveIdentifierFromItsScope(ast);
+        assertThat(result.isNotDoubleDefinition, is(true));
         assertThat(result.existingSymbol, is(firstSymbol));
     }
 
@@ -171,12 +284,14 @@ public class SymbolCheckControllerTest
         ISymbolResolver coreSymbolResolver = mock(ISymbolResolver.class);
         ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
         ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
-        List<ISymbolResolver> additionalSymbolResolvers
-                = new ArrayList<>(Arrays.asList(additionalSymbolResolver1, additionalSymbolResolver2));
+        List<ISymbolResolver> additionalSymbolResolvers = new ArrayList<>(Arrays.asList(
+                coreSymbolResolver,
+                additionalSymbolResolver1,
+                additionalSymbolResolver2));
         when(userSymbolResolver.resolveIdentifierFromItsScope(ast)).thenReturn(firstSymbol);
 
         ISymbolCheckController controller
-                = createController(userSymbolResolver, coreSymbolResolver, additionalSymbolResolvers);
+                = createController(userSymbolResolver, additionalSymbolResolvers);
         DoubleDefinitionCheckResultDto result = controller.isNotDoubleDefinition(ast);
 
         verify(coreSymbolResolver).resolveIdentifierFromItsScope(ast);
@@ -188,14 +303,27 @@ public class SymbolCheckControllerTest
     }
 
     @Test
-    public void isNotAlreadyDefinedAsType_Standard_DelegatesToTypeSymbolResolver() {
-        ITSPHPAst alias = mock(ITSPHPAst.class);
-        ITypeSymbolResolver typeSymbolResolver = mock(ITypeSymbolResolver.class);
+    public void isNotAlreadyDefinedAsType_Standard_UsesIsNotDoubleDefinitionDelegatesToAllAndReturnNull() {
+        ITSPHPAst ast = mock(ITSPHPAst.class);
+        ISymbolResolver userSymbolResolver = mock(ISymbolResolver.class);
+        ISymbolResolver coreSymbolResolver = mock(ISymbolResolver.class);
+        ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
+        ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
+        List<ISymbolResolver> additionalSymbolResolvers = new ArrayList<>(Arrays.asList(
+                coreSymbolResolver,
+                additionalSymbolResolver1,
+                additionalSymbolResolver2));
 
-        ISymbolCheckController controller = createController(typeSymbolResolver);
-        controller.isNotAlreadyDefinedAsType(alias);
+        ISymbolCheckController controller
+                = createController(userSymbolResolver, additionalSymbolResolvers);
+        AlreadyDefinedAsTypeResultDto result = controller.isNotAlreadyDefinedAsType(ast);
 
-        verify(typeSymbolResolver).resolveTypeFor(alias);
+        verify(coreSymbolResolver).resolveIdentifierFromItsScopeCaseInsensitive(ast);
+        verify(additionalSymbolResolver1).resolveIdentifierFromItsScopeCaseInsensitive(ast);
+        verify(additionalSymbolResolver2).resolveIdentifierFromItsScopeCaseInsensitive(ast);
+        verify(userSymbolResolver).resolveIdentifierFromItsScopeCaseInsensitive(ast);
+        assertThat(result.isNotAlreadyDefinedAsType, is(true));
+        assertThat(result.typeSymbol, is(nullValue()));
     }
 
     @Test
@@ -212,9 +340,9 @@ public class SymbolCheckControllerTest
     @Test
     public void isNotAlreadyDefinedAsType_TypeFoundAndIsDefinedLaterOnInSameNamespace_ReturnsFalseAndType() {
         ITSPHPAst alias = mock(ITSPHPAst.class);
-        ITypeSymbolResolver typeSymbolResolver = mock(ITypeSymbolResolver.class);
+        ISymbolResolver userSymbolResolver = mock(ISymbolResolver.class);
         ITypeSymbol typeSymbol = mock(ITypeSymbol.class);
-        when(typeSymbolResolver.resolveTypeFor(alias)).thenReturn(typeSymbol);
+        when(userSymbolResolver.resolveIdentifierFromItsScopeCaseInsensitive(alias)).thenReturn(typeSymbol);
         ITSPHPAst ast = mock(ITSPHPAst.class);
         when(typeSymbol.getDefinitionAst()).thenReturn(ast);
         when(alias.isDefinedEarlierThan(ast)).thenReturn(true);
@@ -222,7 +350,7 @@ public class SymbolCheckControllerTest
         when(alias.getScope()).thenReturn(scope);
         when(typeSymbol.getDefinitionScope()).thenReturn(scope);
 
-        ISymbolCheckController controller = createController(typeSymbolResolver);
+        ISymbolCheckController controller = createController(userSymbolResolver);
         AlreadyDefinedAsTypeResultDto result = controller.isNotAlreadyDefinedAsType(alias);
 
         verify(alias).isDefinedEarlierThan(ast);
@@ -233,9 +361,9 @@ public class SymbolCheckControllerTest
     @Test
     public void isNotAlreadyDefinedAsType_TypeFoundAndIsDefinedLaterOnInDifferentNamespace_ReturnsTrueAndType() {
         ITSPHPAst alias = mock(ITSPHPAst.class);
-        ITypeSymbolResolver typeSymbolResolver = mock(ITypeSymbolResolver.class);
+        ISymbolResolver userSymbolResolver = mock(ISymbolResolver.class);
         ITypeSymbol typeSymbol = mock(ITypeSymbol.class);
-        when(typeSymbolResolver.resolveTypeFor(alias)).thenReturn(typeSymbol);
+        when(userSymbolResolver.resolveIdentifierFromItsScopeCaseInsensitive(alias)).thenReturn(typeSymbol);
         ITSPHPAst ast = mock(ITSPHPAst.class);
         when(typeSymbol.getDefinitionAst()).thenReturn(ast);
         when(alias.isDefinedEarlierThan(ast)).thenReturn(true);
@@ -244,7 +372,7 @@ public class SymbolCheckControllerTest
         IScope typeSymbolScope = mock(IScope.class);
         when(typeSymbol.getDefinitionScope()).thenReturn(typeSymbolScope);
 
-        ISymbolCheckController controller = createController(typeSymbolResolver);
+        ISymbolCheckController controller = createController(userSymbolResolver);
         AlreadyDefinedAsTypeResultDto result = controller.isNotAlreadyDefinedAsType(alias);
 
         verify(alias).isDefinedEarlierThan(ast);
@@ -255,9 +383,9 @@ public class SymbolCheckControllerTest
     @Test
     public void isNotAlreadyDefinedAsType_TypeFoundIsDefinedEarlierAndInDifferentScope_ReturnsFalseAndType() {
         ITSPHPAst alias = mock(ITSPHPAst.class);
-        ITypeSymbolResolver typeSymbolResolver = mock(ITypeSymbolResolver.class);
+        ISymbolResolver userSymbolResolver = mock(ISymbolResolver.class);
         ITypeSymbol typeSymbol = mock(ITypeSymbol.class);
-        when(typeSymbolResolver.resolveTypeFor(alias)).thenReturn(typeSymbol);
+        when(userSymbolResolver.resolveIdentifierFromItsScopeCaseInsensitive(alias)).thenReturn(typeSymbol);
         ITSPHPAst ast = mock(ITSPHPAst.class);
         when(typeSymbol.getDefinitionAst()).thenReturn(ast);
         when(alias.isDefinedEarlierThan(ast)).thenReturn(false);
@@ -266,7 +394,7 @@ public class SymbolCheckControllerTest
         IScope typeSymbolScope = mock(IScope.class);
         when(typeSymbol.getDefinitionScope()).thenReturn(typeSymbolScope);
 
-        ISymbolCheckController controller = createController(typeSymbolResolver);
+        ISymbolCheckController controller = createController(userSymbolResolver);
         AlreadyDefinedAsTypeResultDto result = controller.isNotAlreadyDefinedAsType(alias);
 
         verify(alias).isDefinedEarlierThan(ast);
@@ -278,9 +406,9 @@ public class SymbolCheckControllerTest
     @Test
     public void isNotAlreadyDefinedAsType_TypeFoundIsDefinedEarlierAndInSameScope_ReturnsFalseAndType() {
         ITSPHPAst alias = mock(ITSPHPAst.class);
-        ITypeSymbolResolver typeSymbolResolver = mock(ITypeSymbolResolver.class);
+        ISymbolResolver userSymbolResolver = mock(ISymbolResolver.class);
         ITypeSymbol typeSymbol = mock(ITypeSymbol.class);
-        when(typeSymbolResolver.resolveTypeFor(alias)).thenReturn(typeSymbol);
+        when(userSymbolResolver.resolveIdentifierFromItsScopeCaseInsensitive(alias)).thenReturn(typeSymbol);
         ITSPHPAst ast = mock(ITSPHPAst.class);
         when(typeSymbol.getDefinitionAst()).thenReturn(ast);
         when(alias.isDefinedEarlierThan(ast)).thenReturn(false);
@@ -288,7 +416,7 @@ public class SymbolCheckControllerTest
         when(alias.getScope()).thenReturn(scope);
         when(typeSymbol.getDefinitionScope()).thenReturn(scope);
 
-        ISymbolCheckController controller = createController(typeSymbolResolver);
+        ISymbolCheckController controller = createController(userSymbolResolver);
         AlreadyDefinedAsTypeResultDto result = controller.isNotAlreadyDefinedAsType(alias);
 
         verify(alias).isDefinedEarlierThan(ast);
@@ -298,33 +426,16 @@ public class SymbolCheckControllerTest
     }
 
     private ISymbolCheckController createController() {
-        return createController(mock(ITypeSymbolResolver.class));
+        return createController(mock(ISymbolResolver.class));
     }
 
-    private ISymbolCheckController createController(ITypeSymbolResolver typeSymbolResolver) {
-        return createController(typeSymbolResolver,
-                mock(ISymbolResolver.class),
-                mock(ISymbolResolver.class),
-                new ArrayList<ISymbolResolver>());
-    }
-
-    private ISymbolCheckController createController(
-            ISymbolResolver theUserSymbolResolver,
-            ISymbolResolver theCoreSymbolResolver,
-            List<ISymbolResolver> additionalSymbolResolvers) {
-        return createController(
-                mock(ITypeSymbolResolver.class),
-                theUserSymbolResolver,
-                theCoreSymbolResolver,
-                additionalSymbolResolvers);
+    private ISymbolCheckController createController(ISymbolResolver userSymbolResolver) {
+        return createController(userSymbolResolver, new ArrayList<ISymbolResolver>());
     }
 
     protected ISymbolCheckController createController(
-            ITypeSymbolResolver theTypeSymbolResolver,
             ISymbolResolver theUserSymbolResolver,
-            ISymbolResolver theCoreSymbolResolver,
             List<ISymbolResolver> additionalSymbolResolvers) {
-        return new SymbolCheckController(theTypeSymbolResolver, theUserSymbolResolver, theCoreSymbolResolver,
-                additionalSymbolResolvers);
+        return new SymbolCheckController(theUserSymbolResolver, additionalSymbolResolvers);
     }
 }

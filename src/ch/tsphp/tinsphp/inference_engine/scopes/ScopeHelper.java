@@ -19,7 +19,7 @@ import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
-import ch.tsphp.tinsphp.inference_engine.utils.MapHelper;
+import ch.tsphp.tinsphp.common.utils.MapHelper;
 
 import java.util.List;
 import java.util.Map;

@@ -55,7 +55,7 @@ public class SymbolResolverControllerTest
         ISymbolResolver coreSymbolResolver = mock(ISymbolResolver.class);
 
         ISymbolResolverController symbolResolverController = createSymbolResolver(
-                userSymbolResolver, coreSymbolResolver, scopeHelper);
+                userSymbolResolver, scopeHelper);
         ISymbol result = symbolResolverController.resolveConstantLikeIdentifier(ast);
 
         verify(scopeHelper).isLocalIdentifier(identifier);
@@ -72,11 +72,13 @@ public class SymbolResolverControllerTest
         when(scopeHelper.isLocalIdentifier(identifier)).thenReturn(true);
         ISymbolResolver userSymbolResolver = mock(ISymbolResolver.class);
         ISymbolResolver coreSymbolResolver = mock(ISymbolResolver.class);
+        List<ISymbolResolver> symbolResolvers = new ArrayList<>();
+        symbolResolvers.add(coreSymbolResolver);
         ISymbol symbol = mock(ISymbol.class);
         when(userSymbolResolver.resolveIdentifierFromFallback(ast)).thenReturn(symbol);
 
         ISymbolResolverController symbolResolverController = createSymbolResolver(
-                userSymbolResolver, coreSymbolResolver, scopeHelper);
+                userSymbolResolver, symbolResolvers, scopeHelper);
         ISymbol result = symbolResolverController.resolveConstantLikeIdentifier(ast);
 
         verify(scopeHelper).isLocalIdentifier(identifier);
@@ -98,11 +100,12 @@ public class SymbolResolverControllerTest
         List<ISymbolResolver> symbolResolvers = new ArrayList<>();
         ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
         ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
+        symbolResolvers.add(coreSymbolResolver);
         symbolResolvers.add(additionalSymbolResolver1);
         symbolResolvers.add(additionalSymbolResolver2);
 
         ISymbolResolverController symbolResolverController
-                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, symbolResolvers, scopeHelper);
+                = createSymbolResolver(userSymbolResolver, symbolResolvers, scopeHelper);
         ISymbol result = symbolResolverController.resolveConstantLikeIdentifier(ast);
 
         verify(scopeHelper).isLocalIdentifier(identifier);
@@ -131,7 +134,7 @@ public class SymbolResolverControllerTest
         ISymbolResolver coreSymbolResolver = mock(ISymbolResolver.class);
 
         ISymbolResolverController symbolResolverController = createSymbolResolver(
-                userSymbolResolver, coreSymbolResolver, scopeHelper);
+                userSymbolResolver, scopeHelper);
         ISymbol result = symbolResolverController.resolveConstantLikeIdentifier(ast);
 
         verify(scopeHelper).isAbsoluteIdentifier(identifier);
@@ -151,11 +154,12 @@ public class SymbolResolverControllerTest
         List<ISymbolResolver> symbolResolvers = new ArrayList<>();
         ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
         ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
+        symbolResolvers.add(coreSymbolResolver);
         symbolResolvers.add(additionalSymbolResolver1);
         symbolResolvers.add(additionalSymbolResolver2);
 
         ISymbolResolverController symbolResolverController
-                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, symbolResolvers, scopeHelper);
+                = createSymbolResolver(userSymbolResolver, symbolResolvers, scopeHelper);
         ISymbol result = symbolResolverController.resolveConstantLikeIdentifier(ast);
 
         verify(scopeHelper).isAbsoluteIdentifier(identifier);
@@ -189,7 +193,7 @@ public class SymbolResolverControllerTest
 
         //act
         ISymbolResolverController symbolResolverController = createSymbolResolver(
-                userSymbolResolver, coreSymbolResolver, scopeHelper);
+                userSymbolResolver, scopeHelper);
         ISymbol result = symbolResolverController.resolveConstantLikeIdentifier(ast);
 
 
@@ -246,13 +250,14 @@ public class SymbolResolverControllerTest
         List<ISymbolResolver> symbolResolvers = new ArrayList<>();
         ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
         ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
+        symbolResolvers.add(coreSymbolResolver);
         symbolResolvers.add(additionalSymbolResolver1);
         symbolResolvers.add(additionalSymbolResolver2);
 
 
         //act
         ISymbolResolverController symbolResolverController
-                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, symbolResolvers, scopeHelper);
+                = createSymbolResolver(userSymbolResolver, symbolResolvers, scopeHelper);
         ISymbol result = symbolResolverController.resolveConstantLikeIdentifier(ast);
 
 
@@ -279,7 +284,7 @@ public class SymbolResolverControllerTest
         ISymbolResolver coreSymbolResolver = mock(ISymbolResolver.class);
 
         ISymbolResolverController symbolResolverController = createSymbolResolver(
-                userSymbolResolver, coreSymbolResolver, scopeHelper);
+                userSymbolResolver, scopeHelper);
         ISymbol result = symbolResolverController.resolveClassLikeIdentifier(ast);
 
         verify(scopeHelper).isAbsoluteIdentifier(identifier);
@@ -299,11 +304,12 @@ public class SymbolResolverControllerTest
         List<ISymbolResolver> symbolResolvers = new ArrayList<>();
         ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
         ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
+        symbolResolvers.add(coreSymbolResolver);
         symbolResolvers.add(additionalSymbolResolver1);
         symbolResolvers.add(additionalSymbolResolver2);
 
         ISymbolResolverController symbolResolverController
-                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, symbolResolvers, scopeHelper);
+                = createSymbolResolver(userSymbolResolver, symbolResolvers, scopeHelper);
         ISymbol result = symbolResolverController.resolveClassLikeIdentifier(ast);
 
         verify(scopeHelper).isAbsoluteIdentifier(identifier);
@@ -337,7 +343,7 @@ public class SymbolResolverControllerTest
 
         //act
         ISymbolResolverController symbolResolverController = createSymbolResolver(
-                userSymbolResolver, coreSymbolResolver, scopeHelper);
+                userSymbolResolver, scopeHelper);
         ISymbol result = symbolResolverController.resolveClassLikeIdentifier(ast);
 
 
@@ -394,13 +400,14 @@ public class SymbolResolverControllerTest
         List<ISymbolResolver> symbolResolvers = new ArrayList<>();
         ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
         ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
+        symbolResolvers.add(coreSymbolResolver);
         symbolResolvers.add(additionalSymbolResolver1);
         symbolResolvers.add(additionalSymbolResolver2);
 
 
         //act
         ISymbolResolverController symbolResolverController
-                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, symbolResolvers, scopeHelper);
+                = createSymbolResolver(userSymbolResolver, symbolResolvers, scopeHelper);
         ISymbol result = symbolResolverController.resolveClassLikeIdentifier(ast);
 
 
@@ -448,7 +455,7 @@ public class SymbolResolverControllerTest
 
         //act
         ISymbolResolverController symbolResolverController
-                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, scopeHelper);
+                = createSymbolResolver(userSymbolResolver, scopeHelper);
         ISymbol result = symbolResolverController.resolveClassLikeIdentifier(ast);
 
 
@@ -494,13 +501,14 @@ public class SymbolResolverControllerTest
         List<ISymbolResolver> symbolResolvers = new ArrayList<>();
         ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
         ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
+        symbolResolvers.add(coreSymbolResolver);
         symbolResolvers.add(additionalSymbolResolver1);
         symbolResolvers.add(additionalSymbolResolver2);
 
 
         //act
         ISymbolResolverController symbolResolverController
-                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, symbolResolvers, scopeHelper);
+                = createSymbolResolver(userSymbolResolver, symbolResolvers, scopeHelper);
         ISymbol result = symbolResolverController.resolveClassLikeIdentifier(ast);
 
 
@@ -551,7 +559,7 @@ public class SymbolResolverControllerTest
 
         //act
         ISymbolResolverController symbolResolverController
-                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, scopeHelper);
+                = createSymbolResolver(userSymbolResolver, scopeHelper);
         ISymbol result = symbolResolverController.resolveClassLikeIdentifier(ast);
 
 
@@ -599,13 +607,14 @@ public class SymbolResolverControllerTest
         List<ISymbolResolver> symbolResolvers = new ArrayList<>();
         ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
         ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
+        symbolResolvers.add(coreSymbolResolver);
         symbolResolvers.add(additionalSymbolResolver1);
         symbolResolvers.add(additionalSymbolResolver2);
 
 
         //act
         ISymbolResolverController symbolResolverController
-                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, symbolResolvers, scopeHelper);
+                = createSymbolResolver(userSymbolResolver, symbolResolvers, scopeHelper);
         ISymbol result = symbolResolverController.resolveClassLikeIdentifier(ast);
 
 
@@ -643,7 +652,7 @@ public class SymbolResolverControllerTest
 
         //act
         ISymbolResolverController symbolResolverController = createSymbolResolver(
-                userSymbolResolver, coreSymbolResolver, scopeHelper);
+                userSymbolResolver, scopeHelper);
         ISymbol result = symbolResolverController.resolveClassLikeIdentifier(ast);
 
 
@@ -673,13 +682,14 @@ public class SymbolResolverControllerTest
         List<ISymbolResolver> symbolResolvers = new ArrayList<>();
         ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
         ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
+        symbolResolvers.add(coreSymbolResolver);
         symbolResolvers.add(additionalSymbolResolver1);
         symbolResolvers.add(additionalSymbolResolver2);
 
 
         //act
         ISymbolResolverController symbolResolverController
-                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, symbolResolvers, scopeHelper);
+                = createSymbolResolver(userSymbolResolver, symbolResolvers, scopeHelper);
         ISymbol result = symbolResolverController.resolveClassLikeIdentifier(ast);
 
 
@@ -723,13 +733,14 @@ public class SymbolResolverControllerTest
         List<ISymbolResolver> symbolResolvers = new ArrayList<>();
         ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
         ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
+        symbolResolvers.add(coreSymbolResolver);
         symbolResolvers.add(additionalSymbolResolver1);
         symbolResolvers.add(additionalSymbolResolver2);
 
 
         //act
         ISymbolResolverController symbolResolverController
-                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, symbolResolvers, scopeHelper);
+                = createSymbolResolver(userSymbolResolver, symbolResolvers, scopeHelper);
         ISymbol result = symbolResolverController.resolveClassLikeIdentifier(ast);
 
 
@@ -783,7 +794,7 @@ public class SymbolResolverControllerTest
 
         //act
         ISymbolResolverController symbolResolverController
-                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, scopeHelper);
+                = createSymbolResolver(userSymbolResolver, scopeHelper);
         ISymbol result = symbolResolverController.resolveClassLikeIdentifier(ast);
 
 
@@ -831,7 +842,7 @@ public class SymbolResolverControllerTest
 
         //act
         ISymbolResolverController symbolResolverController
-                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, scopeHelper);
+                = createSymbolResolver(userSymbolResolver, scopeHelper);
         ISymbol result = symbolResolverController.resolveClassLikeIdentifier(ast);
 
 
@@ -884,7 +895,7 @@ public class SymbolResolverControllerTest
 
         //act
         ISymbolResolverController symbolResolverController
-                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, scopeHelper);
+                = createSymbolResolver(userSymbolResolver, scopeHelper);
         ISymbol result = symbolResolverController.resolveClassLikeIdentifier(ast);
 
 
@@ -911,7 +922,7 @@ public class SymbolResolverControllerTest
         when(userSymbolResolver.resolveIdentifierFromItsNamespaceScope(ast)).thenReturn(symbol);
 
         ISymbolResolverController symbolResolverController
-                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, symbolResolvers);
+                = createSymbolResolver(userSymbolResolver, symbolResolvers);
         ISymbol result = symbolResolverController.resolveIdentifierFromItsNamespaceScope(ast);
 
         verify(userSymbolResolver).resolveIdentifierFromItsNamespaceScope(ast);
@@ -930,13 +941,14 @@ public class SymbolResolverControllerTest
         List<ISymbolResolver> symbolResolvers = new ArrayList<>();
         ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
         ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
+        symbolResolvers.add(coreSymbolResolver);
         symbolResolvers.add(additionalSymbolResolver1);
         symbolResolvers.add(additionalSymbolResolver2);
         ISymbol symbol = mock(ISymbol.class);
         when(coreSymbolResolver.resolveIdentifierFromItsNamespaceScope(ast)).thenReturn(symbol);
 
         ISymbolResolverController symbolResolverController
-                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, symbolResolvers);
+                = createSymbolResolver(userSymbolResolver, symbolResolvers);
         ISymbol result = symbolResolverController.resolveIdentifierFromItsNamespaceScope(ast);
 
         verify(userSymbolResolver).resolveIdentifierFromItsNamespaceScope(ast);
@@ -956,13 +968,14 @@ public class SymbolResolverControllerTest
         List<ISymbolResolver> symbolResolvers = new ArrayList<>();
         ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
         ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
+        symbolResolvers.add(coreSymbolResolver);
         symbolResolvers.add(additionalSymbolResolver1);
         symbolResolvers.add(additionalSymbolResolver2);
         ISymbol symbol = mock(ISymbol.class);
         when(additionalSymbolResolver1.resolveIdentifierFromItsNamespaceScope(ast)).thenReturn(symbol);
 
         ISymbolResolverController symbolResolverController
-                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, symbolResolvers);
+                = createSymbolResolver(userSymbolResolver, symbolResolvers);
         ISymbol result = symbolResolverController.resolveIdentifierFromItsNamespaceScope(ast);
 
         verify(userSymbolResolver).resolveIdentifierFromItsNamespaceScope(ast);
@@ -982,13 +995,14 @@ public class SymbolResolverControllerTest
         List<ISymbolResolver> symbolResolvers = new ArrayList<>();
         ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
         ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
+        symbolResolvers.add(coreSymbolResolver);
         symbolResolvers.add(additionalSymbolResolver1);
         symbolResolvers.add(additionalSymbolResolver2);
         ISymbol symbol = mock(ISymbol.class);
         when(additionalSymbolResolver2.resolveIdentifierFromItsNamespaceScope(ast)).thenReturn(symbol);
 
         ISymbolResolverController symbolResolverController
-                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, symbolResolvers);
+                = createSymbolResolver(userSymbolResolver, symbolResolvers);
         ISymbol result = symbolResolverController.resolveIdentifierFromItsNamespaceScope(ast);
 
         verify(userSymbolResolver).resolveIdentifierFromItsNamespaceScope(ast);
@@ -1007,11 +1021,12 @@ public class SymbolResolverControllerTest
         List<ISymbolResolver> symbolResolvers = new ArrayList<>();
         ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
         ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
+        symbolResolvers.add(coreSymbolResolver);
         symbolResolvers.add(additionalSymbolResolver1);
         symbolResolvers.add(additionalSymbolResolver2);
 
         ISymbolResolverController symbolResolverController
-                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, symbolResolvers);
+                = createSymbolResolver(userSymbolResolver, symbolResolvers);
         ISymbol result = symbolResolverController.resolveIdentifierFromItsNamespaceScope(ast);
 
         verify(userSymbolResolver).resolveIdentifierFromItsNamespaceScope(ast);
@@ -1036,7 +1051,7 @@ public class SymbolResolverControllerTest
         when(userSymbolResolver.resolveIdentifierFromItsScope(ast)).thenReturn(symbol);
 
         ISymbolResolverController symbolResolverController
-                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, symbolResolvers);
+                = createSymbolResolver(userSymbolResolver, symbolResolvers);
         ISymbol result = symbolResolverController.resolveIdentifierFromItsScope(ast);
 
         verify(userSymbolResolver).resolveIdentifierFromItsScope(ast);
@@ -1055,13 +1070,14 @@ public class SymbolResolverControllerTest
         List<ISymbolResolver> symbolResolvers = new ArrayList<>();
         ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
         ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
+        symbolResolvers.add(coreSymbolResolver);
         symbolResolvers.add(additionalSymbolResolver1);
         symbolResolvers.add(additionalSymbolResolver2);
         ISymbol symbol = mock(ISymbol.class);
         when(coreSymbolResolver.resolveIdentifierFromItsScope(ast)).thenReturn(symbol);
 
         ISymbolResolverController symbolResolverController
-                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, symbolResolvers);
+                = createSymbolResolver(userSymbolResolver, symbolResolvers);
         ISymbol result = symbolResolverController.resolveIdentifierFromItsScope(ast);
 
         verify(userSymbolResolver).resolveIdentifierFromItsScope(ast);
@@ -1081,13 +1097,14 @@ public class SymbolResolverControllerTest
         List<ISymbolResolver> symbolResolvers = new ArrayList<>();
         ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
         ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
+        symbolResolvers.add(coreSymbolResolver);
         symbolResolvers.add(additionalSymbolResolver1);
         symbolResolvers.add(additionalSymbolResolver2);
         ISymbol symbol = mock(ISymbol.class);
         when(additionalSymbolResolver1.resolveIdentifierFromItsScope(ast)).thenReturn(symbol);
 
         ISymbolResolverController symbolResolverController
-                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, symbolResolvers);
+                = createSymbolResolver(userSymbolResolver, symbolResolvers);
         ISymbol result = symbolResolverController.resolveIdentifierFromItsScope(ast);
 
         verify(userSymbolResolver).resolveIdentifierFromItsScope(ast);
@@ -1107,13 +1124,14 @@ public class SymbolResolverControllerTest
         List<ISymbolResolver> symbolResolvers = new ArrayList<>();
         ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
         ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
+        symbolResolvers.add(coreSymbolResolver);
         symbolResolvers.add(additionalSymbolResolver1);
         symbolResolvers.add(additionalSymbolResolver2);
         ISymbol symbol = mock(ISymbol.class);
         when(additionalSymbolResolver2.resolveIdentifierFromItsScope(ast)).thenReturn(symbol);
 
         ISymbolResolverController symbolResolverController
-                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, symbolResolvers);
+                = createSymbolResolver(userSymbolResolver, symbolResolvers);
         ISymbol result = symbolResolverController.resolveIdentifierFromItsScope(ast);
 
         verify(userSymbolResolver).resolveIdentifierFromItsScope(ast);
@@ -1132,11 +1150,12 @@ public class SymbolResolverControllerTest
         List<ISymbolResolver> symbolResolvers = new ArrayList<>();
         ISymbolResolver additionalSymbolResolver1 = mock(ISymbolResolver.class);
         ISymbolResolver additionalSymbolResolver2 = mock(ISymbolResolver.class);
+        symbolResolvers.add(coreSymbolResolver);
         symbolResolvers.add(additionalSymbolResolver1);
         symbolResolvers.add(additionalSymbolResolver2);
 
         ISymbolResolverController symbolResolverController
-                = createSymbolResolver(userSymbolResolver, coreSymbolResolver, symbolResolvers);
+                = createSymbolResolver(userSymbolResolver, symbolResolvers);
         ISymbol result = symbolResolverController.resolveIdentifierFromItsScope(ast);
 
         verify(userSymbolResolver).resolveIdentifierFromItsScope(ast);
@@ -1173,38 +1192,32 @@ public class SymbolResolverControllerTest
     private ISymbolResolverController createSymbolResolver(IScopeHelper scopeHelper) {
         return createSymbolResolver(
                 mock(ISymbolResolver.class),
-                mock(ISymbolResolver.class),
                 scopeHelper);
     }
 
     private ISymbolResolverController createSymbolResolver(
             ISymbolResolver userSymbolResolver,
-            ISymbolResolver coreSymbolResolver,
             List<ISymbolResolver> additionalSymbolResolvers) {
         return createSymbolResolver(
                 userSymbolResolver,
-                coreSymbolResolver,
                 additionalSymbolResolvers,
                 mock(IScopeHelper.class));
     }
 
     private ISymbolResolverController createSymbolResolver(
-            ISymbolResolver userSymbolResolver, ISymbolResolver coreSymbolResolver, IScopeHelper scopeHelper) {
+            ISymbolResolver userSymbolResolver, IScopeHelper scopeHelper) {
         return createSymbolResolver(
                 userSymbolResolver,
-                coreSymbolResolver,
                 new ArrayList<ISymbolResolver>(),
                 scopeHelper);
     }
 
     private ISymbolResolverController createSymbolResolver(
             ISymbolResolver userSymbolResolver,
-            ISymbolResolver coreSymbolResolver,
             List<ISymbolResolver> additionalSymbolResolvers,
             IScopeHelper scopeHelper) {
         return createSymbolResolver(
                 userSymbolResolver,
-                coreSymbolResolver,
                 additionalSymbolResolvers,
                 scopeHelper,
                 mock(ISymbolFactory.class),
@@ -1213,7 +1226,6 @@ public class SymbolResolverControllerTest
 
     protected ISymbolResolverController createSymbolResolver(
             ISymbolResolver theUserSymbolResolver,
-            ISymbolResolver theCoreSymbolResolver,
             List<ISymbolResolver> additionalSymbolResolvers,
             IScopeHelper theScopeHelper,
             ISymbolFactory theSymbolFactory,
@@ -1221,7 +1233,6 @@ public class SymbolResolverControllerTest
 
         return new SymbolResolverController(
                 theUserSymbolResolver,
-                theCoreSymbolResolver,
                 additionalSymbolResolvers,
                 theScopeHelper,
                 theSymbolFactory,

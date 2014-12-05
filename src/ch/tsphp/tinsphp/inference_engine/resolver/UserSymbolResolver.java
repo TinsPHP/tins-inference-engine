@@ -91,4 +91,10 @@ public class UserSymbolResolver implements ISymbolResolver
         return scopeHelper.getEnclosingNamespaceScope(identifier).resolve(identifier);
     }
 
+    @Override
+    public ISymbol resolveIdentifierFromSuperGlobalScope(ITSPHPAst identifier) {
+        //users cannot define super globals - fortunately ;)
+        return null;
+    }
+
 }

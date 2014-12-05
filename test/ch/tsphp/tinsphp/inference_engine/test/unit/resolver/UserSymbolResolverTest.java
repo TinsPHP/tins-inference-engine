@@ -298,10 +298,7 @@ public class UserSymbolResolverTest
             IScopeHelper theScopeHelper,
             ILowerCaseStringMap<IGlobalNamespaceScope> theGlobalNamespaceScopes,
             IGlobalNamespaceScope theGlobalDefaultNamespace) {
-        return new UserSymbolResolver(theScopeHelper,
-                theGlobalNamespaceScopes, theGlobalDefaultNamespace
-
-        );
+        return new UserSymbolResolver(theScopeHelper, theGlobalNamespaceScopes, theGlobalDefaultNamespace);
     }
 }
 

@@ -12,14 +12,13 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference;
 
-import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
+import ch.tsphp.tinsphp.common.symbols.INullTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolverController;
-import ch.tsphp.tinsphp.common.symbols.resolver.ITypeSymbolResolver;
 import ch.tsphp.tinsphp.common.symbols.resolver.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.inference_engine.IReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
@@ -57,24 +56,22 @@ public abstract class AVerifyTimesReferenceTest extends AReferenceTest
             IInferenceErrorReporter theInferenceErrorReporter,
             IAstModificationHelper theAstModificationHelper,
             ISymbolResolverController theSymbolResolverController,
-            ITypeSymbolResolver theTypeSymbolResolver,
             ISymbolCheckController theSymbolCheckController,
             IVariableDeclarationCreator theVariableDeclarationCreator,
             IScopeHelper theScopeHelper,
-            ICore theCore,
             IModifierHelper theModifierHelper,
+            INullTypeSymbol theNullTypeSymbol,
             IGlobalNamespaceScope theGlobalDefaultNamespace) {
         return spy(super.createReferencePhaseController(
                 theSymbolFactory,
                 theInferenceErrorReporter,
                 theAstModificationHelper,
                 theSymbolResolverController,
-                theTypeSymbolResolver,
                 theSymbolCheckController,
                 theVariableDeclarationCreator,
                 theScopeHelper,
-                theCore,
                 theModifierHelper,
+                theNullTypeSymbol,
                 theGlobalDefaultNamespace
         ));
     }

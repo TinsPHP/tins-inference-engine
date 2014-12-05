@@ -28,25 +28,24 @@ public class SymbolResolverController implements ISymbolResolverController
     private final static FromItsNamespaceScopeResolverDelegate fromItsNamespaceScopeResolverDelegate
             = new FromItsNamespaceScopeResolverDelegate();
     private final static AbsoluteResolverDelegate absoluteResolverDelegate = new AbsoluteResolverDelegate();
+    private final static FromSuperGlobalScopeResolverDelegate fromSuperGlobalScopeResolverDelegate
+            = new FromSuperGlobalScopeResolverDelegate();
 
     private final IScopeHelper scopeHelper;
     private final ISymbolFactory symbolFactory;
     private final IInferenceErrorReporter inferenceErrorReporter;
 
     private final ISymbolResolver userSymbolResolver;
-    private final ISymbolResolver coreSymbolResolver;
     private final List<ISymbolResolver> symbolResolvers;
 
 
     public SymbolResolverController(
             ISymbolResolver theUserSymbolResolver,
-            ISymbolResolver theCoreSymbolResolver,
             List<ISymbolResolver> additionalSymbolResolvers,
             IScopeHelper theScopeHelper,
             ISymbolFactory theSymbolFactory,
             IInferenceErrorReporter theInferenceErrorReporter) {
         userSymbolResolver = theUserSymbolResolver;
-        coreSymbolResolver = theCoreSymbolResolver;
         symbolResolvers = additionalSymbolResolvers;
         scopeHelper = theScopeHelper;
         symbolFactory = theSymbolFactory;
@@ -57,10 +56,8 @@ public class SymbolResolverController implements ISymbolResolverController
     public ISymbol resolveConstantLikeIdentifier(ITSPHPAst identifier) {
         ISymbol symbol;
         if (scopeHelper.isLocalIdentifier(identifier.getText())) {
-            //forward to next symbol resolver within resolveIdentifierFromItsScopeWithFallback if necessary
             symbol = resolveIdentifierFromItsScopeWithFallback(identifier);
         } else {
-            //forward to next symbol resolver within resolveClassLikeIdentifier if necessary
             symbol = resolveClassLikeIdentifier(identifier);
         }
         return symbol;
@@ -70,14 +67,23 @@ public class SymbolResolverController implements ISymbolResolverController
     public ISymbol resolveClassLikeIdentifier(ITSPHPAst identifier) {
         ISymbol symbol;
         if (scopeHelper.isAbsoluteIdentifier(identifier.getText())) {
-            //forward to next symbol resolver within resolveAbsoluteIdentifier if necessary
             symbol = resolveAbsoluteIdentifier(identifier);
         } else if (scopeHelper.isRelativeIdentifier(identifier.getText())) {
-            //forward to next symbol resolver within resolveRelativeIdentifierConsiderAlias if necessary
             symbol = resolveRelativeIdentifierConsiderAlias(identifier);
         } else {
-            //forward to next symbol resolver within resolveIdentifierFromItsNamespaceScopeConsiderAlias if necessary
             symbol = resolveIdentifierFromItsNamespaceScopeConsiderAlias(identifier);
+        }
+        return symbol;
+    }
+
+    @Override
+    public ISymbol resolveVariableLikeIdentifier(ITSPHPAst identifier) {
+        ISymbol symbol = resolve(fromItsScopeResolverDelegate, identifier);
+        if (symbol == null) {
+            symbol = resolve(fromFallbackResolverDelegate, identifier);
+        }
+        if (symbol == null) {
+            symbol = resolve(fromSuperGlobalScopeResolverDelegate, identifier);
         }
         return symbol;
     }
@@ -93,10 +99,8 @@ public class SymbolResolverController implements ISymbolResolverController
 
         ISymbol symbol;
         if (useDefinition != null) {
-            //forward to next symbol resolver within resolveAlias if necessary
             symbol = resolveAlias(useDefinition, alias, identifier);
         } else {
-            //forward to next symbol resolver within resolveRelativeIdentifier if necessary
             symbol = resolveRelativeIdentifier(namespaceScope, identifier);
         }
 
@@ -272,11 +276,17 @@ public class SymbolResolverController implements ISymbolResolverController
         }
     }
 
+    private final static class FromSuperGlobalScopeResolverDelegate implements IResolveDelegate
+    {
+
+        @Override
+        public ISymbol resolve(ISymbolResolver symbolResolver, ITSPHPAst identifier) {
+            return symbolResolver.resolveIdentifierFromSuperGlobalScope(identifier);
+        }
+    }
+
     private ISymbol resolve(IResolveDelegate resolveDelegate, ITSPHPAst identifier) {
         ISymbol symbol = resolveDelegate.resolve(userSymbolResolver, identifier);
-        if (symbol == null) {
-            symbol = resolveDelegate.resolve(coreSymbolResolver, identifier);
-        }
         if (symbol == null) {
             for (ISymbolResolver symbolResolver : symbolResolvers) {
                 symbol = resolveDelegate.resolve(symbolResolver, identifier);

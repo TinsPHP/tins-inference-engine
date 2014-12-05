@@ -20,7 +20,7 @@ import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.common.symbols.IAliasSymbol;
-import ch.tsphp.tinsphp.inference_engine.utils.MapHelper;
+import ch.tsphp.tinsphp.common.utils.MapHelper;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -61,6 +61,7 @@ public class NamespaceScope implements INamespaceScope
     }
 
     @Override
+    @Deprecated
     public boolean doubleDefinitionCheck(ISymbol symbol) {
         //check in global namespace scope because they have been defined there
         return globalNamespaceScope.doubleDefinitionCheck(symbol);

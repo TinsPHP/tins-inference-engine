@@ -18,7 +18,6 @@ import ch.tsphp.common.ITSPHPAstAdaptor;
 import ch.tsphp.common.ParserUnitDto;
 import ch.tsphp.common.TSPHPAstAdaptor;
 import ch.tsphp.tinsphp.common.ICore;
-import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.core.Core;
@@ -76,7 +75,7 @@ public abstract class ADefinitionTest extends ATest
         symbolFactory = createTestSymbolFactory(scopeHelper, modifierHelper);
 
         definitionPhaseController = createTestDefiner(symbolFactory, scopeFactory);
-        core = createTypeSystem(symbolFactory, definitionPhaseController.getGlobalDefaultNamespace());
+        core = createCore(symbolFactory);
     }
 
     protected void verifyParser() {
@@ -133,9 +132,8 @@ public abstract class ADefinitionTest extends ATest
         return new TestSymbolFactory(theScopeHelper, theModifierHelper);
     }
 
-    protected ICore createTypeSystem(
-            TestSymbolFactory symbolFactory, IGlobalNamespaceScope theGlobalNamespaceScope) {
-        return new Core(symbolFactory, AstHelperRegistry.get(), theGlobalNamespaceScope);
+    protected ICore createCore(TestSymbolFactory symbolFactory) {
+        return new Core(symbolFactory, AstHelperRegistry.get());
     }
 
     protected TestDefinitionPhaseController createTestDefiner(TestSymbolFactory theSymbolFactory,

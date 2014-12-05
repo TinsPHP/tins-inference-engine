@@ -18,7 +18,7 @@ import ch.tsphp.common.LowerCaseStringMap;
 import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
-import ch.tsphp.tinsphp.inference_engine.utils.MapHelper;
+import ch.tsphp.tinsphp.common.utils.MapHelper;
 
 import java.util.List;
 
@@ -39,6 +39,7 @@ public class GlobalNamespaceScope extends AScope implements IGlobalNamespaceScop
     }
 
     @Override
+    @Deprecated
     public boolean doubleDefinitionCheck(ISymbol symbol) {
         throw new UnsupportedOperationException("Is deprecated and should no longer be used");
     }

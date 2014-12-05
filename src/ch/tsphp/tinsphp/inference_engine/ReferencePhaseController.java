@@ -16,10 +16,10 @@ import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.exceptions.ReferenceException;
 import ch.tsphp.common.symbols.ITypeSymbol;
-import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
+import ch.tsphp.tinsphp.common.symbols.INullTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.resolver.AlreadyDefinedAsTypeResultDto;
@@ -27,7 +27,6 @@ import ch.tsphp.tinsphp.common.symbols.resolver.DoubleDefinitionCheckResultDto;
 import ch.tsphp.tinsphp.common.symbols.resolver.ForwardReferenceCheckResultDto;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolverController;
-import ch.tsphp.tinsphp.common.symbols.resolver.ITypeSymbolResolver;
 import ch.tsphp.tinsphp.common.symbols.resolver.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.common.symbols.resolver.VariableInitialisedResultDto;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
@@ -44,13 +43,12 @@ public class ReferencePhaseController implements IReferencePhaseController
     private final ISymbolFactory symbolFactory;
     private final IInferenceErrorReporter inferenceErrorReporter;
     private final IAstModificationHelper astModificationHelper;
-    private final IModifierHelper modifierHelper;
     private final ISymbolResolverController symbolResolverController;
-    private final ITypeSymbolResolver typeSymbolResolver;
     private final ISymbolCheckController symbolCheckController;
     private final IVariableDeclarationCreator variableDeclarationCreator;
     private final IScopeHelper scopeHelper;
-    private final ICore core;
+    private final IModifierHelper modifierHelper;
+    private final INullTypeSymbol nullTypeSymbol;
     private final IGlobalNamespaceScope globalDefaultNamespace;
 
     public ReferencePhaseController(
@@ -58,23 +56,21 @@ public class ReferencePhaseController implements IReferencePhaseController
             IInferenceErrorReporter theInferenceErrorReporter,
             IAstModificationHelper theAstModificationHelper,
             ISymbolResolverController theSymbolResolverController,
-            ITypeSymbolResolver theTypeSymbolResolver,
             ISymbolCheckController theSymbolCheckController,
             IVariableDeclarationCreator theVariableDeclarationCreator,
             IScopeHelper theScopeHelper,
-            ICore theCore,
             IModifierHelper theModifierHelper,
+            INullTypeSymbol theNullTypeSymbol,
             IGlobalNamespaceScope theGlobalDefaultNamespace) {
         symbolFactory = theSymbolFactory;
         inferenceErrorReporter = theInferenceErrorReporter;
         astModificationHelper = theAstModificationHelper;
         symbolResolverController = theSymbolResolverController;
-        typeSymbolResolver = theTypeSymbolResolver;
         symbolCheckController = theSymbolCheckController;
         variableDeclarationCreator = theVariableDeclarationCreator;
         scopeHelper = theScopeHelper;
-        core = theCore;
         modifierHelper = theModifierHelper;
+        nullTypeSymbol = theNullTypeSymbol;
         globalDefaultNamespace = theGlobalDefaultNamespace;
     }
 
@@ -138,7 +134,7 @@ public class ReferencePhaseController implements IReferencePhaseController
     @Override
     public IVariableSymbol resolveVariable(ITSPHPAst variableId) {
         IVariableSymbol variableSymbol =
-                (IVariableSymbol) symbolResolverController.resolveIdentifierFromItsScope(variableId);
+                (IVariableSymbol) symbolResolverController.resolveVariableLikeIdentifier(variableId);
         if (variableSymbol == null) {
             variableSymbol = variableDeclarationCreator.create(variableId);
         }
@@ -347,7 +343,9 @@ public class ReferencePhaseController implements IReferencePhaseController
             typeName.setText(identifier);
         }
 
-        ITypeSymbol aliasTypeSymbol = typeSymbolResolver.resolveTypeFor(typeName);
+        ITypeSymbol aliasTypeSymbol =
+                (ITypeSymbol) symbolResolverController.resolveIdentifierFromItsNamespaceScope(typeName);
+
         if (aliasTypeSymbol == null) {
             aliasTypeSymbol = symbolFactory.createAliasTypeSymbol(typeName, typeName.getText());
         }
@@ -380,7 +378,7 @@ public class ReferencePhaseController implements IReferencePhaseController
     }
 
     private boolean checkIsNotDoubleUseDefinition(ITSPHPAst alias) {
-        DoubleDefinitionCheckResultDto result = symbolCheckController.isNotDoubleUseDefinition(alias);
+        DoubleDefinitionCheckResultDto result = symbolCheckController.isNotUseDoubleDefinition(alias);
         if (!result.isNotDoubleDefinition) {
             inferenceErrorReporter.alreadyDefined(result.existingSymbol, alias.getSymbol());
         }
@@ -553,7 +551,7 @@ public class ReferencePhaseController implements IReferencePhaseController
     private void addReturnNullAtTheEndOfScope(ITSPHPAst block) {
         ITSPHPAst returnAst = astModificationHelper.getNullReturnStatement();
         returnAst.setScope(block.getScope());
-        returnAst.setEvalType(core.getNullTypeSymbol());
+        returnAst.setEvalType(nullTypeSymbol);
         block.addChild(returnAst);
     }
 

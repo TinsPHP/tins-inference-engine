@@ -17,15 +17,14 @@ import ch.tsphp.common.IAstHelper;
 import ch.tsphp.common.ILowerCaseStringMap;
 import ch.tsphp.common.ITSPHPAstAdaptor;
 import ch.tsphp.common.TSPHPAstAdaptor;
-import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
+import ch.tsphp.tinsphp.common.symbols.INullTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolver;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolverController;
-import ch.tsphp.tinsphp.common.symbols.resolver.ITypeSymbolResolver;
 import ch.tsphp.tinsphp.common.symbols.resolver.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.inference_engine.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.inference_engine.IReferencePhaseController;
@@ -35,11 +34,11 @@ import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.resolver.SymbolCheckController;
 import ch.tsphp.tinsphp.inference_engine.resolver.SymbolResolverController;
 import ch.tsphp.tinsphp.inference_engine.resolver.UserSymbolResolver;
-import ch.tsphp.tinsphp.inference_engine.resolver.UserTypeSymbolResolver;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.WriteExceptionToConsole;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.definition.ADefinitionTest;
 import ch.tsphp.tinsphp.inference_engine.utils.AstModificationHelper;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
+import ch.tsphp.tinsphp.symbols.PrimitiveTypeNames;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 import org.junit.Assert;
@@ -49,7 +48,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertFalse;
-import static org.mockito.Mockito.mock;
 
 @Ignore
 public abstract class AReferenceTest extends ADefinitionTest
@@ -60,7 +58,6 @@ public abstract class AReferenceTest extends ADefinitionTest
     protected IAstModificationHelper astModificationHelper;
     protected ISymbolResolver userSymbolResolver;
     protected ISymbolResolver coreSymbolResolver;
-    protected ITypeSymbolResolver typeSymbolResolver;
     protected ISymbolResolverController symbolResolverController;
     protected ISymbolCheckController symbolCheckController;
     protected IVariableDeclarationCreator variableDeclarationCreator;
@@ -83,45 +80,37 @@ public abstract class AReferenceTest extends ADefinitionTest
         userSymbolResolver = createUserSymbolResolver(
                 scopeHelper,
                 definitionPhaseController.getGlobalNamespaceScopes(),
-                definitionPhaseController.getGlobalDefaultNamespace());
+                definitionPhaseController.getGlobalDefaultNamespace()
+        );
 
-        coreSymbolResolver = createCoreSymbolResolver();
+        coreSymbolResolver = core.getCoreSymbolResolver();
 
         symbolResolverController = createSymbolResolverController(
                 userSymbolResolver,
-                coreSymbolResolver,
                 new ArrayList<ISymbolResolver>(),
                 scopeHelper,
                 symbolFactory,
                 inferenceErrorReporter
         );
 
-        typeSymbolResolver = createTypeSymbolResolver(symbolResolverController);
+        ArrayList<ISymbolResolver> symbolResolvers = new ArrayList<>();
+        symbolResolvers.add(core.getCoreSymbolResolver());
+        symbolCheckController = createSymbolCheckController(userSymbolResolver, symbolResolvers);
 
-        symbolCheckController = createSymbolCheckController(
-                typeSymbolResolver,
-                userSymbolResolver,
-                coreSymbolResolver,
-                new ArrayList<ISymbolResolver>()
-        );
-
-        variableDeclarationCreator = createVariableDeclarationCreator(
-                astModificationHelper,
-                definitionPhaseController
-        );
+        variableDeclarationCreator = createVariableDeclarationCreator(astModificationHelper, definitionPhaseController);
 
         referencePhaseController = createReferencePhaseController(
                 symbolFactory,
                 inferenceErrorReporter,
                 astModificationHelper,
                 symbolResolverController,
-                typeSymbolResolver,
                 symbolCheckController,
                 variableDeclarationCreator,
                 scopeHelper,
-                core,
                 modifierHelper,
-                definitionPhaseController.getGlobalDefaultNamespace());
+                (INullTypeSymbol) core.getPrimitiveTypes().get(PrimitiveTypeNames.NULL),
+                definitionPhaseController.getGlobalDefaultNamespace()
+        );
     }
 
 
@@ -195,20 +184,14 @@ public abstract class AReferenceTest extends ADefinitionTest
         return new UserSymbolResolver(theScopeHelper, theGlobalNamespaceScopes, theGlobalDefaultNamespace);
     }
 
-    protected ISymbolResolver createCoreSymbolResolver() {
-        return mock(ISymbolResolver.class);
-    }
-
     protected ISymbolResolverController createSymbolResolverController(
             ISymbolResolver theUserSymbolResolver,
-            ISymbolResolver theCoreSymbolResolver,
             List<ISymbolResolver> additionalSymbolResolvers,
             IScopeHelper theScopeHelper,
             ISymbolFactory theSymbolFactory,
             IInferenceErrorReporter theInferenceErrorReporter) {
         return new SymbolResolverController(
                 theUserSymbolResolver,
-                theCoreSymbolResolver,
                 additionalSymbolResolvers,
                 theScopeHelper,
                 theSymbolFactory,
@@ -216,17 +199,10 @@ public abstract class AReferenceTest extends ADefinitionTest
         );
     }
 
-    protected ITypeSymbolResolver createTypeSymbolResolver(ISymbolResolverController theSymbolResolverController) {
-        return new UserTypeSymbolResolver(theSymbolResolverController);
-    }
-
     protected ISymbolCheckController createSymbolCheckController(
-            ITypeSymbolResolver theTypeSymbolResolver,
             ISymbolResolver theUserSymbolResolver,
-            ISymbolResolver theCoreSymbolResolver,
             List<ISymbolResolver> additionalSymbolResolvers) {
-        return new SymbolCheckController(theTypeSymbolResolver, theUserSymbolResolver, theCoreSymbolResolver,
-                additionalSymbolResolvers);
+        return new SymbolCheckController(theUserSymbolResolver, additionalSymbolResolvers);
     }
 
     protected IVariableDeclarationCreator createVariableDeclarationCreator(
@@ -239,24 +215,22 @@ public abstract class AReferenceTest extends ADefinitionTest
             IInferenceErrorReporter theInferenceErrorReporter,
             IAstModificationHelper theAstModificationHelper,
             ISymbolResolverController theSymbolResolverController,
-            ITypeSymbolResolver theTypeSymbolResolver,
             ISymbolCheckController theSymbolCheckController,
             IVariableDeclarationCreator theVariableDeclarationCreator,
             IScopeHelper theScopeHelper,
-            ICore theCore,
             IModifierHelper theModifierHelper,
+            INullTypeSymbol theNullTypeSymbol,
             IGlobalNamespaceScope theGlobalDefaultNamespace) {
         return new ReferencePhaseController(
                 theSymbolFactory,
                 theInferenceErrorReporter,
                 theAstModificationHelper,
                 theSymbolResolverController,
-                theTypeSymbolResolver,
                 theSymbolCheckController,
                 theVariableDeclarationCreator,
                 theScopeHelper,
-                theCore,
                 theModifierHelper,
+                theNullTypeSymbol,
                 theGlobalDefaultNamespace
         );
     }
