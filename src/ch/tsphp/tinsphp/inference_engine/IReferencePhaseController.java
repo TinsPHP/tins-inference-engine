@@ -51,11 +51,13 @@ public interface IReferencePhaseController
      */
     ITypeSymbol resolveType(ITSPHPAst typeAst, ITSPHPAst typeModifierAst);
 
+    ITypeSymbol resolveUseType(ITSPHPAst typeAst, ITSPHPAst alias);
+
+    ITypeSymbol resolvePrimitiveLiteral(ITSPHPAst literal);
+
     IErroneousTypeSymbol createErroneousTypeSymbol(ITSPHPErrorAst typeAst);
 
     IErroneousTypeSymbol createErroneousTypeSymbol(ITSPHPAst typeAst, RecognitionException ex);
-
-    ITypeSymbol resolveUseType(ITSPHPAst typeAst, ITSPHPAst alias);
 
     boolean checkIsNotDoubleDefinition(ITSPHPAst identifier);
 

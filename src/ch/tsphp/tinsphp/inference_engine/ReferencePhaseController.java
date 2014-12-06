@@ -37,6 +37,7 @@ import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 import ch.tsphp.tinsphp.symbols.ModifierSet;
 import ch.tsphp.tinsphp.symbols.PrimitiveTypeNames;
+import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
 import org.antlr.runtime.RecognitionException;
 
 import java.util.ArrayList;
@@ -247,17 +248,6 @@ public class ReferencePhaseController implements IReferencePhaseController
         return typeSymbol.getDefinitionScope().getScopeName() + typeSymbol.getName();
     }
 
-
-    @Override
-    public IErroneousTypeSymbol createErroneousTypeSymbol(ITSPHPErrorAst erroneousTypeAst) {
-        return symbolFactory.createErroneousTypeSymbol(erroneousTypeAst, erroneousTypeAst.getException());
-    }
-
-    @Override
-    public IErroneousTypeSymbol createErroneousTypeSymbol(ITSPHPAst typeAst, RecognitionException ex) {
-        return symbolFactory.createErroneousTypeSymbol(typeAst, new TSPHPException(ex));
-    }
-
     @Override
     public ITypeSymbol resolveUseType(ITSPHPAst typeName, ITSPHPAst alias) {
         //Alias is always pointing to a full type name. If user has omitted \ at the beginning, then we add it here
@@ -274,6 +264,49 @@ public class ReferencePhaseController implements IReferencePhaseController
             aliasTypeSymbol = symbolFactory.createAliasTypeSymbol(typeName, typeName.getText());
         }
         return aliasTypeSymbol;
+    }
+
+    @Override
+    public ITypeSymbol resolvePrimitiveLiteral(ITSPHPAst literal) {
+        ITypeSymbol typeSymbol;
+        switch (literal.getType()) {
+            case TokenTypes.Null:
+                typeSymbol = primitiveTypes.get(PrimitiveTypeNames.NULL);
+                break;
+            case TokenTypes.Bool:
+                if (literal.getText().toLowerCase().equals("true")) {
+                    typeSymbol = primitiveTypes.get(PrimitiveTypeNames.TRUE);
+                } else {
+                    typeSymbol = primitiveTypes.get(PrimitiveTypeNames.FALSE);
+                }
+                break;
+            case TokenTypes.Int:
+                typeSymbol = primitiveTypes.get(PrimitiveTypeNames.INT);
+                break;
+            case TokenTypes.Float:
+                typeSymbol = primitiveTypes.get(PrimitiveTypeNames.FLOAT);
+                break;
+            case TokenTypes.String:
+                typeSymbol = primitiveTypes.get(PrimitiveTypeNames.STRING);
+                break;
+            case TokenTypes.TypeArray:
+                typeSymbol = primitiveTypes.get(PrimitiveTypeNames.ARRAY);
+                break;
+            default:
+                typeSymbol = null;
+                break;
+        }
+        return typeSymbol;
+    }
+
+    @Override
+    public IErroneousTypeSymbol createErroneousTypeSymbol(ITSPHPErrorAst erroneousTypeAst) {
+        return symbolFactory.createErroneousTypeSymbol(erroneousTypeAst, erroneousTypeAst.getException());
+    }
+
+    @Override
+    public IErroneousTypeSymbol createErroneousTypeSymbol(ITSPHPAst typeAst, RecognitionException ex) {
+        return symbolFactory.createErroneousTypeSymbol(typeAst, new TSPHPException(ex));
     }
 
     @Override

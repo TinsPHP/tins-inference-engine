@@ -13,19 +13,18 @@
 package ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference;
 
 import ch.tsphp.common.ITSPHPAst;
-import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.ScopeTestHelper;
 import org.junit.Assert;
 import org.junit.Ignore;
 
 @Ignore
-public abstract class AReferenceTypeScopeTest extends AReferenceTest
+public abstract class AReferenceEvalTypeScopeTest extends AReferenceTest
 {
 
     protected TypeScopeTestStruct[] testStructs;
 
-    public AReferenceTypeScopeTest(String testString, TypeScopeTestStruct[] theTestStructs) {
+    public AReferenceEvalTypeScopeTest(String testString, TypeScopeTestStruct[] theTestStructs) {
         super(testString);
         testStructs = theTestStructs;
     }
@@ -46,14 +45,16 @@ public abstract class AReferenceTypeScopeTest extends AReferenceTest
                     testStruct.astText,
                     testCandidate.toStringTree());
 
-            ISymbol symbol = testCandidate.getSymbol();
-            Assert.assertNotNull(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + ")." +
-                    " symbol was null", symbol);
-            Assert.assertEquals(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
-                            "wrong scope,",
-                    testStruct.astScope, ScopeTestHelper.getEnclosingScopeNames(symbol.getDefinitionScope()));
+//            ISymbol symbol = testCandidate.getEvalType();
+//            Assert.assertNotNull(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter +
+// ")." +
+//                    " symbol was null", symbol);
+//            Assert.assertEquals(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + ")
+// . " +
+//                            "wrong scope,",
+//                    testStruct.astScope, ScopeTestHelper.getEnclosingScopeNames(symbol.getDefinitionScope()));
 
-            ITypeSymbol typeSymbol = symbol.getType();
+            ITypeSymbol typeSymbol = testCandidate.getEvalType();
             if (testStruct.typeText != null) {
                 Assert.assertNotNull(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter +
                         "). type was null", typeSymbol);

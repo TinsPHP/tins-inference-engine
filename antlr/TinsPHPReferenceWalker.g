@@ -180,12 +180,17 @@ unaryPrimitiveAtom
     
 //TODO TINS-218 - reference phase - resolve primitive literals    
 primitiveAtomWithConstant
-    :   Bool
-    |   Int
-    |   Float
-    |   String
-    |   Null
-    |   array
+    :   (   type=Bool	
+        |   type=Int	
+        |   type=Float
+        |   type=String
+        |   type=Null
+        |   array {$type=$array.start;}
+        )
+        {
+            $start.setEvalType(controller.resolvePrimitiveLiteral($type));
+    	}
+    	
     |   cnst=CONSTANT
         {
             IVariableSymbol variableSymbol = controller.resolveConstant($cnst);
