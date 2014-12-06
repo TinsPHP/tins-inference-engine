@@ -59,6 +59,7 @@ topdown
     |   methodFunctionDefinition
     |   blockConditional
     |   foreachLoop
+    |	catchBlock
     
         //symbols
     |   constantDefinitionList
@@ -159,6 +160,14 @@ foreachLoop
             $Foreach.setScope(currentScope);
         }    
     ;
+
+catchBlock
+    :   ^('catch' type=. VariableId .*)
+         {
+             $type.setScope(currentScope);
+         }
+    ;
+
 
 constantDefinitionList
     :   ^(CONSTANT_DECLARATION_LIST ^(TYPE tMod=. type=.) constantDeclaration[$tMod, $type]+)
