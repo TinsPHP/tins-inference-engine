@@ -110,4 +110,12 @@ public class InferenceErrorReporter implements IInferenceErrorReporter
         reportError(ex);
         return ex;
     }
+
+    @Override
+    public ReferenceException unknownType(ITSPHPAst typeAst) {
+        //TODO rstoll TINS-174 inference engine and error reporting
+        ReferenceException ex = new ReferenceException("unknownType", typeAst);
+        reportError(ex);
+        return ex;
+    }
 }

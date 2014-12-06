@@ -17,10 +17,10 @@ import ch.tsphp.common.IAstHelper;
 import ch.tsphp.common.ILowerCaseStringMap;
 import ch.tsphp.common.ITSPHPAstAdaptor;
 import ch.tsphp.common.TSPHPAstAdaptor;
+import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
-import ch.tsphp.tinsphp.common.symbols.INullTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolver;
@@ -38,7 +38,6 @@ import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.WriteExcepti
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.definition.ADefinitionTest;
 import ch.tsphp.tinsphp.inference_engine.utils.AstModificationHelper;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
-import ch.tsphp.tinsphp.symbols.PrimitiveTypeNames;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 import org.junit.Assert;
@@ -46,6 +45,7 @@ import org.junit.Ignore;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertFalse;
 
@@ -84,10 +84,12 @@ public abstract class AReferenceTest extends ADefinitionTest
         );
 
         coreSymbolResolver = core.getCoreSymbolResolver();
+        ArrayList<ISymbolResolver> resolvers = new ArrayList<>();
+        resolvers.add(coreSymbolResolver);
 
         symbolResolverController = createSymbolResolverController(
                 userSymbolResolver,
-                new ArrayList<ISymbolResolver>(),
+                resolvers,
                 scopeHelper,
                 symbolFactory,
                 inferenceErrorReporter
@@ -108,7 +110,7 @@ public abstract class AReferenceTest extends ADefinitionTest
                 variableDeclarationCreator,
                 scopeHelper,
                 modifierHelper,
-                (INullTypeSymbol) core.getPrimitiveTypes().get(PrimitiveTypeNames.NULL),
+                core.getPrimitiveTypes(),
                 definitionPhaseController.getGlobalDefaultNamespace()
         );
     }
@@ -219,7 +221,7 @@ public abstract class AReferenceTest extends ADefinitionTest
             IVariableDeclarationCreator theVariableDeclarationCreator,
             IScopeHelper theScopeHelper,
             IModifierHelper theModifierHelper,
-            INullTypeSymbol theNullTypeSymbol,
+            Map<String, ITypeSymbol> thePrimitiveTypes,
             IGlobalNamespaceScope theGlobalDefaultNamespace) {
         return new ReferencePhaseController(
                 theSymbolFactory,
@@ -230,7 +232,7 @@ public abstract class AReferenceTest extends ADefinitionTest
                 theVariableDeclarationCreator,
                 theScopeHelper,
                 theModifierHelper,
-                theNullTypeSymbol,
+                thePrimitiveTypes,
                 theGlobalDefaultNamespace
         );
     }

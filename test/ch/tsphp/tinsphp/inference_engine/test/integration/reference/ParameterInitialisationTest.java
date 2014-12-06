@@ -70,7 +70,7 @@ public class ParameterInitialisationTest extends AVerifyTimesReferenceTest
                     {prefix + "function foo(" + type + " $a){ $a; return;}" + appendix, 1},
                     {prefix + "function foo(" + type + " $a, $b){ $a; $b;return;}" + appendix, 2},
                     {prefix + "function foo(" + type + " $a, $b, $c=3){$a;$b;$c;return;}" + appendix, 3},
-                    {prefix + "function foo(" + type + " $a,$b, ErrorException $c=3){$a;$b;$c;return;}" + appendix, 3},
+                    {prefix + "function foo(" + type + " $a,$b, \\Exception $c=3){$a;$b;$c;return;}" + appendix, 3},
                     {prefix + "function foo(" + type + " $a, $b, $c=1, $d=3){$a;$b;$c;$d;return;}" + appendix, 4},
             }));
         }

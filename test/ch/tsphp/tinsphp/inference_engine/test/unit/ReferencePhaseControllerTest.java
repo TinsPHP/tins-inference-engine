@@ -16,7 +16,6 @@ import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IAliasSymbol;
 import ch.tsphp.tinsphp.common.symbols.IAliasTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
-import ch.tsphp.tinsphp.common.symbols.INullTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousVariableSymbol;
@@ -31,6 +30,9 @@ import ch.tsphp.tinsphp.inference_engine.ReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -434,7 +436,7 @@ public class ReferencePhaseControllerTest
                 mock(IVariableDeclarationCreator.class),
                 scopeHelper,
                 mock(IModifierHelper.class),
-                mock(INullTypeSymbol.class),
+                new HashMap<String, ITypeSymbol>(),
                 mock(IGlobalNamespaceScope.class)
         );
     }
@@ -452,7 +454,7 @@ public class ReferencePhaseControllerTest
                 mock(IVariableDeclarationCreator.class),
                 mock(IScopeHelper.class),
                 mock(IModifierHelper.class),
-                mock(INullTypeSymbol.class),
+                new HashMap<String, ITypeSymbol>(),
                 mock(IGlobalNamespaceScope.class)
         );
 
@@ -468,7 +470,7 @@ public class ReferencePhaseControllerTest
                 mock(IVariableDeclarationCreator.class),
                 mock(IScopeHelper.class),
                 mock(IModifierHelper.class),
-                mock(INullTypeSymbol.class),
+                new HashMap<String, ITypeSymbol>(),
                 mock(IGlobalNamespaceScope.class)
         );
     }
@@ -489,7 +491,7 @@ public class ReferencePhaseControllerTest
                 variableDeclarationCreator,
                 mock(IScopeHelper.class),
                 mock(IModifierHelper.class),
-                mock(INullTypeSymbol.class),
+                new HashMap<String, ITypeSymbol>(),
                 mock(IGlobalNamespaceScope.class)
         );
     }
@@ -503,7 +505,7 @@ public class ReferencePhaseControllerTest
             IVariableDeclarationCreator theVariableDeclarationCreator,
             IScopeHelper scopeHelper,
             IModifierHelper modifierHelper,
-            INullTypeSymbol nullTypeSymbol,
+            Map<String, ITypeSymbol> thePrimitiveTypes,
             IGlobalNamespaceScope globalDefaultNamespace) {
         return new ReferencePhaseController(
                 symbolFactory,
@@ -514,7 +516,7 @@ public class ReferencePhaseControllerTest
                 theVariableDeclarationCreator,
                 scopeHelper,
                 modifierHelper,
-                nullTypeSymbol,
+                thePrimitiveTypes,
                 globalDefaultNamespace
         );
     }

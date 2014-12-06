@@ -166,13 +166,13 @@ public class VariableInitialisationErrorTest extends AReferenceDefinitionErrorTe
         addDeadCodeVariations(prefix + "\n $b=1;", "switch(1){case 1: return; default: throw $b;}", appendix);
         addDeadCodeVariations(prefix + "\n $b=1;", "switch(1){case 1: throw $b; default: return;}", appendix);
         //dead code after all catches return/throw
-        addDeadCodeVariations(prefix + "\n $b=1;", "try{return;}catch(Exception $e){return;}", appendix);
-        addDeadCodeVariations(prefix + "\n $b=1;", "try{throw $b;}catch(Exception $e){return;}", appendix);
-        addDeadCodeVariations(prefix + "\n $b=1;", "try{return;}catch(Exception $e){throw $b;}", appendix);
-        addDeadCodeVariations(prefix + "\n $b=1;", "try{throw $b;}catch(Exception $e){throw $b;}", appendix);
+        addDeadCodeVariations(prefix + "\n $b=1;", "try{return;}catch(\\Exception $ex){return;}", appendix);
+        addDeadCodeVariations(prefix + "\n $b=1;", "try{throw $b;}catch(\\Exception $ex){return;}", appendix);
+        addDeadCodeVariations(prefix + "\n $b=1;", "try{return;}catch(\\Exception $ex){throw $b;}", appendix);
+        addDeadCodeVariations(prefix + "\n $b=1;", "try{throw $b;}catch(\\Exception $ex){throw $b;}", appendix);
         addDeadCodeVariations(
                 prefix + "\n $b=1;",
-                "try{throw $b;}catch(ErrorException $e){throw $b;}catch(Exception $e){throw $b;}",
+                "try{throw $b;}catch(\\ErrorException $ex2){throw $b;}catch(\\Exception $ex){throw $b;}",
                 appendix);
         //dead code after return/try in do-while loop
         addDeadCodeVariations(prefix + "\n ", "do{return;}while(true);", appendix);

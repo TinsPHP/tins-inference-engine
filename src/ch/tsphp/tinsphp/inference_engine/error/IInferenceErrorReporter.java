@@ -38,4 +38,5 @@ public interface IInferenceErrorReporter extends IErrorReporter
 
     ReferenceException notDefined(ITSPHPAst identifier);
 
+    ReferenceException unknownType(ITSPHPAst typeAst);
 }

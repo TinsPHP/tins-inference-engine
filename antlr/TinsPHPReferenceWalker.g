@@ -1,4 +1,4 @@
-/*
+ /*
  * This file is part of the TinsPHP project published under the Apache License 2.0
  * For the full copyright and license information, please have a look at LICENSE in the
  * root folder or visit the project's website http://tsphp.ch/wiki/display/TINS/License
@@ -353,7 +353,7 @@ functionDefinition
             controller.checkIsNotDoubleDefinitionCaseInsensitive($identifier);
         //Warning! end duplicated code as in functionDeclaration
             controller.addImplicitReturnStatementIfRequired(
-                $block.isReturning, hasAtLeastOneReturnOrThrow, $identifier, $block.start);
+            $block.isReturning, hasAtLeastOneReturnOrThrow, $identifier, $block.start);
         }
     ;
 
@@ -508,7 +508,6 @@ switchContents returns[boolean isReturning, boolean hasDefault]
     boolean isFirst = true;
     List<ITSPHPAst> asts = new ArrayList<>();
 }
-
 //Warning! end duplicated code as in catchBlocks
     :   (   ^(SWITCH_CASES caseLabels) blockConditional
             {
@@ -774,7 +773,7 @@ assignOperator
     
 functionCall
         // function call has no callee and is therefor not resolved in this phase.
-        // resolving occurs in the type checking phase where overloads are taken into account
+        // resolving occurs in the inference phase where overloads are taken into account
     :   ^(FUNCTION_CALL identifier=TYPE_NAME actualParameters)
     ;
     
@@ -847,13 +846,12 @@ scalarTypesOrUnknown[ITSPHPAst typeModifier] returns [ITypeSymbol type]
 scalarTypes[ITSPHPAst typeModifier] returns [ITypeSymbol type]
 //Warning! start duplicated code as in voidType, classInterfaceType and arrayOrResourceOrMixed
 @init{
-    //TODO rstoll TINS-224 reference phase - resolve types
-    /*if(state.backtracking == 1 && $start instanceof ITSPHPErrorAst){
+    if(state.backtracking == 1 && $start instanceof ITSPHPErrorAst){
         $type = controller.createErroneousTypeSymbol((ITSPHPErrorAst)$start);
         $start.setSymbol($type);        
         input.consume();
         return retval;
-    }*/
+    }
 }
 //Warning! end duplicated code as in voidType, classInterfaceType and arrayOrResourceOrMixed
     :   (   'bool'
@@ -861,67 +859,59 @@ scalarTypes[ITSPHPAst typeModifier] returns [ITypeSymbol type]
         |   'float'
         |   'string'
         )
-        //TODO TINS-224 reference phase - resolve types     
-        /*{
+        {
             $type = controller.resolveScalarType($start, $typeModifier);
             $start.setSymbol($type);
-        }*/
+        }
     ;
 catch[RecognitionException re]{
     reportError(re);
     recover(input,re);
-    //TODO rstoll TINS-224 reference phase - resolve types
-    //$type = controller.createErroneousTypeSymbol($start, re);
+    $type = controller.createErroneousTypeSymbol($start, re);
 }
     
 classInterfaceType[ITSPHPAst typeModifier] returns [ITypeSymbol type]
-//Warning! start duplicated code as in scalarTypes, voidType and arrayOrResourceOrMixed
+//Warning! start duplicated code as in scalarTypes and arrayOrResourceOrMixed
 @init{
-    //TODO rstoll TINS-224 reference phase - resolve types
-    /*if(state.backtracking == 1 && $start instanceof ITSPHPErrorAst){
+    if(state.backtracking == 1 && $start instanceof ITSPHPErrorAst){
         $type = controller.createErroneousTypeSymbol((ITSPHPErrorAst)$start);
         $start.setSymbol($type);        
         input.consume();
         return retval;
-    }*/
+    }
 }
-//Warning! end duplicated code as in scalarTypes, voidType and arrayOrResourceOrMixed
+//Warning! end duplicated code as in scalarTypes and arrayOrResourceOrMixed
     :   TYPE_NAME
-        //TODO TINS-224 reference phase - resolve types     
-        /*{
+        {
             $type = controller.resolveType($start, $typeModifier);
             $start.setSymbol($type);
-        }*/
+        }
     ;
 catch[RecognitionException re]{
     reportError(re);
     recover(input,re);
-    //TODO rstoll TINS-224 reference phase - resolve types
-    //$type = controller.createErroneousTypeSymbol($start, re);
+    $type = controller.createErroneousTypeSymbol($start, re);
 }
     
 arrayType[ITSPHPAst typeModifier] returns [ITypeSymbol type]
-//Warning! start duplicated code as in scalarTypes, classInterfaceType and voidType
+//Warning! start duplicated code as in scalarTypes, classInterfaceType
 @init{
-    //TODO rstoll TINS-224 reference phase - resolve types
-    /*if(state.backtracking == 1 && $start instanceof ITSPHPErrorAst){
+    if(state.backtracking == 1 && $start instanceof ITSPHPErrorAst){
         $type = controller.createErroneousTypeSymbol((ITSPHPErrorAst)$start);
         $start.setSymbol($type);
         input.consume();
         return retval;
-    }*/
+    }
 }
-//Warning! end duplicated code as in scalarTypes, classInterfaceType and voidType
+//Warning! end duplicated code as in scalarTypes, classInterfaceType
     :   'array'
-        //TODO TINS-224 reference phase - resolve types     
-        /*{
+        {
             $type = controller.resolvePrimitiveType($start, $typeModifier);
             $start.setSymbol($type);
-        }*/
+        }
     ;
 catch[RecognitionException re]{
     reportError(re);
     recover(input,re);
-    //TODO rstoll TINS-224 reference phase - resolve types
-    //$type = controller.createErroneousTypeSymbol($start, re);
+    $type = controller.createErroneousTypeSymbol($start, re);
 }

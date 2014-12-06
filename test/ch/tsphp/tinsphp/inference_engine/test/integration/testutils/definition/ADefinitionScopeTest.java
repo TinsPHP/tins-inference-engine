@@ -43,7 +43,7 @@ public abstract class ADefinitionScopeTest extends ADefinitionTest
             Assert.assertEquals(testString + " failed. wrong ast text,", testStruct.astText,
                     testCandidate.toStringTree());
 
-            Assert.assertEquals(testString + "--" + testStruct.astText + " failed. wrong scope,", testStruct.astScope,
+            Assert.assertEquals(testString + " -- " + testStruct.astText + " failed. wrong scope,", testStruct.astScope,
                     ScopeTestHelper.getEnclosingScopeNames(testCandidate.getScope()));
         }
 

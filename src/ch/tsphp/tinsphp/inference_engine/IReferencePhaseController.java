@@ -13,8 +13,12 @@
 package ch.tsphp.tinsphp.inference_engine;
 
 import ch.tsphp.common.ITSPHPAst;
+import ch.tsphp.common.ITSPHPErrorAst;
 import ch.tsphp.common.symbols.ITypeSymbol;
+import ch.tsphp.tinsphp.common.symbols.IScalarTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
+import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousTypeSymbol;
+import org.antlr.runtime.RecognitionException;
 
 import java.util.List;
 
@@ -34,23 +38,22 @@ public interface IReferencePhaseController
 
     IVariableSymbol resolveVariable(ITSPHPAst variableId);
 
-    //TODO rstoll TINS-224 reference phase - resolve types
-//    IScalarTypeSymbol resolveScalarType(ITSPHPAst typeAst, ITSPHPAst typeModifierAst);
-//
-//    ITypeSymbol resolvePrimitiveType(ITSPHPAst typeASt, ITSPHPAst typeModifierAst);
-//
-//    /**
-//     * Try to resolve the type for the given typeAst and returns an
-//     * {@link IErroneousTypeSymbol} if the type could not be found.
-//     *
-//     * @param typeAst The AST node which contains the type name. For instance, int, MyClass, \Exception etc.
-//     * @return The corresponding type or a {@link IErroneousTypeSymbol} if could not be found.
-//     */
-//    ITypeSymbol resolveType(ITSPHPAst typeAst, ITSPHPAst typeModifierAst);
-//
-//    IErroneousTypeSymbol createErroneousTypeSymbol(ITSPHPErrorAst typeAst);
-//
-//    IErroneousTypeSymbol createErroneousTypeSymbol(ITSPHPAst typeAst, RecognitionException ex);
+    IScalarTypeSymbol resolveScalarType(ITSPHPAst typeAst, ITSPHPAst typeModifierAst);
+
+    ITypeSymbol resolvePrimitiveType(ITSPHPAst typeASt, ITSPHPAst typeModifierAst);
+
+    /**
+     * Try to resolve the type for the given typeAst and returns an
+     * {@link IErroneousTypeSymbol} if the type could not be found.
+     *
+     * @param typeAst The AST node which contains the type name. For instance, int, MyClass, \Exception etc.
+     * @return The corresponding type or a {@link IErroneousTypeSymbol} if could not be found.
+     */
+    ITypeSymbol resolveType(ITSPHPAst typeAst, ITSPHPAst typeModifierAst);
+
+    IErroneousTypeSymbol createErroneousTypeSymbol(ITSPHPErrorAst typeAst);
+
+    IErroneousTypeSymbol createErroneousTypeSymbol(ITSPHPAst typeAst, RecognitionException ex);
 
     ITypeSymbol resolveUseType(ITSPHPAst typeAst, ITSPHPAst alias);
 
@@ -78,8 +81,4 @@ public interface IReferencePhaseController
 
     void addImplicitReturnStatementIfRequired(
             boolean isReturning, boolean hasAtLeastOneReturnOrThrow, ITSPHPAst identifier, ITSPHPAst block);
-
-//    void checkReturnsFromMethod(boolean isReturning, boolean hasAtLeastOneReturnOrThrow, ITSPHPAst identifier);
-
-
 }

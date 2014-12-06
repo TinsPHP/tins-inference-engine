@@ -12,10 +12,10 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference;
 
+import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
-import ch.tsphp.tinsphp.common.symbols.INullTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolverController;
@@ -25,6 +25,8 @@ import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 import org.junit.Ignore;
 import org.mockito.exceptions.base.MockitoAssertionError;
+
+import java.util.Map;
 
 import static org.mockito.Mockito.spy;
 
@@ -60,7 +62,7 @@ public abstract class AVerifyTimesReferenceTest extends AReferenceTest
             IVariableDeclarationCreator theVariableDeclarationCreator,
             IScopeHelper theScopeHelper,
             IModifierHelper theModifierHelper,
-            INullTypeSymbol theNullTypeSymbol,
+            Map<String, ITypeSymbol> thePrimitiveTypes,
             IGlobalNamespaceScope theGlobalDefaultNamespace) {
         return spy(super.createReferencePhaseController(
                 theSymbolFactory,
@@ -71,7 +73,7 @@ public abstract class AVerifyTimesReferenceTest extends AReferenceTest
                 theVariableDeclarationCreator,
                 theScopeHelper,
                 theModifierHelper,
-                theNullTypeSymbol,
+                thePrimitiveTypes,
                 theGlobalDefaultNamespace
         ));
     }

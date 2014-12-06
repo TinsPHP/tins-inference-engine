@@ -14,14 +14,18 @@ package ch.tsphp.tinsphp.inference_engine;
 
 import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
+import ch.tsphp.common.ITSPHPErrorAst;
 import ch.tsphp.common.exceptions.ReferenceException;
+import ch.tsphp.common.exceptions.TSPHPException;
 import ch.tsphp.common.symbols.ITypeSymbol;
+import ch.tsphp.common.symbols.modifiers.IModifierSet;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
-import ch.tsphp.tinsphp.common.symbols.INullTypeSymbol;
+import ch.tsphp.tinsphp.common.symbols.IScalarTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
+import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.resolver.AlreadyDefinedAsTypeResultDto;
 import ch.tsphp.tinsphp.common.symbols.resolver.DoubleDefinitionCheckResultDto;
 import ch.tsphp.tinsphp.common.symbols.resolver.ForwardReferenceCheckResultDto;
@@ -31,8 +35,12 @@ import ch.tsphp.tinsphp.common.symbols.resolver.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.common.symbols.resolver.VariableInitialisedResultDto;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
+import ch.tsphp.tinsphp.symbols.ModifierSet;
+import ch.tsphp.tinsphp.symbols.PrimitiveTypeNames;
+import org.antlr.runtime.RecognitionException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +56,7 @@ public class ReferencePhaseController implements IReferencePhaseController
     private final IVariableDeclarationCreator variableDeclarationCreator;
     private final IScopeHelper scopeHelper;
     private final IModifierHelper modifierHelper;
-    private final INullTypeSymbol nullTypeSymbol;
+    private final Map<String, ITypeSymbol> primitiveTypes;
     private final IGlobalNamespaceScope globalDefaultNamespace;
 
     public ReferencePhaseController(
@@ -60,7 +68,7 @@ public class ReferencePhaseController implements IReferencePhaseController
             IVariableDeclarationCreator theVariableDeclarationCreator,
             IScopeHelper theScopeHelper,
             IModifierHelper theModifierHelper,
-            INullTypeSymbol theNullTypeSymbol,
+            Map<String, ITypeSymbol> thePrimitiveTypes,
             IGlobalNamespaceScope theGlobalDefaultNamespace) {
         symbolFactory = theSymbolFactory;
         inferenceErrorReporter = theInferenceErrorReporter;
@@ -70,7 +78,7 @@ public class ReferencePhaseController implements IReferencePhaseController
         variableDeclarationCreator = theVariableDeclarationCreator;
         scopeHelper = theScopeHelper;
         modifierHelper = theModifierHelper;
-        nullTypeSymbol = theNullTypeSymbol;
+        primitiveTypes = thePrimitiveTypes;
         globalDefaultNamespace = theGlobalDefaultNamespace;
     }
 
@@ -141,198 +149,114 @@ public class ReferencePhaseController implements IReferencePhaseController
         return variableSymbol;
     }
 
-    //TODO rstoll TINS-224 reference phase - resolve types
-//    @Override
-//    public IScalarTypeSymbol resolveScalarType(ITSPHPAst typeAst, ITSPHPAst typeModifierAst) {
-//        ITypeSymbol typeSymbol = resolveType(
-//                typeAst,
-//                typeModifierAst,
-//                new IResolveTypeCaller()
-//                {
-//                    @Override
-//                    public ITypeSymbol resolve(ITSPHPAst type) {
-//                        return (ITypeSymbol) globalDefaultNamespace.resolve(type);
-//                    }
-//                },
-//                new ISymbolCreateCaller()
-//                {
-//                    @Override
-//                    public ITypeSymbol create(
-//                            ITSPHPAst typeAst, ITypeSymbol typeSymbolWithoutModifier, IModifierSet modifiers) {
-//
-//                        IScalarTypeSymbol scalarTypeSymbol = (IScalarTypeSymbol) typeSymbolWithoutModifier;
-//                        String defaultValueAsString = scalarTypeSymbol.getDefaultValueAsString();
-//                        if (modifiers.isNullable()) {
-//                            defaultValueAsString = "null";
-//                        } else if (modifiers.isFalseable()) {
-//                            defaultValueAsString = "false";
-//                        }
-//                        return symbolFactory.createScalarTypeSymbol(
-//                                typeAst.getText(),
-//                                scalarTypeSymbol.getTokenTypeForCasting(),
-//                                scalarTypeSymbol.getParentTypeSymbols(),
-//                                scalarTypeSymbol.getDefaultValueTokenType(),
-//                                defaultValueAsString
-//                        );
-//                    }
-//                }
-//        );
-//        return (IScalarTypeSymbol) typeSymbol;
-//    }
-//
-//    @Override
-//    public ITypeSymbol resolvePrimitiveType(ITSPHPAst typeAst, ITSPHPAst typeModifierAst) {
-//        return resolveType(
-//                typeAst,
-//                typeModifierAst,
-//                new IResolveTypeCaller()
-//                {
-//                    @Override
-//                    public ITypeSymbol resolve(ITSPHPAst type) {
-//                        return (ITypeSymbol) globalDefaultNamespace.resolve(type);
-//                    }
-//                },
-//                new ISymbolCreateCaller()
-//                {
-//                    @Override
-//                    public ITypeSymbol create(
-//                            ITSPHPAst typeAst, ITypeSymbol typeSymbolWithoutModifier, IModifierSet modifiers) {
-//                        return symbolFactory.createPseudoTypeSymbol(typeAst.getText());
-//                    }
-//                }
-//        );
-//    }
-//
-//    private ITypeSymbol resolveType(ITSPHPAst typeAst, ITSPHPAst typeModifierAst,
-//            IResolveTypeCaller resolveCaller, ISymbolCreateCaller symbolCreateCaller) {
-//
-//        IModifierSet modifiers = typeModifierAst != null
-//                ? modifierHelper.getModifiers(typeModifierAst)
-//                : new ModifierSet();
-//
-//        String typeName = typeAst.getText();
-//        String typeNameWithoutModifiers = typeName;
-//
-//        boolean isFalseableOrNullableOrBoth = false;
-//        if (isFalseableAndTypeNameIsNot(modifiers, typeNameWithoutModifiers)) {
-//            isFalseableOrNullableOrBoth = true;
-//            typeName += "!";
-//        }
-//        if (isNullableAndTypeNameIsNot(modifiers, typeNameWithoutModifiers)) {
-//            isFalseableOrNullableOrBoth = true;
-//            typeName += "?";
-//        }
-//
-//        typeAst.setText(typeName);
-//        ITypeSymbol typeSymbol = resolveCaller.resolve(typeAst);
-//
-//        if (isFalseableOrNullableOrBoth && typeSymbol == null) {
-//
-//            typeAst.setText(typeNameWithoutModifiers);
-//            ITypeSymbol typeSymbolWithoutModifier = resolveCaller.resolve(typeAst);
-//            if (typeSymbolWithoutModifier != null) {
-//                typeAst.setText(typeName);
-//                ITypeSymbol newType = symbolCreateCaller.create(typeAst, typeSymbolWithoutModifier, modifiers);
-//                if (modifiers.isFalseable()) {
-//                    newType.addModifier(TSPHPDefinitionWalker.LogicNot);
-//                }
-//                if (modifiers.isNullable()) {
-//                    newType.addModifier(TSPHPDefinitionWalker.QuestionMark);
-//                }
-//                typeSymbolWithoutModifier.getDefinitionScope().define(newType);
-//                core.addExplicitCastFromTo(newType, typeSymbolWithoutModifier);
-//                core.addImplicitCastFromTo(typeSymbolWithoutModifier, newType);
-//                typeSymbol = newType;
-//            }
-//        }
-//
-//        if (typeSymbol == null) {
-//            rewriteNameToAbsoluteType(typeAst);
-//            ReferenceException ex = typeCheckErrorReporter.unknownType(typeAst);
-//            typeSymbol = symbolFactory.createErroneousTypeSymbol(typeAst, ex);
-//
-//        }
-//        return typeSymbol;
-//
-//    }
-//
-//    private boolean isFalseableAndTypeNameIsNot(IModifierSet modifiers, String typeNameWithoutModifiers) {
-//        return modifiers.isFalseable()
-//                && !typeNameWithoutModifiers.endsWith("!")
-//                && !typeNameWithoutModifiers.endsWith("!?");
-//    }
-//
-//    private boolean isNullableAndTypeNameIsNot(IModifierSet modifiers, String typeNameWithoutModifiers) {
-//        return modifiers.isNullable() && !typeNameWithoutModifiers.endsWith("?");
-//    }
-//
-//    /**
-//     * Return the absolute name of a type which could not be found (prefix the enclosing namespace).
-//     */
-//    private void rewriteNameToAbsoluteType(ITSPHPAst typeAst) {
-//        String typeName = typeAst.getText();
-//        if (!symbolResolverController.isAbsolute(typeName)) {
-//            String namespace = symbolResolverController.getEnclosingGlobalNamespaceScope(typeAst.getScope())
-// .getScopeName();
-//            typeAst.setText(namespace + typeName);
-//        }
-//    }
-//
-//    @Override
-//    public ITypeSymbol resolveType(ITSPHPAst typeAst, ITSPHPAst typeModifierAst) {
-//        ITypeSymbol symbol = resolveType(typeAst, typeModifierAst, new IResolveTypeCaller()
-//                {
-//                    @Override
-//                    public ITypeSymbol resolve(ITSPHPAst typeAst) {
-//                        return (ITypeSymbol) symbolResolverController.resolveConstantLikeIdentifier(typeAst);
-//                    }
-//                },
-//                new ISymbolCreateCaller()
-//                {
-//                    @Override
-//                    public ITypeSymbol create(
-//                            ITSPHPAst typeAst, ITypeSymbol typeSymbolWithoutModifier, IModifierSet modifiers) {
-//
-//                        IAstHelper astHelper = AstHelperRegistry.get();
-//                        ITSPHPAst cMod = astHelper.createAst(TSPHPReferenceWalker.CLASS_MODIFIER, "cMod");
-//                        for (int modifier : modifiers) {
-//                            cMod.addChild(astHelper.createAst(modifier, "m" + modifier));
-//                        }
-//                        ITSPHPAst identifier =
-//                                astHelper.createAst(TSPHPReferenceWalker.Identifier, typeAst.getText());
-//
-//                        if (typeSymbolWithoutModifier instanceof IClassTypeSymbol) {
-//                            return symbolFactory.createClassTypeSymbol(
-//                                    cMod, identifier, ((IClassTypeSymbol) typeSymbolWithoutModifier)
-//                                            .getEnclosingScope());
-//                        } else if (typeSymbolWithoutModifier instanceof IInterfaceTypeSymbol) {
-//                            return symbolFactory.createInterfaceTypeSymbol(
-//                                    cMod, identifier, ((IInterfaceTypeSymbol) typeSymbolWithoutModifier)
-//                                            .getEnclosingScope());
-//                        }
-//                        return null;
-//                    }
-//                }
-//        );
-//
+    @Override
+    public IScalarTypeSymbol resolveScalarType(ITSPHPAst typeAst, ITSPHPAst typeModifierAst) {
+        return (IScalarTypeSymbol) resolveType(
+                typeAst,
+                typeModifierAst,
+                new IResolveTypeCaller()
+                {
+                    @Override
+                    public ITypeSymbol resolve(ITSPHPAst type) {
+                        String typeName = type.getText();
+                        return primitiveTypes.get(typeName.charAt(0) == '\\' ? typeName : "\\" + typeName);
+                    }
+                }
+        );
+    }
+
+    @Override
+    public ITypeSymbol resolvePrimitiveType(ITSPHPAst typeAst, ITSPHPAst typeModifierAst) {
+        return resolveType(
+                typeAst,
+                typeModifierAst,
+                new IResolveTypeCaller()
+                {
+                    @Override
+                    public ITypeSymbol resolve(ITSPHPAst type) {
+                        String typeName = type.getText();
+                        return primitiveTypes.get(typeName.charAt(0) == '\\' ? typeName : "\\" + typeName);
+                    }
+                }
+        );
+    }
+
+    @Override
+    public ITypeSymbol resolveType(ITSPHPAst typeAst, ITSPHPAst typeModifierAst) {
+        ITypeSymbol symbol = resolveType(
+                typeAst,
+                typeModifierAst,
+                new IResolveTypeCaller()
+                {
+                    @Override
+                    public ITypeSymbol resolve(ITSPHPAst typeAst) {
+                        return (ITypeSymbol) symbolResolverController.resolveClassLikeIdentifier(typeAst);
+                    }
+                }
+        );
+
+        //TODO rstoll LazyEvaluatedTypeSymbol has to be considered something similar to the code below but with
+        //ILazySymbolResolver
 //        if (symbol instanceof IAliasTypeSymbol) {
 //            typeAst.setText(symbol.getName());
-//            ReferenceException ex = typeCheckErrorReporter.unknownType(typeAst);
+//            ReferenceException ex = inferenceErrorReporter.unknownType(typeAst);
 //            symbol = symbolFactory.createErroneousTypeSymbol(symbol.getDefinitionAst(), ex);
 //        }
-//
-//        return symbol;
-//    }
-//
-//    @Override
-//    public IErroneousTypeSymbol createErroneousTypeSymbol(ITSPHPErrorAst erroneousTypeAst) {
-//        return symbolFactory.createErroneousTypeSymbol(erroneousTypeAst, erroneousTypeAst.getException());
-//    }
-//
-//    @Override
-//    public IErroneousTypeSymbol createErroneousTypeSymbol(ITSPHPAst typeAst, RecognitionException ex) {
-//        return symbolFactory.createErroneousTypeSymbol(typeAst, new TSPHPException(ex));
-//    }
+
+        return symbol;
+    }
+
+    private ITypeSymbol resolveType(ITSPHPAst typeAst, ITSPHPAst typeModifierAst, IResolveTypeCaller resolveCaller) {
+
+        ITypeSymbol typeSymbol = resolveCaller.resolve(typeAst);
+
+        if (typeSymbol == null) {
+            ReferenceException ex = inferenceErrorReporter.unknownType(typeAst);
+            typeSymbol = symbolFactory.createErroneousTypeSymbol(typeAst, ex);
+        }
+
+        typeSymbol = createUnionTypeIfNullableOrFalseable(typeModifierAst, typeSymbol);
+
+        return typeSymbol;
+    }
+
+    private ITypeSymbol createUnionTypeIfNullableOrFalseable(ITSPHPAst typeModifierAst, ITypeSymbol typeSymbol) {
+        IModifierSet modifiers = typeModifierAst != null
+                ? modifierHelper.getModifiers(typeModifierAst)
+                : new ModifierSet();
+
+        Map<String, ITypeSymbol> types = new HashMap<>(3);
+        ITypeSymbol nullTypeSymbol = primitiveTypes.get(PrimitiveTypeNames.NULL);
+        if (modifiers.isNullable() && typeSymbol != nullTypeSymbol) {
+            types.put(PrimitiveTypeNames.NULL, nullTypeSymbol);
+        }
+
+        ITypeSymbol falseTypeSymbol = primitiveTypes.get(PrimitiveTypeNames.FALSE);
+        if (modifiers.isFalseable() && typeSymbol != falseTypeSymbol) {
+            types.put(PrimitiveTypeNames.FALSE, falseTypeSymbol);
+        }
+
+        if (!types.isEmpty()) {
+            types.put(getAbsoluteType(typeSymbol), typeSymbol);
+            typeSymbol = symbolFactory.createUnionTypeSymbol(types);
+        }
+        return typeSymbol;
+    }
+
+    private String getAbsoluteType(ITypeSymbol typeSymbol) {
+        return typeSymbol.getDefinitionScope().getScopeName() + typeSymbol.getName();
+    }
+
+
+    @Override
+    public IErroneousTypeSymbol createErroneousTypeSymbol(ITSPHPErrorAst erroneousTypeAst) {
+        return symbolFactory.createErroneousTypeSymbol(erroneousTypeAst, erroneousTypeAst.getException());
+    }
+
+    @Override
+    public IErroneousTypeSymbol createErroneousTypeSymbol(ITSPHPAst typeAst, RecognitionException ex) {
+        return symbolFactory.createErroneousTypeSymbol(typeAst, new TSPHPException(ex));
+    }
 
     @Override
     public ITypeSymbol resolveUseType(ITSPHPAst typeName, ITSPHPAst alias) {
@@ -551,7 +475,7 @@ public class ReferencePhaseController implements IReferencePhaseController
     private void addReturnNullAtTheEndOfScope(ITSPHPAst block) {
         ITSPHPAst returnAst = astModificationHelper.getNullReturnStatement();
         returnAst.setScope(block.getScope());
-        returnAst.setEvalType(nullTypeSymbol);
+        returnAst.setEvalType(primitiveTypes.get(PrimitiveTypeNames.NULL));
         block.addChild(returnAst);
     }
 
@@ -569,17 +493,12 @@ public class ReferencePhaseController implements IReferencePhaseController
 //        }
 //    }
 
-//
-//    /**
-//     * "Delegate" to resolve a type - e.g. resolve a primitive type
-//     */
-//    private interface IResolveTypeCaller
-//    {
-//        ITypeSymbol resolve(ITSPHPAst typeAst);
-//    }
-//
-//    private interface ISymbolCreateCaller
-//    {
-//        ITypeSymbol create(ITSPHPAst typeAst, ITypeSymbol typeSymbolWithoutModifier, IModifierSet modifiers);
-//    }
+
+    /**
+     * "Delegate" to resolve a type - e.g. resolve a primitive type
+     */
+    private interface IResolveTypeCaller
+    {
+        ITypeSymbol resolve(ITSPHPAst typeAst);
+    }
 }
