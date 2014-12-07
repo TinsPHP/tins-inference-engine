@@ -21,7 +21,7 @@ import org.antlr.runtime.NoViableAltException;
 import org.antlr.runtime.RecognitionException;
 import org.junit.Test;
 
-import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker.Try;
+import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker.Else;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -31,7 +31,7 @@ public class NotCorrectStartNodeTypeForRulesWithParams extends AReferenceWalkerT
 {
     @Test
     public void allTypesOrUnknown_WrongStartNode_reportNoViableAltException() throws RecognitionException {
-        ITSPHPAst ast = createAst(Try);
+        ITSPHPAst ast = createAst(Else);
 
         TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
         walker.allTypesOrUnknown(new TSPHPAst());
@@ -41,7 +41,7 @@ public class NotCorrectStartNodeTypeForRulesWithParams extends AReferenceWalkerT
 
     @Test
     public void arrayType_WrongStartNode_reportNoViableAltException() throws RecognitionException {
-        ITSPHPAst ast = createAst(Try);
+        ITSPHPAst ast = createAst(Else);
 
         TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
         walker.arrayType(new TSPHPAst());
@@ -51,7 +51,7 @@ public class NotCorrectStartNodeTypeForRulesWithParams extends AReferenceWalkerT
 
     @Test
     public void classInterfaceType_WrongStartNode_reportNoViableAltException() throws RecognitionException {
-        ITSPHPAst ast = createAst(Try);
+        ITSPHPAst ast = createAst(Else);
 
         TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
         walker.classInterfaceType(new TSPHPAst());
@@ -62,7 +62,7 @@ public class NotCorrectStartNodeTypeForRulesWithParams extends AReferenceWalkerT
     //TODO TINS-210 - reference phase - class definitions
 //    @Test
 //    public void classExtendsDeclaration_WrongStartNode_reportNoViableAltException() throws RecognitionException {
-//        ITSPHPAst ast = createAst(Try);
+//        ITSPHPAst ast = createAst(Else);
 //
 //        TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
 //        walker.classExtendsDeclaration(new TSPHPAst());
@@ -72,7 +72,7 @@ public class NotCorrectStartNodeTypeForRulesWithParams extends AReferenceWalkerT
 
 //    @Test
 //    public void implementsDeclaration_WrongStartNode_reportNoViableAltException() throws RecognitionException {
-//        ITSPHPAst ast = createAst(Try);
+//        ITSPHPAst ast = createAst(Else);
 //
 //        TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
 //        walker.implementsDeclaration(new TSPHPAst());
@@ -83,7 +83,7 @@ public class NotCorrectStartNodeTypeForRulesWithParams extends AReferenceWalkerT
     @Test
     public void constDeclaration_WrongStartNode_reportNoViableAltException() throws RecognitionException {
 
-        ITSPHPAst ast = createAst(Try);
+        ITSPHPAst ast = createAst(Else);
 
         TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
         walker.constDeclaration(mock(ITypeSymbol.class));
@@ -94,7 +94,7 @@ public class NotCorrectStartNodeTypeForRulesWithParams extends AReferenceWalkerT
     //TODO rstoll TINS-211 reference phase - interface definitions
 //    @Test
 //    public void interfaceExtendsDeclaration_WrongStartNode_reportNoViableAltException() throws RecognitionException {
-//        ITSPHPAst ast = createAst(Try);
+//        ITSPHPAst ast = createAst(Else);
 //
 //        TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
 //        walker.interfaceExtendsDeclaration(new TSPHPAst());
@@ -105,7 +105,7 @@ public class NotCorrectStartNodeTypeForRulesWithParams extends AReferenceWalkerT
 
     @Test
     public void scalarTypesOrUnknown_WrongStartNode_reportNoViableAltException() throws RecognitionException {
-        ITSPHPAst ast = createAst(Try);
+        ITSPHPAst ast = createAst(Else);
 
         TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
         walker.scalarTypesOrUnknown(new TSPHPAst());
@@ -114,8 +114,18 @@ public class NotCorrectStartNodeTypeForRulesWithParams extends AReferenceWalkerT
     }
 
     @Test
+    public void scalarTypesOrArrayType_WrongStartNode_reportNoViableAltException() throws RecognitionException {
+        ITSPHPAst ast = createAst(Else);
+
+        TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
+        walker.scalarTypesOrArrayType(new TSPHPAst());
+
+        verify(walker).reportError(any(NoViableAltException.class));
+    }
+
+    @Test
     public void scalarTypes_WrongStartNode_reportNoViableAltException() throws RecognitionException {
-        ITSPHPAst ast = createAst(Try);
+        ITSPHPAst ast = createAst(Else);
 
         TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
         walker.scalarTypes(new TSPHPAst());
@@ -123,19 +133,9 @@ public class NotCorrectStartNodeTypeForRulesWithParams extends AReferenceWalkerT
         verify(walker).reportError(any(NoViableAltException.class));
     }
 
-//    @Test
-//    public void variableDeclaration_WrongStartNode_reportNoViableAltException() throws RecognitionException {
-//        ITSPHPAst ast = createAst(Try);
-//
-//        TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
-//        walker.variableDeclaration(mock(ITypeSymbol.class), false);
-//
-//        verify(walker).reportError(any(NoViableAltException.class));
-//    }
-
     @Test
     public void returnTypesOrUnknown_WrongStartNode_reportNoViableAltException() throws RecognitionException {
-        ITSPHPAst ast = createAst(Try);
+        ITSPHPAst ast = createAst(Else);
 
         TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
         walker.returnTypesOrUnknown(mock(ITSPHPAst.class));

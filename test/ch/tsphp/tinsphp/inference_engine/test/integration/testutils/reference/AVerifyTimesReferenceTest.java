@@ -13,13 +13,13 @@
 package ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference;
 
 import ch.tsphp.common.symbols.ITypeSymbol;
+import ch.tsphp.tinsphp.common.IVariableDeclarationCreator;
+import ch.tsphp.tinsphp.common.checking.ISymbolCheckController;
+import ch.tsphp.tinsphp.common.resolving.ISymbolResolverController;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
-import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolCheckController;
-import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolverController;
-import ch.tsphp.tinsphp.common.symbols.resolver.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.inference_engine.IReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;

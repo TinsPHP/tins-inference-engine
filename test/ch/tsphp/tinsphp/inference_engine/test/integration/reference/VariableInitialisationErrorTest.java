@@ -129,7 +129,7 @@ public class VariableInitialisationErrorTest extends AReferenceDefinitionErrorTe
                 },
                 //not all cases initialise
                 {
-                        prefix + "\n switch(1){case 1: break; default: $a = 1;}\n $a * 78;" + appendix,
+                        prefix + "\n switch(1){case 1: break 1; default: $a = 1;}\n $a * 78;" + appendix,
                         errorDto, new PartiallyVerifier()
                 },
                 //More than one
@@ -143,11 +143,19 @@ public class VariableInitialisationErrorTest extends AReferenceDefinitionErrorTe
                 {prefix + "\n for(;\n $a < 10;\n $a++){}" + appendix, twoErrorDto, new NotVerifier(2)},
                 //break before initialisation -> initialisation is dead code
                 {
-                        prefix + "\n switch(1){case 1: break; $a=1;}\n $a - 25;" + appendix,
+                        prefix + "\n switch(1){case 1: break 1; $a=1;}\n $a - 25;" + appendix,
                         errorDto, new NotVerifier()
                 },
                 {
                         prefix + "\n switch(1){default: break;$a=1;} \n $a + 96;" + appendix,
+                        errorDto, new NotVerifier()
+                },
+                {
+                        prefix + "\n switch(1){case 1: continue 1; $a=1;}\n $a - 25;" + appendix,
+                        errorDto, new NotVerifier()
+                },
+                {
+                        prefix + "\n switch(1){default: continue;$a=1;} \n $a + 96;" + appendix,
                         errorDto, new NotVerifier()
                 },
         }));

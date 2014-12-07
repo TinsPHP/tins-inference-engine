@@ -1,4 +1,4 @@
- /*
+/*
  * This file is part of the TinsPHP project published under the Apache License 2.0
  * For the full copyright and license information, please have a look at LICENSE in the
  * root folder or visit the project's website http://tsphp.ch/wiki/display/TINS/License
@@ -180,8 +180,8 @@ unaryPrimitiveAtom
     
 //TODO TINS-218 - reference phase - resolve primitive literals    
 primitiveAtomWithConstant
-    :   (   type=Bool	
-        |   type=Int	
+    :   (   type=Bool
+        |   type=Int
         |   type=Float
         |   type=String
         |   type=Null
@@ -189,8 +189,8 @@ primitiveAtomWithConstant
         )
         {
             $start.setEvalType(controller.resolvePrimitiveLiteral($type));
-    	}
-    	
+        }
+
     |   cnst=CONSTANT
         {
             IVariableSymbol variableSymbol = controller.resolveConstant($cnst);
@@ -705,7 +705,7 @@ operator
             }
         }
     |   ^('?' expression expression expression)
-    |   ^(CAST ^(TYPE tMod=. scalarTypes[$tMod]) expression)
+    |   ^(CAST ^(TYPE tMod=. scalarTypesOrArrayType[$tMod]) expression)
     |   ^(Instanceof expr=expression (variable|classInterfaceType[null]))
 
     //|   ^('new' classInterfaceType[null] actualParameters)
@@ -842,6 +842,11 @@ allTypesOrUnknown[ITSPHPAst typeModifier] returns [ITypeSymbol type]
     //unknown type - needs to be inferred during the inference phase
     |   '?' {$type = null;}
     ;
+    
+scalarTypesOrArrayType[ITSPHPAst typeModifier] returns [ITypeSymbol type]
+    :   scalarTypes[typeModifier] {$type = $scalarTypes.type;}
+    |   arrayType[$typeModifier] {$type = $arrayType.type;}
+    ;
 
 scalarTypesOrUnknown[ITSPHPAst typeModifier] returns [ITypeSymbol type]
     :   scalarTypes[typeModifier] {$type = $scalarTypes.type;}
@@ -865,7 +870,7 @@ scalarTypes[ITSPHPAst typeModifier] returns [ITypeSymbol type]
         |   'string'
         )
         {
-            $type = controller.resolveScalarType($start, $typeModifier);
+            $type = controller.resolvePrimitiveType($start, $typeModifier);
             $start.setSymbol($type);
         }
     ;

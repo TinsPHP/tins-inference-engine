@@ -10,13 +10,17 @@ import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.common.symbols.ITypeSymbol;
+import ch.tsphp.tinsphp.common.checking.AlreadyDefinedAsTypeResultDto;
+import ch.tsphp.tinsphp.common.checking.DoubleDefinitionCheckResultDto;
+import ch.tsphp.tinsphp.common.checking.ForwardReferenceCheckResultDto;
+import ch.tsphp.tinsphp.common.checking.ISymbolCheckController;
+import ch.tsphp.tinsphp.common.checking.VariableInitialisedResultDto;
+import ch.tsphp.tinsphp.common.resolving.ISymbolResolver;
+import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousSymbol;
-import ch.tsphp.tinsphp.common.symbols.resolver.AlreadyDefinedAsTypeResultDto;
-import ch.tsphp.tinsphp.common.symbols.resolver.DoubleDefinitionCheckResultDto;
-import ch.tsphp.tinsphp.common.symbols.resolver.ForwardReferenceCheckResultDto;
-import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolCheckController;
-import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolver;
+import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousVariableSymbol;
 import ch.tsphp.tinsphp.inference_engine.resolver.SymbolCheckController;
+import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -28,6 +32,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
@@ -35,7 +40,7 @@ public class SymbolCheckControllerTest
 {
 
     @Test
-    public void checkIsNotForwardReference_IsErroneousSymbol_ReturnsTrue() {
+    public void isNotForwardReference_IsErroneousSymbol_ReturnsTrue() {
         IErroneousSymbol symbol = mock(IErroneousSymbol.class);
 
         ITSPHPAst ast = mock(ITSPHPAst.class);
@@ -49,7 +54,7 @@ public class SymbolCheckControllerTest
     }
 
     @Test
-    public void checkIsNotForwardReference_IsDefinedEarlier_ReturnsTrue() {
+    public void isNotForwardReference_IsDefinedEarlier_ReturnsTrue() {
         ITSPHPAst ast = mock(ITSPHPAst.class);
         ISymbol symbol = mock(ISymbol.class);
         when(ast.getSymbol()).thenReturn(symbol);
@@ -66,7 +71,7 @@ public class SymbolCheckControllerTest
     }
 
     @Test
-    public void checkIsNotForwardReference_IsDefinedLaterOwn_ReturnsFalse() {
+    public void isNotForwardReference_IsDefinedLaterOwn_ReturnsFalse() {
         ITSPHPAst ast = mock(ITSPHPAst.class);
         ISymbol symbol = mock(ISymbol.class);
         when(ast.getSymbol()).thenReturn(symbol);
@@ -303,6 +308,43 @@ public class SymbolCheckControllerTest
     }
 
     @Test
+    public void isNotUseDoubleDefinition_NotFirst_ReturnsFalse() {
+        ISymbol firstSymbol = mock(ISymbol.class);
+        ITSPHPAst ast = mock(ITSPHPAst.class);
+        String alias = "alias";
+        when(ast.getText()).thenReturn(alias);
+        ISymbol symbol = mock(ISymbol.class);
+        when(ast.getSymbol()).thenReturn(symbol);
+        INamespaceScope namespaceScope = mock(INamespaceScope.class);
+        when(symbol.getDefinitionScope()).thenReturn(namespaceScope);
+        when(namespaceScope.getCaseInsensitiveFirstUseSymbol(alias)).thenReturn(firstSymbol);
+
+        ISymbolCheckController controller = createController();
+        DoubleDefinitionCheckResultDto result = controller.isNotUseDoubleDefinition(ast);
+
+        assertThat(result.isNotDoubleDefinition, is(false));
+        assertThat(result.existingSymbol, is(firstSymbol));
+    }
+
+    @Test
+    public void isNotUseDoubleDefinition_IsFirst_ReturnsTrue() {
+        ISymbol firstSymbol = mock(ISymbol.class);
+        ITSPHPAst ast = mock(ITSPHPAst.class);
+        String alias = "alias";
+        when(ast.getText()).thenReturn(alias);
+        when(ast.getSymbol()).thenReturn(firstSymbol);
+        INamespaceScope namespaceScope = mock(INamespaceScope.class);
+        when(firstSymbol.getDefinitionScope()).thenReturn(namespaceScope);
+        when(namespaceScope.getCaseInsensitiveFirstUseSymbol(alias)).thenReturn(firstSymbol);
+
+        ISymbolCheckController controller = createController();
+        DoubleDefinitionCheckResultDto result = controller.isNotUseDoubleDefinition(ast);
+
+        assertThat(result.isNotDoubleDefinition, is(true));
+        assertThat(result.existingSymbol, is(firstSymbol));
+    }
+
+    @Test
     public void isNotAlreadyDefinedAsType_Standard_UsesIsNotDoubleDefinitionDelegatesToAllAndReturnNull() {
         ITSPHPAst ast = mock(ITSPHPAst.class);
         ISymbolResolver userSymbolResolver = mock(ISymbolResolver.class);
@@ -423,6 +465,126 @@ public class SymbolCheckControllerTest
         verify(alias).getScope();
         assertThat(result.isNotAlreadyDefinedAsType, is(false));
         assertThat(result.typeSymbol, is(typeSymbol));
+    }
+
+    @Test
+    public void isVariableInitialised_IsErroneousSymbol_ReturnsTrueAndFalse() {
+        ITSPHPAst variableId = mock(ITSPHPAst.class);
+        IErroneousVariableSymbol symbol = mock(IErroneousVariableSymbol.class);
+        when(variableId.getSymbol()).thenReturn(symbol);
+
+        ISymbolCheckController controller = createController();
+        VariableInitialisedResultDto result = controller.isVariableInitialised(variableId);
+
+        assertThat(result.isFullyInitialised, is(true));
+        assertThat(result.isPartiallyInitialised, is(false));
+    }
+
+    @Test
+    public void isVariableInitialised_IsFullyInitialised_ReturnsTrueAndFalse() {
+        ITSPHPAst variableId = mock(ITSPHPAst.class);
+        ISymbol symbol = mock(ISymbol.class);
+        when(variableId.getSymbol()).thenReturn(symbol);
+        IScope scope = mock(IScope.class);
+        when(variableId.getScope()).thenReturn(scope);
+        when(scope.isFullyInitialised(symbol)).thenReturn(true);
+
+        ISymbolCheckController controller = createController();
+        VariableInitialisedResultDto result = controller.isVariableInitialised(variableId);
+
+        verify(scope).isFullyInitialised(symbol);
+        verifyNoMoreInteractions(scope);
+        assertThat(result.isFullyInitialised, is(true));
+        assertThat(result.isPartiallyInitialised, is(false));
+    }
+
+    @Test
+    public void isVariableInitialised_IsPartiallyInitialised_ReturnsTrueAndFalse() {
+        ITSPHPAst variableId = mock(ITSPHPAst.class);
+        ISymbol symbol = mock(ISymbol.class);
+        when(variableId.getSymbol()).thenReturn(symbol);
+        IScope scope = mock(IScope.class);
+        when(variableId.getScope()).thenReturn(scope);
+        when(scope.isPartiallyInitialised(symbol)).thenReturn(true);
+        ITSPHPAst parent = mock(ITSPHPAst.class);
+        when(variableId.getParent()).thenReturn(parent);
+        when(parent.getType()).thenReturn(TokenTypes.Plus);
+
+        ISymbolCheckController controller = createController();
+        VariableInitialisedResultDto result = controller.isVariableInitialised(variableId);
+
+        verify(scope).isFullyInitialised(symbol);
+        verify(scope).isPartiallyInitialised(symbol);
+        assertThat(result.isFullyInitialised, is(false));
+        assertThat(result.isPartiallyInitialised, is(true));
+    }
+
+    @Test
+    public void isVariableInitialised_IsLeftHandSideOfAssignment_ReturnsTrueAndFalse() {
+        ITSPHPAst variableId = mock(ITSPHPAst.class);
+        ISymbol symbol = mock(ISymbol.class);
+        when(variableId.getSymbol()).thenReturn(symbol);
+        IScope scope = mock(IScope.class);
+        when(variableId.getScope()).thenReturn(scope);
+        when(scope.isFullyInitialised(symbol)).thenReturn(false);
+        ITSPHPAst parent = mock(ITSPHPAst.class);
+        when(variableId.getParent()).thenReturn(parent);
+        when(parent.getType()).thenReturn(TokenTypes.Assign);
+        when(parent.getChild(0)).thenReturn(variableId);
+
+        ISymbolCheckController controller = createController();
+        VariableInitialisedResultDto result = controller.isVariableInitialised(variableId);
+
+        verify(scope).isFullyInitialised(symbol);
+        verifyNoMoreInteractions(scope);
+        assertThat(result.isFullyInitialised, is(true));
+        assertThat(result.isPartiallyInitialised, is(false));
+    }
+
+    @Test
+    public void isVariableInitialised_IsRightHandSideOfAssignmentAndPartiallyInitialised_ReturnsFalseAndTrue() {
+        ITSPHPAst variableId = mock(ITSPHPAst.class);
+        ISymbol symbol = mock(ISymbol.class);
+        when(variableId.getSymbol()).thenReturn(symbol);
+        IScope scope = mock(IScope.class);
+        when(variableId.getScope()).thenReturn(scope);
+        when(scope.isFullyInitialised(symbol)).thenReturn(false);
+        ITSPHPAst parent = mock(ITSPHPAst.class);
+        when(variableId.getParent()).thenReturn(parent);
+        when(parent.getType()).thenReturn(TokenTypes.Assign);
+        when(parent.getChild(0)).thenReturn(mock(ITSPHPAst.class));
+        when(scope.isPartiallyInitialised(symbol)).thenReturn(true);
+
+        ISymbolCheckController controller = createController();
+        VariableInitialisedResultDto result = controller.isVariableInitialised(variableId);
+
+        verify(scope).isFullyInitialised(symbol);
+        verify(scope).isPartiallyInitialised(symbol);
+        assertThat(result.isFullyInitialised, is(false));
+        assertThat(result.isPartiallyInitialised, is(true));
+    }
+
+    @Test
+    public void isVariableInitialised_IsRightHandSideOfAssignmentAndNotInitialised_ReturnsFalseAndFalse() {
+        ITSPHPAst variableId = mock(ITSPHPAst.class);
+        ISymbol symbol = mock(ISymbol.class);
+        when(variableId.getSymbol()).thenReturn(symbol);
+        IScope scope = mock(IScope.class);
+        when(variableId.getScope()).thenReturn(scope);
+        when(scope.isFullyInitialised(symbol)).thenReturn(false);
+        ITSPHPAst parent = mock(ITSPHPAst.class);
+        when(variableId.getParent()).thenReturn(parent);
+        when(parent.getType()).thenReturn(TokenTypes.Assign);
+        when(parent.getChild(0)).thenReturn(mock(ITSPHPAst.class));
+        when(scope.isPartiallyInitialised(symbol)).thenReturn(false);
+
+        ISymbolCheckController controller = createController();
+        VariableInitialisedResultDto result = controller.isVariableInitialised(variableId);
+
+        verify(scope).isFullyInitialised(symbol);
+        verify(scope).isPartiallyInitialised(symbol);
+        assertThat(result.isFullyInitialised, is(false));
+        assertThat(result.isPartiallyInitialised, is(false));
     }
 
     private ISymbolCheckController createController() {

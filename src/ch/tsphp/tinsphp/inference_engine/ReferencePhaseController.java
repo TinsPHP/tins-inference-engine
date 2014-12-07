@@ -19,20 +19,19 @@ import ch.tsphp.common.exceptions.ReferenceException;
 import ch.tsphp.common.exceptions.TSPHPException;
 import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.common.symbols.modifiers.IModifierSet;
+import ch.tsphp.tinsphp.common.IVariableDeclarationCreator;
+import ch.tsphp.tinsphp.common.checking.AlreadyDefinedAsTypeResultDto;
+import ch.tsphp.tinsphp.common.checking.DoubleDefinitionCheckResultDto;
+import ch.tsphp.tinsphp.common.checking.ForwardReferenceCheckResultDto;
+import ch.tsphp.tinsphp.common.checking.ISymbolCheckController;
+import ch.tsphp.tinsphp.common.checking.VariableInitialisedResultDto;
+import ch.tsphp.tinsphp.common.resolving.ISymbolResolverController;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
-import ch.tsphp.tinsphp.common.symbols.IScalarTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousTypeSymbol;
-import ch.tsphp.tinsphp.common.symbols.resolver.AlreadyDefinedAsTypeResultDto;
-import ch.tsphp.tinsphp.common.symbols.resolver.DoubleDefinitionCheckResultDto;
-import ch.tsphp.tinsphp.common.symbols.resolver.ForwardReferenceCheckResultDto;
-import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolCheckController;
-import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolverController;
-import ch.tsphp.tinsphp.common.symbols.resolver.IVariableDeclarationCreator;
-import ch.tsphp.tinsphp.common.symbols.resolver.VariableInitialisedResultDto;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 import ch.tsphp.tinsphp.symbols.ModifierSet;
@@ -151,22 +150,6 @@ public class ReferencePhaseController implements IReferencePhaseController
     }
 
     @Override
-    public IScalarTypeSymbol resolveScalarType(ITSPHPAst typeAst, ITSPHPAst typeModifierAst) {
-        return (IScalarTypeSymbol) resolveType(
-                typeAst,
-                typeModifierAst,
-                new IResolveTypeCaller()
-                {
-                    @Override
-                    public ITypeSymbol resolve(ITSPHPAst type) {
-                        String typeName = type.getText();
-                        return primitiveTypes.get(typeName.charAt(0) == '\\' ? typeName : "\\" + typeName);
-                    }
-                }
-        );
-    }
-
-    @Override
     public ITypeSymbol resolvePrimitiveType(ITSPHPAst typeAst, ITSPHPAst typeModifierAst) {
         return resolveType(
                 typeAst,
@@ -222,11 +205,14 @@ public class ReferencePhaseController implements IReferencePhaseController
     }
 
     private ITypeSymbol createUnionTypeIfNullableOrFalseable(ITSPHPAst typeModifierAst, ITypeSymbol typeSymbol) {
+        ITypeSymbol result = typeSymbol;
+
         IModifierSet modifiers = typeModifierAst != null
                 ? modifierHelper.getModifiers(typeModifierAst)
                 : new ModifierSet();
 
-        Map<String, ITypeSymbol> types = new HashMap<>(3);
+        final int maxNumberOfTypesInUnion = 3;
+        Map<String, ITypeSymbol> types = new HashMap<>(maxNumberOfTypesInUnion);
         ITypeSymbol nullTypeSymbol = primitiveTypes.get(PrimitiveTypeNames.NULL);
         if (modifiers.isNullable() && typeSymbol != nullTypeSymbol) {
             types.put(PrimitiveTypeNames.NULL, nullTypeSymbol);
@@ -239,9 +225,9 @@ public class ReferencePhaseController implements IReferencePhaseController
 
         if (!types.isEmpty()) {
             types.put(getAbsoluteType(typeSymbol), typeSymbol);
-            typeSymbol = symbolFactory.createUnionTypeSymbol(types);
+            result = symbolFactory.createUnionTypeSymbol(types);
         }
-        return typeSymbol;
+        return result;
     }
 
     private String getAbsoluteType(ITypeSymbol typeSymbol) {
@@ -396,7 +382,7 @@ public class ReferencePhaseController implements IReferencePhaseController
     private void transferInitialisedSymbolsFromTo(Map<String, Boolean> from, Map<String, Boolean> to) {
         for (Map.Entry<String, Boolean> entry : from.entrySet()) {
             String symbolName = entry.getKey();
-            if (!to.containsKey(symbolName) || !to.get(symbolName)) {
+            if (doesNotContainOrIsPartiallyInitialised(to, symbolName)) {
                 to.put(symbolName, entry.getValue());
             }
         }
@@ -406,14 +392,18 @@ public class ReferencePhaseController implements IReferencePhaseController
     public void sendUpInitialisedSymbols(ITSPHPAst blockConditional) {
         IScope scope = blockConditional.getScope();
         Map<String, Boolean> enclosingInitialisedSymbols = scope.getEnclosingScope().getInitialisedSymbols();
-        for (Map.Entry<String, Boolean> entry : scope.getInitialisedSymbols().entrySet()) {
-            String symbolName = entry.getKey();
+        sendUptInitialisedSymbolsAsPartiallyInitialised(
+                scope.getInitialisedSymbols().keySet(), enclosingInitialisedSymbols);
+    }
+
+    private void sendUptInitialisedSymbolsAsPartiallyInitialised(
+            Set<String> scopeInitialisedSymbols, Map<String, Boolean> enclosingInitialisedSymbols) {
+        for (String symbolName : scopeInitialisedSymbols) {
             if (!enclosingInitialisedSymbols.containsKey(symbolName)) {
                 enclosingInitialisedSymbols.put(symbolName, false);
             }
         }
     }
-
 
     @Override
     public void sendUpInitialisedSymbolsAfterIf(ITSPHPAst ifBlock, ITSPHPAst elseBlock) {
@@ -424,12 +414,10 @@ public class ReferencePhaseController implements IReferencePhaseController
             sendUpInitialisedSymbolsAfterTryCatch(conditionalBlocks);
         } else {
             IScope scope = ifBlock.getScope();
-            Map<String, Boolean> enclosingInitialisedSymbols = scope.getEnclosingScope().getInitialisedSymbols();
-            for (String symbolName : scope.getInitialisedSymbols().keySet()) {
-                if (!enclosingInitialisedSymbols.containsKey(symbolName)) {
-                    enclosingInitialisedSymbols.put(symbolName, false);
-                }
-            }
+            sendUptInitialisedSymbolsAsPartiallyInitialised(
+                    scope.getInitialisedSymbols().keySet(),
+                    scope.getEnclosingScope().getInitialisedSymbols()
+            );
         }
     }
 
@@ -441,12 +429,11 @@ public class ReferencePhaseController implements IReferencePhaseController
             Map<String, Boolean> enclosingInitialisedSymbols =
                     conditionalBlocks.get(0).getScope().getEnclosingScope().getInitialisedSymbols();
             for (ITSPHPAst block : conditionalBlocks) {
-                for (String symbolName : block.getScope().getInitialisedSymbols().keySet()) {
-                    if (!enclosingInitialisedSymbols.containsKey(symbolName)) {
-                        //without default label they are only partially initialised
-                        enclosingInitialisedSymbols.put(symbolName, false);
-                    }
-                }
+                //without default label they are only partially initialised
+                sendUptInitialisedSymbolsAsPartiallyInitialised(
+                        block.getScope().getInitialisedSymbols().keySet(),
+                        enclosingInitialisedSymbols
+                );
             }
         }
     }
@@ -472,9 +459,7 @@ public class ReferencePhaseController implements IReferencePhaseController
                     conditionalBlocks.get(0).getScope().getEnclosingScope().getInitialisedSymbols();
 
             for (String symbolName : allKeys) {
-                if (!enclosingInitialisedSymbols.containsKey(symbolName)
-                        || !enclosingInitialisedSymbols.get(symbolName)) {
-
+                if (doesNotContainOrIsPartiallyInitialised(enclosingInitialisedSymbols, symbolName)) {
                     boolean isFullyInitialised = commonKeys.contains(symbolName);
                     if (isFullyInitialised) {
                         for (ITSPHPAst block : conditionalBlocks) {
@@ -488,6 +473,12 @@ public class ReferencePhaseController implements IReferencePhaseController
                 }
             }
         }
+    }
+
+    private boolean doesNotContainOrIsPartiallyInitialised(Map<String, Boolean> enclosingInitialisedSymbols,
+            String symbolName) {
+        return !enclosingInitialisedSymbols.containsKey(symbolName)
+                || !enclosingInitialisedSymbols.get(symbolName);
     }
 
 

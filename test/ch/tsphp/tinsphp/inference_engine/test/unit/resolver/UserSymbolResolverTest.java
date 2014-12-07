@@ -10,12 +10,12 @@ import ch.tsphp.common.ILowerCaseStringMap;
 import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ISymbol;
+import ch.tsphp.tinsphp.common.resolving.ISymbolResolver;
+import ch.tsphp.tinsphp.common.scopes.ICaseInsensitiveScope;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
-import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolver;
 import ch.tsphp.tinsphp.inference_engine.resolver.UserSymbolResolver;
-import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -28,7 +28,6 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unchecked")
@@ -51,34 +50,11 @@ public class UserSymbolResolverTest
     }
 
     @Test
-    public void
-    resolveIdentifierFromItsScope_GlobalVariableInOtherScope_DelegatesToScopeAndGlobalDefaultNamespaceScope() {
-        ITSPHPAst ast = mock(ITSPHPAst.class);
-        when(ast.getType()).thenReturn(TokenTypes.VariableId);
-        ITSPHPAst parent = mock(ITSPHPAst.class);
-        when(parent.getType()).thenReturn(TokenTypes.Namespace);
-        when(ast.getParent()).thenReturn(parent);
-        IScope scope = mock(IScope.class);
-        when(ast.getScope()).thenReturn(scope);
-        IGlobalNamespaceScope globalDefaultNamespaceScope = mock(IGlobalNamespaceScope.class);
-        ISymbol symbol = mock(ISymbol.class);
-        when(globalDefaultNamespaceScope.resolve(ast)).thenReturn(symbol);
-
-        ISymbolResolver symbolResolver = createSymbolResolver(globalDefaultNamespaceScope);
-        ISymbol result = symbolResolver.resolveIdentifierFromItsScope(ast);
-
-        verify(scope).resolve(ast);
-        verify(globalDefaultNamespaceScope).resolve(ast);
-        assertThat(result, is(symbol));
-    }
-
-    @Test
     public void resolveIdentifierFromItsScope_NonExistingSymbol_ReturnsNull() {
         ITSPHPAst ast = mock(ITSPHPAst.class);
         IScope scope = mock(IScope.class);
         when(scope.resolve(ast)).thenReturn(null);
         when(ast.getScope()).thenReturn(scope);
-
 
         ISymbolResolver symbolResolver = createSymbolResolver();
         ISymbol result = symbolResolver.resolveIdentifierFromItsScope(ast);
@@ -87,60 +63,45 @@ public class UserSymbolResolverTest
     }
 
     @Test
-    public void resolveIdentifierFromItsScope_NonExistingVariableIdInFunction_DelegatesToScopeOnly() {
+    public void resolveIdentifierFromItsScopeCaseInsensitive_NotCaseInsensitiveScope_Resolve() {
         ITSPHPAst ast = mock(ITSPHPAst.class);
-        when(ast.getType()).thenReturn(TokenTypes.VariableId);
-        ITSPHPAst parent = mock(ITSPHPAst.class);
-        when(parent.getType()).thenReturn(TokenTypes.Function);
-        when(ast.getParent()).thenReturn(parent);
         IScope scope = mock(IScope.class);
         when(ast.getScope()).thenReturn(scope);
-        IGlobalNamespaceScope globalDefaultNamespaceScope = mock(IGlobalNamespaceScope.class);
+        ISymbol symbol = mock(ISymbol.class);
+        when(scope.resolve(ast)).thenReturn(symbol);
 
-        ISymbolResolver symbolResolver = createSymbolResolver(globalDefaultNamespaceScope);
-        ISymbol result = symbolResolver.resolveIdentifierFromItsScope(ast);
+        ISymbolResolver symbolResolver = createSymbolResolver();
+        ISymbol result = symbolResolver.resolveIdentifierFromItsScopeCaseInsensitive(ast);
 
         verify(scope).resolve(ast);
-        verifyZeroInteractions(globalDefaultNamespaceScope);
-        assertThat(result, is(nullValue()));
+        assertThat(result, is(symbol));
     }
 
     @Test
-    public void resolveIdentifierFromItsScope_NonExistingVariableIdInMethod_DelegatesToScopeOnly() {
+    public void resolveIdentifierFromItsScopeCaseInsensitive_CaseInsensitiveScope_ResolveCaseInsensitive() {
         ITSPHPAst ast = mock(ITSPHPAst.class);
-        when(ast.getType()).thenReturn(TokenTypes.VariableId);
-        ITSPHPAst parent = mock(ITSPHPAst.class);
-        when(parent.getType()).thenReturn(TokenTypes.METHOD_DECLARATION);
-        when(ast.getParent()).thenReturn(parent);
-        IScope scope = mock(IScope.class);
+        ICaseInsensitiveScope scope = mock(ICaseInsensitiveScope.class);
         when(ast.getScope()).thenReturn(scope);
-        IGlobalNamespaceScope globalDefaultNamespaceScope = mock(IGlobalNamespaceScope.class);
+        ISymbol symbol = mock(ISymbol.class);
+        when(scope.resolveCaseInsensitive(ast)).thenReturn(symbol);
 
-        ISymbolResolver symbolResolver = createSymbolResolver(globalDefaultNamespaceScope);
-        ISymbol result = symbolResolver.resolveIdentifierFromItsScope(ast);
+        ISymbolResolver symbolResolver = createSymbolResolver();
+        ISymbol result = symbolResolver.resolveIdentifierFromItsScopeCaseInsensitive(ast);
 
-        verify(scope).resolve(ast);
-        verifyZeroInteractions(globalDefaultNamespaceScope);
-        assertThat(result, is(nullValue()));
+        verify(scope).resolveCaseInsensitive(ast);
+        assertThat(result, is(symbol));
     }
 
     @Test
-    public void
-    resolveIdentifierFromItsScope_NonExistingVariableIdInNamespace_DelegatesToScopeAndGlobalDefaultNamespaceScope() {
+    public void resolveIdentifierFromItsScopeCaseInsensitive_NonExistingSymbol_ReturnsNull() {
         ITSPHPAst ast = mock(ITSPHPAst.class);
-        when(ast.getType()).thenReturn(TokenTypes.VariableId);
-        ITSPHPAst parent = mock(ITSPHPAst.class);
-        when(parent.getType()).thenReturn(TokenTypes.Namespace);
-        when(ast.getParent()).thenReturn(parent);
         IScope scope = mock(IScope.class);
+        when(scope.resolve(ast)).thenReturn(null);
         when(ast.getScope()).thenReturn(scope);
-        IGlobalNamespaceScope globalDefaultNamespaceScope = mock(IGlobalNamespaceScope.class);
 
-        ISymbolResolver symbolResolver = createSymbolResolver(globalDefaultNamespaceScope);
-        ISymbol result = symbolResolver.resolveIdentifierFromItsScope(ast);
+        ISymbolResolver symbolResolver = createSymbolResolver();
+        ISymbol result = symbolResolver.resolveIdentifierFromItsScopeCaseInsensitive(ast);
 
-        verify(scope).resolve(ast);
-        verify(globalDefaultNamespaceScope).resolve(ast);
         assertThat(result, is(nullValue()));
     }
 

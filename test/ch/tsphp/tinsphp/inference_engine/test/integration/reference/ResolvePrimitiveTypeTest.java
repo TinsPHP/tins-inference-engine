@@ -60,6 +60,10 @@ public class ResolvePrimitiveTypeTest extends ATypeSystemTest
     @Parameterized.Parameters
     public static Collection<Object[]> testStrings() {
         return Arrays.asList(new Object[][]{
+                {"bool"},
+                {"int"},
+                {"float"},
+                {"string"},
                 {"array"}
         });
     }

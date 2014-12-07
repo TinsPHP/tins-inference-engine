@@ -59,7 +59,7 @@ topdown
     |   methodFunctionDefinition
     |   blockConditional
     |   foreachLoop
-    |	catchBlock
+    |   catchBlock
     
         //symbols
     |   constantDefinitionList

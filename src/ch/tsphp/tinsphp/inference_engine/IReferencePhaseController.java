@@ -15,7 +15,6 @@ package ch.tsphp.tinsphp.inference_engine;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.ITSPHPErrorAst;
 import ch.tsphp.common.symbols.ITypeSymbol;
-import ch.tsphp.tinsphp.common.symbols.IScalarTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousTypeSymbol;
 import org.antlr.runtime.RecognitionException;
@@ -37,8 +36,6 @@ public interface IReferencePhaseController
 //    IVariableSymbol resolveParent(ITSPHPAst $this);
 
     IVariableSymbol resolveVariable(ITSPHPAst variableId);
-
-    IScalarTypeSymbol resolveScalarType(ITSPHPAst typeAst, ITSPHPAst typeModifierAst);
 
     ITypeSymbol resolvePrimitiveType(ITSPHPAst typeASt, ITSPHPAst typeModifierAst);
 

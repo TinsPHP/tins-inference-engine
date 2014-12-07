@@ -10,25 +10,27 @@ import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.exceptions.DefinitionException;
 import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.common.symbols.ITypeSymbol;
+import ch.tsphp.tinsphp.common.resolving.ISymbolResolver;
+import ch.tsphp.tinsphp.common.resolving.ISymbolResolverController;
 import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IAliasTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.erroneous.ILazySymbolResolver;
-import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolver;
-import ch.tsphp.tinsphp.common.symbols.resolver.ISymbolResolverController;
 import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 
 import java.util.List;
 
 public class SymbolResolverController implements ISymbolResolverController
 {
-    private final static FromItsScopeResolverDelegate fromItsScopeResolverDelegate = new FromItsScopeResolverDelegate();
-    private final static FromFallbackResolverDelegate fromFallbackResolverDelegate = new FromFallbackResolverDelegate();
-    private final static FromItsNamespaceScopeResolverDelegate fromItsNamespaceScopeResolverDelegate
+    private static final FromItsScopeResolverDelegate FROM_ITS_SCOPE_DELEGATE
+            = new FromItsScopeResolverDelegate();
+    private static final FromFallbackResolverDelegate FROM_FALLBACK_DELEGATE
+            = new FromFallbackResolverDelegate();
+    private static final FromItsNamespaceScopeResolverDelegate FROM_ITS_NAMESPACE_SCOPE_DELEGATE
             = new FromItsNamespaceScopeResolverDelegate();
-    private final static AbsoluteResolverDelegate absoluteResolverDelegate = new AbsoluteResolverDelegate();
-    private final static FromSuperGlobalScopeResolverDelegate fromSuperGlobalScopeResolverDelegate
+    private static final AbsoluteResolverDelegate ABSOLUTE_RESOLVER_DELEGATE = new AbsoluteResolverDelegate();
+    private static final FromSuperGlobalScopeResolverDelegate FROM_SUPER_GLOBAL_SCOPE_DELEGATE
             = new FromSuperGlobalScopeResolverDelegate();
 
     private final IScopeHelper scopeHelper;
@@ -78,18 +80,18 @@ public class SymbolResolverController implements ISymbolResolverController
 
     @Override
     public ISymbol resolveVariableLikeIdentifier(ITSPHPAst identifier) {
-        ISymbol symbol = resolve(fromItsScopeResolverDelegate, identifier);
+        ISymbol symbol = resolve(FROM_ITS_SCOPE_DELEGATE, identifier);
         if (symbol == null) {
-            symbol = resolve(fromFallbackResolverDelegate, identifier);
+            symbol = resolve(FROM_FALLBACK_DELEGATE, identifier);
         }
         if (symbol == null) {
-            symbol = resolve(fromSuperGlobalScopeResolverDelegate, identifier);
+            symbol = resolve(FROM_SUPER_GLOBAL_SCOPE_DELEGATE, identifier);
         }
         return symbol;
     }
 
     private ISymbol resolveAbsoluteIdentifier(ITSPHPAst identifier) {
-        return resolve(absoluteResolverDelegate, identifier);
+        return resolve(ABSOLUTE_RESOLVER_DELEGATE, identifier);
     }
 
     private ISymbol resolveRelativeIdentifierConsiderAlias(ITSPHPAst identifier) {
@@ -198,7 +200,7 @@ public class SymbolResolverController implements ISymbolResolverController
 
     @Override
     public ISymbol resolveIdentifierFromItsNamespaceScope(ITSPHPAst identifier) {
-        return resolve(fromItsNamespaceScopeResolverDelegate, identifier);
+        return resolve(FROM_ITS_NAMESPACE_SCOPE_DELEGATE, identifier);
     }
 
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
@@ -228,61 +230,11 @@ public class SymbolResolverController implements ISymbolResolverController
 
     @Override
     public ISymbol resolveIdentifierFromItsScope(ITSPHPAst identifier) {
-        return resolve(fromItsScopeResolverDelegate, identifier);
+        return resolve(FROM_ITS_SCOPE_DELEGATE, identifier);
     }
 
     private ISymbol resolveIdentifierFromFallback(ITSPHPAst identifier) {
-        return resolve(fromFallbackResolverDelegate, identifier);
-    }
-
-    private interface IResolveDelegate
-    {
-        ISymbol resolve(ISymbolResolver symbolResolver, ITSPHPAst identifier);
-    }
-
-    private final static class AbsoluteResolverDelegate implements IResolveDelegate
-    {
-
-        @Override
-        public ISymbol resolve(ISymbolResolver symbolResolver, ITSPHPAst identifier) {
-            return symbolResolver.resolveAbsoluteIdentifier(identifier);
-        }
-    }
-
-    private final static class FromFallbackResolverDelegate implements IResolveDelegate
-    {
-
-        @Override
-        public ISymbol resolve(ISymbolResolver symbolResolver, ITSPHPAst identifier) {
-            return symbolResolver.resolveIdentifierFromFallback(identifier);
-        }
-    }
-
-    private final static class FromItsScopeResolverDelegate implements IResolveDelegate
-    {
-
-        @Override
-        public ISymbol resolve(ISymbolResolver symbolResolver, ITSPHPAst identifier) {
-            return symbolResolver.resolveIdentifierFromItsScope(identifier);
-        }
-    }
-
-    private final static class FromItsNamespaceScopeResolverDelegate implements IResolveDelegate
-    {
-
-        @Override
-        public ISymbol resolve(ISymbolResolver symbolResolver, ITSPHPAst identifier) {
-            return symbolResolver.resolveIdentifierFromItsNamespaceScope(identifier);
-        }
-    }
-
-    private final static class FromSuperGlobalScopeResolverDelegate implements IResolveDelegate
-    {
-
-        @Override
-        public ISymbol resolve(ISymbolResolver symbolResolver, ITSPHPAst identifier) {
-            return symbolResolver.resolveIdentifierFromSuperGlobalScope(identifier);
-        }
+        return resolve(FROM_FALLBACK_DELEGATE, identifier);
     }
 
     private ISymbol resolve(IResolveDelegate resolveDelegate, ITSPHPAst identifier) {
@@ -297,4 +249,55 @@ public class SymbolResolverController implements ISymbolResolverController
         }
         return symbol;
     }
+
+    private interface IResolveDelegate
+    {
+        ISymbol resolve(ISymbolResolver symbolResolver, ITSPHPAst identifier);
+    }
+
+    private static final class AbsoluteResolverDelegate implements IResolveDelegate
+    {
+
+        @Override
+        public ISymbol resolve(ISymbolResolver symbolResolver, ITSPHPAst identifier) {
+            return symbolResolver.resolveAbsoluteIdentifier(identifier);
+        }
+    }
+
+    private static final class FromFallbackResolverDelegate implements IResolveDelegate
+    {
+
+        @Override
+        public ISymbol resolve(ISymbolResolver symbolResolver, ITSPHPAst identifier) {
+            return symbolResolver.resolveIdentifierFromFallback(identifier);
+        }
+    }
+
+    private static final class FromItsScopeResolverDelegate implements IResolveDelegate
+    {
+
+        @Override
+        public ISymbol resolve(ISymbolResolver symbolResolver, ITSPHPAst identifier) {
+            return symbolResolver.resolveIdentifierFromItsScope(identifier);
+        }
+    }
+
+    private static final class FromItsNamespaceScopeResolverDelegate implements IResolveDelegate
+    {
+
+        @Override
+        public ISymbol resolve(ISymbolResolver symbolResolver, ITSPHPAst identifier) {
+            return symbolResolver.resolveIdentifierFromItsNamespaceScope(identifier);
+        }
+    }
+
+    private static final class FromSuperGlobalScopeResolverDelegate implements IResolveDelegate
+    {
+
+        @Override
+        public ISymbol resolve(ISymbolResolver symbolResolver, ITSPHPAst identifier) {
+            return symbolResolver.resolveIdentifierFromSuperGlobalScope(identifier);
+        }
+    }
+
 }
