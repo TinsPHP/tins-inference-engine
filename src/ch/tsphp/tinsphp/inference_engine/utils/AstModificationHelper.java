@@ -12,7 +12,7 @@ import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
 
 public class AstModificationHelper implements IAstModificationHelper
 {
-    private IAstHelper astHelper;
+    private final IAstHelper astHelper;
 
     public AstModificationHelper(IAstHelper theAstHelper) {
         astHelper = theAstHelper;

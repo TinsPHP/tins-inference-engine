@@ -111,7 +111,7 @@ public class SymbolResolverController implements ISymbolResolverController
 
     private String getPotentialAlias(String typeName) {
         String alias = typeName;
-        int backslashPosition = typeName.indexOf("\\");
+        int backslashPosition = typeName.indexOf('\\');
         if (backslashPosition != -1) {
             alias = typeName.substring(0, backslashPosition);
         }

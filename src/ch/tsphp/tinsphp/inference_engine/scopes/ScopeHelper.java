@@ -34,7 +34,7 @@ public class ScopeHelper implements IScopeHelper
 
     @Override
     public boolean isRelativeIdentifier(String identifier) {
-        return identifier.indexOf("\\") > 0;
+        return identifier.indexOf('\\') > 0;
     }
 
     @Override
