@@ -12,6 +12,7 @@ import ch.tsphp.common.exceptions.DefinitionException;
 import ch.tsphp.common.exceptions.ReferenceException;
 import ch.tsphp.common.exceptions.TSPHPException;
 import ch.tsphp.common.symbols.ISymbol;
+import ch.tsphp.tinsphp.common.inference.error.IInferenceErrorReporter;
 
 import java.util.ArrayDeque;
 import java.util.Collection;

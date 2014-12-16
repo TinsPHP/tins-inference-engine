@@ -10,6 +10,7 @@ import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.exceptions.DefinitionException;
 import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.common.symbols.ITypeSymbol;
+import ch.tsphp.tinsphp.common.inference.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.common.resolving.ISymbolResolver;
 import ch.tsphp.tinsphp.common.resolving.ISymbolResolverController;
 import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
@@ -17,7 +18,6 @@ import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IAliasTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.erroneous.ILazySymbolResolver;
-import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 
 import java.util.List;
 

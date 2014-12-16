@@ -13,8 +13,8 @@
 package ch.tsphp.tinsphp.inference_engine.test.integration.reference;
 
 import ch.tsphp.common.ITSPHPAst;
+import ch.tsphp.tinsphp.common.inference.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.error.DefinitionErrorDto;
-import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference.AReferenceDefinitionErrorTest;
 import org.antlr.runtime.RecognitionException;
 import org.junit.Test;

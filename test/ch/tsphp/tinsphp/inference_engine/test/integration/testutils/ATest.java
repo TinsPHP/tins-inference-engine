@@ -15,7 +15,7 @@ package ch.tsphp.tinsphp.inference_engine.test.integration.testutils;
 import ch.tsphp.common.IErrorLogger;
 import ch.tsphp.common.IParser;
 import ch.tsphp.common.exceptions.TSPHPException;
-import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
+import ch.tsphp.tinsphp.common.inference.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.error.InferenceErrorReporter;
 import ch.tsphp.tinsphp.parser.ParserFacade;
 import org.junit.Ignore;

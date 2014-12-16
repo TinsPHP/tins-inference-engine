@@ -13,8 +13,8 @@
 package ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference;
 
 import ch.tsphp.common.exceptions.DefinitionException;
+import ch.tsphp.tinsphp.common.inference.error.IInferenceErrorReporter;
 import ch.tsphp.tinsphp.inference_engine.error.DefinitionErrorDto;
-import ch.tsphp.tinsphp.inference_engine.error.IInferenceErrorReporter;
 import org.junit.Assert;
 import org.junit.Ignore;
 
