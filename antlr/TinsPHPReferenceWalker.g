@@ -33,7 +33,7 @@ import ch.tsphp.common.ITSPHPErrorAst;
 import ch.tsphp.tinsphp.common.scopes.ICaseInsensitiveScope;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
-import ch.tsphp.tinsphp.inference_engine.IReferencePhaseController;
+import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
 }
 
 @members {

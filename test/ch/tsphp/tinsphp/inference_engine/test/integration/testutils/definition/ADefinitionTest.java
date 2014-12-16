@@ -83,7 +83,7 @@ public abstract class ADefinitionTest extends ATest
     }
 
     public void check() {
-        ParserUnitDto parserUnit = parser.parse(testString);
+        ParserUnitDto parserUnit = parser.parse("<?php" + testString + "?>");
         ast = parserUnit.compilationUnit;
 
         verifyParser();
