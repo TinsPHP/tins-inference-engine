@@ -13,7 +13,7 @@
 package ch.tsphp.tinsphp.inference_engine.test.unit.testutils;
 
 import ch.tsphp.common.ITSPHPAst;
-import ch.tsphp.tinsphp.inference_engine.IDefinitionPhaseController;
+import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.definition.TestTinsPHPDefinitionWalker;
 import org.antlr.runtime.tree.TreeNodeStream;
 import org.junit.Ignore;

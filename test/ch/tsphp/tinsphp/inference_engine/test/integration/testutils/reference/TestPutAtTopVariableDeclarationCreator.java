@@ -7,7 +7,7 @@
 package ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference;
 
 import ch.tsphp.common.ITSPHPAst;
-import ch.tsphp.tinsphp.inference_engine.IDefinitionPhaseController;
+import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.inference_engine.resolver.PutAtTopVariableDeclarationCreator;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 

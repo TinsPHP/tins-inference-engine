@@ -13,7 +13,7 @@
 package ch.tsphp.tinsphp.inference_engine.test.unit.coverage.reference;
 
 import ch.tsphp.common.ITSPHPAst;
-import ch.tsphp.tinsphp.inference_engine.IReferencePhaseController;
+import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.TreeAdaptor;

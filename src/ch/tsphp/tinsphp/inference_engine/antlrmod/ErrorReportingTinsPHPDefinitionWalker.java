@@ -15,7 +15,7 @@ package ch.tsphp.tinsphp.inference_engine.antlrmod;
 import ch.tsphp.common.ErrorReporterHelper;
 import ch.tsphp.common.IErrorLogger;
 import ch.tsphp.common.IErrorReporter;
-import ch.tsphp.tinsphp.inference_engine.IDefinitionPhaseController;
+import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPDefinitionWalker;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.TreeNodeStream;
