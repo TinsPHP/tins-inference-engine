@@ -18,6 +18,7 @@ import ch.tsphp.common.ITSPHPAstAdaptor;
 import ch.tsphp.common.ParserUnitDto;
 import ch.tsphp.common.TSPHPAstAdaptor;
 import ch.tsphp.tinsphp.common.ICore;
+import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.core.Core;
@@ -32,6 +33,8 @@ import ch.tsphp.tinsphp.symbols.ModifierHelper;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 import org.junit.Assert;
 import org.junit.Ignore;
+
+import java.util.EnumSet;
 
 import static org.junit.Assert.assertFalse;
 
@@ -55,8 +58,8 @@ public abstract class ADefinitionTest extends ATest
 
 
     protected void verifyDefinitions() {
-        assertFalse(testString.replaceAll("\n", " ") + " failed - definition phase throw exception",
-                definition.hasFoundError());
+        assertFalse(testString.replaceAll("\n", " ") + " failed - definition phase found an issue",
+                definition.hasFound(EnumSet.allOf(EIssueSeverity.class)));
     }
 
     public ADefinitionTest(String theTestString) {
@@ -79,7 +82,8 @@ public abstract class ADefinitionTest extends ATest
     }
 
     protected void verifyParser() {
-        assertFalse(testString.replaceAll("\n", " ") + " failed - parser throw exception", parser.hasFoundError());
+        assertFalse(testString.replaceAll("\n", " ") + " failed - parser throw exception",
+                parser.hasFound(EnumSet.allOf(EIssueSeverity.class)));
     }
 
     public void check() {
@@ -92,7 +96,7 @@ public abstract class ADefinitionTest extends ATest
         commonTreeNodeStream.setTokenStream(parserUnit.tokenStream);
 
         definition = createDefinitionWalker();
-        definition.registerErrorLogger(new WriteExceptionToConsole());
+        definition.registerIssueLogger(new WriteExceptionToConsole());
         try {
             definition.downup(ast);
         } catch (Exception e) {
@@ -100,9 +104,6 @@ public abstract class ADefinitionTest extends ATest
             Assert.fail(testString + " failed. Unexpected exception occurred in the definition phase.\n"
                     + e.getMessage());
         }
-
-        assertFalse(testString.replaceAll("\n", " ") + " failed - definition throw exception",
-                definition.hasFoundError());
 
         verifyDefinitions();
     }

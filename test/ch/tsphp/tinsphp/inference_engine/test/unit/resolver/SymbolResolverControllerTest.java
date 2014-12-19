@@ -10,7 +10,7 @@ import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.common.symbols.ITypeSymbol;
-import ch.tsphp.tinsphp.common.inference.error.IInferenceErrorReporter;
+import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.resolving.ISymbolResolver;
 import ch.tsphp.tinsphp.common.resolving.ISymbolResolverController;
 import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
@@ -1221,7 +1221,7 @@ public class SymbolResolverControllerTest
                 additionalSymbolResolvers,
                 scopeHelper,
                 mock(ISymbolFactory.class),
-                mock(IInferenceErrorReporter.class));
+                mock(IInferenceIssueReporter.class));
     }
 
     protected ISymbolResolverController createSymbolResolver(
@@ -1229,7 +1229,7 @@ public class SymbolResolverControllerTest
             List<ISymbolResolver> additionalSymbolResolvers,
             IScopeHelper theScopeHelper,
             ISymbolFactory theSymbolFactory,
-            IInferenceErrorReporter theInferenceErrorReporter) {
+            IInferenceIssueReporter theInferenceErrorReporter) {
 
         return new SymbolResolverController(
                 theUserSymbolResolver,

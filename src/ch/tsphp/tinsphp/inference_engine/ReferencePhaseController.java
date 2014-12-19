@@ -26,7 +26,7 @@ import ch.tsphp.tinsphp.common.checking.ForwardReferenceCheckResultDto;
 import ch.tsphp.tinsphp.common.checking.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.checking.VariableInitialisedResultDto;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
-import ch.tsphp.tinsphp.common.inference.error.IInferenceErrorReporter;
+import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.resolving.ISymbolResolverController;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
@@ -50,7 +50,7 @@ import java.util.Set;
 public class ReferencePhaseController implements IReferencePhaseController
 {
     private final ISymbolFactory symbolFactory;
-    private final IInferenceErrorReporter inferenceErrorReporter;
+    private final IInferenceIssueReporter inferenceErrorReporter;
     private final IAstModificationHelper astModificationHelper;
     private final ISymbolResolverController symbolResolverController;
     private final ISymbolCheckController symbolCheckController;
@@ -62,7 +62,7 @@ public class ReferencePhaseController implements IReferencePhaseController
 
     public ReferencePhaseController(
             ISymbolFactory theSymbolFactory,
-            IInferenceErrorReporter theInferenceErrorReporter,
+            IInferenceIssueReporter theInferenceErrorReporter,
             IAstModificationHelper theAstModificationHelper,
             ISymbolResolverController theSymbolResolverController,
             ISymbolCheckController theSymbolCheckController,

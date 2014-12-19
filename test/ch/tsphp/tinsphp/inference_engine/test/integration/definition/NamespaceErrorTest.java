@@ -12,6 +12,7 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.definition;
 
+import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.definition.ADefinitionTest;
 import org.antlr.runtime.RecognitionException;
 import org.junit.Test;
@@ -20,6 +21,7 @@ import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.EnumSet;
 
 import static org.junit.Assert.assertTrue;
 
@@ -41,7 +43,7 @@ public class NamespaceErrorTest extends ADefinitionTest
     @Override
     protected void verifyParser() {
         assertTrue(testString.replaceAll("\n", " ") + " failed - parser exception expected but non was thrown",
-                parser.hasFoundError());
+                parser.hasFound(EnumSet.allOf(EIssueSeverity.class)));
     }
 
     @Parameterized.Parameters

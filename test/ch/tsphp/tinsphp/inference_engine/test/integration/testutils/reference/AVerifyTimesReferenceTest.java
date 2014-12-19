@@ -16,7 +16,7 @@ import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.common.checking.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
-import ch.tsphp.tinsphp.common.inference.error.IInferenceErrorReporter;
+import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.resolving.ISymbolResolverController;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
@@ -55,7 +55,7 @@ public abstract class AVerifyTimesReferenceTest extends AReferenceTest
     @Override
     protected IReferencePhaseController createReferencePhaseController(
             ISymbolFactory theSymbolFactory,
-            IInferenceErrorReporter theInferenceErrorReporter,
+            IInferenceIssueReporter theInferenceErrorReporter,
             IAstModificationHelper theAstModificationHelper,
             ISymbolResolverController theSymbolResolverController,
             ISymbolCheckController theSymbolCheckController,

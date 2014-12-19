@@ -13,7 +13,7 @@
 package ch.tsphp.tinsphp.inference_engine.test.integration.reference;
 
 import ch.tsphp.common.ITSPHPAst;
-import ch.tsphp.tinsphp.common.inference.error.IInferenceErrorReporter;
+import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.inference_engine.error.DefinitionErrorDto;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference.AReferenceDefinitionErrorTest;
 import org.antlr.runtime.RecognitionException;
@@ -257,7 +257,7 @@ public class VariableInitialisationErrorTest extends AReferenceDefinitionErrorTe
     }
 
     @Override
-    protected IInferenceErrorReporter createInferenceErrorReporter() {
+    protected IInferenceIssueReporter createInferenceErrorReporter() {
         return spy(super.createInferenceErrorReporter());
     }
 
@@ -275,7 +275,7 @@ public class VariableInitialisationErrorTest extends AReferenceDefinitionErrorTe
 
         @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
         @Override
-        public void check(IInferenceErrorReporter inferenceErrorReporter) {
+        public void check(IInferenceIssueReporter inferenceErrorReporter) {
             verify(inferenceErrorReporter, times(times))
                     .variablePartiallyInitialised(any(ITSPHPAst.class), any(ITSPHPAst.class));
         }
@@ -295,7 +295,7 @@ public class VariableInitialisationErrorTest extends AReferenceDefinitionErrorTe
 
         @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
         @Override
-        public void check(IInferenceErrorReporter inferenceErrorReporter) {
+        public void check(IInferenceIssueReporter inferenceErrorReporter) {
             verify(inferenceErrorReporter, times(times))
                     .variableNotInitialised(any(ITSPHPAst.class), any(ITSPHPAst.class));
         }
@@ -303,6 +303,6 @@ public class VariableInitialisationErrorTest extends AReferenceDefinitionErrorTe
 
     private static interface IInitialisedVerifier
     {
-        void check(IInferenceErrorReporter inferenceErrorReporter);
+        void check(IInferenceIssueReporter inferenceErrorReporter);
     }
 }

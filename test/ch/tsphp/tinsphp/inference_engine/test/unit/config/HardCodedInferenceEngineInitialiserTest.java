@@ -10,9 +10,12 @@ import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.common.inference.IInferenceEngineInitialiser;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
-import ch.tsphp.tinsphp.common.inference.error.IInferenceErrorReporter;
+import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
+import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.inference_engine.config.HardCodedInferenceEngineInitialiser;
 import org.junit.Test;
+
+import java.util.EnumSet;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.core.IsNot.not;
@@ -50,11 +53,11 @@ public class HardCodedInferenceEngineInitialiserTest
         IInferenceEngineInitialiser initialiser = createInferenceEngineInitialiser();
         IDefinitionPhaseController definitionPhaseController1 = initialiser.getDefinitionPhaseController();
         IReferencePhaseController referencePhaseController1 = initialiser.getReferencePhaseController();
-        IInferenceErrorReporter inferenceErrorReporter1 = initialiser.getInferenceErrorReporter();
+        IInferenceIssueReporter inferenceErrorReporter1 = initialiser.getInferenceErrorReporter();
         initialiser.reset();
         IDefinitionPhaseController definitionPhaseController2 = initialiser.getDefinitionPhaseController();
         IReferencePhaseController referencePhaseController2 = initialiser.getReferencePhaseController();
-        IInferenceErrorReporter inferenceErrorReporter2 = initialiser.getInferenceErrorReporter();
+        IInferenceIssueReporter inferenceErrorReporter2 = initialiser.getInferenceErrorReporter();
 
         assertThat(definitionPhaseController1, is(not(definitionPhaseController2)));
         assertThat(referencePhaseController1, is(not(referencePhaseController2)));
@@ -66,13 +69,13 @@ public class HardCodedInferenceEngineInitialiserTest
         //no arrange necessary
 
         IInferenceEngineInitialiser initialiser = createInferenceEngineInitialiser();
-        IInferenceErrorReporter inferenceErrorReporter = initialiser.getInferenceErrorReporter();
-        assertThat(inferenceErrorReporter.hasFoundError(), is(false));
+        IInferenceIssueReporter inferenceErrorReporter = initialiser.getInferenceErrorReporter();
+        assertThat(inferenceErrorReporter.hasFound(EnumSet.allOf(EIssueSeverity.class)), is(false));
         inferenceErrorReporter.noReturnFromFunction(mock(ITSPHPAst.class));
-        assertThat(inferenceErrorReporter.hasFoundError(), is(true));
+        assertThat(inferenceErrorReporter.hasFound(EnumSet.allOf(EIssueSeverity.class)), is(true));
         initialiser.reset();
 
-        assertThat(inferenceErrorReporter.hasFoundError(), is(false));
+        assertThat(inferenceErrorReporter.hasFound(EnumSet.allOf(EIssueSeverity.class)), is(false));
     }
 
     protected IInferenceEngineInitialiser createInferenceEngineInitialiser() {

@@ -12,7 +12,7 @@ import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.common.inference.IInferenceEngineInitialiser;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
-import ch.tsphp.tinsphp.common.inference.error.IInferenceErrorReporter;
+import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.resolving.ISymbolResolver;
 import ch.tsphp.tinsphp.common.scopes.IScopeFactory;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
@@ -21,7 +21,7 @@ import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.core.Core;
 import ch.tsphp.tinsphp.inference_engine.DefinitionPhaseController;
 import ch.tsphp.tinsphp.inference_engine.ReferencePhaseController;
-import ch.tsphp.tinsphp.inference_engine.error.InferenceErrorReporter;
+import ch.tsphp.tinsphp.inference_engine.error.InferenceIssueReporter;
 import ch.tsphp.tinsphp.inference_engine.resolver.PutAtTopVariableDeclarationCreator;
 import ch.tsphp.tinsphp.inference_engine.resolver.SymbolCheckController;
 import ch.tsphp.tinsphp.inference_engine.resolver.SymbolResolverController;
@@ -49,7 +49,7 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
 
     private IDefinitionPhaseController definitionPhaseController;
     private IReferencePhaseController referencePhaseController;
-    private InferenceErrorReporter inferenceErrorReporter;
+    private InferenceIssueReporter inferenceErrorReporter;
     private ICore core;
 
     public HardCodedInferenceEngineInitialiser() {
@@ -57,7 +57,7 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
         modifierHelper = new ModifierHelper();
         symbolFactory = new SymbolFactory(scopeHelper, modifierHelper);
         scopeFactory = new ScopeFactory(scopeHelper);
-        inferenceErrorReporter = new InferenceErrorReporter();
+        inferenceErrorReporter = new InferenceIssueReporter();
 
         createDefinitionPhaseController();
 
@@ -113,7 +113,7 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
     }
 
     @Override
-    public IInferenceErrorReporter getInferenceErrorReporter() {
+    public IInferenceIssueReporter getInferenceErrorReporter() {
         return inferenceErrorReporter;
     }
 

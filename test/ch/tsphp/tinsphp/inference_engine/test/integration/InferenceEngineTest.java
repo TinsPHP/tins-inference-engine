@@ -6,48 +6,53 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration;
 
-import ch.tsphp.common.IErrorLogger;
+
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.ParserUnitDto;
 import ch.tsphp.common.TSPHPAstAdaptor;
 import ch.tsphp.common.exceptions.TSPHPException;
 import ch.tsphp.tinsphp.common.IInferenceEngine;
+import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
+import ch.tsphp.tinsphp.common.issues.IIssueLogger;
 import ch.tsphp.tinsphp.inference_engine.InferenceEngine;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.ATest;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 import org.junit.Test;
 
+import java.util.EnumSet;
+
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 public class InferenceEngineTest extends ATest
 {
     @Test
-    public void registerErrorLogger_Standard_InformsLoggerWhenErrorOccurs() {
-        //should cause an issue due to a double definition
+    public void registerIssueLogger_Standard_InformsLoggerWhenErrorOccurs() {
+        //should cause an issue with severity fatal error due to a double definition
         ParserUnitDto parserUnit = parser.parse("<?php function foo(){return;} function foo(){return;}");
         ITSPHPAst ast = parserUnit.compilationUnit;
 
         CommonTreeNodeStream commonTreeNodeStream = new CommonTreeNodeStream(new TSPHPAstAdaptor(), ast);
         commonTreeNodeStream.setTokenStream(parserUnit.tokenStream);
 
-        IErrorLogger logger1 = mock(IErrorLogger.class);
-        IErrorLogger logger2 = mock(IErrorLogger.class);
+        IIssueLogger logger1 = mock(IIssueLogger.class);
+        IIssueLogger logger2 = mock(IIssueLogger.class);
 
         //act
         IInferenceEngine inferenceEngine = createInferenceEngine();
-        inferenceEngine.registerErrorLogger(logger1);
-        inferenceEngine.registerErrorLogger(logger2);
+        inferenceEngine.registerIssueLogger(logger1);
+        inferenceEngine.registerIssueLogger(logger2);
         inferenceEngine.enrichWithDefinitions(ast, commonTreeNodeStream);
         inferenceEngine.enrichWithReferences(ast, commonTreeNodeStream);
 
         //verify
-        verify(logger1).log(any(TSPHPException.class));
-        verify(logger2).log(any(TSPHPException.class));
-        assertThat(inferenceEngine.hasFoundError(), is(true));
+        verify(logger1).log(any(TSPHPException.class), eq(EIssueSeverity.FatalError));
+        verify(logger2).log(any(TSPHPException.class), eq(EIssueSeverity.FatalError));
+        assertThat(inferenceEngine.hasFound(EnumSet.of(EIssueSeverity.FatalError)), is(true));
     }
 
     @Test
@@ -59,21 +64,21 @@ public class InferenceEngineTest extends ATest
         CommonTreeNodeStream commonTreeNodeStream = new CommonTreeNodeStream(new TSPHPAstAdaptor(), ast);
         commonTreeNodeStream.setTokenStream(parserUnit.tokenStream);
 
-        IErrorLogger logger1 = mock(IErrorLogger.class);
-        IErrorLogger logger2 = mock(IErrorLogger.class);
+        IIssueLogger logger1 = mock(IIssueLogger.class);
+        IIssueLogger logger2 = mock(IIssueLogger.class);
 
         //act
         IInferenceEngine inferenceEngine = createInferenceEngine();
-        inferenceEngine.registerErrorLogger(logger1);
-        inferenceEngine.registerErrorLogger(logger2);
+        inferenceEngine.registerIssueLogger(logger1);
+        inferenceEngine.registerIssueLogger(logger2);
         inferenceEngine.reset();
         inferenceEngine.enrichWithDefinitions(ast, commonTreeNodeStream);
         inferenceEngine.enrichWithReferences(ast, commonTreeNodeStream);
 
         //verify
-        verify(logger1).log(any(TSPHPException.class));
-        verify(logger2).log(any(TSPHPException.class));
-        assertThat(inferenceEngine.hasFoundError(), is(true));
+        verify(logger1).log(any(TSPHPException.class), eq(EIssueSeverity.FatalError));
+        verify(logger2).log(any(TSPHPException.class), eq(EIssueSeverity.FatalError));
+        assertThat(inferenceEngine.hasFound(EnumSet.of(EIssueSeverity.FatalError)), is(true));
     }
 
     private IInferenceEngine createInferenceEngine() {

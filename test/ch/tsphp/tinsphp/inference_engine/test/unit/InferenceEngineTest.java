@@ -6,11 +6,13 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.unit;
 
-import ch.tsphp.common.exceptions.TSPHPException;
 import ch.tsphp.tinsphp.common.IInferenceEngine;
 import ch.tsphp.tinsphp.common.inference.IInferenceEngineInitialiser;
+import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
 import ch.tsphp.tinsphp.inference_engine.InferenceEngine;
 import org.junit.Test;
+
+import java.util.EnumSet;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -33,20 +35,9 @@ public class InferenceEngineTest
         //no arrange necessary
 
         IInferenceEngine inferenceEngine = createInferenceEngine();
-        boolean result = inferenceEngine.hasFoundError();
+        boolean result = inferenceEngine.hasFound(EnumSet.allOf(EIssueSeverity.class));
 
         assertThat(result, is(false));
-    }
-
-    @Test
-    public void hasFoundError_LoggedOne_ReturnsTrue() {
-        //no arrange necessary
-
-        InferenceEngine inferenceEngine = createInferenceEngineImpl();
-        inferenceEngine.log(new TSPHPException());
-        boolean result = inferenceEngine.hasFoundError();
-
-        assertThat(result, is(true));
     }
 
     @Test

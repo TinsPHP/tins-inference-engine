@@ -6,6 +6,7 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.reference;
 
+import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.ReturnCheckHelper;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference.AReferenceAstTest;
 import org.antlr.runtime.RecognitionException;
@@ -14,6 +15,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.util.Collection;
+import java.util.EnumSet;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -35,8 +37,9 @@ public class FunctionReturnsAstTest extends AReferenceAstTest
     protected void checkReferences() {
         //we expect one exception since the function does not return in all cases
         assertTrue(testString + " failed. Exceptions expected but none occurred." + exceptions,
-                inferenceErrorReporter.hasFoundError());
-        assertFalse(testString + " failed. reference walker exceptions occurred.", reference.hasFoundError());
+                inferenceErrorReporter.hasFound(EnumSet.allOf(EIssueSeverity.class)));
+        assertFalse(testString + " failed. reference walker exceptions occurred.",
+                reference.hasFound(EnumSet.allOf(EIssueSeverity.class)));
 
         verifyReferences();
     }

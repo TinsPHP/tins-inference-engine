@@ -6,41 +6,44 @@
 
 package ch.tsphp.tinsphp.inference_engine.error;
 
-import ch.tsphp.common.IErrorLogger;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.exceptions.DefinitionException;
 import ch.tsphp.common.exceptions.ReferenceException;
 import ch.tsphp.common.exceptions.TSPHPException;
 import ch.tsphp.common.symbols.ISymbol;
-import ch.tsphp.tinsphp.common.inference.error.IInferenceErrorReporter;
+import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
+import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
+import ch.tsphp.tinsphp.common.issues.IIssueLogger;
+import ch.tsphp.tinsphp.common.issues.IssueReporterHelper;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.EnumSet;
 
-public class InferenceErrorReporter implements IInferenceErrorReporter
+public class InferenceIssueReporter implements IInferenceIssueReporter
 {
-    private final Collection<IErrorLogger> errorLoggers = new ArrayDeque<>();
-    private boolean hasFoundError;
+    private final Collection<IIssueLogger> issueLoggers = new ArrayDeque<>();
+    private EnumSet<EIssueSeverity> foundIssues = EnumSet.noneOf(EIssueSeverity.class);
 
     @Override
-    public boolean hasFoundError() {
-        return hasFoundError;
+    public void registerIssueLogger(IIssueLogger issueLogger) {
+        issueLoggers.add(issueLogger);
     }
 
     @Override
-    public void registerErrorLogger(IErrorLogger errorLogger) {
-        errorLoggers.add(errorLogger);
+    public boolean hasFound(EnumSet<EIssueSeverity> severities) {
+        return IssueReporterHelper.hasFound(foundIssues, severities);
     }
 
     @Override
     public void reset() {
-        hasFoundError = false;
+        foundIssues = EnumSet.noneOf(EIssueSeverity.class);
     }
 
-    private void reportError(TSPHPException exception) {
-        hasFoundError = true;
-        for (IErrorLogger logger : errorLoggers) {
-            logger.log(exception);
+    private void reportError(TSPHPException exception, EIssueSeverity severity) {
+        foundIssues.add(severity);
+        for (IIssueLogger logger : issueLoggers) {
+            logger.log(exception, severity);
         }
     }
 
@@ -56,7 +59,7 @@ public class InferenceErrorReporter implements IInferenceErrorReporter
         //TODO rstoll TINS-174 inference engine and error reporting
         DefinitionException ex = new DefinitionException(
                 "alreadyDefined", existingSymbol.getDefinitionAst(), newSymbol.getDefinitionAst());
-        reportError(ex);
+        reportError(ex, EIssueSeverity.FatalError);
         return ex;
     }
 
@@ -64,7 +67,7 @@ public class InferenceErrorReporter implements IInferenceErrorReporter
     public DefinitionException aliasForwardReference(ITSPHPAst typeAst, ITSPHPAst useDefinition) {
         //TODO rstoll TINS-174 inference engine and error reporting
         DefinitionException ex = new DefinitionException("aliasForwardReference", typeAst, useDefinition);
-        reportError(ex);
+        reportError(ex, EIssueSeverity.Error);
         return ex;
     }
 
@@ -72,7 +75,7 @@ public class InferenceErrorReporter implements IInferenceErrorReporter
     public DefinitionException forwardReference(ITSPHPAst definitionAst, ITSPHPAst identifier) {
         //TODO rstoll TINS-174 inference engine and error reporting
         DefinitionException ex = new DefinitionException("forwardReference", definitionAst, identifier);
-        reportError(ex);
+        reportError(ex, EIssueSeverity.Error);
         return ex;
     }
 
@@ -80,7 +83,7 @@ public class InferenceErrorReporter implements IInferenceErrorReporter
     public DefinitionException variablePartiallyInitialised(ITSPHPAst definitionAst, ITSPHPAst variableId) {
         //TODO rstoll TINS-174 inference engine and error reporting
         DefinitionException ex = new DefinitionException("variablePartiallyInitialised", definitionAst, variableId);
-        reportError(ex);
+        reportError(ex, EIssueSeverity.Error);
         return ex;
     }
 
@@ -88,27 +91,29 @@ public class InferenceErrorReporter implements IInferenceErrorReporter
     public DefinitionException variableNotInitialised(ITSPHPAst definitionAst, ITSPHPAst variableId) {
         //TODO rstoll TINS-174 inference engine and error reporting
         DefinitionException ex = new DefinitionException("variableNotInitialised", definitionAst, variableId);
-        reportError(ex);
+        reportError(ex, EIssueSeverity.Error);
         return ex;
     }
 
     @Override
     public void partialReturnFromFunction(ITSPHPAst identifier) {
         //TODO rstoll TINS-174 inference engine and error reporting
-        reportError(new ReferenceException("partialReturnFromFunction", identifier));
+        ReferenceException ex = new ReferenceException("partialReturnFromFunction", identifier);
+        reportError(ex, EIssueSeverity.Warning);
     }
 
     @Override
     public void noReturnFromFunction(ITSPHPAst identifier) {
         //TODO rstoll TINS-174 inference engine and error reporting
-        reportError(new ReferenceException("noReturnFromFunction", identifier));
+        ReferenceException ex = new ReferenceException("noReturnFromFunction", identifier);
+        reportError(ex, EIssueSeverity.Notice);
     }
 
     @Override
     public ReferenceException notDefined(ITSPHPAst identifier) {
         //TODO rstoll TINS-174 inference engine and error reporting
         ReferenceException ex = new ReferenceException("notDefined", identifier);
-        reportError(ex);
+        reportError(ex, EIssueSeverity.FatalError);
         return ex;
     }
 
@@ -116,7 +121,7 @@ public class InferenceErrorReporter implements IInferenceErrorReporter
     public ReferenceException unknownType(ITSPHPAst typeAst) {
         //TODO rstoll TINS-174 inference engine and error reporting
         ReferenceException ex = new ReferenceException("unknownType", typeAst);
-        reportError(ex);
+        reportError(ex, EIssueSeverity.FatalError);
         return ex;
     }
 }

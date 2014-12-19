@@ -22,7 +22,8 @@ import ch.tsphp.tinsphp.common.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.common.checking.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
-import ch.tsphp.tinsphp.common.inference.error.IInferenceErrorReporter;
+import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
+import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.resolving.ISymbolResolver;
 import ch.tsphp.tinsphp.common.resolving.ISymbolResolverController;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
@@ -44,6 +45,7 @@ import org.junit.Assert;
 import org.junit.Ignore;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
@@ -119,8 +121,10 @@ public abstract class AReferenceTest extends ADefinitionTest
     protected abstract void verifyReferences();
 
     protected void checkReferences() {
-        assertFalse(testString + " failed. Exceptions occurred." + exceptions, inferenceErrorReporter.hasFoundError());
-        assertFalse(testString + " failed. reference walker exceptions occurred.", reference.hasFoundError());
+        assertFalse(testString + " failed. Exceptions occurred." + exceptions,
+                inferenceErrorReporter.hasFound(EnumSet.allOf(EIssueSeverity.class)));
+        assertFalse(testString + " failed. reference walker exceptions occurred.",
+                reference.hasFound(EnumSet.allOf(EIssueSeverity.class)));
 
         verifyReferences();
     }
@@ -152,7 +156,7 @@ public abstract class AReferenceTest extends ADefinitionTest
     }
 
     protected void registerReferenceErrorLogger() {
-        reference.registerErrorLogger(new WriteExceptionToConsole());
+        reference.registerIssueLogger(new WriteExceptionToConsole());
     }
 
     protected static String getAliasFullType(String type) {
@@ -191,7 +195,7 @@ public abstract class AReferenceTest extends ADefinitionTest
             List<ISymbolResolver> additionalSymbolResolvers,
             IScopeHelper theScopeHelper,
             ISymbolFactory theSymbolFactory,
-            IInferenceErrorReporter theInferenceErrorReporter) {
+            IInferenceIssueReporter theInferenceErrorReporter) {
         return new SymbolResolverController(
                 theUserSymbolResolver,
                 additionalSymbolResolvers,
@@ -214,7 +218,7 @@ public abstract class AReferenceTest extends ADefinitionTest
 
     protected IReferencePhaseController createReferencePhaseController(
             ISymbolFactory theSymbolFactory,
-            IInferenceErrorReporter theInferenceErrorReporter,
+            IInferenceIssueReporter theInferenceErrorReporter,
             IAstModificationHelper theAstModificationHelper,
             ISymbolResolverController theSymbolResolverController,
             ISymbolCheckController theSymbolCheckController,

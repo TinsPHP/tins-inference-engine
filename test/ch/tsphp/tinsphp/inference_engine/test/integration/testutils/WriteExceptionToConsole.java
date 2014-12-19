@@ -12,13 +12,15 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.testutils;
 
-import ch.tsphp.common.IErrorLogger;
-import ch.tsphp.common.exceptions.TSPHPException;
 
-public class WriteExceptionToConsole implements IErrorLogger
+import ch.tsphp.common.exceptions.TSPHPException;
+import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
+import ch.tsphp.tinsphp.common.issues.IIssueLogger;
+
+public class WriteExceptionToConsole implements IIssueLogger
 {
     @Override
-    public void log(TSPHPException exception) {
+    public void log(TSPHPException exception, EIssueSeverity severity) {
         System.out.println(exception.getMessage());
     }
 }

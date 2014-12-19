@@ -6,14 +6,16 @@
 
 package ch.tsphp.tinsphp.inference_engine;
 
-import ch.tsphp.common.IErrorLogger;
-import ch.tsphp.common.IErrorReporter;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.exceptions.TSPHPException;
 import ch.tsphp.tinsphp.common.IInferenceEngine;
 import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.common.inference.IInferenceEngineInitialiser;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
+import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
+import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
+import ch.tsphp.tinsphp.common.issues.IIssueLogger;
+import ch.tsphp.tinsphp.common.issues.IssueReporterHelper;
 import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPDefinitionWalker;
 import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPReferenceWalker;
 import ch.tsphp.tinsphp.inference_engine.config.HardCodedInferenceEngineInitialiser;
@@ -22,23 +24,24 @@ import org.antlr.runtime.tree.TreeNodeStream;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.EnumSet;
 
-public class InferenceEngine implements IInferenceEngine, IErrorLogger
+public class InferenceEngine implements IInferenceEngine, IIssueLogger
 {
     protected IInferenceEngineInitialiser inferenceEngineInitialiser;
 
     private final IDefinitionPhaseController definitionPhaseController;
     private final IReferencePhaseController referencePhaseController;
-    private final IErrorReporter inferenceErrorReporter;
+    private final IInferenceIssueReporter inferenceIssueReporter;
+    private final Collection<IIssueLogger> issueLoggers = new ArrayDeque<>();
 
-    private final Collection<IErrorLogger> errorLoggers = new ArrayDeque<>();
-    private boolean hasFoundError = false;
+    private EnumSet<EIssueSeverity> foundIssues = EnumSet.noneOf(EIssueSeverity.class);
 
     public InferenceEngine() {
         inferenceEngineInitialiser = new HardCodedInferenceEngineInitialiser();
         definitionPhaseController = inferenceEngineInitialiser.getDefinitionPhaseController();
         referencePhaseController = inferenceEngineInitialiser.getReferencePhaseController();
-        inferenceErrorReporter = inferenceEngineInitialiser.getInferenceErrorReporter();
+        inferenceIssueReporter = inferenceEngineInitialiser.getInferenceErrorReporter();
     }
 
     @Override
@@ -46,7 +49,11 @@ public class InferenceEngine implements IInferenceEngine, IErrorLogger
         treeNodeStream.reset();
         ErrorReportingTinsPHPDefinitionWalker definitionWalker =
                 new ErrorReportingTinsPHPDefinitionWalker(treeNodeStream, definitionPhaseController);
-        definitionWalker.registerErrorLogger(this);
+
+        for (IIssueLogger logger : issueLoggers) {
+            definitionWalker.registerIssueLogger(logger);
+        }
+        definitionWalker.registerIssueLogger(this);
         definitionWalker.downup(ast);
     }
 
@@ -55,15 +62,19 @@ public class InferenceEngine implements IInferenceEngine, IErrorLogger
         treeNodeStream.reset();
         ErrorReportingTinsPHPReferenceWalker referenceWalker =
                 new ErrorReportingTinsPHPReferenceWalker(treeNodeStream, referencePhaseController);
-        referenceWalker.registerErrorLogger(this);
+
+        for (IIssueLogger logger : issueLoggers) {
+            referenceWalker.registerIssueLogger(logger);
+        }
+        referenceWalker.registerIssueLogger(this);
         try {
             referenceWalker.compilationUnit();
         } catch (RecognitionException ex) {
             // should never happen, ErrorReportingTSPHPReferenceWalker should catch it already.
             // but just in case and to be complete
-            hasFoundError = true;
-            for (IErrorLogger logger : errorLoggers) {
-                logger.log(new TSPHPException(ex));
+            log(new TSPHPException(ex), EIssueSeverity.FatalError);
+            for (IIssueLogger logger : issueLoggers) {
+                logger.log(new TSPHPException(ex), EIssueSeverity.FatalError);
             }
         }
     }
@@ -73,24 +84,25 @@ public class InferenceEngine implements IInferenceEngine, IErrorLogger
     }
 
     @Override
-    public boolean hasFoundError() {
-        return hasFoundError || inferenceErrorReporter.hasFoundError();
+    public void registerIssueLogger(IIssueLogger issueReporter) {
+        issueLoggers.add(issueReporter);
+        inferenceIssueReporter.registerIssueLogger(issueReporter);
     }
 
     @Override
-    public void registerErrorLogger(IErrorLogger errorLogger) {
-        errorLoggers.add(errorLogger);
-        inferenceErrorReporter.registerErrorLogger(errorLogger);
+    public boolean hasFound(EnumSet<EIssueSeverity> severities) {
+        return IssueReporterHelper.hasFound(foundIssues, severities)
+                || inferenceIssueReporter.hasFound(severities);
     }
 
     @Override
     public void reset() {
-        hasFoundError = false;
+        foundIssues = EnumSet.noneOf(EIssueSeverity.class);
         inferenceEngineInitialiser.reset();
     }
 
     @Override
-    public void log(TSPHPException exception) {
-        hasFoundError = true;
+    public void log(TSPHPException ex, EIssueSeverity severity) {
+        foundIssues.add(severity);
     }
 }

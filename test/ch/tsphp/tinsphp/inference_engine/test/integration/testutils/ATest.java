@@ -12,11 +12,12 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.testutils;
 
-import ch.tsphp.common.IErrorLogger;
-import ch.tsphp.common.IParser;
 import ch.tsphp.common.exceptions.TSPHPException;
-import ch.tsphp.tinsphp.common.inference.error.IInferenceErrorReporter;
-import ch.tsphp.tinsphp.inference_engine.error.InferenceErrorReporter;
+import ch.tsphp.tinsphp.common.IParser;
+import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
+import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
+import ch.tsphp.tinsphp.common.issues.IIssueLogger;
+import ch.tsphp.tinsphp.inference_engine.error.InferenceIssueReporter;
 import ch.tsphp.tinsphp.parser.ParserFacade;
 import org.junit.Ignore;
 
@@ -24,22 +25,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Ignore
-public abstract class ATest implements IErrorLogger
+public abstract class ATest implements IIssueLogger
 {
 
     protected List<Exception> exceptions = new ArrayList<>();
     protected IParser parser;
-    protected IInferenceErrorReporter inferenceErrorReporter;
+    protected IInferenceIssueReporter inferenceErrorReporter;
 
     public ATest() {
         parser = createParser();
         registerParserErrorLogger();
 
         inferenceErrorReporter = createInferenceErrorReporter();
-        inferenceErrorReporter.registerErrorLogger(this);
+        inferenceErrorReporter.registerIssueLogger(this);
     }
 
-    public void log(TSPHPException exception) {
+    @Override
+    public void log(TSPHPException exception, EIssueSeverity severity) {
         exceptions.add(exception);
     }
 
@@ -48,10 +50,10 @@ public abstract class ATest implements IErrorLogger
     }
 
     protected void registerParserErrorLogger() {
-        parser.registerErrorLogger(new WriteExceptionToConsole());
+        parser.registerIssueLogger(new WriteExceptionToConsole());
     }
 
-    protected IInferenceErrorReporter createInferenceErrorReporter() {
-        return new InferenceErrorReporter();
+    protected IInferenceIssueReporter createInferenceErrorReporter() {
+        return new InferenceIssueReporter();
     }
 }

@@ -20,7 +20,7 @@ import ch.tsphp.tinsphp.common.checking.ForwardReferenceCheckResultDto;
 import ch.tsphp.tinsphp.common.checking.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.checking.VariableInitialisedResultDto;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
-import ch.tsphp.tinsphp.common.inference.error.IInferenceErrorReporter;
+import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.resolving.ISymbolResolverController;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
@@ -187,7 +187,7 @@ public class ReferencePhaseControllerTest
         IErroneousTypeSymbol erroneousTypeSymbol = mock(IErroneousTypeSymbol.class);
         when(symbolFactory.createErroneousTypeSymbol(any(ITSPHPAst.class), any(TSPHPException.class)))
                 .thenReturn(erroneousTypeSymbol);
-        IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
+        IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
 
         IReferencePhaseController controller = createController(symbolFactory, issueReporter, primitiveTypes);
         ITypeSymbol result = controller.resolvePrimitiveType(ast, null);
@@ -215,7 +215,7 @@ public class ReferencePhaseControllerTest
         ISymbolFactory symbolFactory = mock(ISymbolFactory.class);
         IUnionTypeSymbol unionTypeSymbol = mock(IUnionTypeSymbol.class);
         when(symbolFactory.createUnionTypeSymbol(anyMap())).thenReturn(unionTypeSymbol);
-        IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
+        IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
         IModifierHelper modifierHelper = mock(IModifierHelper.class);
         ITSPHPAst modifierAst = mock(ITSPHPAst.class);
         IModifierSet modifiers = new ModifierSet();
@@ -255,7 +255,7 @@ public class ReferencePhaseControllerTest
         ISymbolFactory symbolFactory = mock(ISymbolFactory.class);
         IUnionTypeSymbol unionTypeSymbol = mock(IUnionTypeSymbol.class);
         when(symbolFactory.createUnionTypeSymbol(anyMap())).thenReturn(unionTypeSymbol);
-        IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
+        IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
         IModifierHelper modifierHelper = mock(IModifierHelper.class);
         ITSPHPAst modifierAst = mock(ITSPHPAst.class);
         IModifierSet modifiers = new ModifierSet();
@@ -297,7 +297,7 @@ public class ReferencePhaseControllerTest
         ISymbolFactory symbolFactory = mock(ISymbolFactory.class);
         IUnionTypeSymbol unionTypeSymbol = mock(IUnionTypeSymbol.class);
         when(symbolFactory.createUnionTypeSymbol(anyMap())).thenReturn(unionTypeSymbol);
-        IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
+        IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
         IModifierHelper modifierHelper = mock(IModifierHelper.class);
         ITSPHPAst modifierAst = mock(ITSPHPAst.class);
         IModifierSet modifiers = new ModifierSet();
@@ -335,7 +335,7 @@ public class ReferencePhaseControllerTest
         when(scope.getScopeName()).thenReturn(scopeName);
         primitiveTypes.put("\\false", falseTypeSymbol);
         ISymbolFactory symbolFactory = mock(ISymbolFactory.class);
-        IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
+        IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
 
         IModifierHelper modifierHelper = mock(IModifierHelper.class);
         ITSPHPAst modifierAst = mock(ITSPHPAst.class);
@@ -365,7 +365,7 @@ public class ReferencePhaseControllerTest
         ISymbolFactory symbolFactory = mock(ISymbolFactory.class);
         IUnionTypeSymbol unionTypeSymbol = mock(IUnionTypeSymbol.class);
         when(symbolFactory.createUnionTypeSymbol(anyMap())).thenReturn(unionTypeSymbol);
-        IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
+        IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
         IModifierHelper modifierHelper = mock(IModifierHelper.class);
         ITSPHPAst modifierAst = mock(ITSPHPAst.class);
         IModifierSet modifiers = new ModifierSet();
@@ -573,7 +573,7 @@ public class ReferencePhaseControllerTest
     @Test
     public void
     checkUseDefinition_IsDefinedTwice_DoesNotCheckForAlreadyDefinedTypeAndReturnsFalseAndReportsDoubleDefinition() {
-        IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
+        IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
         ITSPHPAst alias = mock(ITSPHPAst.class);
         IAliasSymbol aliasSymbol = mock(IAliasSymbol.class);
         when(alias.getSymbol()).thenReturn(aliasSymbol);
@@ -595,7 +595,7 @@ public class ReferencePhaseControllerTest
 
     @Test
     public void checkUseDefinition_IsDefinedOnlyOnceAndIsNotAlreadyDefinedAsType_ReturnsTrueAndNoException() {
-        IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
+        IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
         ITSPHPAst alias = mock(ITSPHPAst.class);
         ISymbolCheckController symbolCheckController = mock(ISymbolCheckController.class);
         when(symbolCheckController.isNotUseDoubleDefinition(alias))
@@ -617,7 +617,7 @@ public class ReferencePhaseControllerTest
     @Test
     public void
     checkUseDefinition_IsDefinedOnlyOnceAndIsAlreadyDefinedAsType_ReturnsFalseAndReportsDetermineAlreadyDefinedDefinition() {
-        IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
+        IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
         ITSPHPAst alias = mock(ITSPHPAst.class);
         IAliasTypeSymbol aliasTypeSymbol = mock(IAliasTypeSymbol.class);
         when(alias.getSymbol()).thenReturn(aliasTypeSymbol);
@@ -640,7 +640,7 @@ public class ReferencePhaseControllerTest
 
     @Test
     public void checkIsNotForwardReference_IsDefinedEarlier_ReturnsTrue() {
-        IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
+        IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
         ITSPHPAst ast = mock(ITSPHPAst.class);
         ISymbolCheckController symbolCheckController = mock(ISymbolCheckController.class);
         when(symbolCheckController.isNotForwardReference(ast))
@@ -656,7 +656,7 @@ public class ReferencePhaseControllerTest
 
     @Test
     public void checkIsNotForwardReference_IsDefinedLaterOwn_ReturnsFalseAndReportsForwardUsage() {
-        IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
+        IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
         ITSPHPAst ast = mock(ITSPHPAst.class);
         ISymbolCheckController symbolCheckController = mock(ISymbolCheckController.class);
         ITSPHPAst definitionAst = mock(ITSPHPAst.class);
@@ -673,7 +673,7 @@ public class ReferencePhaseControllerTest
 
     @Test
     public void checkIsVariableInitialised_Standard_DelegatesToSymbolCheckController() {
-        IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
+        IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
         ITSPHPAst ast = mock(ITSPHPAst.class);
         ISymbolCheckController symbolCheckController = mock(ISymbolCheckController.class);
         when(symbolCheckController.isVariableInitialised(ast))
@@ -687,7 +687,7 @@ public class ReferencePhaseControllerTest
 
     @Test
     public void checkIsVariableInitialised_IsFullyInitialised_ReturnsTrueNoIssueReported() {
-        IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
+        IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
         ITSPHPAst ast = mock(ITSPHPAst.class);
         ISymbolCheckController symbolCheckController = mock(ISymbolCheckController.class);
         when(symbolCheckController.isVariableInitialised(ast))
@@ -702,7 +702,7 @@ public class ReferencePhaseControllerTest
 
     @Test
     public void checkIsVariableInitialised_IsPartiallyInitialised_ReturnsFalseReportsPartialInitialisation() {
-        IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
+        IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
         ITSPHPAst ast = mock(ITSPHPAst.class);
         ISymbol symbol = mock(ISymbol.class);
         when(ast.getSymbol()).thenReturn(symbol);
@@ -721,7 +721,7 @@ public class ReferencePhaseControllerTest
 
     @Test
     public void checkIsVariableInitialised_IsNotInitialised_ReturnsFalseReportsUninitialisedVariable() {
-        IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
+        IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
         ITSPHPAst ast = mock(ITSPHPAst.class);
         ISymbol symbol = mock(ISymbol.class);
         when(ast.getSymbol()).thenReturn(symbol);
@@ -1714,7 +1714,7 @@ public class ReferencePhaseControllerTest
     addImplicitReturnStatementIfRequired_IsReturningAndHasAtLeastOneReturnOrThrow_NothingAddedIssueReporterNotCalled() {
         ITSPHPAst identifier = mock(ITSPHPAst.class);
         ITSPHPAst block = mock(ITSPHPAst.class);
-        IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
+        IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
 
         IReferencePhaseController controller = createController(issueReporter);
         controller.addImplicitReturnStatementIfRequired(true, true, identifier, block);
@@ -1730,7 +1730,7 @@ public class ReferencePhaseControllerTest
     public void addImplicitReturnStatementIfRequired_IsReturningHasNoReturnOThrow_NothingAddedIssueReporterNotCalled() {
         ITSPHPAst identifier = mock(ITSPHPAst.class);
         ITSPHPAst block = mock(ITSPHPAst.class);
-        IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
+        IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
 
         IReferencePhaseController controller = createController(issueReporter);
         controller.addImplicitReturnStatementIfRequired(true, false, identifier, block);
@@ -1747,7 +1747,7 @@ public class ReferencePhaseControllerTest
     addImplicitReturnStatementIfRequired_IsNotReturningAndHasAtLeastOneReturnOrThrow_ReturnAddedAndPartiallyCalled() {
         ITSPHPAst identifier = mock(ITSPHPAst.class);
         ITSPHPAst block = mock(ITSPHPAst.class);
-        IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
+        IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
         IAstModificationHelper astModificationHelper = mock(IAstModificationHelper.class);
         ITSPHPAst returnAst = mock(ITSPHPAst.class);
         when(astModificationHelper.getNullReturnStatement()).thenReturn(returnAst);
@@ -1766,7 +1766,7 @@ public class ReferencePhaseControllerTest
     public void addImplicitReturnStatementIfRequired_IsNotReturningHasNoReturnOThrow_ReturnAddedAndNoReturnCalled() {
         ITSPHPAst identifier = mock(ITSPHPAst.class);
         ITSPHPAst block = mock(ITSPHPAst.class);
-        IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
+        IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
         IAstModificationHelper astModificationHelper = mock(IAstModificationHelper.class);
         ITSPHPAst returnAst = mock(ITSPHPAst.class);
         when(astModificationHelper.getNullReturnStatement()).thenReturn(returnAst);
@@ -1788,7 +1788,7 @@ public class ReferencePhaseControllerTest
         ITSPHPAst block = mock(ITSPHPAst.class);
         IScope scope = mock(IScope.class);
         when(block.getScope()).thenReturn(scope);
-        IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
+        IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
         IAstModificationHelper astModificationHelper = mock(IAstModificationHelper.class);
         ITSPHPAst returnAst = mock(ITSPHPAst.class);
         when(astModificationHelper.getNullReturnStatement()).thenReturn(returnAst);
@@ -1811,7 +1811,7 @@ public class ReferencePhaseControllerTest
         ITSPHPAst block = mock(ITSPHPAst.class);
         IScope scope = mock(IScope.class);
         when(block.getScope()).thenReturn(scope);
-        IInferenceErrorReporter issueReporter = mock(IInferenceErrorReporter.class);
+        IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
         IAstModificationHelper astModificationHelper = mock(IAstModificationHelper.class);
         ITSPHPAst returnAst = mock(ITSPHPAst.class);
         when(astModificationHelper.getNullReturnStatement()).thenReturn(returnAst);
@@ -1845,26 +1845,26 @@ public class ReferencePhaseControllerTest
     }
 
     private IReferencePhaseController createController() {
-        return createController(mock(IInferenceErrorReporter.class));
+        return createController(mock(IInferenceIssueReporter.class));
     }
 
-    private IReferencePhaseController createController(IInferenceErrorReporter issueReporter) {
+    private IReferencePhaseController createController(IInferenceIssueReporter issueReporter) {
         return createController(issueReporter, mock(IScopeHelper.class));
     }
 
     private IReferencePhaseController createController(
-            IInferenceErrorReporter issueReporter, IScopeHelper scopeHelper) {
+            IInferenceIssueReporter issueReporter, IScopeHelper scopeHelper) {
         return createController(issueReporter, mock(IAstModificationHelper.class), scopeHelper);
     }
 
     private IReferencePhaseController createController(
-            IInferenceErrorReporter issueReporter, IAstModificationHelper astModificationHelper) {
+            IInferenceIssueReporter issueReporter, IAstModificationHelper astModificationHelper) {
         return createController(
                 issueReporter, astModificationHelper, mock(IScopeHelper.class));
     }
 
     private IReferencePhaseController createController(
-            IInferenceErrorReporter issueReporter,
+            IInferenceIssueReporter issueReporter,
             IAstModificationHelper astModificationHelper,
             IScopeHelper scopeHelper) {
         return createController(
@@ -1882,7 +1882,7 @@ public class ReferencePhaseControllerTest
     }
 
     private IReferencePhaseController createController(
-            IInferenceErrorReporter issueReporter,
+            IInferenceIssueReporter issueReporter,
             ISymbolCheckController symbolCheckController) {
 
         return createController(
@@ -1903,7 +1903,7 @@ public class ReferencePhaseControllerTest
     private IReferencePhaseController createController(ISymbolFactory symbolFactory) {
         return createController(
                 symbolFactory,
-                mock(IInferenceErrorReporter.class),
+                mock(IInferenceIssueReporter.class),
                 new HashMap<String, ITypeSymbol>()
         );
     }
@@ -1911,14 +1911,14 @@ public class ReferencePhaseControllerTest
     private IReferencePhaseController createController(Map<String, ITypeSymbol> primitiveTypes) {
         return createController(
                 mock(ISymbolFactory.class),
-                mock(IInferenceErrorReporter.class),
+                mock(IInferenceIssueReporter.class),
                 primitiveTypes
         );
     }
 
     private IReferencePhaseController createController(
             ISymbolFactory symbolFactory,
-            IInferenceErrorReporter issueReporter,
+            IInferenceIssueReporter issueReporter,
             Map<String, ITypeSymbol> primitiveTypes) {
         return createController(
                 symbolFactory,
@@ -1930,7 +1930,7 @@ public class ReferencePhaseControllerTest
 
     private IReferencePhaseController createController(
             ISymbolFactory symbolFactory,
-            IInferenceErrorReporter issueReporter,
+            IInferenceIssueReporter issueReporter,
             IModifierHelper modifierHelper, Map<String, ITypeSymbol> primitiveTypes) {
         return createController(
                 symbolFactory,
@@ -1950,7 +1950,7 @@ public class ReferencePhaseControllerTest
     private IReferencePhaseController createController(IGlobalNamespaceScope globalNamespaceScope) {
         return createController(
                 mock(ISymbolFactory.class),
-                mock(IInferenceErrorReporter.class),
+                mock(IInferenceIssueReporter.class),
                 mock(IAstModificationHelper.class),
                 mock(ISymbolResolverController.class),
                 mock(ISymbolCheckController.class),
@@ -1971,7 +1971,7 @@ public class ReferencePhaseControllerTest
             IVariableDeclarationCreator variableDeclarationCreator) {
         return createController(
                 mock(ISymbolFactory.class),
-                mock(IInferenceErrorReporter.class),
+                mock(IInferenceIssueReporter.class),
                 mock(IAstModificationHelper.class),
                 symbolResolverController,
                 mock(ISymbolCheckController.class),
@@ -1985,7 +1985,7 @@ public class ReferencePhaseControllerTest
 
     protected IReferencePhaseController createController(
             ISymbolFactory symbolFactory,
-            IInferenceErrorReporter inferenceErrorReporter,
+            IInferenceIssueReporter inferenceErrorReporter,
             IAstModificationHelper astModificationHelper,
             ISymbolResolverController symbolResolverControllerController,
             ISymbolCheckController theSymbolCheckController,
