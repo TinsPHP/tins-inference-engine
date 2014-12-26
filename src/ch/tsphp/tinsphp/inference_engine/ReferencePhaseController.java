@@ -260,12 +260,11 @@ public class ReferencePhaseController implements IReferencePhaseController
             case TokenTypes.Null:
                 typeSymbol = primitiveTypes.get(PrimitiveTypeNames.NULL);
                 break;
-            case TokenTypes.Bool:
-                if (literal.getText().toLowerCase().equals("true")) {
-                    typeSymbol = primitiveTypes.get(PrimitiveTypeNames.TRUE);
-                } else {
-                    typeSymbol = primitiveTypes.get(PrimitiveTypeNames.FALSE);
-                }
+            case TokenTypes.False:
+                typeSymbol = primitiveTypes.get(PrimitiveTypeNames.FALSE);
+                break;
+            case TokenTypes.True:
+                typeSymbol = primitiveTypes.get(PrimitiveTypeNames.TRUE);
                 break;
             case TokenTypes.Int:
                 typeSymbol = primitiveTypes.get(PrimitiveTypeNames.INT);

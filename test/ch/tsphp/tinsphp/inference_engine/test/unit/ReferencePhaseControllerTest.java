@@ -407,7 +407,7 @@ public class ReferencePhaseControllerTest
     @Test
     public void resolvePrimitiveLiteral_False_ReturnsFalseTypeSymbol() {
         ITSPHPAst ast = mock(ITSPHPAst.class);
-        when(ast.getType()).thenReturn(TokenTypes.Bool);
+        when(ast.getType()).thenReturn(TokenTypes.False);
         when(ast.getText()).thenReturn("false");
         Map<String, ITypeSymbol> types = new HashMap<>();
         ITypeSymbol typeSymbol = mock(ITypeSymbol.class);
@@ -422,7 +422,7 @@ public class ReferencePhaseControllerTest
     @Test
     public void resolvePrimitiveLiteral_True_ReturnsTrueTypeSymbol() {
         ITSPHPAst ast = mock(ITSPHPAst.class);
-        when(ast.getType()).thenReturn(TokenTypes.Bool);
+        when(ast.getType()).thenReturn(TokenTypes.True);
         when(ast.getText()).thenReturn("true");
         Map<String, ITypeSymbol> types = new HashMap<>();
         ITypeSymbol typeSymbol = mock(ITypeSymbol.class);

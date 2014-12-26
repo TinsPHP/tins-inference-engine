@@ -180,11 +180,12 @@ unaryPrimitiveAtom
     
 //TODO TINS-218 - reference phase - resolve primitive literals    
 primitiveAtomWithConstant
-    :   (   type=Bool
+    :   (   type=Null
+        |   type=False
+        |   type=True
         |   type=Int
         |   type=Float
         |   type=String
-        |   type=Null
         |   array {$type=$array.start;}
         )
         {

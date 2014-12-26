@@ -39,7 +39,6 @@ import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker.Bit
 import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker.BitwiseOrAssign;
 import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker.BitwiseXor;
 import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker.BitwiseXorAssign;
-import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker.Bool;
 import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker.CAST;
 import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker.CONSTANT;
 import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker.Clone;
@@ -49,6 +48,7 @@ import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker.EOF
 import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker.Equal;
 import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker.Exit;
 import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker.FUNCTION_CALL;
+import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker.False;
 import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker.Float;
 import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker.GreaterEqualThan;
 import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker.GreaterThan;
@@ -87,6 +87,7 @@ import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker.Str
 import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker.TYPE;
 import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker.TYPE_MODIFIER;
 import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker.TYPE_NAME;
+import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker.True;
 import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker.TypeInt;
 import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker.UNARY_MINUS;
 import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker.UNARY_PLUS;
@@ -121,7 +122,7 @@ public class ArrayKeyValueBranchesTest
     @Parameterized.Parameters
     public static Collection<Object[]> testStrings() {
         return Arrays.asList(
-                entry("ARRAY_ACCESS", ARRAY_ACCESS, DOWN, VariableId, Bool, UP),
+                entry("ARRAY_ACCESS", ARRAY_ACCESS, DOWN, VariableId, True, UP),
                 entry("Assign", Assign, DOWN, VariableId, Int, UP),
                 entry("At", At, DOWN, FUNCTION_CALL, DOWN, TYPE_NAME, ACTUAL_PARAMETERS, UP, UP),
                 entry("BitwiseAnd", BitwiseAnd, DOWN, Int, Int, UP),
@@ -131,7 +132,6 @@ public class ArrayKeyValueBranchesTest
                 entry("BitwiseOrAssign", BitwiseOrAssign, DOWN, Int, Int, UP),
                 entry("BitwiseXor", BitwiseXor, DOWN, Int, Int, UP),
                 entry("BitwiseXorAssign", BitwiseXorAssign, DOWN, Int, Int, UP),
-                entry("Bool", Bool),
                 entry("CAST", CAST, DOWN, TYPE, DOWN, TYPE_MODIFIER, TypeInt, UP, String, UP),
                 //TODO TINS-161 inference OOP
 //                entry("FIELD_ACCESS", FIELD_ACCESS, TreeParser.DOWN, VariableId, Identifier, TreeParser.UP),
@@ -141,6 +141,7 @@ public class ArrayKeyValueBranchesTest
                 entry("DivideAssign", DivideAssign, DOWN, VariableId, Int, UP),
                 entry("Equal", Equal, DOWN, VariableId, Int, UP),
                 entry("Exit", Exit, DOWN, Int, UP),
+                entry("False", False),
                 entry("FUNCTION_CALL", FUNCTION_CALL, DOWN, TYPE_NAME, ACTUAL_PARAMETERS, UP),
                 entry("Float", Float),
                 entry("GreaterEqualThan", GreaterEqualThan, DOWN, VariableId, Int, UP),
@@ -178,12 +179,13 @@ public class ArrayKeyValueBranchesTest
                 entry("PRE_DECREMENT", PRE_DECREMENT, DOWN, VariableId, UP),
                 entry("Plus", Plus, DOWN, VariableId, Int, UP),
                 entry("PlusAssign", PlusAssign, DOWN, VariableId, Int, UP),
-                entry("QuestionMark", QuestionMark, DOWN, Bool, VariableId, Int, UP),
+                entry("QuestionMark", QuestionMark, DOWN, True, VariableId, Int, UP),
                 entry("ShiftLeft", ShiftLeft, DOWN, VariableId, Int, UP),
                 entry("ShiftLeftAssign", ShiftLeftAssign, DOWN, VariableId, Int, UP),
                 entry("ShiftRight", ShiftRight, DOWN, VariableId, Int, UP),
                 entry("ShiftRightAssign", ShiftRightAssign, DOWN, VariableId, Int, UP),
                 entry("String", String),
+                entry("True", True),
                 //TODO TINS-161 inference OOP
 //                entry("This", This),
                 entry("UNARY_MINUS", UNARY_MINUS, DOWN, VariableId, UP),
