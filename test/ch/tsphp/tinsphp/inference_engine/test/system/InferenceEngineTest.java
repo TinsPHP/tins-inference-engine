@@ -45,6 +45,34 @@ public class InferenceEngineTest
     }
 
     @Test
+    public void allFine_Reset_AllFineAgain_DoesNotFindIssues() {
+        IParser parser = new ParserFacade();
+        ParserUnitDto parserUnitDto = parser.parse("<?php $a = 1;?>");
+        CommonTreeNodeStream commonTreeNodeStream =
+                new CommonTreeNodeStream(new TSPHPAstAdaptor(), parserUnitDto.compilationUnit);
+        commonTreeNodeStream.setTokenStream(parserUnitDto.tokenStream);
+
+        InferenceEngine inferenceEngine = new InferenceEngine();
+        inferenceEngine.enrichWithDefinitions(parserUnitDto.compilationUnit, commonTreeNodeStream);
+        inferenceEngine.enrichWithReferences(parserUnitDto.compilationUnit, commonTreeNodeStream);
+        inferenceEngine.enrichtWithTypes(parserUnitDto.compilationUnit, commonTreeNodeStream);
+
+        assertThat(inferenceEngine.hasFound(EnumSet.allOf(EIssueSeverity.class)), is(false));
+
+        //second round
+        parserUnitDto = parser.parse("<?php $a = 1;?>");
+        commonTreeNodeStream = new CommonTreeNodeStream(new TSPHPAstAdaptor(), parserUnitDto.compilationUnit);
+        commonTreeNodeStream.setTokenStream(parserUnitDto.tokenStream);
+
+        inferenceEngine.reset();
+        inferenceEngine.enrichWithDefinitions(parserUnitDto.compilationUnit, commonTreeNodeStream);
+        inferenceEngine.enrichWithReferences(parserUnitDto.compilationUnit, commonTreeNodeStream);
+        inferenceEngine.enrichtWithTypes(parserUnitDto.compilationUnit, commonTreeNodeStream);
+
+        assertThat(inferenceEngine.hasFound(EnumSet.allOf(EIssueSeverity.class)), is(false));
+    }
+
+    @Test
     public void uninitialisedVariable_FindsOneIssue() {
         IParser parser = new ParserFacade();
         ParserUnitDto parserUnitDto = parser.parse("<?php echo $a; ?>");
