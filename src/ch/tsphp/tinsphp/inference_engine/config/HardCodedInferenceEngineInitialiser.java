@@ -9,11 +9,14 @@ package ch.tsphp.tinsphp.inference_engine.config;
 import ch.tsphp.common.AstHelperRegistry;
 import ch.tsphp.common.IAstHelper;
 import ch.tsphp.tinsphp.common.ICore;
+import ch.tsphp.tinsphp.common.IVariableDeclarationCreator;
+import ch.tsphp.tinsphp.common.checking.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.common.inference.IInferenceEngineInitialiser;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.resolving.ISymbolResolver;
+import ch.tsphp.tinsphp.common.resolving.ISymbolResolverController;
 import ch.tsphp.tinsphp.common.scopes.IScopeFactory;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
@@ -43,14 +46,12 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
     private final ISymbolFactory symbolFactory;
     private final IScopeFactory scopeFactory;
     private final IAstModificationHelper astModificationHelper;
-    private final SymbolResolverController symbolResolverController;
-    private final SymbolCheckController symbolCheckController;
-    private final PutAtTopVariableDeclarationCreator variableDeclarationCreator;
 
     private IDefinitionPhaseController definitionPhaseController;
     private IReferencePhaseController referencePhaseController;
     private InferenceIssueReporter inferenceErrorReporter;
     private ICore core;
+    private final List<ISymbolResolver> additionalSymbolResolvers;
 
     public HardCodedInferenceEngineInitialiser() {
         scopeHelper = new ScopeHelper();
@@ -59,35 +60,36 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
         scopeFactory = new ScopeFactory(scopeHelper);
         inferenceErrorReporter = new InferenceIssueReporter();
 
-        createDefinitionPhaseController();
-
         IAstHelper astHelper = AstHelperRegistry.get();
         astModificationHelper = new AstModificationHelper(astHelper);
+        additionalSymbolResolvers = new ArrayList<>();
+
+        core = new Core(symbolFactory, astHelper);
+        additionalSymbolResolvers.add(core.getCoreSymbolResolver());
+
+        init();
+    }
+
+    private void init() {
+        definitionPhaseController = new DefinitionPhaseController(symbolFactory, scopeFactory);
+
         ISymbolResolver userSymbolResolver = new UserSymbolResolver(
                 scopeHelper,
                 definitionPhaseController.getGlobalNamespaceScopes(),
                 definitionPhaseController.getGlobalDefaultNamespace());
-        List<ISymbolResolver> additionalSymbolResolvers = new ArrayList<>();
-        core = new Core(symbolFactory, astHelper);
-        additionalSymbolResolvers.add(core.getCoreSymbolResolver());
-        symbolResolverController = new SymbolResolverController(
+
+        ISymbolResolverController symbolResolverController = new SymbolResolverController(
                 userSymbolResolver,
                 additionalSymbolResolvers,
                 scopeHelper,
                 symbolFactory,
                 inferenceErrorReporter);
-        symbolCheckController = new SymbolCheckController(userSymbolResolver, additionalSymbolResolvers);
-        variableDeclarationCreator =
+        ISymbolCheckController symbolCheckController = new SymbolCheckController(userSymbolResolver,
+                additionalSymbolResolvers);
+
+        IVariableDeclarationCreator variableDeclarationCreator =
                 new PutAtTopVariableDeclarationCreator(astModificationHelper, definitionPhaseController);
 
-        createReferencePhaseController();
-    }
-
-    private void createDefinitionPhaseController() {
-        definitionPhaseController = new DefinitionPhaseController(symbolFactory, scopeFactory);
-    }
-
-    private void createReferencePhaseController() {
         referencePhaseController = new ReferencePhaseController(
                 symbolFactory,
                 inferenceErrorReporter,
@@ -120,7 +122,6 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
     @Override
     public void reset() {
         inferenceErrorReporter.reset();
-        createDefinitionPhaseController();
-        createReferencePhaseController();
+        init();
     }
 }

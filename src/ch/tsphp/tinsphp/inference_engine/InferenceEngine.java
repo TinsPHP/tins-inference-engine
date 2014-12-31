@@ -9,9 +9,7 @@ package ch.tsphp.tinsphp.inference_engine;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.exceptions.TSPHPException;
 import ch.tsphp.tinsphp.common.IInferenceEngine;
-import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.common.inference.IInferenceEngineInitialiser;
-import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
 import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.issues.IIssueLogger;
@@ -30,8 +28,6 @@ public class InferenceEngine implements IInferenceEngine, IIssueLogger
 {
     protected IInferenceEngineInitialiser inferenceEngineInitialiser;
 
-    private final IDefinitionPhaseController definitionPhaseController;
-    private final IReferencePhaseController referencePhaseController;
     private final IInferenceIssueReporter inferenceIssueReporter;
     private final Collection<IIssueLogger> issueLoggers = new ArrayDeque<>();
 
@@ -39,16 +35,14 @@ public class InferenceEngine implements IInferenceEngine, IIssueLogger
 
     public InferenceEngine() {
         inferenceEngineInitialiser = new HardCodedInferenceEngineInitialiser();
-        definitionPhaseController = inferenceEngineInitialiser.getDefinitionPhaseController();
-        referencePhaseController = inferenceEngineInitialiser.getReferencePhaseController();
         inferenceIssueReporter = inferenceEngineInitialiser.getInferenceErrorReporter();
     }
 
     @Override
     public void enrichWithDefinitions(ITSPHPAst ast, TreeNodeStream treeNodeStream) {
         treeNodeStream.reset();
-        ErrorReportingTinsPHPDefinitionWalker definitionWalker =
-                new ErrorReportingTinsPHPDefinitionWalker(treeNodeStream, definitionPhaseController);
+        ErrorReportingTinsPHPDefinitionWalker definitionWalker = new ErrorReportingTinsPHPDefinitionWalker(
+                treeNodeStream, inferenceEngineInitialiser.getDefinitionPhaseController());
 
         for (IIssueLogger logger : issueLoggers) {
             definitionWalker.registerIssueLogger(logger);
@@ -60,8 +54,8 @@ public class InferenceEngine implements IInferenceEngine, IIssueLogger
     @Override
     public void enrichWithReferences(ITSPHPAst ast, TreeNodeStream treeNodeStream) {
         treeNodeStream.reset();
-        ErrorReportingTinsPHPReferenceWalker referenceWalker =
-                new ErrorReportingTinsPHPReferenceWalker(treeNodeStream, referencePhaseController);
+        ErrorReportingTinsPHPReferenceWalker referenceWalker = new ErrorReportingTinsPHPReferenceWalker(
+                treeNodeStream, inferenceEngineInitialiser.getReferencePhaseController());
 
         for (IIssueLogger logger : issueLoggers) {
             referenceWalker.registerIssueLogger(logger);
