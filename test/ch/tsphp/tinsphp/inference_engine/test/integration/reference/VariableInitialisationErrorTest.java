@@ -13,8 +13,9 @@
 package ch.tsphp.tinsphp.inference_engine.test.integration.reference;
 
 import ch.tsphp.common.ITSPHPAst;
+import ch.tsphp.tinsphp.common.issues.DefinitionIssueDto;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
-import ch.tsphp.tinsphp.inference_engine.error.DefinitionErrorDto;
+import ch.tsphp.tinsphp.common.issues.IIssueMessageProvider;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference.AReferenceDefinitionErrorTest;
 import org.antlr.runtime.RecognitionException;
 import org.junit.Test;
@@ -40,7 +41,7 @@ public class VariableInitialisationErrorTest extends AReferenceDefinitionErrorTe
 
     private IInitialisedVerifier verifier;
 
-    public VariableInitialisationErrorTest(String testString, DefinitionErrorDto[] expectedLinesAndPositions,
+    public VariableInitialisationErrorTest(String testString, DefinitionIssueDto[] expectedLinesAndPositions,
             IInitialisedVerifier theVerifier) {
         super(testString, expectedLinesAndPositions);
         verifier = theVerifier;
@@ -83,10 +84,10 @@ public class VariableInitialisationErrorTest extends AReferenceDefinitionErrorTe
     }
 
     private static void addVariations(String prefix, String appendix) {
-        DefinitionErrorDto[] errorDto = new DefinitionErrorDto[]{new DefinitionErrorDto("$a", 2, 1, "$a", 3, 1)};
-        DefinitionErrorDto[] twoErrorDto = new DefinitionErrorDto[]{
-                new DefinitionErrorDto("$a", 2, 1, "$a", 3, 1),
-                new DefinitionErrorDto("$a", 2, 1, "$a", 4, 1)
+        DefinitionIssueDto[] errorDto = new DefinitionIssueDto[]{new DefinitionIssueDto("$a", 2, 1, "$a", 3, 1)};
+        DefinitionIssueDto[] twoErrorDto = new DefinitionIssueDto[]{
+                new DefinitionIssueDto("$a", 2, 1, "$a", 3, 1),
+                new DefinitionIssueDto("$a", 2, 1, "$a", 4, 1)
         };
         collection.addAll(Arrays.asList(new Object[][]{
                 {prefix + "\n echo 'hi';\n $a;" + appendix, errorDto, new NotVerifier()},
@@ -188,7 +189,7 @@ public class VariableInitialisationErrorTest extends AReferenceDefinitionErrorTe
     }
 
     private static void addDeadCodeVariations(String prefix, String statement, String appendix) {
-        DefinitionErrorDto[] errorDto = new DefinitionErrorDto[]{new DefinitionErrorDto("$a", 2, 1, "$a", 3, 1)};
+        DefinitionIssueDto[] errorDto = new DefinitionIssueDto[]{new DefinitionIssueDto("$a", 2, 1, "$a", 3, 1)};
         collection.addAll(Arrays.asList(new Object[][]{
                 {
                         prefix + "switch(1){default: " + statement + " $a=1;} \n $a + 96;" + appendix,
@@ -257,8 +258,8 @@ public class VariableInitialisationErrorTest extends AReferenceDefinitionErrorTe
     }
 
     @Override
-    protected IInferenceIssueReporter createInferenceErrorReporter() {
-        return spy(super.createInferenceErrorReporter());
+    protected IInferenceIssueReporter createInferenceErrorReporter(IIssueMessageProvider theIssueMessageProvider) {
+        return spy(super.createInferenceErrorReporter(theIssueMessageProvider));
     }
 
     private static class PartiallyVerifier implements IInitialisedVerifier

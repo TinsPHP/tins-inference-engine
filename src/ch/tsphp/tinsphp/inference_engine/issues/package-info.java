@@ -5,7 +5,7 @@
  */
 
 /**
- * Contains different classes which deal with error messages (generation, providing).
+ * Contains different classes which deal with issues (generation, message providing etc.).
  */
-package ch.tsphp.tinsphp.inference_engine.error;
+package ch.tsphp.tinsphp.inference_engine.issues;
 

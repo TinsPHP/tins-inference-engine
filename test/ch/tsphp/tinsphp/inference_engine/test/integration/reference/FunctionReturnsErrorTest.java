@@ -12,7 +12,7 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.reference;
 
-import ch.tsphp.tinsphp.inference_engine.error.ReferenceErrorDto;
+import ch.tsphp.tinsphp.common.issues.ReferenceIssueDto;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.ReturnCheckHelper;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference.AReferenceErrorTest;
 import org.antlr.runtime.RecognitionException;
@@ -26,7 +26,7 @@ import java.util.Collection;
 public class FunctionReturnsErrorTest extends AReferenceErrorTest
 {
 
-    public FunctionReturnsErrorTest(String testString, ReferenceErrorDto[] expectedLinesAndPositions) {
+    public FunctionReturnsErrorTest(String testString, ReferenceIssueDto[] expectedLinesAndPositions) {
         super(testString, expectedLinesAndPositions);
     }
 
@@ -38,6 +38,6 @@ public class FunctionReturnsErrorTest extends AReferenceErrorTest
     @Parameterized.Parameters
     public static Collection<Object[]> testStrings() {
         return ReturnCheckHelper.getReferenceErrorPairs(
-                "function \n foo(){", "}", new ReferenceErrorDto[]{new ReferenceErrorDto("foo()", 2, 1)});
+                "function \n foo(){", "}", new ReferenceIssueDto[]{new ReferenceIssueDto("foo()", 2, 1)});
     }
 }

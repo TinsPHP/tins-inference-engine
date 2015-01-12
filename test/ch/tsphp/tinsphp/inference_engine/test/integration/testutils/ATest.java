@@ -17,7 +17,9 @@ import ch.tsphp.tinsphp.common.IParser;
 import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.issues.IIssueLogger;
-import ch.tsphp.tinsphp.inference_engine.error.InferenceIssueReporter;
+import ch.tsphp.tinsphp.common.issues.IIssueMessageProvider;
+import ch.tsphp.tinsphp.inference_engine.issues.HardCodedIssueMessageProvider;
+import ch.tsphp.tinsphp.inference_engine.issues.InferenceIssueReporter;
 import ch.tsphp.tinsphp.parser.ParserFacade;
 import org.junit.Ignore;
 
@@ -31,12 +33,15 @@ public abstract class ATest implements IIssueLogger
     protected List<Exception> exceptions = new ArrayList<>();
     protected IParser parser;
     protected IInferenceIssueReporter inferenceErrorReporter;
+    protected IIssueMessageProvider issueMessageProvider;
 
     public ATest() {
         parser = createParser();
         registerParserErrorLogger();
 
-        inferenceErrorReporter = createInferenceErrorReporter();
+        issueMessageProvider = createIssueMessageProvider();
+
+        inferenceErrorReporter = createInferenceErrorReporter(issueMessageProvider);
         inferenceErrorReporter.registerIssueLogger(this);
     }
 
@@ -53,7 +58,11 @@ public abstract class ATest implements IIssueLogger
         parser.registerIssueLogger(new WriteExceptionToConsole());
     }
 
-    protected IInferenceIssueReporter createInferenceErrorReporter() {
-        return new InferenceIssueReporter();
+    protected IIssueMessageProvider createIssueMessageProvider() {
+        return new HardCodedIssueMessageProvider();
+    }
+
+    protected IInferenceIssueReporter createInferenceErrorReporter(IIssueMessageProvider theIssueMessageProvider) {
+        return new InferenceIssueReporter(theIssueMessageProvider);
     }
 }

@@ -24,7 +24,8 @@ import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.core.Core;
 import ch.tsphp.tinsphp.inference_engine.DefinitionPhaseController;
 import ch.tsphp.tinsphp.inference_engine.ReferencePhaseController;
-import ch.tsphp.tinsphp.inference_engine.error.InferenceIssueReporter;
+import ch.tsphp.tinsphp.inference_engine.issues.HardCodedIssueMessageProvider;
+import ch.tsphp.tinsphp.inference_engine.issues.InferenceIssueReporter;
 import ch.tsphp.tinsphp.inference_engine.resolver.PutAtTopVariableDeclarationCreator;
 import ch.tsphp.tinsphp.inference_engine.resolver.SymbolCheckController;
 import ch.tsphp.tinsphp.inference_engine.resolver.SymbolResolverController;
@@ -58,7 +59,7 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
         modifierHelper = new ModifierHelper();
         symbolFactory = new SymbolFactory(scopeHelper, modifierHelper);
         scopeFactory = new ScopeFactory(scopeHelper);
-        inferenceErrorReporter = new InferenceIssueReporter();
+        inferenceErrorReporter = new InferenceIssueReporter(new HardCodedIssueMessageProvider());
 
         IAstHelper astHelper = AstHelperRegistry.get();
         astModificationHelper = new AstModificationHelper(astHelper);

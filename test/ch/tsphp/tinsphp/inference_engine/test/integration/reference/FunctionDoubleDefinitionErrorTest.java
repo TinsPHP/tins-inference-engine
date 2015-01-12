@@ -12,7 +12,7 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.reference;
 
-import ch.tsphp.tinsphp.inference_engine.error.DefinitionErrorDto;
+import ch.tsphp.tinsphp.common.issues.DefinitionIssueDto;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference.AReferenceDefinitionErrorTest;
 import org.antlr.runtime.RecognitionException;
 import org.junit.Test;
@@ -26,7 +26,7 @@ import java.util.Collection;
 @RunWith(Parameterized.class)
 public class FunctionDoubleDefinitionErrorTest extends AReferenceDefinitionErrorTest
 {
-    public FunctionDoubleDefinitionErrorTest(String testString, DefinitionErrorDto[] expectedLinesAndPositions) {
+    public FunctionDoubleDefinitionErrorTest(String testString, DefinitionIssueDto[] expectedLinesAndPositions) {
         super(testString, expectedLinesAndPositions);
     }
 
@@ -54,10 +54,10 @@ public class FunctionDoubleDefinitionErrorTest extends AReferenceDefinitionError
             final String prefix, final String appendix) {
 
         Collection<Object[]> collection = new ArrayList<>();
-        DefinitionErrorDto[] errorDto = new DefinitionErrorDto[]{new DefinitionErrorDto("foo()", 2, 1, "foo()", 3, 1)};
-        DefinitionErrorDto[] errorDtoTwo = new DefinitionErrorDto[]{
-                new DefinitionErrorDto("foo()", 2, 1, "foo()", 3, 1),
-                new DefinitionErrorDto("foo()", 2, 1, "foo()", 4, 1)
+        DefinitionIssueDto[] errorDto = new DefinitionIssueDto[]{new DefinitionIssueDto("foo()", 2, 1, "foo()", 3, 1)};
+        DefinitionIssueDto[] errorDtoTwo = new DefinitionIssueDto[]{
+                new DefinitionIssueDto("foo()", 2, 1, "foo()", 3, 1),
+                new DefinitionIssueDto("foo()", 2, 1, "foo()", 4, 1)
         };
 
         collection.addAll(Arrays.asList(new Object[][]{
@@ -70,17 +70,17 @@ public class FunctionDoubleDefinitionErrorTest extends AReferenceDefinitionError
                 },
                 {
                         prefix + "function \n foO(){return 1;} function \n foo(){return 1;}" + appendix,
-                        new DefinitionErrorDto[]{
-                                new DefinitionErrorDto("foO()", 2, 1, "foo()", 3, 1)
+                        new DefinitionIssueDto[]{
+                                new DefinitionIssueDto("foO()", 2, 1, "foo()", 3, 1)
                         }
                 },
                 {
                         prefix + "function \n foO(){return 1;} "
                                 + "function \n foo(){return 1;}"
                                 + "function \n fOO(){return 1;}" + appendix,
-                        new DefinitionErrorDto[]{
-                                new DefinitionErrorDto("foO()", 2, 1, "foo()", 3, 1),
-                                new DefinitionErrorDto("foO()", 2, 1, "fOO()", 4, 1)
+                        new DefinitionIssueDto[]{
+                                new DefinitionIssueDto("foO()", 2, 1, "foo()", 3, 1),
+                                new DefinitionIssueDto("foO()", 2, 1, "fOO()", 4, 1)
                         }
                 },
                 //parameter name does not matter
@@ -143,10 +143,10 @@ public class FunctionDoubleDefinitionErrorTest extends AReferenceDefinitionError
     public static Collection<Object[]> getNamespaceBracketVariations(final String prefix, final String appendix) {
         Collection<Object[]> collection = new ArrayList<>();
 
-        DefinitionErrorDto[] errorDto = new DefinitionErrorDto[]{new DefinitionErrorDto("foo()", 2, 1, "foo()", 3, 1)};
-        DefinitionErrorDto[] errorDtoTwo = new DefinitionErrorDto[]{
-                new DefinitionErrorDto("foo()", 2, 1, "foo()", 3, 1),
-                new DefinitionErrorDto("foo()", 2, 1, "foo()", 4, 1)
+        DefinitionIssueDto[] errorDto = new DefinitionIssueDto[]{new DefinitionIssueDto("foo()", 2, 1, "foo()", 3, 1)};
+        DefinitionIssueDto[] errorDtoTwo = new DefinitionIssueDto[]{
+                new DefinitionIssueDto("foo()", 2, 1, "foo()", 3, 1),
+                new DefinitionIssueDto("foo()", 2, 1, "foo()", 4, 1)
         };
 
         collection.addAll(Arrays.asList(new Object[][]{
@@ -165,8 +165,8 @@ public class FunctionDoubleDefinitionErrorTest extends AReferenceDefinitionError
                 {
                         prefix + "function \n foO(){return 1;}" + appendix + " "
                                 + prefix + "function \n foo(){return 1;}" + appendix,
-                        new DefinitionErrorDto[]{
-                                new DefinitionErrorDto("foO()", 2, 1, "foo()", 3, 1)
+                        new DefinitionIssueDto[]{
+                                new DefinitionIssueDto("foO()", 2, 1, "foo()", 3, 1)
                         }
                 },
                 {
@@ -174,10 +174,10 @@ public class FunctionDoubleDefinitionErrorTest extends AReferenceDefinitionError
                                 + prefix + "function \n FOO(){return 1;}" + appendix + " "
                                 + prefix + "function \n foO(){return 1;}" + appendix + " "
                                 + prefix + "function \n foo(){return 1;}" + appendix,
-                        new DefinitionErrorDto[]{
-                                new DefinitionErrorDto("foo()", 2, 1, "FOO()", 3, 1),
-                                new DefinitionErrorDto("foo()", 2, 1, "foO()", 4, 1),
-                                new DefinitionErrorDto("foo()", 2, 1, "foo()", 5, 1)
+                        new DefinitionIssueDto[]{
+                                new DefinitionIssueDto("foo()", 2, 1, "FOO()", 3, 1),
+                                new DefinitionIssueDto("foo()", 2, 1, "foO()", 4, 1),
+                                new DefinitionIssueDto("foo()", 2, 1, "foo()", 5, 1)
                         }
                 },
                 //parameter name does not matter

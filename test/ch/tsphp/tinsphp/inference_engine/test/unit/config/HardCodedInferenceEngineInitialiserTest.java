@@ -21,6 +21,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class HardCodedInferenceEngineInitialiserTest
 {
@@ -66,12 +67,15 @@ public class HardCodedInferenceEngineInitialiserTest
 
     @Test
     public void reset_Standard_InferenceEngineGetsResetAsWell() {
-        //no arrange necessary
+        ITSPHPAst ast = mock(ITSPHPAst.class);
+        when(ast.getText()).thenReturn("dummy");
+        when(ast.getLine()).thenReturn(1);
+        when(ast.getCharPositionInLine()).thenReturn(34);
 
         IInferenceEngineInitialiser initialiser = createInferenceEngineInitialiser();
         IInferenceIssueReporter inferenceErrorReporter = initialiser.getInferenceErrorReporter();
         assertThat(inferenceErrorReporter.hasFound(EnumSet.allOf(EIssueSeverity.class)), is(false));
-        inferenceErrorReporter.noReturnFromFunction(mock(ITSPHPAst.class));
+        inferenceErrorReporter.noReturnFromFunction(ast);
         assertThat(inferenceErrorReporter.hasFound(EnumSet.allOf(EIssueSeverity.class)), is(true));
         initialiser.reset();
 

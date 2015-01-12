@@ -13,7 +13,7 @@
 package ch.tsphp.tinsphp.inference_engine.test.integration.reference;
 
 
-import ch.tsphp.tinsphp.inference_engine.error.DefinitionErrorDto;
+import ch.tsphp.tinsphp.common.issues.DefinitionIssueDto;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference.AReferenceDefinitionErrorTest;
 import org.antlr.runtime.RecognitionException;
 import org.junit.Test;
@@ -29,7 +29,7 @@ import java.util.List;
 public class ConstantDoubleDefinitionErrorTest extends AReferenceDefinitionErrorTest
 {
 
-    public ConstantDoubleDefinitionErrorTest(String testString, DefinitionErrorDto[] expectedLinesAndPositions) {
+    public ConstantDoubleDefinitionErrorTest(String testString, DefinitionIssueDto[] expectedLinesAndPositions) {
         super(testString, expectedLinesAndPositions);
     }
 
@@ -41,10 +41,10 @@ public class ConstantDoubleDefinitionErrorTest extends AReferenceDefinitionError
     @Parameterized.Parameters
     public static Collection<Object[]> testStrings() {
         List<Object[]> collection = new ArrayList<>();
-        DefinitionErrorDto[] errorDto = new DefinitionErrorDto[]{new DefinitionErrorDto("a#", 2, 1, "a#", 3, 1)};
-        DefinitionErrorDto[] errorDtoTwo = new DefinitionErrorDto[]{
-                new DefinitionErrorDto("a#", 2, 1, "a#", 3, 1),
-                new DefinitionErrorDto("a#", 2, 1, "a#", 4, 1)
+        DefinitionIssueDto[] errorDto = new DefinitionIssueDto[]{new DefinitionIssueDto("a#", 2, 1, "a#", 3, 1)};
+        DefinitionIssueDto[] errorDtoTwo = new DefinitionIssueDto[]{
+                new DefinitionIssueDto("a#", 2, 1, "a#", 3, 1),
+                new DefinitionIssueDto("a#", 2, 1, "a#", 4, 1)
         };
 
         collection.addAll(Arrays.asList(new Object[][]{

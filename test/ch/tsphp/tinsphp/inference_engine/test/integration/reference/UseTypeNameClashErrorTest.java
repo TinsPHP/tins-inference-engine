@@ -12,7 +12,7 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.reference;
 
-import ch.tsphp.tinsphp.inference_engine.error.DefinitionErrorDto;
+import ch.tsphp.tinsphp.common.issues.DefinitionIssueDto;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference.AReferenceDefinitionErrorTest;
 import org.antlr.runtime.RecognitionException;
 import org.junit.Test;
@@ -27,7 +27,7 @@ import java.util.List;
 public class UseTypeNameClashErrorTest extends AReferenceDefinitionErrorTest
 {
 
-    public UseTypeNameClashErrorTest(String testString, DefinitionErrorDto[] expectedLinesAndPositions) {
+    public UseTypeNameClashErrorTest(String testString, DefinitionIssueDto[] expectedLinesAndPositions) {
         super(testString, expectedLinesAndPositions);
     }
 

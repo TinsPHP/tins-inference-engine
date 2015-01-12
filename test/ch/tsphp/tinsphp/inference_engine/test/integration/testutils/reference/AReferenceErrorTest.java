@@ -15,7 +15,7 @@ package ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference;
 import ch.tsphp.common.exceptions.ReferenceException;
 import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
-import ch.tsphp.tinsphp.inference_engine.error.ReferenceErrorDto;
+import ch.tsphp.tinsphp.common.issues.ReferenceIssueDto;
 import org.junit.Ignore;
 
 import java.util.EnumSet;
@@ -28,9 +28,9 @@ import static org.junit.Assert.assertTrue;
 public abstract class AReferenceErrorTest extends AReferenceTest
 {
 
-    protected ReferenceErrorDto[] errorDtos;
+    protected ReferenceIssueDto[] errorDtos;
 
-    public AReferenceErrorTest(String testString, ReferenceErrorDto[] theErrorDtos) {
+    public AReferenceErrorTest(String testString, ReferenceIssueDto[] theErrorDtos) {
         super(testString);
         errorDtos = theErrorDtos;
     }
@@ -47,7 +47,7 @@ public abstract class AReferenceErrorTest extends AReferenceTest
 
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     public static void verifyReferences(String errorMessagePrefix, List<Exception> exceptions,
-            ReferenceErrorDto[] errorDtos, IInferenceIssueReporter theInferenceErrorReporter) {
+            ReferenceIssueDto[] errorDtos, IInferenceIssueReporter theInferenceErrorReporter) {
         assertTrue(errorMessagePrefix + " failed. No exception occurred.",
                 theInferenceErrorReporter.hasFound(EnumSet.allOf(EIssueSeverity.class)));
 

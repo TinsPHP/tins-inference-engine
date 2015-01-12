@@ -12,7 +12,7 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.reference;
 
-import ch.tsphp.tinsphp.inference_engine.error.DefinitionErrorDto;
+import ch.tsphp.tinsphp.common.issues.DefinitionIssueDto;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference.AReferenceDefinitionErrorTest;
 import org.antlr.runtime.RecognitionException;
 import org.junit.Test;
@@ -28,7 +28,7 @@ import java.util.List;
 public class UseForwardReferenceConstantErrorTest extends AReferenceDefinitionErrorTest
 {
 
-    public UseForwardReferenceConstantErrorTest(String testString, DefinitionErrorDto[] expectedLinesAndPositions) {
+    public UseForwardReferenceConstantErrorTest(String testString, DefinitionIssueDto[] expectedLinesAndPositions) {
         super(testString, expectedLinesAndPositions);
     }
 
@@ -49,10 +49,10 @@ public class UseForwardReferenceConstantErrorTest extends AReferenceDefinitionEr
     public static Collection<Object[]> getVariations(String prefix, String appendix) {
         List<Object[]> collection = new ArrayList<>();
 
-        DefinitionErrorDto[] errorDto = new DefinitionErrorDto[]{new DefinitionErrorDto("B\\b#", 2, 1, "B", 3, 1)};
-        DefinitionErrorDto[] twoErrorDto = new DefinitionErrorDto[]{
-                new DefinitionErrorDto("B\\b#", 2, 1, "B", 4, 1),
-                new DefinitionErrorDto("B\\b#", 3, 1, "B", 4, 1)
+        DefinitionIssueDto[] errorDto = new DefinitionIssueDto[]{new DefinitionIssueDto("B\\b#", 2, 1, "B", 3, 1)};
+        DefinitionIssueDto[] twoErrorDto = new DefinitionIssueDto[]{
+                new DefinitionIssueDto("B\\b#", 2, 1, "B", 4, 1),
+                new DefinitionIssueDto("B\\b#", 3, 1, "B", 4, 1)
         };
 
         String[][] namespaces = new String[][]{

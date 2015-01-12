@@ -13,7 +13,7 @@
 package ch.tsphp.tinsphp.inference_engine.test.integration.reference;
 
 
-import ch.tsphp.tinsphp.inference_engine.error.DefinitionErrorDto;
+import ch.tsphp.tinsphp.common.issues.DefinitionIssueDto;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference.AReferenceDefinitionErrorTest;
 import org.antlr.runtime.RecognitionException;
 import org.junit.Test;
@@ -31,7 +31,7 @@ public class ConstantForwardReferenceErrorTest extends AReferenceDefinitionError
 
     private static List<Object[]> collection;
 
-    public ConstantForwardReferenceErrorTest(String testString, DefinitionErrorDto[] expectedLinesAndPositions) {
+    public ConstantForwardReferenceErrorTest(String testString, DefinitionIssueDto[] expectedLinesAndPositions) {
         super(testString, expectedLinesAndPositions);
     }
 
@@ -53,10 +53,10 @@ public class ConstantForwardReferenceErrorTest extends AReferenceDefinitionError
     }
 
     private static void addVariations(String prefix, String appendix) {
-        DefinitionErrorDto[] errorDto = new DefinitionErrorDto[]{new DefinitionErrorDto("a#", 3, 1, "a#", 2, 1)};
-        DefinitionErrorDto[] twoErrorDto = new DefinitionErrorDto[]{
-                new DefinitionErrorDto("a#", 4, 1, "a#", 2, 1),
-                new DefinitionErrorDto("a#", 4, 1, "a#", 3, 1)
+        DefinitionIssueDto[] errorDto = new DefinitionIssueDto[]{new DefinitionIssueDto("a#", 3, 1, "a#", 2, 1)};
+        DefinitionIssueDto[] twoErrorDto = new DefinitionIssueDto[]{
+                new DefinitionIssueDto("a#", 4, 1, "a#", 2, 1),
+                new DefinitionIssueDto("a#", 4, 1, "a#", 3, 1)
         };
         collection.addAll(Arrays.asList(new Object[][]{
 

@@ -12,7 +12,7 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.reference;
 
-import ch.tsphp.tinsphp.inference_engine.error.DefinitionErrorDto;
+import ch.tsphp.tinsphp.common.issues.DefinitionIssueDto;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference.AReferenceDefinitionErrorTest;
 import org.antlr.runtime.RecognitionException;
 import org.junit.Test;
@@ -28,7 +28,7 @@ import java.util.List;
 public class UseDoubleDefinitionErrorTest extends AReferenceDefinitionErrorTest
 {
 
-    public UseDoubleDefinitionErrorTest(String testString, DefinitionErrorDto[] expectedLinesAndPositions) {
+    public UseDoubleDefinitionErrorTest(String testString, DefinitionIssueDto[] expectedLinesAndPositions) {
         super(testString, expectedLinesAndPositions);
     }
 
@@ -49,7 +49,7 @@ public class UseDoubleDefinitionErrorTest extends AReferenceDefinitionErrorTest
     }
 
     public static Collection<Object[]> getVariations(String prefix, String appendix) {
-        DefinitionErrorDto[] errorDtos = new DefinitionErrorDto[]{new DefinitionErrorDto("B", 2, 1, "B", 3, 1)};
+        DefinitionIssueDto[] errorDtos = new DefinitionIssueDto[]{new DefinitionIssueDto("B", 2, 1, "B", 3, 1)};
         return Arrays.asList(new Object[][]{
                 {prefix + "use \\A as \n B; use \\C as \n B;" + appendix, errorDtos},
                 {prefix + "use \\A as \n B, \\C as \n B;" + appendix, errorDtos},
@@ -63,15 +63,15 @@ public class UseDoubleDefinitionErrorTest extends AReferenceDefinitionErrorTest
                 {prefix + "use \\A as \n B; use \\A; use \n \\C\\B;" + appendix, errorDtos},
                 //More than one
                 {prefix + "use \\A as \n B; use \\A; use \n \\C\\B, \\C as \n B;" + appendix,
-                        new DefinitionErrorDto[]{
-                                new DefinitionErrorDto("B", 2, 1, "B", 3, 1),
-                                new DefinitionErrorDto("B", 2, 1, "B", 4, 1)
+                        new DefinitionIssueDto[]{
+                                new DefinitionIssueDto("B", 2, 1, "B", 3, 1),
+                                new DefinitionIssueDto("B", 2, 1, "B", 4, 1)
                         }
                 },
                 {prefix + "use \\A, \\A as \n B; use \\C; use \n \\C\\B, \\C as \n B;" + appendix,
-                        new DefinitionErrorDto[]{
-                                new DefinitionErrorDto("B", 2, 1, "B", 3, 1),
-                                new DefinitionErrorDto("B", 2, 1, "B", 4, 1)
+                        new DefinitionIssueDto[]{
+                                new DefinitionIssueDto("B", 2, 1, "B", 3, 1),
+                                new DefinitionIssueDto("B", 2, 1, "B", 4, 1)
                         }
                 },});
     }

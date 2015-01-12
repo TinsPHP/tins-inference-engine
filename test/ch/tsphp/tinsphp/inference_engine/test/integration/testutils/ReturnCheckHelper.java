@@ -12,7 +12,7 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.testutils;
 
-import ch.tsphp.tinsphp.inference_engine.error.ReferenceErrorDto;
+import ch.tsphp.tinsphp.common.issues.ReferenceIssueDto;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -69,7 +69,7 @@ public class ReturnCheckHelper
     }
 
     public static Collection<Object[]> getReferenceErrorPairs(String prefix, String appendix,
-            ReferenceErrorDto[] errorDto) {
+            ReferenceIssueDto[] errorDto) {
         List<Object[]> collection = new ArrayList<>();
         collection.addAll(getErrorPairVariations(prefix, appendix, "return 12;", errorDto));
         collection.addAll(getErrorPairVariations(prefix, appendix, "throw $a=1;", errorDto));
@@ -77,7 +77,7 @@ public class ReturnCheckHelper
     }
 
     public static Collection<Object[]> getErrorPairVariations(String prefix, String appendix, String statement,
-            ReferenceErrorDto[] errorDto) {
+            ReferenceIssueDto[] errorDto) {
         return Arrays.asList(new Object[][]{
                 {prefix + "" + appendix, errorDto},
                 {prefix + "$a=1;" + appendix, errorDto},
