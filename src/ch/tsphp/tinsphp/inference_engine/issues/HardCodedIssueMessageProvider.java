@@ -27,12 +27,11 @@ public class HardCodedIssueMessageProvider extends AIssueMessageProvider impleme
         map.put("forwardReference", "Line %lineN%|%posN% - %idN% is used before its declaration. "
                         + "Corresponding declaration is on line %line%|%pos%"
         );
-        map.put("variablePartiallyInitialised", "Line %lineN%|%posN% - variable %idN% was not initialised "
-                + "during declaration in line %line%|%pos% and neither in all branches up to this point and thus "
-                + "cannot be used.\n"
+        map.put("variablePartiallyInitialised", "Line %lineN%|%posN% - variable %idN% was not initialised in all"
+                + " branches up to this point and thus cannot be used.\n"
                 + "Local variables have to be initialised before their first usage.");
         map.put("variableNotInitialised", "Line %lineN%|%posN% - variable %idN% was never initialised "
-                + "since its declaration in line %line%|%pos% and thus cannot be used.\n"
+                + "and thus cannot be used.\n"
                 + "Local variables have to be initialised before their first usage.");
         return map;
     }
@@ -45,7 +44,7 @@ public class HardCodedIssueMessageProvider extends AIssueMessageProvider impleme
         map.put("partialReturnFromFunction",
                 "Line %line%|%pos% - function %id% does not return/throw in all branches.");
         map.put("noReturnFromFunction", "Line %line%|%pos% - function %id% does not contain "
-                + "one single return/throw statement even though a return type was defined.");
+                + "one single return/throw statement.");
         return map;
     }
 
