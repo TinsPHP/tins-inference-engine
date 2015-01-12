@@ -42,8 +42,8 @@ public class HardCodedIssueMessageProvider extends AIssueMessageProvider impleme
         Map<String, String> map = new HashMap<>();
         map.put("notDefined", "Line %line%|%pos% - %id% was never defined.");
         map.put("unknownType", "Line %line%|%pos% - The type \"%id%\" could not be resolved.");
-        map.put("partialReturnFromFunction", "Line %line%|%pos% - function %id% does not return/throw in all branches" +
-                ".");
+        map.put("partialReturnFromFunction",
+                "Line %line%|%pos% - function %id% does not return/throw in all branches.");
         map.put("noReturnFromFunction", "Line %line%|%pos% - function %id% does not contain "
                 + "one single return/throw statement even though a return type was defined.");
         return map;
