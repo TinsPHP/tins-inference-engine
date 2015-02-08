@@ -38,8 +38,7 @@ public class ConditionalTest extends ADefinitionTest
     }
 
     @Override
-    public TestNamespaceScopeFactory createTestScopeFactory(
-            IScopeHelper theScopeHelper) {
+    public TestNamespaceScopeFactory createTestScopeFactory(IScopeHelper theScopeHelper) {
         return new TestConditionalScopeFactory(theScopeHelper);
     }
 
@@ -66,9 +65,9 @@ public class ConditionalTest extends ADefinitionTest
                 },
                 {"switch($a){case 1:}", deflt + " " + deflt + "cScope."},
                 {"for(;;){}", deflt + " " + deflt + "cScope."},
-                {foreach, deflt + " " + deflt + "cScope. " + deflt + "cScope.cScope."},
                 {"while(true){}", deflt + " " + deflt + "cScope."},
-                {tryCatch, deflt + " " + deflt + "cScope. " + deflt + "cScope."},
+                {foreach, deflt + " " + deflt + "cScope. " + deflt + "cScope.cScope."},
+                {tryCatch, deflt + " " + deflt + "cScope. " + deflt + "cScope. " + deflt + "cScope.cScope."},
 
                 //not in default namespace
                 {"namespace b;if(true){}", b + " " + b + "cScope."},
@@ -79,9 +78,9 @@ public class ConditionalTest extends ADefinitionTest
                 },
                 {"namespace b;switch($a){case 1: case 2:}", b + " " + b + "cScope."},
                 {"namespace b;for(;;){}", b + " " + b + "cScope."},
-                {"namespace b;" + foreach, b + " " + b + "cScope. " + b + "cScope.cScope."},
                 {"namespace b;while(true){}", b + " " + b + "cScope."},
-                {"namespace b;" + tryCatch, b + " " + b + "cScope. " + b + "cScope."},
+                {"namespace b;" + foreach, b + " " + b + "cScope. " + b + "cScope.cScope."},
+                {"namespace b;" + tryCatch, b + " " + b + "cScope. " + b + "cScope. " + b + "cScope.cScope."},
 
                 //in sub namespace
                 {"namespace a\\b;if(true){}", ab + " " + ab + "cScope."},
@@ -92,9 +91,9 @@ public class ConditionalTest extends ADefinitionTest
                 },
                 {"namespace a\\b;switch($a){case 1: default:}", ab + " " + ab + "cScope."},
                 {"namespace a\\b;for(;;){}", ab + " " + ab + "cScope."},
-                {"namespace a\\b;" + foreach, ab + " " + ab + "cScope. " + ab + "cScope.cScope."},
                 {"namespace a\\b;while(true){}", ab + " " + ab + "cScope."},
-                {"namespace a\\b;" + tryCatch, ab + " " + ab + "cScope. " + ab + "cScope."},
+                {"namespace a\\b;" + foreach, ab + " " + ab + "cScope. " + ab + "cScope.cScope."},
+                {"namespace a\\b;" + tryCatch, ab + " " + ab + "cScope. " + ab + "cScope. " + ab + "cScope.cScope."},
 
                 //multiple namespace
                 {
@@ -117,27 +116,44 @@ public class ConditionalTest extends ADefinitionTest
                                 + ab + " " + ab + "cScope."
                 },
                 {
-                        "namespace{" + foreach + "} namespace b{" + foreach + "} namespace a\\b{" + foreach + "}",
-                        deflt + " " + deflt + "cScope. " + deflt + "cScope.cScope. "
-                                + b + " " + b + "cScope. " + b + "cScope.cScope. "
-                                + ab + " " + ab + "cScope. " + ab + "cScope.cScope."
-                },
-                {
                         "namespace{while(true){}} namespace b{while(true);} namespace a\\b{while(true){$a=1;}}",
                         deflt + " " + deflt + "cScope. "
                                 + b + " " + b + "cScope. "
                                 + ab + " " + ab + "cScope."
                 },
                 {
+                        "namespace{" + foreach + "} namespace b{" + foreach + "} namespace a\\b{" + foreach + "}",
+                        deflt + " " + deflt + "cScope. " + deflt + "cScope.cScope. "
+                                + b + " " + b + "cScope. " + b + "cScope.cScope. "
+                                + ab + " " + ab + "cScope. " + ab + "cScope.cScope."
+                },
+                {
                         "namespace{" + tryCatch + "} namespace b{" + tryCatch + "} namespace a\\b{" + tryCatch + "}",
-                        deflt + " " + deflt + "cScope. " + deflt + "cScope. "
-                                + b + " " + b + "cScope. " + b + "cScope. "
-                                + ab + " " + ab + "cScope. " + ab + "cScope."
+                        deflt + " " + deflt + "cScope. " + deflt + "cScope. " + deflt + "cScope.cScope. "
+                                + b + " " + b + "cScope. " + b + "cScope. " + b + "cScope.cScope. "
+                                + ab + " " + ab + "cScope. " + ab + "cScope. " + ab + "cScope.cScope."
                 },
                 {
                         "namespace b{" + foreach + "} namespace b{" + foreach + "}",
                         b + " " + b + "cScope. " + b + "cScope.cScope. "
                                 + b + " " + b + "cScope. " + b + "cScope.cScope."
+                },
+                {
+                        "namespace b{" + tryCatch + "} namespace b{" + tryCatch + "}",
+                        b + " " + b + "cScope. " + b + "cScope. " + b + "cScope.cScope. "
+                                + b + " " + b + "cScope. " + b + "cScope. " + b + "cScope.cScope."
+                },
+                //multiple catch blocks
+                {
+                        "try{}catch(ErrorException $e){}catch(Exception $e2){}",
+                        deflt + " " + deflt + "cScope. " + deflt + "cScope. " + deflt + "cScope.cScope. "
+                                + deflt + "cScope. " + deflt + "cScope.cScope."
+                },
+                {
+                        "namespace b{try{}catch(Dummy $e3){}catch(ErrorException $e){}catch(Exception $e2){}}",
+                        b + " " + b + "cScope. " + b + "cScope. " + b + "cScope.cScope. "
+                                + b + "cScope. " + b + "cScope.cScope. "
+                                + b + "cScope. " + b + "cScope.cScope."
                 },
         });
     }

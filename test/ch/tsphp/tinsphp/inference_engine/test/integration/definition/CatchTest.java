@@ -36,12 +36,12 @@ public class CatchTest extends ADefinitionScopeTest
     public static Collection<Object[]> testStrings() {
         List<Object[]> collection = new ArrayList<>();
 
-        collection.addAll(getVariations("", "", "\\.\\.", new Integer[]{1}));
-        collection.addAll(getVariations("namespace{", "}", "\\.\\.", new Integer[]{1}));
+        collection.addAll(getVariations("", "", "\\.\\.cScope.", new Integer[]{1}));
+        collection.addAll(getVariations("namespace{", "}", "\\.\\.cScope.", new Integer[]{1}));
 
         //nBody function block
         collection.addAll(getVariations("function foo(){", "}",
-                "\\.\\.foo().", new Integer[]{1, 0, 4}));
+                "\\.\\.foo().cScope.", new Integer[]{1, 0, 4}));
 
         //TODO rstoll TINS-161 inference OOP
         //nBody class classBody mDecl block
@@ -50,8 +50,8 @@ public class CatchTest extends ADefinitionScopeTest
         return collection;
     }
 
-    public static Collection<Object[]> getVariations(String prefix, String appendix,
-            String fullScopeName, Integer[] accessToScope) {
+    public static Collection<Object[]> getVariations(
+            String prefix, String appendix, String fullScopeName, Integer[] accessToScope) {
         Integer[] stepIn = new Integer[]{};
         return Arrays.asList(new Object[][]{
                 {prefix + "try{}catch(Exception $e){};" + appendix, new ScopeTestStruct[]{

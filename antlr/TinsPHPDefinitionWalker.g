@@ -89,6 +89,7 @@ exitScope
             Function
         |   BLOCK_CONDITIONAL
         |   Foreach
+        |   Catch
         ) 
         {
             //only get enclosing scope if a scope was defined - might not be the case due to syntax errors
@@ -162,8 +163,10 @@ foreachLoop
     ;
 
 catchBlock
-    :   ^('catch' type=. VariableId .*)
+    :   ^(Catch type=. VariableId .*)
          {
+             currentScope = definer.defineConditionalScope(currentScope);
+             $Catch.setScope(currentScope);
              $type.setScope(currentScope);
          }
     ;

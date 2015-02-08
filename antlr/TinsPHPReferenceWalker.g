@@ -631,7 +631,7 @@ catchBlocks returns[boolean isReturning, List<ITSPHPAst> asts]
     $asts = new ArrayList<>();
 }
 //Warning! end duplicated code as in switchContents
-    :   (   ^('catch' 
+    :   (   ^(Catch 
                 classInterfaceType[null] 
                 variableId=VariableId 
                 {
@@ -646,8 +646,9 @@ catchBlocks returns[boolean isReturning, List<ITSPHPAst> asts]
             
                 $isReturning = $blockConditional.isReturning && ($isReturning || isFirst);
                 isFirst = false;
-                
-                $asts.add($blockConditional.ast);
+
+                controller.sendUpInitialisedSymbols($blockConditional.ast);
+                $asts.add($Catch);
             }
         )+ 
     ;
