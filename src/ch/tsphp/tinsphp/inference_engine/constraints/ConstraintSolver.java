@@ -8,10 +8,13 @@ package ch.tsphp.tinsphp.inference_engine.constraints;
 
 
 import ch.tsphp.common.IConstraint;
+import ch.tsphp.common.IScope;
 import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
+import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
+import ch.tsphp.tinsphp.common.symbols.IUnionTypeSymbol;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -19,33 +22,74 @@ import java.util.Set;
 public class ConstraintSolver implements IConstraintSolver
 {
     private ITypeSymbol nothingTypeSymbol;
+    private ISymbolFactory symbolFactory;
 
-    public ConstraintSolver(ITypeSymbol theNothingTypeSymbol) {
+    public ConstraintSolver(ITypeSymbol theNothingTypeSymbol, ISymbolFactory theSymbolFactory) {
         nothingTypeSymbol = theNothingTypeSymbol;
+        symbolFactory = theSymbolFactory;
     }
 
+
     @Override
-    public Map<String, List<IConstraint>> simplify(String variable, Map<String, List<IConstraint>> constraints) {
-        if (!constraints.containsKey(variable)) {
-            throw new IllegalArgumentException("the given variable does not exist in the given constraints");
+    public Map<String, IUnionTypeSymbol> resolveConstraints(IScope currentScope) {
+        Map<String, IUnionTypeSymbol> types = new HashMap<>();
+        for (Map.Entry<String, List<IConstraint>> constraintsEntry : currentScope.getConstraints().entrySet()) {
+            ConstraintSolverDto dto = new ConstraintSolverDto(
+                    currentScope,
+                    constraintsEntry.getKey(),
+                    constraintsEntry.getValue(),
+                    symbolFactory.createUnionTypeSymbol(new HashMap<String, ITypeSymbol>()));
+
+            IUnionTypeSymbol unionTypeSymbol = resolveConstraint(dto);
+            unionTypeSymbol.seal();
+            types.put(constraintsEntry.getKey(), unionTypeSymbol);
         }
+        return types;
+    }
 
-        List<IConstraint> optimised = new ArrayList<>();
-        List<IConstraint> old = constraints.get(variable);
+    private class ConstraintSolverDto
+    {
+        public IScope currentScope;
+        public String variableName;
+        public List<IConstraint> constraints;
+        public IUnionTypeSymbol unionTypeSymbol;
 
-        ITypeSymbol mostPreciseType = nothingTypeSymbol;
-        for (IConstraint constraint : old) {
-            if (constraint instanceof SubInclusionConstraint) {
-                SubInclusionConstraint subInclusionConstraint = (SubInclusionConstraint) constraint;
-                if (mostPreciseType != nothingTypeSymbol) {
+        public ConstraintSolverDto(
+                IScope theCurrentScope,
+                String theVariableName,
+                List<IConstraint> theConstraints,
+                IUnionTypeSymbol theUnionTypeSymbol) {
+            currentScope = theCurrentScope;
+            variableName = theVariableName;
+            constraints = theConstraints;
+            unionTypeSymbol = theUnionTypeSymbol;
+        }
+    }
 
-                } else {
-//                    mostPreciseType = inclusionConstraintDto.
-                }
+    private IUnionTypeSymbol resolveConstraint(ConstraintSolverDto dto) {
+        for (IConstraint constraint : dto.constraints) {
+            if (constraint instanceof ParentInclusionConstraint) {
+                dto.unionTypeSymbol.addTypeSymbol(((ParentInclusionConstraint) constraint).getSubType());
+            } else if (constraint instanceof RefParentInclusionConstraint) {
+                resolveReferenceConstraint(dto, (RefParentInclusionConstraint) constraint);
             }
         }
+        return dto.unionTypeSymbol;
+    }
 
-        return constraints;
+    private void resolveReferenceConstraint(ConstraintSolverDto dto, RefParentInclusionConstraint refConstraint) {
+        IScope scope = refConstraint.getRefScope();
+        String refVariableId = refConstraint.getRefVariableName();
+        if (dto.currentScope != scope || !dto.variableName.equals(refVariableId)) {
+            List<IConstraint> refConstraints = scope.getConstraintsForVariable(refVariableId);
+            ConstraintSolverDto newDto = new ConstraintSolverDto(
+                    dto.currentScope,
+                    dto.variableName,
+                    refConstraints,
+                    dto.unionTypeSymbol);
+
+            resolveConstraint(newDto);
+        }
     }
 
     /**
