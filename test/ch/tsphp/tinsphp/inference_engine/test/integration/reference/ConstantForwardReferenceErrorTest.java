@@ -37,7 +37,7 @@ public class ConstantForwardReferenceErrorTest extends AReferenceDefinitionError
 
     @Test
     public void test() throws RecognitionException {
-        check();
+        runTest();
     }
 
     @Parameterized.Parameters

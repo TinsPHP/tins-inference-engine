@@ -28,7 +28,7 @@ public class CatchTypeTest extends AReferenceEvalTypeScopeTest
 
     @Test
     public void test() throws RecognitionException {
-        check();
+        runTest();
     }
 
     @Parameterized.Parameters

@@ -12,6 +12,7 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference;
 
+import ch.tsphp.common.ITSPHPAstAdaptor;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPReferenceWalker;
 import org.antlr.runtime.RecognizerSharedState;
@@ -20,8 +21,9 @@ import org.antlr.runtime.tree.TreeNodeStream;
 public class TestTinsPHPReferenceWalker extends ErrorReportingTinsPHPReferenceWalker
 {
 
-    public TestTinsPHPReferenceWalker(TreeNodeStream input, IReferencePhaseController controller) {
-        super(input, controller);
+    public TestTinsPHPReferenceWalker(
+            TreeNodeStream input, IReferencePhaseController controller, ITSPHPAstAdaptor astAdaptor) {
+        super(input, controller, astAdaptor);
     }
 
     public RecognizerSharedState getState() {

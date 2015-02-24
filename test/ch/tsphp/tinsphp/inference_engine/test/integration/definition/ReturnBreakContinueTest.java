@@ -29,7 +29,7 @@ public class ReturnBreakContinueTest extends ADefinitionScopeTest
 
     @Test
     public void test() throws RecognitionException {
-        check();
+        runTest();
     }
 
     @Parameterized.Parameters

@@ -50,7 +50,7 @@ public class VariableInitialisationErrorTest extends AReferenceDefinitionErrorTe
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     @Test
     public void test() throws RecognitionException {
-        check();
+        runTest();
 
         try {
             verifier.check(inferenceErrorReporter);

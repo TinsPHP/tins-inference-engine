@@ -8,6 +8,7 @@ package ch.tsphp.tinsphp.inference_engine.test.unit;
 
 import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
+import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintSolver;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -166,10 +167,11 @@ public class ConstraintSolverTest
     }
 
     private IConstraintSolver createConstraintSolver() {
-        return createConstraintSolver(nothingTypeSymbol);
+        return createConstraintSolver(nothingTypeSymbol, mock(ISymbolFactory.class));
     }
 
-    protected IConstraintSolver createConstraintSolver(ITypeSymbol theNothingTypeSymbol) {
-        return new ConstraintSolver(theNothingTypeSymbol);
+    protected IConstraintSolver createConstraintSolver(
+            ITypeSymbol theNothingTypeSymbol, ISymbolFactory theSymbolFactory) {
+        return new ConstraintSolver(theNothingTypeSymbol, theSymbolFactory);
     }
 }

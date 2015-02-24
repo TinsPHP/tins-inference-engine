@@ -29,7 +29,7 @@ public class VariableImplicitDeclarationAstTest extends AReferenceAstTest
 
     @Test
     public void test() throws RecognitionException {
-        check();
+        runTest();
     }
 
     protected IVariableDeclarationCreator createVariableDeclarationCreator(

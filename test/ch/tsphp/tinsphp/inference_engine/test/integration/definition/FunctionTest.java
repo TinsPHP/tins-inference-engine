@@ -33,7 +33,7 @@ public class FunctionTest extends ADefinitionSymbolTest
 
     @Test
     public void test() throws RecognitionException {
-        check();
+        runTest();
     }
 
     @Parameterized.Parameters

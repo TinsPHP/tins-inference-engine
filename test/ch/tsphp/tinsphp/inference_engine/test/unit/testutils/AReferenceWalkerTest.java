@@ -13,6 +13,7 @@
 package ch.tsphp.tinsphp.inference_engine.test.unit.testutils;
 
 import ch.tsphp.common.ITSPHPAst;
+import ch.tsphp.common.ITSPHPAstAdaptor;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference.TestTinsPHPReferenceWalker;
 import org.antlr.runtime.tree.TreeNodeStream;
@@ -25,10 +26,12 @@ public abstract class AReferenceWalkerTest extends AWalkerTest
 {
     protected TreeNodeStream treeNodeStream;
     protected IReferencePhaseController referencePhaseController;
+    protected ITSPHPAstAdaptor astAdaptor;
 
     protected TestTinsPHPReferenceWalker createWalker(ITSPHPAst ast) {
         treeNodeStream = createTreeNodeStream(ast);
         referencePhaseController = mock(IReferencePhaseController.class);
-        return new TestTinsPHPReferenceWalker(treeNodeStream, referencePhaseController);
+        astAdaptor = mock(ITSPHPAstAdaptor.class);
+        return new TestTinsPHPReferenceWalker(treeNodeStream, referencePhaseController, astAdaptor);
     }
 }

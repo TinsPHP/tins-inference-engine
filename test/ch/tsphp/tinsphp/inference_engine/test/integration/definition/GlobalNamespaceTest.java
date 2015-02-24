@@ -40,11 +40,11 @@ public class GlobalNamespaceTest extends ADefinitionTest
 
     @Test
     public void test() throws RecognitionException {
-        check();
+        runTest();
     }
 
     @Override
-    protected void verifyDefinitions() {
+    protected void checkNoIssuesInDefinitionPhase() {
         ILowerCaseStringMap<IGlobalNamespaceScope> globalNamespaceScopes =
                 definitionPhaseController.getGlobalNamespaceScopes();
         assertThat(testString + " failed. size wrong ", globalNamespaceScopes.size(), equalTo(namespaces.length));

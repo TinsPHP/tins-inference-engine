@@ -43,7 +43,7 @@ public abstract class AVerifyTimesReferenceTest extends AReferenceTest
     protected abstract void verifyTimes();
 
     @Override
-    protected void verifyReferences() {
+    protected void assertsInReferencePhase() {
         try {
             verifyTimes();
         } catch (MockitoAssertionError e) {

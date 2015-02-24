@@ -6,6 +6,7 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.system;
 
+import ch.tsphp.common.ITSPHPAstAdaptor;
 import ch.tsphp.common.ParserUnitDto;
 import ch.tsphp.common.TSPHPAstAdaptor;
 import ch.tsphp.common.exceptions.TSPHPException;
@@ -36,7 +37,7 @@ public class InferenceEngineTest
                 new CommonTreeNodeStream(new TSPHPAstAdaptor(), parserUnitDto.compilationUnit);
         commonTreeNodeStream.setTokenStream(parserUnitDto.tokenStream);
 
-        InferenceEngine inferenceEngine = new InferenceEngine();
+        InferenceEngine inferenceEngine = createInferenceEngine();
         inferenceEngine.enrichWithDefinitions(parserUnitDto.compilationUnit, commonTreeNodeStream);
         inferenceEngine.enrichWithReferences(parserUnitDto.compilationUnit, commonTreeNodeStream);
         inferenceEngine.enrichtWithTypes(parserUnitDto.compilationUnit, commonTreeNodeStream);
@@ -52,7 +53,7 @@ public class InferenceEngineTest
                 new CommonTreeNodeStream(new TSPHPAstAdaptor(), parserUnitDto.compilationUnit);
         commonTreeNodeStream.setTokenStream(parserUnitDto.tokenStream);
 
-        InferenceEngine inferenceEngine = new InferenceEngine();
+        InferenceEngine inferenceEngine = createInferenceEngine();
         inferenceEngine.enrichWithDefinitions(parserUnitDto.compilationUnit, commonTreeNodeStream);
         inferenceEngine.enrichWithReferences(parserUnitDto.compilationUnit, commonTreeNodeStream);
         inferenceEngine.enrichtWithTypes(parserUnitDto.compilationUnit, commonTreeNodeStream);
@@ -80,7 +81,7 @@ public class InferenceEngineTest
                 new CommonTreeNodeStream(new TSPHPAstAdaptor(), parserUnitDto.compilationUnit);
         commonTreeNodeStream.setTokenStream(parserUnitDto.tokenStream);
 
-        InferenceEngine inferenceEngine = new InferenceEngine();
+        InferenceEngine inferenceEngine = createInferenceEngine();
         inferenceEngine.enrichWithDefinitions(parserUnitDto.compilationUnit, commonTreeNodeStream);
         inferenceEngine.enrichWithReferences(parserUnitDto.compilationUnit, commonTreeNodeStream);
         inferenceEngine.enrichtWithTypes(parserUnitDto.compilationUnit, commonTreeNodeStream);
@@ -98,7 +99,7 @@ public class InferenceEngineTest
         IIssueLogger logger1 = mock(IIssueLogger.class);
         IIssueLogger logger2 = mock(IIssueLogger.class);
 
-        InferenceEngine inferenceEngine = new InferenceEngine();
+        InferenceEngine inferenceEngine = createInferenceEngine();
         inferenceEngine.registerIssueLogger(logger1);
         inferenceEngine.registerIssueLogger(logger2);
         inferenceEngine.enrichWithDefinitions(parserUnitDto.compilationUnit, commonTreeNodeStream);
@@ -107,5 +108,13 @@ public class InferenceEngineTest
 
         verify(logger1).log(any(TSPHPException.class), any(EIssueSeverity.class));
         verify(logger2).log(any(TSPHPException.class), any(EIssueSeverity.class));
+    }
+
+    private InferenceEngine createInferenceEngine() {
+        return createInferenceEngine(new TSPHPAstAdaptor());
+    }
+
+    protected InferenceEngine createInferenceEngine(ITSPHPAstAdaptor astAdaptor) {
+        return new InferenceEngine(astAdaptor);
     }
 }

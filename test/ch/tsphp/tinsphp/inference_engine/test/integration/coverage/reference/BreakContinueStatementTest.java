@@ -22,7 +22,7 @@ public class BreakContinueStatementTest extends AReferenceTest
 {
 
     @Override
-    protected void verifyReferences() {
+    protected void assertsInReferencePhase() {
         //nothing to check, should just not cause an error
     }
 
@@ -32,7 +32,7 @@ public class BreakContinueStatementTest extends AReferenceTest
 
     @Test
     public void test() throws RecognitionException {
-        check();
+        runTest();
     }
 
     @Parameterized.Parameters

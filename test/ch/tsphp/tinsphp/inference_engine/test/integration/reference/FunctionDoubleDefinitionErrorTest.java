@@ -32,7 +32,7 @@ public class FunctionDoubleDefinitionErrorTest extends AReferenceDefinitionError
 
     @Test
     public void test() throws RecognitionException {
-        check();
+        runTest();
     }
 
     @Parameterized.Parameters

@@ -22,12 +22,12 @@ public abstract class ATypeSystemTest extends AReferenceTest
     }
 
     @Override
-    public void check() {
+    public void runTest() {
         throw new UnsupportedOperationException("Extend AReferenceTest if you want to use this method.");
     }
 
     @Override
-    protected void verifyReferences() {
+    protected void assertsInReferencePhase() {
         throw new UnsupportedOperationException("Extend AReferenceTest if you want to use this method.");
     }
 }

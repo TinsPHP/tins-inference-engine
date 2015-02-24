@@ -21,7 +21,7 @@ public abstract class AReferenceAstTest extends AReferenceTest
     }
 
     @Override
-    protected void verifyReferences() {
+    protected void assertsInReferencePhase() {
         if (ast != null) {
             Assert.assertEquals(testString + " failed.", expectedResult, ast.toStringTree());
         } else {

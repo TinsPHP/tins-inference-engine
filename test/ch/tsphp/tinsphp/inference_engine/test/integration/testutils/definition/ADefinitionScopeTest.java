@@ -30,8 +30,8 @@ public abstract class ADefinitionScopeTest extends ADefinitionTest
     }
 
     @Override
-    protected void verifyDefinitions() {
-        super.verifyDefinitions();
+    protected void checkNoIssuesInDefinitionPhase() {
+        super.checkNoIssuesInDefinitionPhase();
         verifyDefinitions(testStructs, ast, testString);
     }
 

@@ -31,13 +31,13 @@ public abstract class AReferenceTypeScopeTest extends AReferenceTest
     }
 
     @Override
-    protected void verifyReferences() {
+    protected void assertsInReferencePhase() {
         verifyReferences(testStructs, ast, testString);
     }
 
-    public static void verifyReferences(TypeScopeTestStruct[] scopeTestStructs, ITSPHPAst ast, String testString) {
+    public static void verifyReferences(TypeScopeTestStruct[] typeScopeTestStructs, ITSPHPAst ast, String testString) {
         int counter = 0;
-        for (TypeScopeTestStruct testStruct : scopeTestStructs) {
+        for (TypeScopeTestStruct testStruct : typeScopeTestStructs) {
             ITSPHPAst testCandidate = ScopeTestHelper.getAst(ast, testString, testStruct);
             Assert.assertNotNull(testString + " failed (testStruct Nr " + counter + "). testCandidate is null. "
                             + "should be " + testStruct.astText,

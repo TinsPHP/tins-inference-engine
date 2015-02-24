@@ -28,7 +28,7 @@ public class ResolvePrimitiveLiteralTest extends AReferenceEvalTypeScopeTest
 
     @Test
     public void test() throws RecognitionException {
-        check();
+        runTest();
     }
 
     @Parameterized.Parameters

@@ -30,7 +30,7 @@ public abstract class AReferenceEvalTypeScopeTest extends AReferenceTest
     }
 
     @Override
-    protected void verifyReferences() {
+    protected void assertsInReferencePhase() {
         verifyReferences(testStructs, ast, testString);
     }
 

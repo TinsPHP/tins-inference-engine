@@ -32,7 +32,7 @@ public class FunctionReturnsErrorTest extends AReferenceErrorTest
 
     @Test
     public void test() throws RecognitionException {
-        check();
+        runTest();
     }
 
     @Parameterized.Parameters

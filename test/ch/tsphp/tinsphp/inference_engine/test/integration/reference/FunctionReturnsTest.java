@@ -31,13 +31,13 @@ public class FunctionReturnsTest extends AReferenceTest
     }
 
     @Override
-    protected void verifyReferences() {
+    protected void assertsInReferencePhase() {
         //nothing to check, should just not cause an error
     }
 
     @Test
     public void test() throws RecognitionException {
-        check();
+        runTest();
     }
 
     @Parameterized.Parameters

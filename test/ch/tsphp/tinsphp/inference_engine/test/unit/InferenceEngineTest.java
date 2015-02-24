@@ -6,6 +6,8 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.unit;
 
+import ch.tsphp.common.ITSPHPAstAdaptor;
+import ch.tsphp.common.TSPHPAstAdaptor;
 import ch.tsphp.tinsphp.common.IInferenceEngine;
 import ch.tsphp.tinsphp.common.inference.IInferenceEngineInitialiser;
 import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
@@ -25,7 +27,8 @@ public class InferenceEngineTest
     class DummyInferenceEngine extends InferenceEngine
     {
 
-        public DummyInferenceEngine(IInferenceEngineInitialiser initialiser) {
+        public DummyInferenceEngine(ITSPHPAstAdaptor astAdaptor, IInferenceEngineInitialiser initialiser) {
+            super(astAdaptor);
             inferenceEngineInitialiser = initialiser;
         }
     }
@@ -44,17 +47,17 @@ public class InferenceEngineTest
     public void reset_Standard_CallsResetOnInitialiser() {
         IInferenceEngineInitialiser initialiser = mock(IInferenceEngineInitialiser.class);
 
-        DummyInferenceEngine inferenceEngine = new DummyInferenceEngine(initialiser);
+        DummyInferenceEngine inferenceEngine = new DummyInferenceEngine(new TSPHPAstAdaptor(), initialiser);
         inferenceEngine.reset();
 
         verify(initialiser).reset();
     }
 
     private IInferenceEngine createInferenceEngine() {
-        return createInferenceEngineImpl();
+        return createInferenceEngineImpl(new TSPHPAstAdaptor());
     }
 
-    protected InferenceEngine createInferenceEngineImpl() {
-        return new InferenceEngine();
+    protected InferenceEngine createInferenceEngineImpl(ITSPHPAstAdaptor astAdaptor) {
+        return new InferenceEngine(astAdaptor);
     }
 }

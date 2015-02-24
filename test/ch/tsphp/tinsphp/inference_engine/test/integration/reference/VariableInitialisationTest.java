@@ -40,7 +40,7 @@ public class VariableInitialisationTest extends AVerifyTimesReferenceTest
 
     @Test
     public void test() throws RecognitionException {
-        check();
+        runTest();
     }
 
     @Override

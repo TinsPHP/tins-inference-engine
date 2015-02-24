@@ -34,7 +34,7 @@ public class UseDoubleDefinitionErrorTest extends AReferenceDefinitionErrorTest
 
     @Test
     public void test() throws RecognitionException {
-        check();
+        runTest();
     }
 
     @Parameterized.Parameters

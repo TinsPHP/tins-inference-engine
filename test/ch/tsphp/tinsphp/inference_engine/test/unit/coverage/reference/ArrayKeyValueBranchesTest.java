@@ -13,6 +13,7 @@
 package ch.tsphp.tinsphp.inference_engine.test.unit.coverage.reference;
 
 import ch.tsphp.common.ITSPHPAst;
+import ch.tsphp.common.ITSPHPAstAdaptor;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPReferenceWalker;
 import org.antlr.runtime.RecognitionException;
@@ -241,8 +242,9 @@ public class ArrayKeyValueBranchesTest
         });
         when(input.LT(1)).thenReturn(mock(ITSPHPAst.class));
         IReferencePhaseController controller = mock(IReferencePhaseController.class);
+        ITSPHPAstAdaptor astAdaptor = mock(ITSPHPAstAdaptor.class);
 
-        TinsPHPReferenceWalker walker = spy(new TinsPHPReferenceWalker(input, controller));
+        TinsPHPReferenceWalker walker = spy(new TinsPHPReferenceWalker(input, controller, astAdaptor));
         walker.arrayKeyValue();
 
         verify(input, times(tokens.length)).consume();

@@ -28,7 +28,7 @@ public class ParameterTypeTest extends AReferenceTypeScopeTest
 
     @Test
     public void test() throws RecognitionException {
-        check();
+        runTest();
     }
 
     @Parameterized.Parameters

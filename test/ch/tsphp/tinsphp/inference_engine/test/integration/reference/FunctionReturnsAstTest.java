@@ -30,18 +30,18 @@ public class FunctionReturnsAstTest extends AReferenceAstTest
 
     @Test
     public void test() throws RecognitionException {
-        check();
+        runTest();
     }
 
     @Override
-    protected void checkReferences() {
+    protected void checkNoErrorsInReferencePhase() {
         //we expect one exception since the function does not return in all cases
         assertTrue(testString + " failed. Exceptions expected but none occurred." + exceptions,
                 inferenceErrorReporter.hasFound(EnumSet.allOf(EIssueSeverity.class)));
         assertFalse(testString + " failed. reference walker exceptions occurred.",
                 reference.hasFound(EnumSet.allOf(EIssueSeverity.class)));
 
-        verifyReferences();
+        assertsInReferencePhase();
     }
 
     @Parameterized.Parameters

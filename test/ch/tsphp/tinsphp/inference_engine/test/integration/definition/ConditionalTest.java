@@ -44,7 +44,7 @@ public class ConditionalTest extends ADefinitionTest
 
     @Test
     public void test() throws RecognitionException {
-        check();
+        runTest();
         Assert.assertEquals(testString + " failed.", namespaces, getNamespacesAsString());
     }
 

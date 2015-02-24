@@ -42,7 +42,7 @@ public abstract class ADoubleDefinitionTest extends ADefinitionTest
     }
 
     @Override
-    protected void verifyDefinitions() {
+    protected void checkNoIssuesInDefinitionPhase() {
         ILowerCaseStringMap<IGlobalNamespaceScope> globalNamespaces
                 = definitionPhaseController.getGlobalNamespaceScopes();
 

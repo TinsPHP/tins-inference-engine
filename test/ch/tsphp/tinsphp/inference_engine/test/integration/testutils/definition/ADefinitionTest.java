@@ -48,19 +48,13 @@ public abstract class ADefinitionTest extends ATest
     protected TestNamespaceScopeFactory scopeFactory;
     protected ITSPHPAst ast;
     protected CommonTreeNodeStream commonTreeNodeStream;
-    protected ITSPHPAstAdaptor adaptor;
+    protected ITSPHPAstAdaptor astAdaptor;
 
     protected ErrorReportingTinsPHPDefinitionWalker definition;
     protected TestSymbolFactory symbolFactory;
     protected IScopeHelper scopeHelper;
     protected IModifierHelper modifierHelper;
     protected ICore core;
-
-
-    protected void verifyDefinitions() {
-        assertFalse(testString.replaceAll("\n", " ") + " failed - definition phase found an issue",
-                definition.hasFound(EnumSet.allOf(EIssueSeverity.class)));
-    }
 
     public ADefinitionTest(String theTestString) {
         super();
@@ -70,7 +64,7 @@ public abstract class ADefinitionTest extends ATest
     }
 
     private void init() {
-        adaptor = createAstAdaptor();
+        astAdaptor = createAstAdaptor();
 
         scopeHelper = createScopeHelper();
         scopeFactory = createTestScopeFactory(scopeHelper);
@@ -81,18 +75,13 @@ public abstract class ADefinitionTest extends ATest
         core = createCore(symbolFactory);
     }
 
-    protected void verifyParser() {
-        assertFalse(testString.replaceAll("\n", " ") + " failed - parser throw exception",
-                parser.hasFound(EnumSet.allOf(EIssueSeverity.class)));
-    }
-
-    public void check() {
+    public void runTest() {
         ParserUnitDto parserUnit = parser.parse("<?php" + testString + "?>");
         ast = parserUnit.compilationUnit;
 
-        verifyParser();
+        checkNoIssuesDuringParsing();
 
-        commonTreeNodeStream = new CommonTreeNodeStream(adaptor, ast);
+        commonTreeNodeStream = new CommonTreeNodeStream(astAdaptor, ast);
         commonTreeNodeStream.setTokenStream(parserUnit.tokenStream);
 
         definition = createDefinitionWalker();
@@ -105,7 +94,17 @@ public abstract class ADefinitionTest extends ATest
                     + e.getMessage());
         }
 
-        verifyDefinitions();
+        checkNoIssuesInDefinitionPhase();
+    }
+
+    protected void checkNoIssuesDuringParsing() {
+        assertFalse(testString.replaceAll("\n", " ") + " failed - parser throw exception",
+                parser.hasFound(EnumSet.allOf(EIssueSeverity.class)));
+    }
+
+    protected void checkNoIssuesInDefinitionPhase() {
+        assertFalse(testString.replaceAll("\n", " ") + " failed - definition phase found an issue",
+                definition.hasFound(EnumSet.allOf(EIssueSeverity.class)));
     }
 
     protected ErrorReportingTinsPHPDefinitionWalker createDefinitionWalker() {

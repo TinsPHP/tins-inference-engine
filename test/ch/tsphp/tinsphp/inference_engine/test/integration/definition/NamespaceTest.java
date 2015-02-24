@@ -37,7 +37,7 @@ public class NamespaceTest extends ADefinitionTest
 
     @Test
     public void test() throws RecognitionException {
-        check();
+        runTest();
         Assert.assertEquals(testString + " failed.", namespaces, getNamespacesAsString());
     }
 

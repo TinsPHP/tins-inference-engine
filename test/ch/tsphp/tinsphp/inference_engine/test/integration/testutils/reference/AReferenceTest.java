@@ -64,7 +64,6 @@ public abstract class AReferenceTest extends ADefinitionTest
     protected ISymbolCheckController symbolCheckController;
     protected IVariableDeclarationCreator variableDeclarationCreator;
 
-    protected ITSPHPAstAdaptor astAdaptor;
     protected IAstHelper astHelper;
 
     public AReferenceTest(String testString) {
@@ -75,7 +74,6 @@ public abstract class AReferenceTest extends ADefinitionTest
 
     private void init() {
 
-        astAdaptor = createAstAdaptor();
         astHelper = createAstHelper(astAdaptor);
         astModificationHelper = createAstModificationHelper(astHelper);
 
@@ -118,26 +116,17 @@ public abstract class AReferenceTest extends ADefinitionTest
     }
 
 
-    protected abstract void verifyReferences();
-
-    protected void checkReferences() {
-        assertFalse(testString + " failed. Exceptions occurred." + exceptions,
-                inferenceErrorReporter.hasFound(EnumSet.allOf(EIssueSeverity.class)));
-        assertFalse(testString + " failed. reference walker exceptions occurred.",
-                reference.hasFound(EnumSet.allOf(EIssueSeverity.class)));
-
-        verifyReferences();
-    }
+    protected abstract void assertsInReferencePhase();
 
     @Override
-    protected void verifyDefinitions() {
-        super.verifyDefinitions();
+    protected void checkNoIssuesInDefinitionPhase() {
+        super.checkNoIssuesInDefinitionPhase();
         afterVerifyDefinitions();
     }
 
     protected void afterVerifyDefinitions() {
         commonTreeNodeStream.reset();
-        reference = createReferenceWalker(commonTreeNodeStream, referencePhaseController);
+        reference = createReferenceWalker(commonTreeNodeStream, referencePhaseController, astAdaptor);
         registerReferenceErrorLogger();
 
         try {
@@ -152,7 +141,17 @@ public abstract class AReferenceTest extends ADefinitionTest
             Assert.fail(testString + " failed. Unexpected exception occurred in the reference phase.\n"
                     + e.getMessage());
         }
-        checkReferences();
+
+        checkNoErrorsInReferencePhase();
+
+        assertsInReferencePhase();
+    }
+
+    protected void checkNoErrorsInReferencePhase() {
+        assertFalse(testString + " failed. Exceptions occurred." + exceptions,
+                inferenceErrorReporter.hasFound(EnumSet.allOf(EIssueSeverity.class)));
+        assertFalse(testString + " failed. reference walker exceptions occurred.",
+                reference.hasFound(EnumSet.allOf(EIssueSeverity.class)));
     }
 
     protected void registerReferenceErrorLogger() {
@@ -243,8 +242,9 @@ public abstract class AReferenceTest extends ADefinitionTest
 
     protected ErrorReportingTinsPHPReferenceWalker createReferenceWalker(
             CommonTreeNodeStream theCommonTreeNodeStream,
-            IReferencePhaseController theController) {
-        return new ErrorReportingTinsPHPReferenceWalker(theCommonTreeNodeStream, theController);
+            IReferencePhaseController theController,
+            ITSPHPAstAdaptor theAstAdaptor) {
+        return new ErrorReportingTinsPHPReferenceWalker(theCommonTreeNodeStream, theController, theAstAdaptor);
     }
 
 }

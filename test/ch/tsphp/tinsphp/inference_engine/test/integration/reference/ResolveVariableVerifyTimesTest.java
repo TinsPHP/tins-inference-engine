@@ -40,7 +40,7 @@ public class ResolveVariableVerifyTimesTest extends AVerifyTimesReferenceTest
 
     @Test
     public void test() throws RecognitionException {
-        check();
+        runTest();
     }
 
     @Override

@@ -37,11 +37,11 @@ public class NamespaceErrorTest extends ADefinitionTest
 
     @Test
     public void test() throws RecognitionException {
-        check();
+        runTest();
     }
 
     @Override
-    protected void verifyParser() {
+    protected void checkNoIssuesDuringParsing() {
         assertTrue(testString.replaceAll("\n", " ") + " failed - parser exception expected but non was thrown",
                 parser.hasFound(EnumSet.allOf(EIssueSeverity.class)));
     }

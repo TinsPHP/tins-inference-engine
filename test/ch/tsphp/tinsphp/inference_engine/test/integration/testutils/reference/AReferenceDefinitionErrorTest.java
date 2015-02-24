@@ -34,12 +34,12 @@ public abstract class AReferenceDefinitionErrorTest extends AReferenceTest
     }
 
     @Override
-    protected void checkReferences() {
-        verifyReferences();
+    protected void checkNoErrorsInReferencePhase() {
+        assertsInReferencePhase();
     }
 
     @Override
-    public void verifyReferences() {
+    public void assertsInReferencePhase() {
         verifyReferences(errorMessagePrefix, exceptions, errorDtos, inferenceErrorReporter);
     }
 

@@ -33,8 +33,8 @@ public abstract class ADefinitionSymbolTest extends ADefinitionTest
     }
 
     @Override
-    protected void verifyDefinitions() {
-        super.verifyDefinitions();
+    protected void checkNoIssuesInDefinitionPhase() {
+        super.checkNoIssuesInDefinitionPhase();
         Assert.assertEquals(testString + " failed.", expectedResult, getSymbolsAsString());
     }
 
