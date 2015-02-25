@@ -9,17 +9,17 @@ package ch.tsphp.tinsphp.inference_engine.constraints;
 import ch.tsphp.common.IConstraint;
 import ch.tsphp.common.IScope;
 
-public class RefParentInclusionConstraint implements IConstraint
+public class RefConstraint implements IConstraint
 {
     private String refVariableName;
     private IScope refScope;
 
-    public RefParentInclusionConstraint(String theReferenceName, IScope theRefScope) {
+    public RefConstraint(String theReferenceName, IScope theRefScope) {
         refVariableName = theReferenceName;
         refScope = theRefScope;
     }
 
-    public String getRefVariableName() {
+    public String getRefVariableId() {
         return refVariableName;
     }
 

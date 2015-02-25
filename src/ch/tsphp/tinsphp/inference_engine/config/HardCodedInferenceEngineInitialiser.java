@@ -14,6 +14,7 @@ import ch.tsphp.tinsphp.common.checking.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.common.inference.IInferenceEngineInitialiser;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
+import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.resolving.ISymbolResolver;
 import ch.tsphp.tinsphp.common.resolving.ISymbolResolverController;
@@ -36,6 +37,7 @@ import ch.tsphp.tinsphp.inference_engine.utils.AstModificationHelper;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 import ch.tsphp.tinsphp.symbols.ModifierHelper;
 import ch.tsphp.tinsphp.symbols.SymbolFactory;
+import ch.tsphp.tinsphp.symbols.utils.OverloadResolver;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +46,7 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
 {
     private final IScopeHelper scopeHelper;
     private final IModifierHelper modifierHelper;
+    private final IOverloadResolver overloadResolver;
     private final ISymbolFactory symbolFactory;
     private final IScopeFactory scopeFactory;
     private final IAstModificationHelper astModificationHelper;
@@ -57,7 +60,8 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
     public HardCodedInferenceEngineInitialiser() {
         scopeHelper = new ScopeHelper();
         modifierHelper = new ModifierHelper();
-        symbolFactory = new SymbolFactory(scopeHelper, modifierHelper);
+        overloadResolver = new OverloadResolver();
+        symbolFactory = new SymbolFactory(scopeHelper, modifierHelper, overloadResolver);
         scopeFactory = new ScopeFactory(scopeHelper);
         inferenceErrorReporter = new InferenceIssueReporter(new HardCodedIssueMessageProvider());
 

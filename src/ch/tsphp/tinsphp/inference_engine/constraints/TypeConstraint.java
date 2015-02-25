@@ -9,16 +9,16 @@ package ch.tsphp.tinsphp.inference_engine.constraints;
 import ch.tsphp.common.IConstraint;
 import ch.tsphp.common.symbols.ITypeSymbol;
 
-public class ParentInclusionConstraint implements IConstraint
+public class TypeConstraint implements IConstraint
 {
-    private ITypeSymbol subType;
+    private ITypeSymbol type;
 
-    public ParentInclusionConstraint(ITypeSymbol theParentType) {
-        subType = theParentType;
+    public TypeConstraint(ITypeSymbol theType) {
+        type = theType;
     }
 
-    public ITypeSymbol getSubType() {
-        return subType;
+    public ITypeSymbol getType() {
+        return type;
     }
 
 }
