@@ -132,35 +132,35 @@ public class ConstraintSolver implements IConstraintSolver
     }
 
     private void resolveIntersectionConstraint(ConstraintSolverDto dto, IntersectionConstraint intersectionConstraint) {
-        OverloadDto overloadDto = null;
+        OverloadRankingDto overloadRankingDto = null;
 
-        List<OverloadDto> goodMethods = getApplicableOverloads(dto, intersectionConstraint);
+        List<OverloadRankingDto> goodMethods = getApplicableOverloads(dto, intersectionConstraint);
         if (!goodMethods.isEmpty()) {
             try {
-                overloadDto = getMostSpecificApplicableOverload(goodMethods);
+                overloadRankingDto = getMostSpecificApplicableOverload(goodMethods);
             } catch (AmbiguousCallException ex) {
                 //TODO report error
 //                ambiguousCallReporter.report(ex);
-                overloadDto = ex.getAmbiguousOverloads().get(0);
+                overloadRankingDto = ex.getAmbiguousOverloads().get(0);
             }
         }
 
-        if (overloadDto != null) {
-            addConversionsToAstIfNecessary(overloadDto);
-            dto.hasUnionChanged = dto.unionTypeSymbol.addTypeSymbol(overloadDto.overload.getValue());
+        if (overloadRankingDto != null) {
+            addConversionsToAstIfNecessary(overloadRankingDto);
+            dto.hasUnionChanged = dto.unionTypeSymbol.addTypeSymbol(overloadRankingDto.overload.getValue());
         } else {
             int i = 0;
         }
     }
 
-    private List<OverloadDto> getApplicableOverloads(
+    private List<OverloadRankingDto> getApplicableOverloads(
             ConstraintSolverDto dto, IntersectionConstraint intersectionConstraint) {
-        List<OverloadDto> applicableOverloads = new ArrayList<>();
+        List<OverloadRankingDto> applicableOverloads = new ArrayList<>();
         for (Map.Entry<List<RefTypeConstraint>, ITypeSymbol> overload : intersectionConstraint.getOverloads()) {
-            OverloadDto overloadDto = getApplicableOverload(dto, overload);
-            if (overloadDto != null) {
-                applicableOverloads.add(overloadDto);
-                if (isOverloadWithoutPromotionNorConversion(overloadDto)) {
+            OverloadRankingDto overloadRankingDto = getApplicableOverload(dto, overload);
+            if (overloadRankingDto != null) {
+                applicableOverloads.add(overloadRankingDto);
+                if (isOverloadWithoutPromotionNorConversion(overloadRankingDto)) {
                     break;
                 }
             }
@@ -168,12 +168,12 @@ public class ConstraintSolver implements IConstraintSolver
         return applicableOverloads;
     }
 
-    private boolean isOverloadWithoutPromotionNorConversion(OverloadDto dto) {
+    private boolean isOverloadWithoutPromotionNorConversion(OverloadRankingDto dto) {
         return dto.parameterPromotedCount == 0 && dto.parametersNeedImplicitConversion.size() == 0
                 && (dto.parametersNeedExplicitConversion == null || dto.parametersNeedExplicitConversion.size() == 0);
     }
 
-    private OverloadDto getApplicableOverload(
+    private OverloadRankingDto getApplicableOverload(
             ConstraintSolverDto dto, Map.Entry<List<RefTypeConstraint>, ITypeSymbol> overload) {
         List<RefTypeConstraint> parameterConstraints = overload.getKey();
         int promotionTotalCount = 0;
@@ -198,7 +198,7 @@ public class ConstraintSolver implements IConstraintSolver
         }
 
         if (conversionDto != null) {
-            return new OverloadDto(
+            return new OverloadRankingDto(
                     overload, promotionParameterCount, promotionTotalCount, parametersNeedImplicitConversion);
         }
         return null;
@@ -264,33 +264,34 @@ public class ConstraintSolver implements IConstraintSolver
         return null;
     }
 
-    public OverloadDto getMostSpecificApplicableOverload(List<OverloadDto> overloadDtos) throws AmbiguousCallException {
+    public OverloadRankingDto getMostSpecificApplicableOverload(List<OverloadRankingDto> overloadRankingDtos) throws
+            AmbiguousCallException {
 
-        List<OverloadDto> ambiguousOverloadDtos = new ArrayList<>();
+        List<OverloadRankingDto> ambiguousOverloadRankingDtos = new ArrayList<>();
 
-        OverloadDto mostSpecificMethodDto = overloadDtos.get(0);
+        OverloadRankingDto mostSpecificMethodDto = overloadRankingDtos.get(0);
 
-        int overloadDtosSize = overloadDtos.size();
+        int overloadDtosSize = overloadRankingDtos.size();
         for (int i = 1; i < overloadDtosSize; ++i) {
-            OverloadDto overloadDto = overloadDtos.get(i);
-            if (isSecondBetter(mostSpecificMethodDto, overloadDto)) {
-                mostSpecificMethodDto = overloadDto;
-                if (ambiguousOverloadDtos.size() > 0) {
-                    ambiguousOverloadDtos = new ArrayList<>();
+            OverloadRankingDto overloadRankingDto = overloadRankingDtos.get(i);
+            if (isSecondBetter(mostSpecificMethodDto, overloadRankingDto)) {
+                mostSpecificMethodDto = overloadRankingDto;
+                if (ambiguousOverloadRankingDtos.size() > 0) {
+                    ambiguousOverloadRankingDtos = new ArrayList<>();
                 }
-            } else if (isSecondEqual(mostSpecificMethodDto, overloadDto)) {
-                ambiguousOverloadDtos.add(overloadDto);
+            } else if (isSecondEqual(mostSpecificMethodDto, overloadRankingDto)) {
+                ambiguousOverloadRankingDtos.add(overloadRankingDto);
             }
         }
-        if (!ambiguousOverloadDtos.isEmpty()) {
-            ambiguousOverloadDtos.add(mostSpecificMethodDto);
-            throw new AmbiguousCallException(ambiguousOverloadDtos);
+        if (!ambiguousOverloadRankingDtos.isEmpty()) {
+            ambiguousOverloadRankingDtos.add(mostSpecificMethodDto);
+            throw new AmbiguousCallException(ambiguousOverloadRankingDtos);
         }
 
         return mostSpecificMethodDto;
     }
 
-    private boolean isSecondBetter(OverloadDto mostSpecificMethodDto, OverloadDto methodDto) {
+    private boolean isSecondBetter(OverloadRankingDto mostSpecificMethodDto, OverloadRankingDto methodDto) {
 
         int mostSpecificCastingSize = mostSpecificMethodDto.parametersNeedImplicitConversion.size();
         int challengerCastingSize = methodDto.parametersNeedImplicitConversion.size();
@@ -305,14 +306,14 @@ public class ConstraintSolver implements IConstraintSolver
         return isSecondBetter;
     }
 
-    private boolean isSecondEqual(OverloadDto mostSpecificMethodDto, OverloadDto methodDto) {
+    private boolean isSecondEqual(OverloadRankingDto mostSpecificMethodDto, OverloadRankingDto methodDto) {
         return mostSpecificMethodDto.parametersNeedImplicitConversion.size() == methodDto
                 .parametersNeedImplicitConversion.size()
                 && mostSpecificMethodDto.parameterPromotedCount == methodDto.parameterPromotedCount
                 && mostSpecificMethodDto.promotionsTotal == methodDto.promotionsTotal;
     }
 
-    private void addConversionsToAstIfNecessary(OverloadDto dto) {
+    private void addConversionsToAstIfNecessary(OverloadRankingDto dto) {
         for (ConversionDto parameterPromotionDto : dto.parametersNeedImplicitConversion) {
             //TODO insert casting
 //            astHelper.prependImplicitCasting(parameterPromotionDto);

@@ -203,6 +203,23 @@ public abstract class AConstraintSolverTest
         return new ConstraintSolver(theNothingTypeSymbol, theSymbolFactory, overloadResolver);
     }
 
+    protected List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> createPartialAdditionWithInt(String variableId,
+            IScope scope) {
+        return asList(
+                entry(asList(refType(variableId, scope, intType)), intType),
+                entry(asList(refType(variableId, scope, numType)), numType),
+                entry(asList(refType(variableId, scope, varAst(numType, true))), numType)
+        );
+    }
+
+    protected List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> createPartialAdditionWithFloat(String variableId,
+            IScope scope) {
+        return asList(
+                entry(asList(refType(variableId, scope, floatType)), floatType),
+                entry(asList(refType(variableId, scope, numType)), numType),
+                entry(asList(refType(variableId, scope, varAst(numType, true))), numType)
+        );
+    }
 
     protected List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> createAdditionOverload(
             String variableLhs, IScope scopeLhs, String variableRhs, IScope scopeRhs) {

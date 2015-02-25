@@ -14,6 +14,8 @@ import java.util.Map;
 
 public class IntersectionConstraint implements IConstraint
 {
+    private List<RefConstraint> variables;
+
     private List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloads;
 
     public IntersectionConstraint(List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> theOverloads) {

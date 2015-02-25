@@ -21,7 +21,7 @@ import java.util.Map;
 /**
  * Represents meta-data of an overload, e.g. method overload etc.
  */
-public class OverloadDto implements Serializable
+public class OverloadRankingDto implements Serializable
 {
 
     public Map.Entry<List<RefTypeConstraint>, ITypeSymbol> overload;
@@ -49,7 +49,7 @@ public class OverloadDto implements Serializable
      */
     public List<ConversionDto> parametersNeedExplicitConversion;
 
-    public OverloadDto(Map.Entry<List<RefTypeConstraint>,
+    public OverloadRankingDto(Map.Entry<List<RefTypeConstraint>,
             ITypeSymbol> theOverload,
             int howManyParameterWerePromoted,
             int thePromotionsInTotal,

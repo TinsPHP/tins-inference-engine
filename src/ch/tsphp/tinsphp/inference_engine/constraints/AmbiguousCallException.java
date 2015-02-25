@@ -22,13 +22,13 @@ import java.util.List;
 public class AmbiguousCallException extends TypeCheckerException
 {
 
-    private final List<OverloadDto> ambiguousOverloads;
+    private final List<OverloadRankingDto> ambiguousOverloads;
 
-    public AmbiguousCallException(List<OverloadDto> theAmbiguousMethodDtos) {
+    public AmbiguousCallException(List<OverloadRankingDto> theAmbiguousMethodDtos) {
         ambiguousOverloads = theAmbiguousMethodDtos;
     }
 
-    public List<OverloadDto> getAmbiguousOverloads() {
+    public List<OverloadRankingDto> getAmbiguousOverloads() {
         return ambiguousOverloads;
     }
 }

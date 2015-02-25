@@ -42,11 +42,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
 
         Map<String, List<IConstraint>> map = new HashMap<>();
         IScope scope = createScopeWithConstraints(map);
-        List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloads = asList(
-                entry(asList(refType("$b", scope, intType)), intType),
-                entry(asList(refType("$b", scope, numType)), numType),
-                entry(asList(refType("$b", scope, varAst(numType, true))), numType)
-        );
+        List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloads = createPartialAdditionWithInt("$b", scope);
         map.put("$a", asList(intersect(overloads)));
         map.put("$b", asList(type(intType)));
         Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
@@ -69,11 +65,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
 
         Map<String, List<IConstraint>> map = new HashMap<>();
         IScope scope = createScopeWithConstraints(map);
-        List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloads = asList(
-                entry(asList(refType("$b", scope, floatType)), floatType),
-                entry(asList(refType("$b", scope, numType)), numType),
-                entry(asList(refType("$b", scope, varAst(numType, true))), numType)
-        );
+        List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloads = createPartialAdditionWithFloat("$b", scope);
         map.put("$a", asList(intersect(overloads)));
         map.put("$b", asList(type(floatType)));
         Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
@@ -86,6 +78,32 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
         assertThat(result, hasKey("$b"));
         assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("float"));
         assertThat(result.get("$b").getTypeSymbols().keySet(), containsInAnyOrder("float"));
+    }
+
+    @Test
+    public void resolveConstraints_AdditionWithFloatAndFloatVariableFromOtherScope_$aIsFloat() {
+        // corresponds:
+        // $b = 1.2;
+        // --- different scope
+        // $a = $b + 1.2;
+
+        Map<String, List<IConstraint>> refMap = new HashMap<>();
+        refMap.put("$b", asList(type(fooType)));
+        IScope refScope = createScopeWithConstraints(refMap);
+
+        Map<String, List<IConstraint>> map = new HashMap<>();
+        IScope scope = createScopeWithConstraints(map);
+        List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloads = createPartialAdditionWithFloat("$b",
+                refScope);
+        map.put("$a", asList(intersect(overloads)));
+        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+
+        IConstraintSolver solver = createConstraintSolver();
+        solver.solveConstraintsOfScope(scope);
+
+        assertThat(result.size(), is(1));
+        assertThat(result, hasKey("$a"));
+        assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("float"));
     }
 
     @Test
@@ -341,11 +359,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
 
         Map<String, List<IConstraint>> map = new HashMap<>();
         final IScope scope = createScopeWithConstraints(map);
-        List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloads = asList(
-                entry(asList(refType("$b", scope, intType)), intType),
-                entry(asList(refType("$b", scope, numType)), numType),
-                entry(asList(refType("$b", scope, varAst(numType, true))), numType)
-        );
+        List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloads = createPartialAdditionWithInt("$b", scope);
         map.put("$a", asList(type(intType), intersect(overloads)));
         map.put("$b", asList(type(intType), ref("$a", scope)));
         Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
@@ -382,11 +396,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
 
         Map<String, List<IConstraint>> map = new HashMap<>();
         final IScope scope = createScopeWithConstraints(map);
-        List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloads = asList(
-                entry(asList(refType("$b", scope, intType)), intType),
-                entry(asList(refType("$b", scope, numType)), numType),
-                entry(asList(refType("$b", scope, varAst(numType, true))), numType)
-        );
+        List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloads = createPartialAdditionWithInt("$b", scope);
         map.put("$a", asList(type(intType), intersect(overloads)));
         map.put("$b", asList(type(floatType), ref("$a", scope)));
         Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
@@ -466,11 +476,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
 
         Map<String, List<IConstraint>> map = new HashMap<>();
         final IScope scope = createScopeWithConstraints(map);
-        List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloads = asList(
-                entry(asList(refType("$b", scope, intType)), intType),
-                entry(asList(refType("$b", scope, numType)), numType),
-                entry(asList(refType("$b", scope, varAst(numType, true))), numType)
-        );
+        List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloads = createPartialAdditionWithInt("$b", scope);
         map.put("$a", asList(type(intType), intersect(overloads)));
         map.put("$b", asList(type(floatType), ref("$a", scope)));
         map.put("$c", asList(ref("$a", scope)));
@@ -510,16 +516,9 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
 
         Map<String, List<IConstraint>> map = new HashMap<>();
         final IScope scope = createScopeWithConstraints(map);
-        List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloadA = asList(
-                entry(asList(refType("$b", scope, intType)), intType),
-                entry(asList(refType("$b", scope, numType)), numType),
-                entry(asList(refType("$b", scope, varAst(numType, true))), numType)
-        );
-        List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloadB = asList(
-                entry(asList(refType("$a", scope, intType)), intType),
-                entry(asList(refType("$a", scope, numType)), numType),
-                entry(asList(refType("$a", scope, varAst(numType, true))), numType)
-        );
+        List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloadA = createPartialAdditionWithInt("$b", scope);
+        List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloadB = createPartialAdditionWithInt("$a", scope);
+
         map.put("$a", asList(type(intType), intersect(overloadA)));
         map.put("$b", asList(type(floatType), intersect(overloadB)));
         Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
@@ -545,5 +544,6 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
             fail("Did not terminate after 2 seconds, most probably endless loop");
         }
     }
+
 
 }
