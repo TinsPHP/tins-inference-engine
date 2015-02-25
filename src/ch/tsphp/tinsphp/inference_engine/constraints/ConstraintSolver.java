@@ -221,21 +221,21 @@ public class ConstraintSolver implements IConstraintSolver
         if (unionTypeSymbol == null) {
             String visitKey = getVisitKey(refScope, refVariableId);
             if (!dto.visitedVariables.contains(visitKey)) {
-//                unionTypeSymbol = addToVisitedAndSolve(
-//                        visitKey,
-//                        new ConstraintSolverDto(
-//                                constraintSolverDto.constraintSolverDto,
-//                                refScope.getConstraintsForVariable(refVariableId),
-//                                constraintSolverDto.unionTypeSymbol
-//                        ));
-                unionTypeSymbol = solveAndAddToResultsIfNotAlreadySolved(
-                        refScope,
-                        refVariableId,
+                unionTypeSymbol = addToVisitedAndSolve(
+                        visitKey,
                         new ConstraintSolverDto(
                                 dto.visitedVariables,
                                 refScope.getConstraintsForVariable(refVariableId),
-                                symbolFactory.createUnionTypeSymbol(new HashMap<String, ITypeSymbol>())
+                                dto.unionTypeSymbol
                         ));
+//                unionTypeSymbol = solveAndAddToResultsIfNotAlreadySolved(
+//                        refScope,
+//                        refVariableId,
+//                        new ConstraintSolverDto(
+//                                dto.visitedVariables,
+//                                refScope.getConstraintsForVariable(refVariableId),
+//                                symbolFactory.createUnionTypeSymbol(new HashMap<String, ITypeSymbol>())
+//                        ));
             } else if (dto.notInIterativeMode) {
                 //cannot solve this yet, have to solve other first, requires iterative approach
                 dto.notInIterativeMode = false;

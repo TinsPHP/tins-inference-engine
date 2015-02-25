@@ -332,7 +332,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void resolveConstraints_AdditionWithIntAndIntVariableWithCircle_$aIsInt()
+    public void resolveConstraints_AdditionWithIntAndIntVariableWithCircle_$aAnd$bAreInt()
             throws ExecutionException, InterruptedException {
         // corresponds:
         // $a = 1; $b = 1;
@@ -373,7 +373,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void resolveConstraints_AdditionWithIntAndFloatVariableWithCircle_$aIsNum()
+    public void resolveConstraints_AdditionWithIntAndFloatVariableWithCircle_$aAnd$bAreNum()
             throws ExecutionException, InterruptedException {
         // corresponds:
         // $a = 1; $b = 1.2;
@@ -414,7 +414,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void resolveConstraints_AdditionWithArrayAndArrayVariableWithCircle_$aIsInt()
+    public void resolveConstraints_AdditionWithArrayAndFloatVariableWithCircle_$aIsIntAnd$bIsIntAndFloat()
             throws ExecutionException, InterruptedException {
         // side notice, $a will be int since there does not exist an overload for float x array
         // the resurrection phase would add the necessary error
@@ -456,7 +456,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void resolveConstraints_RefAdditionWithIntAndFloatVariableWithCircle_$aIsNum()
+    public void resolveConstraints_RefAdditionWithIntAndFloatVariableWithCircle_$aAnd$bAnd$cAreNum()
             throws ExecutionException, InterruptedException {
         // corresponds:
         // $a = 1; $b = 1.2;
@@ -499,4 +499,51 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
             fail("Did not terminate after 2 seconds, most probably endless loop");
         }
     }
+
+    @Test
+    public void resolveConstraints_IntersectionCircleWithAddWithIntAndFloatVarAndAddWithIntAndIntVar_$aAnd$bAreNum()
+            throws ExecutionException, InterruptedException {
+        // corresponds:
+        // $a = 1; $b = 1.2;
+        // $a = 1 + $b;
+        // $b = 2 + $a;
+
+        Map<String, List<IConstraint>> map = new HashMap<>();
+        final IScope scope = createScopeWithConstraints(map);
+        List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloadA = asList(
+                entry(asList(refType("$b", scope, intType)), intType),
+                entry(asList(refType("$b", scope, numType)), numType),
+                entry(asList(refType("$b", scope, varAst(numType, true))), numType)
+        );
+        List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloadB = asList(
+                entry(asList(refType("$a", scope, intType)), intType),
+                entry(asList(refType("$a", scope, numType)), numType),
+                entry(asList(refType("$a", scope, varAst(numType, true))), numType)
+        );
+        map.put("$a", asList(type(intType), intersect(overloadA)));
+        map.put("$b", asList(type(floatType), intersect(overloadB)));
+        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+
+        try {
+            //act
+            ActWithTimeout.exec(new Callable<Void>()
+            {
+                public Void call() {
+                    IConstraintSolver solver = createConstraintSolver();
+                    solver.solveConstraintsOfScope(scope);
+                    return null;
+                }
+            }, 2, TimeUnit.SECONDS);
+
+            //assert
+            assertThat(result.size(), is(2));
+            assertThat(result, hasKey("$a"));
+            assertThat(result, hasKey("$b"));
+            assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat(result.get("$b").getTypeSymbols().keySet(), containsInAnyOrder("num"));
+        } catch (TimeoutException e) {
+            fail("Did not terminate after 2 seconds, most probably endless loop");
+        }
+    }
+
 }
