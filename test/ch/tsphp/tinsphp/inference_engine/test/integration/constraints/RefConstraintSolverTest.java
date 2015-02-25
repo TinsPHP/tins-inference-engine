@@ -48,7 +48,7 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
 
 
         IConstraintSolver solver = createConstraintSolver();
-        solver.solveConstraints(scope);
+        solver.solveConstraintsOfScope(scope);
 
         assertThat(result.size(), is(2));
         assertThat(result, hasKey("$a"));
@@ -69,7 +69,7 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
 
 
         IConstraintSolver solver = createConstraintSolver();
-        solver.solveConstraints(scope);
+        solver.solveConstraintsOfScope(scope);
 
         assertThat(result.size(), is(2));
         assertThat(result, hasKey("$b"));
@@ -95,7 +95,7 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
 
         //act
         IConstraintSolver solver = createConstraintSolver();
-        solver.solveConstraints(scope);
+        solver.solveConstraintsOfScope(scope);
 
 
         assertThat(result.size(), is(1));
@@ -123,7 +123,7 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
 
         //act
         IConstraintSolver solver = createConstraintSolver();
-        solver.solveConstraints(scope);
+        solver.solveConstraintsOfScope(scope);
 
         assertThat(result.size(), is(0));
     }
@@ -148,7 +148,7 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
             {
                 public Void call() {
                     IConstraintSolver solver = createConstraintSolver();
-                    solver.solveConstraints(scope);
+                    solver.solveConstraintsOfScope(scope);
                     return null;
                 }
             }, 200, TimeUnit.SECONDS);
@@ -189,7 +189,7 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
             {
                 public Void call() {
                     IConstraintSolver solver = createConstraintSolver();
-                    solver.solveConstraints(scope);
+                    solver.solveConstraintsOfScope(scope);
                     return null;
                 }
             }, 2, TimeUnit.SECONDS);
@@ -226,7 +226,7 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
             {
                 public Void call() {
                     IConstraintSolver solver = createConstraintSolver();
-                    solver.solveConstraints(scope);
+                    solver.solveConstraintsOfScope(scope);
                     return null;
                 }
             }, 2, TimeUnit.SECONDS);
@@ -270,7 +270,7 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
             {
                 public Void call() {
                     IConstraintSolver solver = createConstraintSolver();
-                    solver.solveConstraints(scope);
+                    solver.solveConstraintsOfScope(scope);
                     return null;
                 }
             }, 2, TimeUnit.SECONDS);
@@ -285,6 +285,38 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
             assertThat(result.get("$b").getTypeSymbols().keySet(), containsInAnyOrder("int", "float", "array"));
             assertThat(result.get("$c").getTypeSymbols().keySet(), containsInAnyOrder("int", "float", "array"));
             assertThat(result.get("$d").getTypeSymbols().keySet(), containsInAnyOrder("int", "float", "array"));
+        } catch (TimeoutException e) {
+            fail("Did not terminate after 2 seconds, most probably endless loop");
+        }
+    }
+
+    @Test
+    public void resolveConstraints_SelfRef_DoesTerminate()
+            throws ExecutionException, InterruptedException {
+        // corresponds:
+        // $a = [];
+        // $a = $a;
+
+        Map<String, List<IConstraint>> map = new HashMap<>();
+        final IScope scope = createScopeWithConstraints(map);
+        map.put("$a", asList(ref("$a", scope), type(arrayType)));
+        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+
+        try {
+            //act
+            ActWithTimeout.exec(new Callable<Void>()
+            {
+                public Void call() {
+                    IConstraintSolver solver = createConstraintSolver();
+                    solver.solveConstraintsOfScope(scope);
+                    return null;
+                }
+            }, 2, TimeUnit.SECONDS);
+
+            //assert
+            assertThat(result.size(), is(1));
+            assertThat(result, hasKey("$a"));
+            assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("array"));
         } catch (TimeoutException e) {
             fail("Did not terminate after 2 seconds, most probably endless loop");
         }

@@ -20,6 +20,8 @@ public class ConstraintSolverDto
     public Set<String> visitedVariables;
     public List<IConstraint> constraints;
     public IUnionTypeSymbol unionTypeSymbol;
+    public boolean notInIterativeMode = true;
+    public boolean hasUnionChanged;
 
     public ConstraintSolverDto(
 //            IScope theCurrentScope,

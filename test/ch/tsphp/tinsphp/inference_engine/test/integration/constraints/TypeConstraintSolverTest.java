@@ -35,7 +35,7 @@ public class TypeConstraintSolverTest extends AConstraintSolverTest
         Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
 
         IConstraintSolver solver = createConstraintSolver();
-        solver.solveConstraints(scope);
+        solver.solveConstraintsOfScope(scope);
 
         assertThat(result.size(), is(1));
         assertThat(result, hasKey("$a"));
@@ -51,7 +51,7 @@ public class TypeConstraintSolverTest extends AConstraintSolverTest
         Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
 
         IConstraintSolver solver = createConstraintSolver();
-        solver.solveConstraints(scope);
+        solver.solveConstraintsOfScope(scope);
 
         assertThat(result.size(), is(1));
         assertThat(result, hasKey("$a"));
@@ -67,7 +67,7 @@ public class TypeConstraintSolverTest extends AConstraintSolverTest
         Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
 
         IConstraintSolver solver = createConstraintSolver();
-        solver.solveConstraints(scope);
+        solver.solveConstraintsOfScope(scope);
 
         assertThat(result.size(), is(1));
         assertThat(result, hasKey("$a"));
@@ -83,7 +83,7 @@ public class TypeConstraintSolverTest extends AConstraintSolverTest
         Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
 
         IConstraintSolver solver = createConstraintSolver();
-        solver.solveConstraints(scope);
+        solver.solveConstraintsOfScope(scope);
 
         assertThat(result.size(), is(1));
         assertThat(result, hasKey("$a"));

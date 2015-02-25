@@ -37,7 +37,7 @@ public class ConstraintSolver implements IConstraintSolver
     }
 
     @Override
-    public void solveConstraints(IScope currentScope) {
+    public void solveConstraintsOfScope(IScope currentScope) {
         for (Map.Entry<String, List<IConstraint>> constraintsEntry : currentScope.getConstraints().entrySet()) {
             Set<String> visitedVariables = new HashSet<>();
             solveAndAddToResultsIfNotAlreadySolved(
@@ -56,33 +56,59 @@ public class ConstraintSolver implements IConstraintSolver
             IScope currentScope, String variableId, ConstraintSolverDto dto) {
         IUnionTypeSymbol unionTypeSymbol = currentScope.getResultOfConstraintSolving(variableId);
         if (unionTypeSymbol == null) {
-            unionTypeSymbol = addToVisitedAndResolve(getVisitKey(currentScope, variableId), dto);
+            unionTypeSymbol = addToVisitedAndSolve(getVisitKey(currentScope, variableId), dto);
             unionTypeSymbol.seal();
             currentScope.setResultOfConstraintSolving(variableId, unionTypeSymbol);
         }
         return unionTypeSymbol;
     }
 
-    private IUnionTypeSymbol addToVisitedAndResolve(String visitKey, ConstraintSolverDto dto) {
+    private IUnionTypeSymbol addToVisitedAndSolve(String visitKey, ConstraintSolverDto dto) {
         dto.visitedVariables.add(visitKey);
-        return resolveConstraint(dto);
+        return solveConstraints(dto);
     }
 
     private String getVisitKey(IScope currentScope, String variableId) {
         return currentScope.getScopeName() + variableId;
     }
 
-    private IUnionTypeSymbol resolveConstraint(ConstraintSolverDto dto) {
+    private IUnionTypeSymbol solveConstraints(ConstraintSolverDto dto) {
+        List<IConstraint> iterativeConstraints = new ArrayList<>();
         for (IConstraint constraint : dto.constraints) {
-            if (constraint instanceof TypeConstraint) {
-                dto.unionTypeSymbol.addTypeSymbol(((TypeConstraint) constraint).getType());
-            } else if (constraint instanceof RefConstraint) {
-                resolveReferenceConstraint(dto, (RefConstraint) constraint);
-            } else if (constraint instanceof IntersectionConstraint) {
-                resolveIntersectionConstraint(dto, (IntersectionConstraint) constraint);
+            try {
+                solveConstraint(dto, constraint);
+            } catch (SelfReferenceInIntersectionException e) {
+                iterativeConstraints.add(constraint);
             }
         }
+
+        if (iterativeConstraints.size() != 0) {
+            solveIterativeConstraints(dto, iterativeConstraints);
+        }
         return dto.unionTypeSymbol;
+    }
+
+    private void solveConstraint(ConstraintSolverDto dto, IConstraint constraint) {
+        if (constraint instanceof TypeConstraint) {
+            dto.unionTypeSymbol.addTypeSymbol(((TypeConstraint) constraint).getType());
+        } else if (constraint instanceof RefConstraint) {
+            resolveReferenceConstraint(dto, (RefConstraint) constraint);
+        } else if (constraint instanceof IntersectionConstraint) {
+            resolveIntersectionConstraint(dto, (IntersectionConstraint) constraint);
+        }
+    }
+
+    private void solveIterativeConstraints(ConstraintSolverDto dto, List<IConstraint> constraints) {
+        dto.hasUnionChanged = true;
+        //TODO recursive functions
+        //Sure that it terminates? nope I do not think so, need to add a guard, fall back to mixed after 10 attempts
+        // or similar
+        while (dto.hasUnionChanged) {
+            dto.hasUnionChanged = false;
+            for (IConstraint constraint : constraints) {
+                solveConstraint(dto, constraint);
+            }
+        }
     }
 
     private void resolveReferenceConstraint(ConstraintSolverDto dto, RefConstraint refConstraint) {
@@ -92,7 +118,7 @@ public class ConstraintSolver implements IConstraintSolver
         if (unionTypeSymbol == null) {
             String visitKey = getVisitKey(refScope, refVariableId);
             if (!dto.visitedVariables.contains(visitKey)) {
-                addToVisitedAndResolve(
+                addToVisitedAndSolve(
                         visitKey,
                         new ConstraintSolverDto(
                                 dto.visitedVariables,
@@ -108,7 +134,7 @@ public class ConstraintSolver implements IConstraintSolver
     private void resolveIntersectionConstraint(ConstraintSolverDto dto, IntersectionConstraint intersectionConstraint) {
         OverloadDto overloadDto = null;
 
-        List<OverloadDto> goodMethods = getApplicableOverloads(dto.visitedVariables, intersectionConstraint);
+        List<OverloadDto> goodMethods = getApplicableOverloads(dto, intersectionConstraint);
         if (!goodMethods.isEmpty()) {
             try {
                 overloadDto = getMostSpecificApplicableOverload(goodMethods);
@@ -118,17 +144,18 @@ public class ConstraintSolver implements IConstraintSolver
                 overloadDto = ex.getAmbiguousOverloads().get(0);
             }
         }
+
         if (overloadDto != null) {
             addConversionsToAstIfNecessary(overloadDto);
-            dto.unionTypeSymbol.addTypeSymbol(overloadDto.overload.getValue());
+            dto.hasUnionChanged = dto.unionTypeSymbol.addTypeSymbol(overloadDto.overload.getValue());
         }
     }
 
     private List<OverloadDto> getApplicableOverloads(
-            Set<String> visitedVariables, IntersectionConstraint intersectionConstraint) {
+            ConstraintSolverDto dto, IntersectionConstraint intersectionConstraint) {
         List<OverloadDto> applicableOverloads = new ArrayList<>();
         for (Map.Entry<List<RefTypeConstraint>, ITypeSymbol> overload : intersectionConstraint.getOverloads()) {
-            OverloadDto overloadDto = getApplicableOverload(visitedVariables, overload);
+            OverloadDto overloadDto = getApplicableOverload(dto, overload);
             if (overloadDto != null) {
                 applicableOverloads.add(overloadDto);
                 if (isOverloadWithoutPromotionNorConversion(overloadDto)) {
@@ -145,7 +172,7 @@ public class ConstraintSolver implements IConstraintSolver
     }
 
     private OverloadDto getApplicableOverload(
-            Set<String> visitedVariables, Map.Entry<List<RefTypeConstraint>, ITypeSymbol> overload) {
+            ConstraintSolverDto dto, Map.Entry<List<RefTypeConstraint>, ITypeSymbol> overload) {
         List<RefTypeConstraint> parameterConstraints = overload.getKey();
         int promotionTotalCount = 0;
         int promotionParameterCount = 0;
@@ -153,7 +180,7 @@ public class ConstraintSolver implements IConstraintSolver
         List<ConversionDto> parametersNeedImplicitConversion = new ArrayList<>();
 
         for (RefTypeConstraint parameterConstraint : parameterConstraints) {
-            conversionDto = getCastingDto(visitedVariables, parameterConstraint);
+            conversionDto = getCastingDto(dto, parameterConstraint);
             if (conversionDto != null) {
                 if (conversionDto.promotionLevel != 0) {
                     ++promotionParameterCount;
@@ -169,35 +196,53 @@ public class ConstraintSolver implements IConstraintSolver
         }
 
         if (conversionDto != null) {
-            return new OverloadDto(overload, promotionParameterCount, promotionTotalCount,
-                    parametersNeedImplicitConversion);
+            return new OverloadDto(
+                    overload, promotionParameterCount, promotionTotalCount, parametersNeedImplicitConversion);
         }
         return null;
     }
 
-    private ConversionDto getCastingDto(Set<String> visitedVariables, RefTypeConstraint parameterConstraint) {
+    private ConversionDto getCastingDto(ConstraintSolverDto dto, RefTypeConstraint parameterConstraint) {
         IVariableSymbol variableSymbol = (IVariableSymbol) parameterConstraint.getVariableIdAst().getSymbol();
         if (!variableSymbol.isAlwaysCasting()) {
-            return getCastingDtoInNormalMode(visitedVariables, parameterConstraint);
+            return getCastingDtoInNormalMode(dto, parameterConstraint);
         }
-        return getCastingDtoInAlwaysCastingMode(visitedVariables, parameterConstraint);
+        return getCastingDtoInAlwaysCastingMode(dto, parameterConstraint);
     }
 
-    private ConversionDto getCastingDtoInNormalMode(Set<String> visitedVariables,
-            RefTypeConstraint parameterConstraint) {
+    private ConversionDto getCastingDtoInNormalMode(ConstraintSolverDto dto, RefTypeConstraint parameterConstraint) {
         ConversionDto conversionDto;
 
         IScope refScope = parameterConstraint.getRefScope();
-        String variableId = parameterConstraint.getRefVariableId();
-        List<IConstraint> constraints = refScope.getConstraintsForVariable(variableId);
-        IUnionTypeSymbol unionTypeSymbol = solveAndAddToResultsIfNotAlreadySolved(
-                refScope,
-                variableId,
-                new ConstraintSolverDto(
-                        visitedVariables,
-                        constraints,
-                        symbolFactory.createUnionTypeSymbol(new HashMap<String, ITypeSymbol>())
-                ));
+        String refVariableId = parameterConstraint.getRefVariableId();
+        IUnionTypeSymbol unionTypeSymbol = refScope.getResultOfConstraintSolving(refVariableId);
+        if (unionTypeSymbol == null) {
+            String visitKey = getVisitKey(refScope, refVariableId);
+            if (!dto.visitedVariables.contains(visitKey)) {
+//                unionTypeSymbol = addToVisitedAndSolve(
+//                        visitKey,
+//                        new ConstraintSolverDto(
+//                                constraintSolverDto.constraintSolverDto,
+//                                refScope.getConstraintsForVariable(refVariableId),
+//                                constraintSolverDto.unionTypeSymbol
+//                        ));
+                unionTypeSymbol = solveAndAddToResultsIfNotAlreadySolved(
+                        refScope,
+                        refVariableId,
+                        new ConstraintSolverDto(
+                                dto.visitedVariables,
+                                refScope.getConstraintsForVariable(refVariableId),
+                                symbolFactory.createUnionTypeSymbol(new HashMap<String, ITypeSymbol>())
+                        ));
+            } else if (dto.notInIterativeMode) {
+                //cannot solve this yet, have to solve other first, requires iterative approach
+                dto.notInIterativeMode = false;
+                throw new SelfReferenceInIntersectionException();
+            } else {
+                //In iterative mode, hence use the existing union type as argument type
+                unionTypeSymbol = dto.unionTypeSymbol;
+            }
+        }
 
         ITypeSymbol overloadType = parameterConstraint.getVariableIdAst().getSymbol().getType();
         int promotionLevel = overloadResolver.getPromotionLevelFromTo(unionTypeSymbol, overloadType);
@@ -212,7 +257,7 @@ public class ConstraintSolver implements IConstraintSolver
 
 
     private ConversionDto getCastingDtoInAlwaysCastingMode(
-            Set<String> visitedVariables, RefTypeConstraint parameterConstraint) {
+            ConstraintSolverDto dto, RefTypeConstraint parameterConstraint) {
         //TODO implement always casting mode
         return null;
     }
