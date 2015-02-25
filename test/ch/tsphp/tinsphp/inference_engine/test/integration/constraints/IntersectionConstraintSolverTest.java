@@ -35,7 +35,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
 {
 
     @Test
-    public void resolveConstraints_OneOverloadForIntAndIsInt_$aIsInt() {
+    public void resolveConstraints_AdditionWithIntAndIntVariable_$aIsInt() {
         // corresponds:
         // $b = 1;
         // $a = $b + 1;
@@ -43,7 +43,9 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
         Map<String, List<IConstraint>> map = new HashMap<>();
         IScope scope = createScopeWithConstraints(map);
         List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloads = asList(
-                entry(asList(refType("$b", scope, intType)), intType)
+                entry(asList(refType("$b", scope, intType)), intType),
+                entry(asList(refType("$b", scope, numType)), numType),
+                entry(asList(refType("$b", scope, varAst(numType, true))), numType)
         );
         map.put("$a", asList(intersect(overloads)));
         map.put("$b", asList(type(intType)));
@@ -60,7 +62,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void resolveConstraints_MultipleOverloadsAndFloatFits_$aIsFloat() {
+    public void resolveConstraints_AdditionWithFloatAndFloatVariable_$aIsFloat() {
         // corresponds:
         // $b = 1.2;
         // $a = $b + 1.2;
@@ -68,11 +70,9 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
         Map<String, List<IConstraint>> map = new HashMap<>();
         IScope scope = createScopeWithConstraints(map);
         List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloads = asList(
-                entry(asList(refType("$b", scope, intType)), intType),
                 entry(asList(refType("$b", scope, floatType)), floatType),
                 entry(asList(refType("$b", scope, numType)), numType),
-                entry(asList(refType("$b", scope, varAst(numType, true))), numType),
-                entry(asList(refType("$b", scope, arrayType)), arrayType)
+                entry(asList(refType("$b", scope, varAst(numType, true))), numType)
         );
         map.put("$a", asList(intersect(overloads)));
         map.put("$b", asList(type(floatType)));
@@ -89,10 +89,39 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
+    public void resolveConstraints_AdditionWithIntVariableAndFloatVariable_$aIsNum() {
+        // corresponds:
+        // $b = 1;
+        // $c = 1.2;
+        // $a = $b + $c;
+
+        Map<String, List<IConstraint>> map = new HashMap<>();
+        IScope scope = createScopeWithConstraints(map);
+        List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloads
+                = createAdditionOverload("$b", scope, "$c", scope);
+        map.put("$b", asList(type(intType)));
+        map.put("$c", asList(type(floatType)));
+        map.put("$a", asList(intersect(overloads)));
+        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+
+        IConstraintSolver solver = createConstraintSolver();
+        solver.solveConstraintsOfScope(scope);
+
+        assertThat(result.size(), is(3));
+        assertThat(result, hasKey("$a"));
+        assertThat(result, hasKey("$b"));
+        assertThat(result, hasKey("$c"));
+        assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("num"));
+        assertThat(result.get("$b").getTypeSymbols().keySet(), containsInAnyOrder("int"));
+        assertThat(result.get("$c").getTypeSymbols().keySet(), containsInAnyOrder("float"));
+    }
+
+
+    @Test
     public void resolveConstraints_MultipleOverloadsAndArrayFits_$aIsFloat() {
         // corresponds:
         // $b = [1];
-        // $a = $b + [2, 3];
+        // $a = foo($b);  //where foo has overloads as bellow
 
         Map<String, List<IConstraint>> map = new HashMap<>();
         IScope scope = createScopeWithConstraints(map);
@@ -118,44 +147,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void resolveConstraints_MultipleOverloadsMultipleParametersAndNumAsParentTypeFits_$aIsNum() {
-        // corresponds:
-        // $b = 1;
-        // $c = 1.2;
-        // $a = $b + $c;
-
-        Map<String, List<IConstraint>> map = new HashMap<>();
-        IScope scope = createScopeWithConstraints(map);
-        List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloads = asList(
-                entry(asList(refType("$b", scope, intType), refType("$c", scope, intType)), intType),
-                entry(asList(refType("$b", scope, floatType), refType("$c", scope, floatType)), floatType),
-                entry(asList(refType("$b", scope, numType), refType("$c", scope, numType)), numType),
-                entry(
-                        asList(
-                                refType("$b", scope, varAst(numType, true)),
-                                refType("$c", scope, varAst(numType, true))
-                        ), numType),
-                entry(asList(refType("$b", scope, arrayType), refType("$c", scope, arrayType)), arrayType)
-        );
-        map.put("$b", asList(type(intType)));
-        map.put("$c", asList(type(floatType)));
-        map.put("$a", asList(intersect(overloads)));
-        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
-
-        IConstraintSolver solver = createConstraintSolver();
-        solver.solveConstraintsOfScope(scope);
-
-        assertThat(result.size(), is(3));
-        assertThat(result, hasKey("$a"));
-        assertThat(result, hasKey("$b"));
-        assertThat(result, hasKey("$c"));
-        assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("num"));
-        assertThat(result.get("$b").getTypeSymbols().keySet(), containsInAnyOrder("int"));
-        assertThat(result.get("$c").getTypeSymbols().keySet(), containsInAnyOrder("float"));
-    }
-
-    @Test
-    public void resolveConstraints_OneOverloadWithIntAndSelfReferenceIsInt_$aIsInt()
+    public void resolveConstraints_AdditionWithIntAndSelfRefWhichIsInt_$aIsInt()
             throws ExecutionException, InterruptedException {
         // corresponds:
         // $a = 1;
@@ -164,7 +156,9 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
         Map<String, List<IConstraint>> map = new HashMap<>();
         final IScope scope = createScopeWithConstraints(map);
         List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloads = asList(
-                entry(asList(refType("$a", scope, intType)), intType)
+                entry(asList(refType("$a", scope, intType)), intType),
+                entry(asList(refType("$b", scope, numType)), numType),
+                entry(asList(refType("$b", scope, varAst(numType, true))), numType)
         );
         map.put("$a", asList(intersect(overloads), type(intType)));
         Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
@@ -178,7 +172,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
                     solver.solveConstraintsOfScope(scope);
                     return null;
                 }
-            }, 2000, TimeUnit.SECONDS);
+            }, 2, TimeUnit.SECONDS);
 
             //assert
             assertThat(result.size(), is(1));
@@ -190,7 +184,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void resolveConstraints_OneOverloadWithIntAndMultipleParamsWhereOneIsIntAndOtherIsSelfRefAndInt_$aIsInt()
+    public void resolveConstraints_AdditionWithIntVariableAndSelfRefWhichIsInt_$aIsInt()
             throws ExecutionException, InterruptedException {
         // corresponds:
         // $a = 1; $b = 1;
@@ -198,9 +192,45 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
 
         Map<String, List<IConstraint>> map = new HashMap<>();
         final IScope scope = createScopeWithConstraints(map);
-        List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloads = asList(
-                entry(asList(refType("$b", scope, intType), refType("$a", scope, intType)), intType)
-        );
+        List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloads
+                = createAdditionOverload("$b", scope, "$a", scope);
+        map.put("$a", asList(type(intType), intersect(overloads)));
+        map.put("$b", asList(type(intType)));
+        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+
+        try {
+            //act
+            ActWithTimeout.exec(new Callable<Void>()
+            {
+                public Void call() {
+                    IConstraintSolver solver = createConstraintSolver();
+                    solver.solveConstraintsOfScope(scope);
+                    return null;
+                }
+            }, 2, TimeUnit.SECONDS);
+
+            //assert
+            assertThat(result.size(), is(2));
+            assertThat(result, hasKey("$a"));
+            assertThat(result, hasKey("$b"));
+            assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("int"));
+            assertThat(result.get("$b").getTypeSymbols().keySet(), containsInAnyOrder("int"));
+        } catch (TimeoutException e) {
+            fail("Did not terminate after 2 seconds, most probably endless loop");
+        }
+    }
+
+    @Test
+    public void resolveConstraints_AdditionWithSelfRefWhichIsIntAndIntVariable_$aIsInt()
+            throws ExecutionException, InterruptedException {
+        // corresponds:
+        // $a = 1; $b = 1;
+        // $a = $a + $b;
+
+        Map<String, List<IConstraint>> map = new HashMap<>();
+        final IScope scope = createScopeWithConstraints(map);
+        List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloads
+                = createAdditionOverload("$a", scope, "$b", scope);
         map.put("$a", asList(intersect(overloads), type(intType)));
         map.put("$b", asList(type(intType)));
         Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
@@ -222,6 +252,249 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
             assertThat(result, hasKey("$b"));
             assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("int"));
             assertThat(result.get("$b").getTypeSymbols().keySet(), containsInAnyOrder("int"));
+        } catch (TimeoutException e) {
+            fail("Did not terminate after 2 seconds, most probably endless loop");
+        }
+    }
+
+    @Test
+    public void resolveConstraints_AdditionWithFloatVariableAndSelfRefWhichIsInt_$aIsNum()
+            throws ExecutionException, InterruptedException {
+        // corresponds:
+        // $a = 1; $b = 1.5;
+        // $a = $b + $a;
+
+        Map<String, List<IConstraint>> map = new HashMap<>();
+        final IScope scope = createScopeWithConstraints(map);
+        List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloads
+                = createAdditionOverload("$b", scope, "$a", scope);
+        map.put("$a", asList(type(intType), intersect(overloads)));
+        map.put("$b", asList(type(floatType)));
+        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+
+        try {
+            //act
+            ActWithTimeout.exec(new Callable<Void>()
+            {
+                public Void call() {
+                    IConstraintSolver solver = createConstraintSolver();
+                    solver.solveConstraintsOfScope(scope);
+                    return null;
+                }
+            }, 2, TimeUnit.SECONDS);
+
+            //assert
+            assertThat(result.size(), is(2));
+            assertThat(result, hasKey("$a"));
+            assertThat(result, hasKey("$b"));
+            assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat(result.get("$b").getTypeSymbols().keySet(), containsInAnyOrder("float"));
+        } catch (TimeoutException e) {
+            fail("Did not terminate after 2 seconds, most probably endless loop");
+        }
+    }
+
+    @Test
+    public void resolveConstraints_AdditionWithIntVariableAndSelfRefWhichIsFloat_$aIsNum()
+            throws ExecutionException, InterruptedException {
+        // corresponds:
+        // $a = 1.5; $b = 1;
+        // $a = $b + $a;
+
+        Map<String, List<IConstraint>> map = new HashMap<>();
+        final IScope scope = createScopeWithConstraints(map);
+        List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloads
+                = createAdditionOverload("$b", scope, "$a", scope);
+        map.put("$a", asList(type(floatType), intersect(overloads)));
+        map.put("$b", asList(type(intType)));
+        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+
+        try {
+            //act
+            ActWithTimeout.exec(new Callable<Void>()
+            {
+                public Void call() {
+                    IConstraintSolver solver = createConstraintSolver();
+                    solver.solveConstraintsOfScope(scope);
+                    return null;
+                }
+            }, 2, TimeUnit.SECONDS);
+
+            //assert
+            assertThat(result.size(), is(2));
+            assertThat(result, hasKey("$a"));
+            assertThat(result, hasKey("$b"));
+            assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat(result.get("$b").getTypeSymbols().keySet(), containsInAnyOrder("int"));
+        } catch (TimeoutException e) {
+            fail("Did not terminate after 2 seconds, most probably endless loop");
+        }
+    }
+
+    @Test
+    public void resolveConstraints_AdditionWithIntAndIntVariableWithCircle_$aIsInt()
+            throws ExecutionException, InterruptedException {
+        // corresponds:
+        // $a = 1; $b = 1;
+        // $b = $a;
+        // $a = $b + 1;
+
+        Map<String, List<IConstraint>> map = new HashMap<>();
+        final IScope scope = createScopeWithConstraints(map);
+        List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloads = asList(
+                entry(asList(refType("$b", scope, intType)), intType),
+                entry(asList(refType("$b", scope, numType)), numType),
+                entry(asList(refType("$b", scope, varAst(numType, true))), numType)
+        );
+        map.put("$a", asList(type(intType), intersect(overloads)));
+        map.put("$b", asList(type(intType), ref("$a", scope)));
+        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+
+        try {
+            //act
+            ActWithTimeout.exec(new Callable<Void>()
+            {
+                public Void call() {
+                    IConstraintSolver solver = createConstraintSolver();
+                    solver.solveConstraintsOfScope(scope);
+                    return null;
+                }
+            }, 2, TimeUnit.SECONDS);
+
+            //assert
+            assertThat(result.size(), is(2));
+            assertThat(result, hasKey("$a"));
+            assertThat(result, hasKey("$b"));
+            assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("int"));
+            assertThat(result.get("$b").getTypeSymbols().keySet(), containsInAnyOrder("int"));
+        } catch (TimeoutException e) {
+            fail("Did not terminate after 2 seconds, most probably endless loop");
+        }
+    }
+
+    @Test
+    public void resolveConstraints_AdditionWithIntAndFloatVariableWithCircle_$aIsNum()
+            throws ExecutionException, InterruptedException {
+        // corresponds:
+        // $a = 1; $b = 1.2;
+        // $b = $a;
+        // $a = $b + 1;
+
+        Map<String, List<IConstraint>> map = new HashMap<>();
+        final IScope scope = createScopeWithConstraints(map);
+        List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloads = asList(
+                entry(asList(refType("$b", scope, intType)), intType),
+                entry(asList(refType("$b", scope, numType)), numType),
+                entry(asList(refType("$b", scope, varAst(numType, true))), numType)
+        );
+        map.put("$a", asList(type(intType), intersect(overloads)));
+        map.put("$b", asList(type(floatType), ref("$a", scope)));
+        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+
+        try {
+            //act
+            ActWithTimeout.exec(new Callable<Void>()
+            {
+                public Void call() {
+                    IConstraintSolver solver = createConstraintSolver();
+                    solver.solveConstraintsOfScope(scope);
+                    return null;
+                }
+            }, 2, TimeUnit.SECONDS);
+
+            //assert
+            assertThat(result.size(), is(2));
+            assertThat(result, hasKey("$a"));
+            assertThat(result, hasKey("$b"));
+            assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat(result.get("$b").getTypeSymbols().keySet(), containsInAnyOrder("num"));
+        } catch (TimeoutException e) {
+            fail("Did not terminate after 2 seconds, most probably endless loop");
+        }
+    }
+
+    @Test
+    public void resolveConstraints_AdditionWithArrayAndArrayVariableWithCircle_$aIsInt()
+            throws ExecutionException, InterruptedException {
+        // side notice, $a will be int since there does not exist an overload for float x array
+        // the resurrection phase would add the necessary error
+
+        // corresponds:
+        // $a = 1; $b = 1.2;
+        // $b = $a;
+        // $a = $b + [];
+
+        Map<String, List<IConstraint>> map = new HashMap<>();
+        final IScope scope = createScopeWithConstraints(map);
+        List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloads = asList(
+                entry(asList(refType("$b", scope, arrayType)), arrayType)
+        );
+        map.put("$a", asList(type(intType), intersect(overloads)));
+        map.put("$b", asList(type(floatType), ref("$a", scope)));
+        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+
+        try {
+            //act
+            ActWithTimeout.exec(new Callable<Void>()
+            {
+                public Void call() {
+                    IConstraintSolver solver = createConstraintSolver();
+                    solver.solveConstraintsOfScope(scope);
+                    return null;
+                }
+            }, 2, TimeUnit.SECONDS);
+
+            //assert
+            assertThat(result.size(), is(2));
+            assertThat(result, hasKey("$a"));
+            assertThat(result, hasKey("$b"));
+            assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("int"));
+            assertThat(result.get("$b").getTypeSymbols().keySet(), containsInAnyOrder("int", "float"));
+        } catch (TimeoutException e) {
+            fail("Did not terminate after 2 seconds, most probably endless loop");
+        }
+    }
+
+    @Test
+    public void resolveConstraints_RefAdditionWithIntAndFloatVariableWithCircle_$aIsNum()
+            throws ExecutionException, InterruptedException {
+        // corresponds:
+        // $a = 1; $b = 1.2;
+        // $b = $a;
+        // $a = $b + 1;
+        // $c = $a;
+
+        Map<String, List<IConstraint>> map = new HashMap<>();
+        final IScope scope = createScopeWithConstraints(map);
+        List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloads = asList(
+                entry(asList(refType("$b", scope, intType)), intType),
+                entry(asList(refType("$b", scope, numType)), numType),
+                entry(asList(refType("$b", scope, varAst(numType, true))), numType)
+        );
+        map.put("$a", asList(type(intType), intersect(overloads)));
+        map.put("$b", asList(type(floatType), ref("$a", scope)));
+        map.put("$c", asList(ref("$a", scope)));
+        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+
+        try {
+            //act
+            ActWithTimeout.exec(new Callable<Void>()
+            {
+                public Void call() {
+                    IConstraintSolver solver = createConstraintSolver();
+                    solver.solveConstraintsOfScope(scope);
+                    return null;
+                }
+            }, 2, TimeUnit.SECONDS);
+
+            //assert
+            assertThat(result.size(), is(3));
+            assertThat(result, hasKey("$a"));
+            assertThat(result, hasKey("$b"));
+            assertThat(result, hasKey("$c"));
+            assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat(result.get("$b").getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat(result.get("$c").getTypeSymbols().keySet(), containsInAnyOrder("num"));
         } catch (TimeoutException e) {
             fail("Did not terminate after 2 seconds, most probably endless loop");
         }

@@ -148,6 +148,8 @@ public class ConstraintSolver implements IConstraintSolver
         if (overloadDto != null) {
             addConversionsToAstIfNecessary(overloadDto);
             dto.hasUnionChanged = dto.unionTypeSymbol.addTypeSymbol(overloadDto.overload.getValue());
+        } else {
+            int i = 0;
         }
     }
 
