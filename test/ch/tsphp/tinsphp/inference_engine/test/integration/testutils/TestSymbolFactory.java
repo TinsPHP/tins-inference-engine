@@ -15,6 +15,7 @@ package ch.tsphp.tinsphp.inference_engine.test.integration.testutils;
 import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ISymbol;
+import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
@@ -29,8 +30,11 @@ public class TestSymbolFactory extends SymbolFactory
 
     private List<ICreateSymbolListener> listeners = new ArrayList<>();
 
-    public TestSymbolFactory(IScopeHelper theScopeHelper, IModifierHelper theModifierHelper) {
-        super(theScopeHelper, theModifierHelper);
+    public TestSymbolFactory(
+            IScopeHelper theScopeHelper,
+            IModifierHelper theModifierHelper,
+            IOverloadResolver theOverloadResolver) {
+        super(theScopeHelper, theModifierHelper, theOverloadResolver);
     }
 
     //TODO rstoll TINS-161 inference OOP

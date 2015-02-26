@@ -15,8 +15,6 @@ import java.util.Set;
 public class ConstraintSolverDto
 {
 
-    //    public IScope currentScope;
-//    public String variableId;
     public Set<String> visitedVariables;
     public List<IConstraint> constraints;
     public IUnionTypeSymbol unionTypeSymbol;
@@ -24,13 +22,9 @@ public class ConstraintSolverDto
     public boolean hasUnionChanged;
 
     public ConstraintSolverDto(
-//            IScope theCurrentScope,
-//            String theVariableId,
             Set<String> theVisitedVariables,
             List<IConstraint> theConstraints,
             IUnionTypeSymbol theUnionTypeSymbol) {
-//        currentScope = theCurrentScope;
-//        variableId = theVariableId;
         visitedVariables = theVisitedVariables;
         constraints = theConstraints;
         unionTypeSymbol = theUnionTypeSymbol;

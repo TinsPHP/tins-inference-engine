@@ -14,7 +14,6 @@ import ch.tsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
-import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -56,7 +55,8 @@ public class ConstraintSolver implements IConstraintSolver
             IScope currentScope, String variableId, ConstraintSolverDto dto) {
         IUnionTypeSymbol unionTypeSymbol = currentScope.getResultOfConstraintSolving(variableId);
         if (unionTypeSymbol == null) {
-            unionTypeSymbol = addToVisitedAndSolve(getVisitKey(currentScope, variableId), dto);
+            String visitKey = getVisitKey(currentScope, variableId);
+            unionTypeSymbol = addToVisitedAndSolve(visitKey, dto);
             unionTypeSymbol.seal();
             currentScope.setResultOfConstraintSolving(variableId, unionTypeSymbol);
         }
@@ -65,27 +65,32 @@ public class ConstraintSolver implements IConstraintSolver
 
     private IUnionTypeSymbol addToVisitedAndSolve(String visitKey, ConstraintSolverDto dto) {
         dto.visitedVariables.add(visitKey);
-        return solveConstraints(dto);
+        List<IConstraint> iterativeConstraints = null;
+        for (IConstraint constraint : dto.constraints) {
+            try {
+                solveConstraint(dto, constraint);
+            } catch (CircularReferenceException ex) {
+                boolean notASelfReference = !ex.getVisitKey().equals(visitKey);
+                if (notASelfReference && dto.notInIterativeMode) {
+                    throw new CircularReferenceException(ex.getVisitKey());
+                } else {
+                    if (iterativeConstraints == null) {
+                        iterativeConstraints = new ArrayList<>();
+                    }
+                    iterativeConstraints.add(constraint);
+                }
+            }
+        }
+
+        if (iterativeConstraints != null) {
+            dto.notInIterativeMode = false;
+            solveIterativeConstraints(dto, iterativeConstraints);
+        }
+        return dto.unionTypeSymbol;
     }
 
     private String getVisitKey(IScope currentScope, String variableId) {
         return currentScope.getScopeName() + variableId;
-    }
-
-    private IUnionTypeSymbol solveConstraints(ConstraintSolverDto dto) {
-        List<IConstraint> iterativeConstraints = new ArrayList<>();
-        for (IConstraint constraint : dto.constraints) {
-            try {
-                solveConstraint(dto, constraint);
-            } catch (SelfReferenceInIntersectionException e) {
-                iterativeConstraints.add(constraint);
-            }
-        }
-
-        if (iterativeConstraints.size() != 0) {
-            solveIterativeConstraints(dto, iterativeConstraints);
-        }
-        return dto.unionTypeSymbol;
     }
 
     private void solveConstraint(ConstraintSolverDto dto, IConstraint constraint) {
@@ -118,13 +123,18 @@ public class ConstraintSolver implements IConstraintSolver
         if (unionTypeSymbol == null) {
             String visitKey = getVisitKey(refScope, refVariableId);
             if (!dto.visitedVariables.contains(visitKey)) {
-                addToVisitedAndSolve(
-                        visitKey,
-                        new ConstraintSolverDto(
-                                dto.visitedVariables,
-                                refScope.getConstraintsForVariable(refVariableId),
-                                dto.unionTypeSymbol
-                        ));
+                ConstraintSolverDto constraintSolverDto = new ConstraintSolverDto(
+                        dto.visitedVariables,
+                        refScope.getConstraintsForVariable(refVariableId),
+                        dto.unionTypeSymbol
+                );
+                //in case of a circle we can already proceed iteratively due to the nature of a reference (types are
+                // already propagated)
+                dto.notInIterativeMode = false;
+                constraintSolverDto.notInIterativeMode = false;
+                addToVisitedAndSolve(visitKey, constraintSolverDto);
+            } else if (dto.notInIterativeMode) {
+                throw new CircularReferenceException(visitKey);
             }
         } else {
             dto.unionTypeSymbol.merge(unionTypeSymbol);
@@ -146,18 +156,16 @@ public class ConstraintSolver implements IConstraintSolver
         }
 
         if (overloadRankingDto != null) {
-            addConversionsToAstIfNecessary(overloadRankingDto);
-            dto.hasUnionChanged = dto.unionTypeSymbol.addTypeSymbol(overloadRankingDto.overload.getValue());
-        } else {
-            int i = 0;
+            dto.hasUnionChanged = dto.unionTypeSymbol.addTypeSymbol(overloadRankingDto.overloadDto.returnTypeSymbol);
         }
     }
 
     private List<OverloadRankingDto> getApplicableOverloads(
             ConstraintSolverDto dto, IntersectionConstraint intersectionConstraint) {
         List<OverloadRankingDto> applicableOverloads = new ArrayList<>();
-        for (Map.Entry<List<RefTypeConstraint>, ITypeSymbol> overload : intersectionConstraint.getOverloads()) {
-            OverloadRankingDto overloadRankingDto = getApplicableOverload(dto, overload);
+        List<IUnionTypeSymbol> refVariableTypes = resolveRefVariableTypes(dto, intersectionConstraint);
+        for (OverloadDto overload : intersectionConstraint.getOverloads()) {
+            OverloadRankingDto overloadRankingDto = getApplicableOverload(dto, refVariableTypes, overload);
             if (overloadRankingDto != null) {
                 applicableOverloads.add(overloadRankingDto);
                 if (isOverloadWithoutPromotionNorConversion(overloadRankingDto)) {
@@ -168,28 +176,66 @@ public class ConstraintSolver implements IConstraintSolver
         return applicableOverloads;
     }
 
+    private List<IUnionTypeSymbol> resolveRefVariableTypes(
+            ConstraintSolverDto dto, IntersectionConstraint intersectionConstraint) {
+        List<IUnionTypeSymbol> refVariableTypes = new ArrayList<>();
+        for (RefConstraint refVariable : intersectionConstraint.getVariables()) {
+            String refVariableId = refVariable.getRefVariableId();
+            IScope refScope = refVariable.getRefScope();
+            IUnionTypeSymbol unionTypeSymbol = refScope.getResultOfConstraintSolving(refVariableId);
+            if (unionTypeSymbol == null) {
+                String visitKey = getVisitKey(refScope, refVariableId);
+                if (!dto.visitedVariables.contains(visitKey)) {
+                    ConstraintSolverDto constraintSolverDto = new ConstraintSolverDto(
+                            dto.visitedVariables,
+                            refScope.getConstraintsForVariable(refVariableId),
+                            symbolFactory.createUnionTypeSymbol(new HashMap<String, ITypeSymbol>())
+                    );
+                    constraintSolverDto.notInIterativeMode = dto.notInIterativeMode;
+                    try {
+                        unionTypeSymbol = addToVisitedAndSolve(visitKey, constraintSolverDto);
+                    } catch (CircularReferenceException ex) {
+                        constraintSolverDto.notInIterativeMode = false;
+                        constraintSolverDto.unionTypeSymbol = dto.unionTypeSymbol;
+                        unionTypeSymbol = addToVisitedAndSolve(visitKey, constraintSolverDto);
+                    }
+                } else if (dto.notInIterativeMode) {
+                    //cannot solve this yet, have to solve other first, requires iterative approach
+                    throw new CircularReferenceException(visitKey);
+                } else {
+                    //In iterative mode, hence use the existing union type as argument type
+                    unionTypeSymbol = dto.unionTypeSymbol;
+                }
+            }
+            refVariableTypes.add(unionTypeSymbol);
+        }
+        return refVariableTypes;
+    }
+
+
     private boolean isOverloadWithoutPromotionNorConversion(OverloadRankingDto dto) {
         return dto.parameterPromotedCount == 0 && dto.parametersNeedImplicitConversion.size() == 0
                 && (dto.parametersNeedExplicitConversion == null || dto.parametersNeedExplicitConversion.size() == 0);
     }
 
     private OverloadRankingDto getApplicableOverload(
-            ConstraintSolverDto dto, Map.Entry<List<RefTypeConstraint>, ITypeSymbol> overload) {
-        List<RefTypeConstraint> parameterConstraints = overload.getKey();
+            ConstraintSolverDto dto, List<IUnionTypeSymbol> refVariableTypes, OverloadDto overloadDto) {
+        List<List<IConstraint>> parametersConstraints = overloadDto.parametersConstraints;
+        int parameterCount = parametersConstraints.size();
         int promotionTotalCount = 0;
         int promotionParameterCount = 0;
         ConversionDto conversionDto = null;
         List<ConversionDto> parametersNeedImplicitConversion = new ArrayList<>();
 
-        for (RefTypeConstraint parameterConstraint : parameterConstraints) {
-            conversionDto = getCastingDto(dto, parameterConstraint);
+        for (int i = 0; i < parameterCount; ++i) {
+            conversionDto = getConversionDto(refVariableTypes.get(i), parametersConstraints.get(i));
             if (conversionDto != null) {
                 if (conversionDto.promotionLevel != 0) {
                     ++promotionParameterCount;
                     promotionTotalCount += conversionDto.promotionLevel;
                 }
-                //TODO casting
-//                if (castingDto.castingMethods != null) {
+                //TODO conversions
+//                if (conversionDto.castingMethods != null) {
 //                    parametersNeedImplicitConversion.add(castingDto);
 //                }
             } else {
@@ -199,55 +245,37 @@ public class ConstraintSolver implements IConstraintSolver
 
         if (conversionDto != null) {
             return new OverloadRankingDto(
-                    overload, promotionParameterCount, promotionTotalCount, parametersNeedImplicitConversion);
+                    overloadDto, promotionParameterCount, promotionTotalCount, parametersNeedImplicitConversion);
         }
         return null;
     }
 
-    private ConversionDto getCastingDto(ConstraintSolverDto dto, RefTypeConstraint parameterConstraint) {
-        IVariableSymbol variableSymbol = (IVariableSymbol) parameterConstraint.getVariableIdAst().getSymbol();
-        if (!variableSymbol.isAlwaysCasting()) {
-            return getCastingDtoInNormalMode(dto, parameterConstraint);
-        }
-        return getCastingDtoInAlwaysCastingMode(dto, parameterConstraint);
-    }
+    private ConversionDto getConversionDto(IUnionTypeSymbol refVariableType, List<IConstraint> parameterConstraints) {
 
-    private ConversionDto getCastingDtoInNormalMode(ConstraintSolverDto dto, RefTypeConstraint parameterConstraint) {
-        ConversionDto conversionDto;
-
-        IScope refScope = parameterConstraint.getRefScope();
-        String refVariableId = parameterConstraint.getRefVariableId();
-        IUnionTypeSymbol unionTypeSymbol = refScope.getResultOfConstraintSolving(refVariableId);
-        if (unionTypeSymbol == null) {
-            String visitKey = getVisitKey(refScope, refVariableId);
-            if (!dto.visitedVariables.contains(visitKey)) {
-                unionTypeSymbol = addToVisitedAndSolve(
-                        visitKey,
-                        new ConstraintSolverDto(
-                                dto.visitedVariables,
-                                refScope.getConstraintsForVariable(refVariableId),
-                                dto.unionTypeSymbol
-                        ));
-//                unionTypeSymbol = solveAndAddToResultsIfNotAlreadySolved(
-//                        refScope,
-//                        refVariableId,
-//                        new ConstraintSolverDto(
-//                                dto.visitedVariables,
-//                                refScope.getConstraintsForVariable(refVariableId),
-//                                symbolFactory.createUnionTypeSymbol(new HashMap<String, ITypeSymbol>())
-//                        ));
-            } else if (dto.notInIterativeMode) {
-                //cannot solve this yet, have to solve other first, requires iterative approach
-                dto.notInIterativeMode = false;
-                throw new SelfReferenceInIntersectionException();
+        //TODO take conversions into account - implicit conversions should be preferred over explicit conversions
+        ConversionDto conversionDto = null;
+        int highestPromotionLevel = -1;
+        for (IConstraint constraint : parameterConstraints) {
+            if (constraint instanceof TypeConstraint) {
+                conversionDto = getConversionDto(refVariableType, (TypeConstraint) constraint);
+            }
+            if (conversionDto != null) {
+                if (highestPromotionLevel < conversionDto.promotionLevel) {
+                    highestPromotionLevel = conversionDto.promotionLevel;
+                }
             } else {
-                //In iterative mode, hence use the existing union type as argument type
-                unionTypeSymbol = dto.unionTypeSymbol;
+                break;
             }
         }
+        if (conversionDto != null) {
+            conversionDto.promotionLevel = highestPromotionLevel;
+        }
+        return conversionDto;
+    }
 
-        ITypeSymbol overloadType = parameterConstraint.getVariableIdAst().getSymbol().getType();
-        int promotionLevel = overloadResolver.getPromotionLevelFromTo(unionTypeSymbol, overloadType);
+    private ConversionDto getConversionDto(IUnionTypeSymbol refVariableType, TypeConstraint constraint) {
+        ConversionDto conversionDto;
+        int promotionLevel = overloadResolver.getPromotionLevelFromTo(refVariableType, constraint.getType());
         if (overloadResolver.isSameOrSubType(promotionLevel)) {
             conversionDto = new ConversionDto(promotionLevel, 0);
         } else {
@@ -257,12 +285,6 @@ public class ConstraintSolver implements IConstraintSolver
         return conversionDto;
     }
 
-
-    private ConversionDto getCastingDtoInAlwaysCastingMode(
-            ConstraintSolverDto dto, RefTypeConstraint parameterConstraint) {
-        //TODO implement always casting mode
-        return null;
-    }
 
     public OverloadRankingDto getMostSpecificApplicableOverload(List<OverloadRankingDto> overloadRankingDtos) throws
             AmbiguousCallException {
@@ -312,20 +334,4 @@ public class ConstraintSolver implements IConstraintSolver
                 && mostSpecificMethodDto.parameterPromotedCount == methodDto.parameterPromotedCount
                 && mostSpecificMethodDto.promotionsTotal == methodDto.promotionsTotal;
     }
-
-    private void addConversionsToAstIfNecessary(OverloadRankingDto dto) {
-        for (ConversionDto parameterPromotionDto : dto.parametersNeedImplicitConversion) {
-            //TODO insert casting
-//            astHelper.prependImplicitCasting(parameterPromotionDto);
-        }
-
-        if (dto.parametersNeedExplicitConversion != null) {
-
-            for (ConversionDto parameterPromotionDto : dto.parametersNeedExplicitConversion) {
-                //TODO insert casting
-//            astHelper.prependExplicitConversion(parameterPromotionDto);
-            }
-        }
-    }
-
 }

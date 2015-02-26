@@ -18,6 +18,7 @@ import ch.tsphp.common.ITSPHPAstAdaptor;
 import ch.tsphp.common.ParserUnitDto;
 import ch.tsphp.common.TSPHPAstAdaptor;
 import ch.tsphp.tinsphp.common.ICore;
+import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
 import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
@@ -30,6 +31,7 @@ import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.TestNamespac
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.TestSymbolFactory;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.WriteExceptionToConsole;
 import ch.tsphp.tinsphp.symbols.ModifierHelper;
+import ch.tsphp.tinsphp.symbols.utils.OverloadResolver;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -54,6 +56,7 @@ public abstract class ADefinitionTest extends ATest
     protected TestSymbolFactory symbolFactory;
     protected IScopeHelper scopeHelper;
     protected IModifierHelper modifierHelper;
+    protected IOverloadResolver overloadResolver;
     protected ICore core;
 
     public ADefinitionTest(String theTestString) {
@@ -69,7 +72,8 @@ public abstract class ADefinitionTest extends ATest
         scopeHelper = createScopeHelper();
         scopeFactory = createTestScopeFactory(scopeHelper);
         modifierHelper = createModifierHelper();
-        symbolFactory = createTestSymbolFactory(scopeHelper, modifierHelper);
+        overloadResolver = createOverloadResolver();
+        symbolFactory = createTestSymbolFactory(scopeHelper, modifierHelper, overloadResolver);
 
         definitionPhaseController = createTestDefiner(symbolFactory, scopeFactory);
         core = createCore(symbolFactory);
@@ -127,9 +131,13 @@ public abstract class ADefinitionTest extends ATest
         return new ModifierHelper();
     }
 
+    protected IOverloadResolver createOverloadResolver() {
+        return new OverloadResolver();
+    }
+
     protected TestSymbolFactory createTestSymbolFactory(
-            IScopeHelper theScopeHelper, IModifierHelper theModifierHelper) {
-        return new TestSymbolFactory(theScopeHelper, theModifierHelper);
+            IScopeHelper theScopeHelper, IModifierHelper theModifierHelper, IOverloadResolver theOverloadResolver) {
+        return new TestSymbolFactory(theScopeHelper, theModifierHelper, theOverloadResolver);
     }
 
     protected ICore createCore(TestSymbolFactory symbolFactory) {

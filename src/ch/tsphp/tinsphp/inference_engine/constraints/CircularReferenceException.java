@@ -9,6 +9,15 @@ package ch.tsphp.tinsphp.inference_engine.constraints;
 /**
  * Mainly used for control flow when a self reference is detected in intersection constraint
  */
-public class SelfReferenceInIntersectionException extends RuntimeException
+public class CircularReferenceException extends RuntimeException
 {
+    private String visitKey;
+
+    public CircularReferenceException(String theVisitKey) {
+        visitKey = theVisitKey;
+    }
+
+    public String getVisitKey() {
+        return visitKey;
+    }
 }

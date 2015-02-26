@@ -17,8 +17,8 @@ import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.constraints.IntersectionConstraint;
+import ch.tsphp.tinsphp.inference_engine.constraints.OverloadDto;
 import ch.tsphp.tinsphp.inference_engine.constraints.RefConstraint;
-import ch.tsphp.tinsphp.inference_engine.constraints.RefTypeConstraint;
 import ch.tsphp.tinsphp.inference_engine.constraints.TypeConstraint;
 import ch.tsphp.tinsphp.inference_engine.scopes.ScopeHelper;
 import ch.tsphp.tinsphp.symbols.ModifierHelper;
@@ -29,7 +29,6 @@ import org.junit.Ignore;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -60,7 +59,6 @@ public abstract class AConstraintSolverTest
     protected static ITypeSymbol interfaceBType;
     protected static ITypeSymbol fooType;
     //Warning! end code duplication - same as in OverloadResolverPromotionLevelTest from the inference component
-
 
     @BeforeClass
     public static void init() {
@@ -116,10 +114,6 @@ public abstract class AConstraintSolverTest
         return new HashSet<>(asList(symbols));
     }
 
-    protected ITSPHPAst varAst(ITypeSymbol typeSymbol) {
-        return varAst(typeSymbol, false);
-    }
-
     protected ITSPHPAst varAst(ITypeSymbol typeSymbol, final boolean isAlwaysCasting) {
         IVariableSymbol variableSymbol = mock(IVariableSymbol.class);
         when(variableSymbol.getType()).thenReturn(typeSymbol);
@@ -130,24 +124,15 @@ public abstract class AConstraintSolverTest
         return variableAst;
     }
 
-    protected Map.Entry<List<RefTypeConstraint>, ITypeSymbol> entry(
-            List<RefTypeConstraint> constraints, ITypeSymbol typeSymbol) {
-        return new AbstractMap.SimpleEntry<>(constraints, typeSymbol);
+    protected IConstraint intersect(List<RefConstraint> variables, List<OverloadDto> overloads) {
+        return new IntersectionConstraint(variables, overloads);
     }
 
-    protected RefTypeConstraint refType(String variableId, IScope scope, ITypeSymbol typeSymbol) {
-        return refType(variableId, scope, varAst(typeSymbol));
+    protected IConstraint iRef(String refVariableName, IScope refScope) {
+        return ref(refVariableName, refScope);
     }
 
-    protected RefTypeConstraint refType(String variableId, IScope scope, ITSPHPAst variableAst) {
-        return new RefTypeConstraint(variableId, scope, variableAst);
-    }
-
-    protected IConstraint intersect(List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> overloads) {
-        return new IntersectionConstraint(overloads);
-    }
-
-    protected IConstraint ref(String refVariableName, IScope refScope) {
+    protected RefConstraint ref(String refVariableName, IScope refScope) {
         return new RefConstraint(refVariableName, refScope);
     }
 
@@ -192,6 +177,31 @@ public abstract class AConstraintSolverTest
         return map;
     }
 
+    protected IConstraint createPartialAdditionWithInt(String variableId, IScope scope) {
+        return intersect(asList(ref(variableId, scope)), asList(
+                new OverloadDto(asList(asList(type(intType))), intType),
+                new OverloadDto(asList(asList(type(numType))), numType)
+        ));
+    }
+
+    protected IConstraint createPartialAdditionWithFloat(String variableId, IScope scope) {
+        return intersect(asList(ref(variableId, scope)), asList(
+                new OverloadDto(asList(asList(type(floatType))), floatType),
+                new OverloadDto(asList(asList(type(numType))), numType)
+        ));
+    }
+
+    protected IConstraint createAdditionIntersection(
+            String variableLhs, IScope scopeLhs, String variableRhs, IScope scopeRhs) {
+        return intersect(asList(ref(variableLhs, scopeLhs), ref(variableRhs, scopeRhs)),
+                asList(
+                        new OverloadDto(asList(asList(type(intType)), asList(type(intType))), intType),
+                        new OverloadDto(asList(asList(type(floatType)), asList(type(floatType))), floatType),
+                        new OverloadDto(asList(asList(type(numType)), asList(type(numType))), numType),
+                        new OverloadDto(asList(asList(type(arrayType)), asList(type(arrayType))), arrayType)
+                ));
+    }
+
     protected IConstraintSolver createConstraintSolver() {
         IOverloadResolver overloadResolver = new OverloadResolver();
         return createConstraintSolver(nothingType,
@@ -201,54 +211,5 @@ public abstract class AConstraintSolverTest
     protected IConstraintSolver createConstraintSolver(
             ITypeSymbol theNothingTypeSymbol, ISymbolFactory theSymbolFactory, IOverloadResolver overloadResolver) {
         return new ConstraintSolver(theNothingTypeSymbol, theSymbolFactory, overloadResolver);
-    }
-
-    protected List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> createPartialAdditionWithInt(String variableId,
-            IScope scope) {
-        return asList(
-                entry(asList(refType(variableId, scope, intType)), intType),
-                entry(asList(refType(variableId, scope, numType)), numType),
-                entry(asList(refType(variableId, scope, varAst(numType, true))), numType)
-        );
-    }
-
-    protected List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> createPartialAdditionWithFloat(String variableId,
-            IScope scope) {
-        return asList(
-                entry(asList(refType(variableId, scope, floatType)), floatType),
-                entry(asList(refType(variableId, scope, numType)), numType),
-                entry(asList(refType(variableId, scope, varAst(numType, true))), numType)
-        );
-    }
-
-    protected List<Map.Entry<List<RefTypeConstraint>, ITypeSymbol>> createAdditionOverload(
-            String variableLhs, IScope scopeLhs, String variableRhs, IScope scopeRhs) {
-        return asList(
-                entry(
-                        asList(
-                                refType(variableLhs, scopeLhs, intType),
-                                refType(variableRhs, scopeRhs, intType)
-                        ), intType),
-                entry(
-                        asList(
-                                refType(variableLhs, scopeLhs, floatType),
-                                refType(variableRhs, scopeRhs, floatType)
-                        ), floatType),
-                entry(
-                        asList(
-                                refType(variableLhs, scopeLhs, numType),
-                                refType(variableRhs, scopeRhs, numType)
-                        ), numType),
-                entry(
-                        asList(
-                                refType(variableLhs, scopeLhs, varAst(numType, true)),
-                                refType(variableRhs, scopeRhs, varAst(numType, true))
-                        ), numType),
-                entry(
-                        asList(
-                                refType(variableLhs, scopeLhs, arrayType),
-                                refType(variableRhs, scopeLhs, arrayType)
-                        ), arrayType)
-        );
     }
 }

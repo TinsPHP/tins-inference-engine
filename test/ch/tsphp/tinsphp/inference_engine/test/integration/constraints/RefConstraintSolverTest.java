@@ -64,7 +64,7 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
         Map<String, List<IConstraint>> map = new HashMap<>();
         IScope scope = createScopeWithConstraints(map);
         map.put("$b", asList(type(intType), type(fooType), type(arrayType)));
-        map.put("$a", asList(ref("$b", scope)));
+        map.put("$a", asList(iRef("$b", scope)));
         Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
 
 
@@ -151,7 +151,7 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
                     solver.solveConstraintsOfScope(scope);
                     return null;
                 }
-            }, 200, TimeUnit.SECONDS);
+            }, 2, TimeUnit.SECONDS);
 
             //assert
             assertThat(result.size(), is(2));
@@ -261,7 +261,7 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
         map.put("$a", asList(ref("$b", scope), type(arrayType)));
         map.put("$b", asList(ref("$c", scope), ref("$a", scope), type(intType)));
         map.put("$c", asList(ref("$d", scope), type(floatType)));
-        map.put("$d", asList(ref("$b", scope), ref("$c", scope)));
+        map.put("$d", asList(iRef("$b", scope), ref("$c", scope)));
         Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
 
         try {
@@ -273,7 +273,7 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
                     solver.solveConstraintsOfScope(scope);
                     return null;
                 }
-            }, 2, TimeUnit.SECONDS);
+            }, 2000, TimeUnit.SECONDS);
 
             //assert
             assertThat(result.size(), is(4));
