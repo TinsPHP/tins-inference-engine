@@ -18,7 +18,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasKey;
@@ -28,9 +27,9 @@ public class TypeConstraintSolverTest extends AConstraintSolverTest
 {
 
     @Test
-    public void resolveConstraints_Int_UnionContainsOnlyInt() {
+    public void solveConstraintsOfScope_Int_UnionContainsOnlyInt() {
         Map<String, List<IConstraint>> map = new HashMap<>();
-        map.put("$a", asList(type(intType)));
+        map.put("$a", list(type(intType)));
         IScope scope = createScopeWithConstraints(map);
         Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
 
@@ -44,9 +43,9 @@ public class TypeConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void resolveConstraints_IntAndFloat_UnionContainsIntAndFloat() {
+    public void solveConstraintsOfScope_IntAndFloat_UnionContainsIntAndFloat() {
         Map<String, List<IConstraint>> map = new HashMap<>();
-        map.put("$a", asList(type(intType), type(floatType)));
+        map.put("$a", list(type(intType), type(floatType)));
         IScope scope = createScopeWithConstraints(map);
         Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
 
@@ -60,9 +59,9 @@ public class TypeConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void resolveConstraints_IntAndNum_UnionContainsOnlyNum() {
+    public void solveConstraintsOfScope_IntAndNum_UnionContainsOnlyNum() {
         Map<String, List<IConstraint>> map = new HashMap<>();
-        map.put("$a", asList(type(intType), type(numType)));
+        map.put("$a", list(type(intType), type(numType)));
         IScope scope = createScopeWithConstraints(map);
         Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
 
@@ -76,9 +75,9 @@ public class TypeConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void resolveConstraints_NumAndIntAndScalar_UnionContainsOnlyScalar() {
+    public void solveConstraintsOfScope_NumAndIntAndScalar_UnionContainsOnlyScalar() {
         Map<String, List<IConstraint>> map = new HashMap<>();
-        map.put("$a", asList(type(numType), type(intType), type(scalarType)));
+        map.put("$a", list(type(numType), type(intType), type(scalarType)));
         IScope scope = createScopeWithConstraints(map);
         Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
 

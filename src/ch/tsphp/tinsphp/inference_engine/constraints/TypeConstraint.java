@@ -11,14 +11,14 @@ import ch.tsphp.common.symbols.ITypeSymbol;
 
 public class TypeConstraint implements IConstraint
 {
-    private ITypeSymbol type;
+    private ITypeSymbol typeSymbol;
 
-    public TypeConstraint(ITypeSymbol theType) {
-        type = theType;
+    public TypeConstraint(ITypeSymbol theTypeSymbol) {
+        typeSymbol = theTypeSymbol;
     }
 
-    public ITypeSymbol getType() {
-        return type;
+    public ITypeSymbol getTypeSymbol() {
+        return typeSymbol;
     }
 
 }

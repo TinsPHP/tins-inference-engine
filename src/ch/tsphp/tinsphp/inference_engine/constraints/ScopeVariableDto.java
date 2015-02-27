@@ -6,18 +6,15 @@
 
 package ch.tsphp.tinsphp.inference_engine.constraints;
 
-import ch.tsphp.common.IConstraint;
 import ch.tsphp.common.IScope;
 
-public class RefConstraint implements IConstraint
+public class ScopeVariableDto
 {
-    private ScopeVariableDto variable;
+    public IScope scope;
+    public String variableId;
 
-    public RefConstraint(IScope theRefScope, String theReferenceName) {
-        variable = new ScopeVariableDto(theRefScope, theReferenceName);
-    }
-
-    public ScopeVariableDto getScopeVariableDto() {
-        return variable;
+    public ScopeVariableDto(IScope theScope, String theVariableId) {
+        scope = theScope;
+        variableId = theVariableId;
     }
 }

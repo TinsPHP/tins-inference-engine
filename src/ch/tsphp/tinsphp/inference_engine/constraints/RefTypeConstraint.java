@@ -15,7 +15,7 @@ public class RefTypeConstraint extends RefConstraint
     private ITSPHPAst variableIdAst;
 
     public RefTypeConstraint(String theReferenceName, IScope theRefScope, ITSPHPAst theVariableIdAst) {
-        super(theReferenceName, theRefScope);
+        super(theRefScope, theReferenceName);
         variableIdAst = theVariableIdAst;
     }
 

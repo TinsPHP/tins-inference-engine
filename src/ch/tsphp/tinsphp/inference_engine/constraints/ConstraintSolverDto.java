@@ -15,19 +15,46 @@ import java.util.Set;
 public class ConstraintSolverDto
 {
 
+    public ScopeVariableDto startVariable;
+    public ScopeVariableDto currentVariable;
     public Set<String> visitedVariables;
+    public Set<String> revisitVariables;
     public List<IConstraint> constraints;
     public IUnionTypeSymbol unionTypeSymbol;
     public boolean notInIterativeMode = true;
     public boolean hasUnionChanged;
+    public boolean hasNotCircularReference = true;
+    public ScopeVariableDto circularRefVariable;
 
     public ConstraintSolverDto(
-            Set<String> theVisitedVariables,
+            ConstraintSolverDto dto,
+            ScopeVariableDto theCurrentVariable,
             List<IConstraint> theConstraints,
             IUnionTypeSymbol theUnionTypeSymbol) {
+        this(
+                dto.startVariable,
+                dto.visitedVariables,
+                dto.revisitVariables,
+                theCurrentVariable,
+                theConstraints,
+                theUnionTypeSymbol
+        );
+        notInIterativeMode = dto.notInIterativeMode;
+        hasUnionChanged = dto.hasUnionChanged;
+    }
+
+    public ConstraintSolverDto(
+            ScopeVariableDto theStartVariable,
+            Set<String> theVisitedVariables,
+            Set<String> theVariablesToRevisit,
+            ScopeVariableDto theCurrentVariable,
+            List<IConstraint> theConstraints,
+            IUnionTypeSymbol theUnionTypeSymbol) {
+        startVariable = theStartVariable;
+        currentVariable = theCurrentVariable;
         visitedVariables = theVisitedVariables;
+        revisitVariables = theVariablesToRevisit;
         constraints = theConstraints;
         unionTypeSymbol = theUnionTypeSymbol;
     }
-
 }

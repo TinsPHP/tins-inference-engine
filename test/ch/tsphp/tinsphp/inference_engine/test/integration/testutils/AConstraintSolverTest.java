@@ -8,13 +8,11 @@ package ch.tsphp.tinsphp.inference_engine.test.integration.testutils;
 
 import ch.tsphp.common.IConstraint;
 import ch.tsphp.common.IScope;
-import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
-import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.constraints.IntersectionConstraint;
 import ch.tsphp.tinsphp.inference_engine.constraints.OverloadDto;
@@ -29,6 +27,7 @@ import org.junit.Ignore;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -44,7 +43,10 @@ import static org.mockito.Mockito.when;
 @Ignore
 public abstract class AConstraintSolverTest
 {
-    //Warning! start code duplication - same as in OverloadResolverPromotionLevelTest from the inference component
+    //TODO reset to 2, 2000 just for debugging
+    protected static int TIMEOUT = 2000;
+
+    //Warning! start code duplication - same as in OverloadResolverPromotionLevelTest from the symbols component
     protected static ITypeSymbol mixedType;
     protected static ITypeSymbol arrayType;
     protected static ITypeSymbol scalarType;
@@ -52,17 +54,18 @@ public abstract class AConstraintSolverTest
     protected static ITypeSymbol numType;
     protected static ITypeSymbol floatType;
     protected static ITypeSymbol intType;
+    protected static ITypeSymbol boolType;
     protected static ITypeSymbol nothingType;
 
     protected static ITypeSymbol interfaceAType;
     protected static ITypeSymbol interfaceSubAType;
     protected static ITypeSymbol interfaceBType;
     protected static ITypeSymbol fooType;
-    //Warning! end code duplication - same as in OverloadResolverPromotionLevelTest from the inference component
+    //Warning! end code duplication - same as in OverloadResolverPromotionLevelTest from the symbols component
 
     @BeforeClass
     public static void init() {
-        //Warning! start code duplication - same as in OverloadResolverPromotionLevelTest from the inference component
+        //Warning! start code duplication - same as in OverloadResolverPromotionLevelTest from the symbols component
         mixedType = mock(ITypeSymbol.class);
 
         arrayType = mock(ITypeSymbol.class);
@@ -89,6 +92,10 @@ public abstract class AConstraintSolverTest
         when(intType.getParentTypeSymbols()).thenReturn(set(numType));
         when(intType.getAbsoluteName()).thenReturn("int");
 
+        boolType = mock(ITypeSymbol.class);
+        when(boolType.getParentTypeSymbols()).thenReturn(set(scalarType));
+        when(boolType.getAbsoluteName()).thenReturn("bool");
+
         nothingType = mock(ITypeSymbol.class);
         when(nothingType.getAbsoluteName()).thenReturn("nothing");
 
@@ -114,14 +121,12 @@ public abstract class AConstraintSolverTest
         return new HashSet<>(asList(symbols));
     }
 
-    protected ITSPHPAst varAst(ITypeSymbol typeSymbol, final boolean isAlwaysCasting) {
-        IVariableSymbol variableSymbol = mock(IVariableSymbol.class);
-        when(variableSymbol.getType()).thenReturn(typeSymbol);
-        when(variableSymbol.isAlwaysCasting()).thenReturn(isAlwaysCasting);
-
-        ITSPHPAst variableAst = mock(ITSPHPAst.class);
-        when(variableAst.getSymbol()).thenReturn(variableSymbol);
-        return variableAst;
+    protected <T> List<T> list(T... objects) {
+        List<T> list = new ArrayList<>();
+        for (T obj : objects) {
+            list.add(obj);
+        }
+        return list;
     }
 
     protected IConstraint intersect(List<RefConstraint> variables, List<OverloadDto> overloads) {
@@ -133,7 +138,7 @@ public abstract class AConstraintSolverTest
     }
 
     protected RefConstraint ref(String refVariableName, IScope refScope) {
-        return new RefConstraint(refVariableName, refScope);
+        return new RefConstraint(refScope, refVariableName);
     }
 
     protected IConstraint type(ITypeSymbol typeSymbol) {
@@ -173,7 +178,6 @@ public abstract class AConstraintSolverTest
                 return map.get((String) invocationOnMock.getArguments()[0]);
             }
         });
-
         return map;
     }
 
@@ -195,6 +199,7 @@ public abstract class AConstraintSolverTest
             String variableLhs, IScope scopeLhs, String variableRhs, IScope scopeRhs) {
         return intersect(asList(ref(variableLhs, scopeLhs), ref(variableRhs, scopeRhs)),
                 asList(
+                        new OverloadDto(asList(asList(type(boolType)), asList(type(boolType))), intType),
                         new OverloadDto(asList(asList(type(intType)), asList(type(intType))), intType),
                         new OverloadDto(asList(asList(type(floatType)), asList(type(floatType))), floatType),
                         new OverloadDto(asList(asList(type(numType)), asList(type(numType))), numType),
