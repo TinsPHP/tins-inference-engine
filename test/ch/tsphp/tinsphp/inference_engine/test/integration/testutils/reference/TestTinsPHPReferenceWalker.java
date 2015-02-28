@@ -23,7 +23,7 @@ public class TestTinsPHPReferenceWalker extends ErrorReportingTinsPHPReferenceWa
 
     public TestTinsPHPReferenceWalker(
             TreeNodeStream input, IReferencePhaseController controller, ITSPHPAstAdaptor astAdaptor) {
-        super(input, controller, astAdaptor);
+        super(input, controller);
     }
 
     public RecognizerSharedState getState() {

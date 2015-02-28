@@ -244,7 +244,7 @@ public abstract class AReferenceTest extends ADefinitionTest
             CommonTreeNodeStream theCommonTreeNodeStream,
             IReferencePhaseController theController,
             ITSPHPAstAdaptor theAstAdaptor) {
-        return new ErrorReportingTinsPHPReferenceWalker(theCommonTreeNodeStream, theController, theAstAdaptor);
+        return new ErrorReportingTinsPHPReferenceWalker(theCommonTreeNodeStream, theController);
     }
 
 }

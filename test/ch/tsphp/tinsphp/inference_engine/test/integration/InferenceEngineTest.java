@@ -86,6 +86,6 @@ public class InferenceEngineTest extends ATest
     }
 
     protected IInferenceEngine createInferenceEngine(TSPHPAstAdaptor astAdaptor) {
-        return new InferenceEngine(astAdaptor);
+        return new InferenceEngine();
     }
 }
