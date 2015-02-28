@@ -847,4 +847,39 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
             fail("Did not terminate after 2 seconds, most probably endless loop");
         }
     }
+
+    @Test
+    public void solveConstraintsOfScope_AdditionWithTwiceSelfRefIntAndFloat$a_$aIsNum()
+            throws ExecutionException, InterruptedException {
+        // corresponds:
+        // $a = 1;
+        // $a = $a + $a;
+        // $a = 1.2;
+
+        Map<String, List<IConstraint>> map = new HashMap<>();
+        final IScope scope = createScopeWithConstraints(map);
+        IConstraint intersectionA = createAdditionIntersection("$a", scope, "$a", scope);
+
+        map.put("$a", list(type(intType), intersectionA, type(floatType)));
+        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+
+        try {
+            //act
+            ActWithTimeout.exec(new Callable<Void>()
+            {
+                public Void call() {
+                    IConstraintSolver solver = createConstraintSolver();
+                    solver.solveConstraintsOfScope(scope);
+                    return null;
+                }
+            }, TIMEOUT, TimeUnit.SECONDS);
+
+            //assert
+            assertThat(result.size(), is(1));
+            assertThat(result, hasKey("$a"));
+            assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("num"));
+        } catch (TimeoutException e) {
+            fail("Did not terminate after 2 seconds, most probably endless loop");
+        }
+    }
 }

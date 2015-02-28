@@ -10,14 +10,14 @@ import ch.tsphp.common.IConstraint;
 import ch.tsphp.common.symbols.IUnionTypeSymbol;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class ConstraintSolverDto
 {
 
-    public ScopeVariableDto startVariable;
     public ScopeVariableDto currentVariable;
-    public Set<String> visitedVariables;
+    public Map<String, Integer> visitedVariables;
     public Set<String> revisitVariables;
     public List<IConstraint> constraints;
     public IUnionTypeSymbol unionTypeSymbol;
@@ -32,7 +32,6 @@ public class ConstraintSolverDto
             List<IConstraint> theConstraints,
             IUnionTypeSymbol theUnionTypeSymbol) {
         this(
-                dto.startVariable,
                 dto.visitedVariables,
                 dto.revisitVariables,
                 theCurrentVariable,
@@ -41,16 +40,15 @@ public class ConstraintSolverDto
         );
         notInIterativeMode = dto.notInIterativeMode;
         hasUnionChanged = dto.hasUnionChanged;
+        circularRefVariable = dto.circularRefVariable;
     }
 
     public ConstraintSolverDto(
-            ScopeVariableDto theStartVariable,
-            Set<String> theVisitedVariables,
+            Map<String, Integer> theVisitedVariables,
             Set<String> theVariablesToRevisit,
             ScopeVariableDto theCurrentVariable,
             List<IConstraint> theConstraints,
             IUnionTypeSymbol theUnionTypeSymbol) {
-        startVariable = theStartVariable;
         currentVariable = theCurrentVariable;
         visitedVariables = theVisitedVariables;
         revisitVariables = theVariablesToRevisit;

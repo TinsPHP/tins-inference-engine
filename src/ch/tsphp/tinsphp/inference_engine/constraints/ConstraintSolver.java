@@ -39,14 +39,13 @@ public class ConstraintSolver implements IConstraintSolver
     @Override
     public void solveConstraintsOfScope(IScope currentScope) {
         for (Map.Entry<String, List<IConstraint>> constraintsEntry : currentScope.getConstraints().entrySet()) {
-            Set<String> visitedVariables = new HashSet<>();
+            Map<String, Integer> visitedVariables = new HashMap<>();
             Set<String> variablesToRevisit = new HashSet<>();
             String variableId = constraintsEntry.getKey();
             ScopeVariableDto variableToVisit = new ScopeVariableDto(currentScope, variableId);
             IUnionTypeSymbol unionTypeSymbol = getOrInitialiseVariableUnionTypeSymbol(variableToVisit);
             if (!unionTypeSymbol.isReadyForEval()) {
                 ConstraintSolverDto dto = new ConstraintSolverDto(
-                        variableToVisit,
                         visitedVariables,
                         variablesToRevisit,
                         variableToVisit,
@@ -69,16 +68,15 @@ public class ConstraintSolver implements IConstraintSolver
     }
 
     private IUnionTypeSymbol addToVisitedAndSolve(ScopeVariableDto variableToVisit, ConstraintSolverDto dto) {
-        dto.visitedVariables.add(getVisitKey(variableToVisit));
+        dto.visitedVariables.put(getVisitKey(variableToVisit), dto.visitedVariables.size());
         List<IConstraint> iterativeConstraints = null;
         Iterator<IConstraint> iterator = dto.constraints.listIterator();
 
         while (iterator.hasNext()) {
             IConstraint constraint = iterator.next();
             solveConstraint(dto, iterator, constraint);
-            if (hasCircularReferenceAndIsBackAtTheBeginning(dto.circularRefVariable, variableToVisit)) {
+            if (hasCircularReferenceAndIsBackAtTheBeginning(dto, variableToVisit)) {
                 dto.hasNotCircularReference = true;
-                dto.circularRefVariable = null;
                 if (iterativeConstraints == null) {
                     iterativeConstraints = new ArrayList<>();
                 }
@@ -86,15 +84,25 @@ public class ConstraintSolver implements IConstraintSolver
             }
         }
 
-        if (iterativeConstraints != null) {
+        // might be that it is no longer the circular reference starting point, consider
+        // $a -> $b -> $c -> $d -> $c    //$c will be the current starting point of the circular reference
+        //        | -> $a                //$a will be the new starting point of the circular reference
+        if (hasIterativeConstraintsAndIsStartingPoint(iterativeConstraints, dto)) {
             solveIterativeConstraints(dto, iterativeConstraints);
         }
         return dto.unionTypeSymbol;
     }
 
+    private boolean hasIterativeConstraintsAndIsStartingPoint(
+            List<IConstraint> iterativeConstraints, ConstraintSolverDto dto) {
+        return iterativeConstraints != null
+                && (dto.circularRefVariable == null
+                || !isNotSelfReference(dto.circularRefVariable, dto.currentVariable));
+    }
+
     private boolean hasCircularReferenceAndIsBackAtTheBeginning(
-            ScopeVariableDto circularRefVariable, ScopeVariableDto variableToVisit) {
-        return circularRefVariable != null && !isNotSelfReference(circularRefVariable, variableToVisit);
+            ConstraintSolverDto dto, ScopeVariableDto variableToVisit) {
+        return dto.circularRefVariable != null && !isNotSelfReference(dto.circularRefVariable, variableToVisit);
     }
 
     private boolean isNotSelfReference(ScopeVariableDto circularRefVariable, ScopeVariableDto variableToVisit) {
@@ -109,7 +117,7 @@ public class ConstraintSolver implements IConstraintSolver
     private void solveIterativeConstraints(ConstraintSolverDto dto, List<IConstraint> constraints) {
         dto.notInIterativeMode = false;
 
-        //TODO recursive functions
+        //TODO recursive generic functions
         //Sure that it terminates? nope I do not think so, need to add a guard, fall back to mixed after 10 attempts
         // or similar
 
@@ -124,23 +132,28 @@ public class ConstraintSolver implements IConstraintSolver
             }
         }
 
-        if (isNotSelfReference(dto.startVariable, dto.currentVariable)) {
+        if (isNotBeginningVariable(dto, dto.currentVariable)) {
             IScope scope = dto.currentVariable.scope;
             IUnionTypeSymbol unionTypeSymbol = scope.getResultOfConstraintSolving(dto.currentVariable.variableId);
-            boolean hasChanged = dto.unionTypeSymbol.merge(unionTypeSymbol);
-            dto.hasUnionChanged = dto.hasUnionChanged || hasChanged;
+            dto.unionTypeSymbol.merge(unionTypeSymbol);
         }
 
         resetIterativeInformation(dto);
+        dto.circularRefVariable = null;
         dto.notInIterativeMode = true;
     }
 
+    private boolean isNotBeginningVariable(ConstraintSolverDto dto, ScopeVariableDto currentVariable) {
+        return dto.visitedVariables.get(getVisitKey(currentVariable)) != 0;
+    }
+
     private void resetIterativeInformation(ConstraintSolverDto dto) {
-        dto.visitedVariables.removeAll(dto.revisitVariables);
-        dto.revisitVariables = new HashSet<>();
+        for (String visitKey : dto.revisitVariables) {
+            dto.visitedVariables.remove(visitKey);
+        }
+        dto.revisitVariables.clear();
         dto.hasUnionChanged = false;
         dto.hasNotCircularReference = true;
-        dto.circularRefVariable = null;
     }
 
     private void solveConstraint(ConstraintSolverDto dto, Iterator<IConstraint> iterator, IConstraint constraint) {
@@ -163,31 +176,34 @@ public class ConstraintSolver implements IConstraintSolver
     private void resolveReferenceConstraint(
             ConstraintSolverDto dto, Iterator<IConstraint> iterator, RefConstraint refConstraint) {
         ScopeVariableDto refVariable = refConstraint.getScopeVariableDto();
-
-        IUnionTypeSymbol unionTypeSymbol = getOrInitialiseVariableUnionTypeSymbol(refVariable);
-        if (!unionTypeSymbol.isReadyForEval()) {
-            String visitKey = getVisitKey(refVariable);
-            if (!dto.visitedVariables.contains(visitKey)) {
-                ConstraintSolverDto refDto = new ConstraintSolverDto(
-                        dto,
-                        refVariable,
-                        refVariable.scope.getConstraintsForVariable(refVariable.variableId),
-                        dto.unionTypeSymbol
-                );
-                addToVisitedAndSolve(refVariable, refDto);
-                if (refDto.hasNotCircularReference) {
-                    unionTypeSymbol.seal();
-                    iterator.remove();
+        if (isNotSelfReference(dto.currentVariable, refVariable)) {
+            IUnionTypeSymbol unionTypeSymbol = getOrInitialiseVariableUnionTypeSymbol(refVariable);
+            if (!unionTypeSymbol.isReadyForEval()) {
+                String visitKey = getVisitKey(refVariable);
+                if (!dto.visitedVariables.containsKey(visitKey)) {
+                    ConstraintSolverDto refDto = new ConstraintSolverDto(
+                            dto,
+                            refVariable,
+                            refVariable.scope.getConstraintsForVariable(refVariable.variableId),
+                            dto.unionTypeSymbol
+                    );
+                    addToVisitedAndSolve(refVariable, refDto);
+                    if (refDto.hasNotCircularReference) {
+                        unionTypeSymbol.seal();
+                        iterator.remove();
+                    } else {
+                        propagateCircularReferenceFromTo(refDto, dto);
+                    }
                 } else {
-                    propagateCircularReferenceFromTo(refDto, dto);
+                    reportCircularReference(dto, refVariable);
                 }
             } else {
-                reportCircularReference(dto, refVariable);
+                iterator.remove();
             }
+            mergeWithDtoAndCurrentVariable(dto, unionTypeSymbol);
         } else {
             iterator.remove();
         }
-        mergeWithDtoAndCurrentVariable(dto, unionTypeSymbol);
     }
 
     private void mergeWithDtoAndCurrentVariable(ConstraintSolverDto dto, IUnionTypeSymbol unionTypeSymbol) {
@@ -206,33 +222,55 @@ public class ConstraintSolver implements IConstraintSolver
     private void setCircularRefVariable(ConstraintSolverDto dto, ScopeVariableDto circularRefVariable) {
         if (dto.circularRefVariable == null) {
             dto.circularRefVariable = circularRefVariable;
-        } else if (isNotSelfReference(dto.startVariable, circularRefVariable)) {
+        } else if (wasVisitedLaterThanCurrentCircularRefVariable(dto, circularRefVariable)) {
             addToRevisitVariable(dto, circularRefVariable);
-        } else {
-            addToRevisitVariablesIfNotStart(dto, dto.circularRefVariable);
+        } else if (isNotSelfReference(dto.circularRefVariable, circularRefVariable)) {
+            //exchange circular reference variable with one which was visited earlier, revisit the old one
+            addToRevisitVariable(dto, dto.circularRefVariable);
             dto.circularRefVariable = circularRefVariable;
         }
     }
 
-    private void addToRevisitVariablesIfNotStart(ConstraintSolverDto dto, ScopeVariableDto variable) {
-        //if variable is already the starting point, then we do not need to revisit it.
-        // Adding the starting point to the revisit list would cause endless loop. An example:
-        // $a -> $b -> $a // circle one
-        // $a -> $b //we have already seen $b, hence a circle as well, yet we do not need to revisit $a otherwise we
-        // would endlessly do $a -> $b -> $a in iterative mode
-        if (isNotSelfReference(dto.startVariable, variable)) {
-            addToRevisitVariable(dto, variable);
-        }
+    private boolean wasVisitedLaterThanCurrentCircularRefVariable(
+            ConstraintSolverDto dto, ScopeVariableDto circularRefVariable) {
+        Map<String, Integer> visitedVariables = dto.visitedVariables;
+        Integer currentIndex = visitedVariables.get(getVisitKey(dto.circularRefVariable));
+        Integer newDetectedCircularRefIndex = visitedVariables.get(getVisitKey(circularRefVariable));
+        return currentIndex < newDetectedCircularRefIndex;
     }
 
     private void reportCircularReference(ConstraintSolverDto dto, ScopeVariableDto refVariableId) {
-        //there is no value in revisiting a self-reference - actually would be wrong since it would close the union
-        //during the revisit and hence throw an exception afterwards (cannot add a type to a closed union)
-        if (isNotSelfReference(dto.currentVariable, refVariableId)) {
-            addToRevisitVariablesIfNotStart(dto, dto.currentVariable);
+        if (isNotStartingPointNorSelfRefNorDefinedEarlierThanCurrentCircularRefVariable(dto, refVariableId)) {
+            addToRevisitVariable(dto, dto.currentVariable);
         }
         dto.hasNotCircularReference = false;
         setCircularRefVariable(dto, refVariableId);
+    }
+
+    private boolean isNotStartingPointNorSelfRefNorDefinedEarlierThanCurrentCircularRefVariable(
+            ConstraintSolverDto dto, ScopeVariableDto refVariableId) {
+        // The variable which detected the circular reference needs to be revisited during iterative mode unless
+        // - the variable is already the starting point of the circular reference, then we do not need to revisit it.
+        //   Adding the starting point to the revisit list would cause endless loop. An example:
+        //   $a -> $b -> $a // circle one
+        //   $a -> $b //we have already seen $b, hence a circle as well, yet we do not need to revisit $a otherwise we
+        //   would endlessly do $a -> $b -> $a in iterative mode
+        //
+        // - the variable detected a circle with itself (self-reference). There is no need to revisit a self-reference
+        //   $a -> $b -> $b (no need to add $b, $b does not add any information to $b)
+        //   Actually it would be wrong since it would close the union during the revisit and hence throw an exception
+        //   afterwards (cannot add a type to a closed union)
+        //
+        // - the variable was visited earlier than the starting point of the current circular reference. For instance,
+        //   $a -> $b -> $c -> $d -> $c    //$c will be the current starting point of the circular reference
+        //          | -> $a                //$a will be the new
+        //
+        //   Similar to self-references it will lead to exceptions since unions were closed too early.
+
+        return isNotBeginningVariable(dto, dto.currentVariable)
+                && isNotSelfReference(dto.currentVariable, refVariableId)
+                && (dto.circularRefVariable == null
+                || wasVisitedLaterThanCurrentCircularRefVariable(dto, dto.currentVariable));
     }
 
     private void addToRevisitVariable(ConstraintSolverDto dto, ScopeVariableDto variable) {
@@ -301,7 +339,7 @@ public class ConstraintSolver implements IConstraintSolver
             IUnionTypeSymbol unionTypeSymbol = getOrInitialiseVariableUnionTypeSymbol(refVariable);
             if (!unionTypeSymbol.isReadyForEval()) {
                 String visitKey = getVisitKey(refVariable);
-                if (!dto.visitedVariables.contains(visitKey)) {
+                if (!dto.visitedVariables.containsKey(visitKey)) {
                     Map<String, ITypeSymbol> predefinedTypes = new HashMap<>();
                     if (inIterativeMode(dto)) {
                         predefinedTypes.putAll(unionTypeSymbol.getTypeSymbols());
