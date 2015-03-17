@@ -75,7 +75,21 @@ public class VariableInitialisationTest extends AVerifyTimesReferenceTest
                 {"namespace b\\c{$a=1;} namespace b\\c{$a;} namespace b\\c{$a;}", 3},
                 {"namespace d\\e\\f{$a=1;} namespace d\\e\\f{$a;} namespace d\\e\\f{$a;}", 3},
                 //different namespaces - no error since PHP namespace variables are implicitly global by default
-                {"namespace{$a=1;} namespace a{$a;} namespace b\\c{$a;}", 3}
+                {"namespace{$a=1;} namespace a{$a;} namespace b\\c{$a;}", 3},
+                //See TINS-340 Variable initialised check and functions
+                {"function foo(){return;} $a = 0; $a;", 2},
+                //inspired by TINS-340 other false alarms
+                {"function foo(){$x = 1; throw $x;} $a = 0; $a;", 4},
+                {"if(false){return;} $a = 0; $a;", 2},
+                {"if(false){$x=1; throw $x;} $a = 0; $a;", 4},
+                {"switch(1){case 2: return;} $a = 0; $a;", 2},
+                {"switch(1){case 2: $x=1; throw $x;} $a = 0; $a;", 4},
+                {"for(;false;){return;} $a = 0; $a;", 2},
+                {"for(;false;){$x=1; throw $x;} $a = 0; $a;", 4},
+                {"while(true){return;} $a = 0; $a;", 2},
+                {"while(true){$x=1; throw $x;} $a = 0; $a;", 4},
+                {"try{}catch(Exception $e){return;} $a = 0; $a;", 2},
+                {"try{}catch(Exception $e){$x=1; throw $x;} $a = 0; $a;", 4},
         }));
 
         return collection;
@@ -124,7 +138,7 @@ public class VariableInitialisationTest extends AVerifyTimesReferenceTest
                 //implicit initialisations
                 {prefix + "try{}catch(\\Exception $e){ $e;}" + appendix, 1},
                 {prefix + "foreach([1] as $v){$v;}" + appendix, 1},
-                {prefix + "foreach([1] as $k => $v){$k; $v;}" + appendix, 2}
+                {prefix + "foreach([1] as $k => $v){$k; $v;}" + appendix, 2},
         }));
     }
 }
