@@ -28,7 +28,7 @@ public class InferenceEngineTest
     {
 
         public DummyInferenceEngine(ITSPHPAstAdaptor astAdaptor, IInferenceEngineInitialiser initialiser) {
-            super();
+            super(astAdaptor);
             inferenceEngineInitialiser = initialiser;
         }
     }
@@ -58,6 +58,6 @@ public class InferenceEngineTest
     }
 
     protected InferenceEngine createInferenceEngineImpl(ITSPHPAstAdaptor astAdaptor) {
-        return new InferenceEngine();
+        return new InferenceEngine(astAdaptor);
     }
 }

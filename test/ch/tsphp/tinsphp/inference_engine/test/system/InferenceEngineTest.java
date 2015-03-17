@@ -115,6 +115,6 @@ public class InferenceEngineTest
     }
 
     protected InferenceEngine createInferenceEngine(ITSPHPAstAdaptor astAdaptor) {
-        return new InferenceEngine();
+        return new InferenceEngine(astAdaptor);
     }
 }

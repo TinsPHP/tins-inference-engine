@@ -12,6 +12,7 @@
 
 package ch.tsphp.tinsphp.inference_engine.antlrmod;
 
+import ch.tsphp.common.ITSPHPAstAdaptor;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
 import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
 import ch.tsphp.tinsphp.common.issues.IIssueLogger;
@@ -34,8 +35,9 @@ public class ErrorReportingTinsPHPReferenceWalker extends TinsPHPReferenceWalker
     private final Collection<IIssueLogger> issueLoggers = new ArrayDeque<>();
     private boolean hasFoundFatalError;
 
-    public ErrorReportingTinsPHPReferenceWalker(TreeNodeStream input, IReferencePhaseController controller) {
-        super(input, controller);
+    public ErrorReportingTinsPHPReferenceWalker(
+            TreeNodeStream input, IReferencePhaseController controller, ITSPHPAstAdaptor adaptor) {
+        super(input, controller, adaptor);
     }
 
     @Override

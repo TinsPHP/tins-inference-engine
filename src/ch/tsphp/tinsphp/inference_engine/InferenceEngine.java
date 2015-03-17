@@ -7,6 +7,7 @@
 package ch.tsphp.tinsphp.inference_engine;
 
 import ch.tsphp.common.ITSPHPAst;
+import ch.tsphp.common.ITSPHPAstAdaptor;
 import ch.tsphp.common.exceptions.TSPHPException;
 import ch.tsphp.tinsphp.common.IInferenceEngine;
 import ch.tsphp.tinsphp.common.inference.IInferenceEngineInitialiser;
@@ -28,12 +29,15 @@ public class InferenceEngine implements IInferenceEngine, IIssueLogger
 {
     protected IInferenceEngineInitialiser inferenceEngineInitialiser;
 
+    private final ITSPHPAstAdaptor astAdaptor;
     private final IInferenceIssueReporter inferenceIssueReporter;
     private final Collection<IIssueLogger> issueLoggers = new ArrayDeque<>();
 
+
     private EnumSet<EIssueSeverity> foundIssues = EnumSet.noneOf(EIssueSeverity.class);
 
-    public InferenceEngine() {
+    public InferenceEngine(ITSPHPAstAdaptor theAstAdaptor) {
+        astAdaptor = theAstAdaptor;
         inferenceEngineInitialiser = new HardCodedInferenceEngineInitialiser();
         inferenceIssueReporter = inferenceEngineInitialiser.getInferenceErrorReporter();
     }
@@ -55,7 +59,7 @@ public class InferenceEngine implements IInferenceEngine, IIssueLogger
     public void enrichWithReferences(ITSPHPAst ast, TreeNodeStream treeNodeStream) {
         treeNodeStream.reset();
         ErrorReportingTinsPHPReferenceWalker referenceWalker = new ErrorReportingTinsPHPReferenceWalker(
-                treeNodeStream, inferenceEngineInitialiser.getReferencePhaseController());
+                treeNodeStream, inferenceEngineInitialiser.getReferencePhaseController(), astAdaptor);
 
         for (IIssueLogger logger : issueLoggers) {
             referenceWalker.registerIssueLogger(logger);

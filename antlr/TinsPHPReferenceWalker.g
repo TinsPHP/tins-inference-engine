@@ -29,6 +29,7 @@ package ch.tsphp.tinsphp.inference_engine.antlr;
 import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
+import ch.tsphp.common.ITSPHPAstAdaptor;
 import ch.tsphp.common.ITSPHPErrorAst;
 import ch.tsphp.tinsphp.common.scopes.ICaseInsensitiveScope;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
@@ -38,13 +39,15 @@ import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
 
 @members {
 private IReferencePhaseController controller;
+private ITSPHPAstAdaptor adaptor;
 private boolean hasAtLeastOneReturnOrThrow;
 private boolean doesNotReachThisStatement;
 private boolean inSwitch;
 
-public TinsPHPReferenceWalker(TreeNodeStream input, IReferencePhaseController theController) {
+public TinsPHPReferenceWalker(TreeNodeStream input, IReferencePhaseController theController, ITSPHPAstAdaptor theAdaptor) {
     this(input);
     controller = theController;
+    adaptor = theAdaptor;
 }
 }
 
@@ -53,16 +56,15 @@ compilationUnit
     ;
     
 namespace
-    :   
-        ^(Namespace 
+    :   ^(Namespace 
         {
-        controller.transferInitialisedSymbolsFromGlobalDefault($Namespace);
+            controller.transferInitialisedSymbolsFromGlobalDefault($Namespace);
         }
             (TYPE_NAME|DEFAULT_NAMESPACE) 
             n=namespaceBody
         )
-    {
-        controller.transferInitialisedSymbolsToGlobalDefault($Namespace);
+        {
+            controller.transferInitialisedSymbolsToGlobalDefault($Namespace);
         }
     ;    
 
@@ -166,20 +168,25 @@ constDeclaration[ITypeSymbol type]
     :   ^(identifier=Identifier unaryPrimitiveAtom)
         {
             $identifier.getSymbol().setType(type);
-            controller.checkIsNotDoubleDefinition($identifier); 
+            if(!controller.checkIsNotDoubleDefinition($identifier)){
+              //TODO flag double definitions in order that output component can decide how to proceed
+            }
         }
     ;
 
 unaryPrimitiveAtom
     :   primitiveAtomWithConstant
-    |   ^(  (    unary=UNARY_MINUS
-            |    unary=UNARY_PLUS
-            ) primitiveAtomWithConstant
-        )
+    |   ^(UNARY_MINUS primitiveAtomWithConstant)
+    |   ^(UNARY_PLUS primitiveAtomWithConstant)
     ; 
     
-//TODO TINS-218 - reference phase - resolve primitive literals    
 primitiveAtomWithConstant
+@init{
+    ITypeSymbol typeSymbol = null;
+}
+@after{
+     $start.setEvalType(typeSymbol);
+}
     :   (   type=Null
         |   type=False
         |   type=True
@@ -196,7 +203,13 @@ primitiveAtomWithConstant
         {
             IVariableSymbol variableSymbol = controller.resolveConstant($cnst);
             $cnst.setSymbol(variableSymbol);
-            controller.checkIsNotForwardReference($cnst);
+            if(controller.checkIsNotForwardReference($cnst)){
+                typeSymbol = variableSymbol.getType();
+            }else{
+                String constName = $CONSTANT.text;
+                ITSPHPAst ast = (ITSPHPAst) adaptor.create(this.String, $CONSTANT.getToken(), constName.substring(0,constName.length()-1));
+                typeSymbol = controller.resolvePrimitiveLiteral(ast);
+            }
         }
     
     //TODO TINS-217 reference phase - class constant access
@@ -284,12 +297,13 @@ constructDefinition
 //TODO TINS-221 - reference phase - double definition check methods 
 /*        
 methodDefinition
-//Warning! start duplicated code as in functionDeclaration
+
+//Warning! start duplicated code as in functionDefinition
     @init{
         hasAtLeastOneReturnOrThrow = false;
         boolean shallCheckIfReturns = false;
-    }
-//Warning! end duplicated code as in functionDeclaration
+    
+//Warning! end duplicated code as in functionDefinition
 
     :   ^(METHOD_DECLARATION
             ^(METHOD_MODIFIER methodModifier)
@@ -342,13 +356,14 @@ accessModifier
 
     
 functionDefinition
-//Warning! start duplicated code as in functionDeclaration
+
+//Warning! start duplicated code as in methodDefinition
     @init{
         boolean tmpDoesNotReachThisStatement = doesNotReachThisStatement;
         //defined above as field
         hasAtLeastOneReturnOrThrow = false;
     }
-//Warning! start duplicated code as in functionDeclaration
+//Warning! start duplicated code as in methodDefinition
     :   ^('function'
             .
             ^(TYPE rtMod=. returnTypesOrUnknown[$rtMod])  
@@ -368,8 +383,7 @@ finally{
 }
 
 parameterDeclarationList
-    :   ^(PARAMETER_LIST parameterDeclaration+)
-    |   PARAMETER_LIST
+    :   ^(PARAMETER_LIST parameterDeclaration*)
     ;
 
 parameterDeclaration
@@ -555,7 +569,6 @@ finally{
 
 expressionList
     :   ^(EXPRESSION_LIST expression*)
-    |   EXPRESSION_LIST
     ;
 
 foreachLoop
@@ -677,8 +690,7 @@ expression
     ;
         
 atom
-    :   
-        primitiveAtomWithConstant
+    :   primitiveAtomWithConstant
     |   variable
     //TODO rstoll TINS-223 - reference phase - resolve this and self
     //|   thisVariable
@@ -688,7 +700,9 @@ variable
     :   varId=VariableId
         {
             $varId.setSymbol(controller.resolveVariable($varId));
-            controller.checkIsVariableInitialised($varId);
+            if(!controller.checkIsVariableInitialised($varId)){
+              //TODO use null instead of the variable
+            }
         }
     ;
     
@@ -713,7 +727,6 @@ operator
     |   ^('?' expression expression expression)
     |   ^(CAST ^(TYPE tMod=. scalarTypesOrArrayType[$tMod]) expression)
     |   ^(Instanceof expr=expression (variable|classInterfaceType[null]))
-
     //|   ^('new' classInterfaceType[null] actualParameters)
     |   ^('clone' expression)
     ;
@@ -786,6 +799,9 @@ functionCall
         // function call has no callee and is therefor not resolved in this phase.
         // resolving occurs in the inference phase where overloads are taken into account
     :   ^(FUNCTION_CALL identifier=TYPE_NAME actualParameters)
+    	{
+            $identifier.setSymbol(controller.resolveFunction($identifier));
+    	}
     ;
     
 actualParameters

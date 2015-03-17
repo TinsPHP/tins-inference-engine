@@ -30,6 +30,7 @@ import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.resolving.ISymbolResolverController;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
+import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
@@ -84,11 +85,11 @@ public class ReferencePhaseController implements IReferencePhaseController
     }
 
     @Override
-    public IVariableSymbol resolveConstant(ITSPHPAst ast) {
-        IVariableSymbol symbol = (IVariableSymbol) symbolResolverController.resolveConstantLikeIdentifier(ast);
+    public IVariableSymbol resolveConstant(ITSPHPAst identifier) {
+        IVariableSymbol symbol = (IVariableSymbol) symbolResolverController.resolveConstantLikeIdentifier(identifier);
         if (symbol == null) {
-            ReferenceException exception = inferenceErrorReporter.notDefined(ast);
-            symbol = symbolFactory.createErroneousVariableSymbol(ast, exception);
+            ReferenceException exception = inferenceErrorReporter.notDefined(identifier);
+            symbol = symbolFactory.createErroneousVariableSymbol(identifier, exception);
         }
         return symbol;
     }
@@ -148,6 +149,16 @@ public class ReferencePhaseController implements IReferencePhaseController
             variableSymbol = variableDeclarationCreator.create(variableId);
         }
         return variableSymbol;
+    }
+
+    @Override
+    public IMethodSymbol resolveFunction(ITSPHPAst identifier) {
+        IMethodSymbol methodSymbol = (IMethodSymbol) symbolResolverController.resolveConstantLikeIdentifier(identifier);
+        if (methodSymbol == null) {
+            ReferenceException exception = inferenceErrorReporter.notDefined(identifier);
+            methodSymbol = symbolFactory.createErroneousMethodSymbol(identifier, exception);
+        }
+        return methodSymbol;
     }
 
     @Override
