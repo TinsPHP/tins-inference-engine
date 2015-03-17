@@ -344,6 +344,7 @@ accessModifier
 functionDefinition
 //Warning! start duplicated code as in functionDeclaration
     @init{
+        boolean tmpDoesNotReachThisStatement = doesNotReachThisStatement;
         //defined above as field
         hasAtLeastOneReturnOrThrow = false;
     }
@@ -362,6 +363,9 @@ functionDefinition
             $block.isReturning, hasAtLeastOneReturnOrThrow, $identifier, $block.start);
         }
     ;
+finally{
+    doesNotReachThisStatement = tmpDoesNotReachThisStatement;
+}
 
 parameterDeclarationList
     :   ^(PARAMETER_LIST parameterDeclaration+)
