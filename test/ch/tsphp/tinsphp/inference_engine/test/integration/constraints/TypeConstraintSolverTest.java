@@ -6,21 +6,14 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.constraints;
 
-import ch.tsphp.common.IConstraint;
-import ch.tsphp.common.IScope;
-import ch.tsphp.common.symbols.ITypeSymbol;
-import ch.tsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
+import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
+import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.AConstraintSolverTest;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.core.Is.is;
 
 public class TypeConstraintSolverTest extends AConstraintSolverTest
@@ -28,65 +21,50 @@ public class TypeConstraintSolverTest extends AConstraintSolverTest
 
     @Test
     public void solveConstraintsOfScope_Int_UnionContainsOnlyInt() {
-        Map<String, List<IConstraint>> map = new HashMap<>();
-        map.put("$a", list(type(intType)));
-        IScope scope = createScopeWithConstraints(map);
-        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+        ITypeVariableSymbol $a = typeVar("$a", type(intType));
+        ITypeVariableCollection scope = createTypeVariableCollection($a);
 
         IConstraintSolver solver = createConstraintSolver();
-        solver.solveConstraintsOfScope(scope);
+        solver.solveConstraints(scope);
 
-        assertThat(result.size(), is(1));
-        assertThat(result, hasKey("$a"));
-        Map<String, ITypeSymbol> typesInUnion = result.get("$a").getTypeSymbols();
-        assertThat(typesInUnion.keySet(), containsInAnyOrder("int"));
+        assertThat($a.getType().isReadyForEval(), is(true));
+        assertThat($a.getType().getTypeSymbols().keySet(), containsInAnyOrder("int"));
     }
 
     @Test
     public void solveConstraintsOfScope_IntAndFloat_UnionContainsIntAndFloat() {
-        Map<String, List<IConstraint>> map = new HashMap<>();
-        map.put("$a", list(type(intType), type(floatType)));
-        IScope scope = createScopeWithConstraints(map);
-        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+        ITypeVariableSymbol $a = typeVar("$a", type(intType), type(floatType));
+        ITypeVariableCollection scope = createTypeVariableCollection($a);
+
 
         IConstraintSolver solver = createConstraintSolver();
-        solver.solveConstraintsOfScope(scope);
+        solver.solveConstraints(scope);
 
-        assertThat(result.size(), is(1));
-        assertThat(result, hasKey("$a"));
-        Map<String, ITypeSymbol> typesInUnion = result.get("$a").getTypeSymbols();
-        assertThat(typesInUnion.keySet(), containsInAnyOrder("int", "float"));
+        assertThat($a.getType().isReadyForEval(), is(true));
+        assertThat($a.getType().getTypeSymbols().keySet(), containsInAnyOrder("int", "float"));
     }
 
     @Test
     public void solveConstraintsOfScope_IntAndNum_UnionContainsOnlyNum() {
-        Map<String, List<IConstraint>> map = new HashMap<>();
-        map.put("$a", list(type(intType), type(numType)));
-        IScope scope = createScopeWithConstraints(map);
-        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+        ITypeVariableSymbol $a = typeVar("$a", type(intType), type(numType));
+        ITypeVariableCollection scope = createTypeVariableCollection($a);
 
         IConstraintSolver solver = createConstraintSolver();
-        solver.solveConstraintsOfScope(scope);
+        solver.solveConstraints(scope);
 
-        assertThat(result.size(), is(1));
-        assertThat(result, hasKey("$a"));
-        Map<String, ITypeSymbol> typesInUnion = result.get("$a").getTypeSymbols();
-        assertThat(typesInUnion.keySet(), containsInAnyOrder("num"));
+        assertThat($a.getType().isReadyForEval(), is(true));
+        assertThat($a.getType().getTypeSymbols().keySet(), containsInAnyOrder("num"));
     }
 
     @Test
     public void solveConstraintsOfScope_NumAndIntAndScalar_UnionContainsOnlyScalar() {
-        Map<String, List<IConstraint>> map = new HashMap<>();
-        map.put("$a", list(type(numType), type(intType), type(scalarType)));
-        IScope scope = createScopeWithConstraints(map);
-        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+        ITypeVariableSymbol $a = typeVar("$a", type(numType), type(intType), type(scalarType));
+        ITypeVariableCollection scope = createTypeVariableCollection($a);
 
         IConstraintSolver solver = createConstraintSolver();
-        solver.solveConstraintsOfScope(scope);
+        solver.solveConstraints(scope);
 
-        assertThat(result.size(), is(1));
-        assertThat(result, hasKey("$a"));
-        Map<String, ITypeSymbol> typesInUnion = result.get("$a").getTypeSymbols();
-        assertThat(typesInUnion.keySet(), containsInAnyOrder("scalar"));
+        assertThat($a.getType().isReadyForEval(), is(true));
+        assertThat($a.getType().getTypeSymbols().keySet(), containsInAnyOrder("scalar"));
     }
 }

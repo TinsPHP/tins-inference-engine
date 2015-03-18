@@ -12,13 +12,11 @@
 
 package ch.tsphp.tinsphp.inference_engine.scopes;
 
-import ch.tsphp.common.IConstraint;
 import ch.tsphp.common.ILowerCaseStringMap;
 import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.LowerCaseStringMap;
 import ch.tsphp.common.symbols.ISymbol;
-import ch.tsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.common.symbols.IAliasSymbol;
@@ -131,35 +129,5 @@ public class NamespaceScope implements INamespaceScope
         return usesCaseInsensitive.containsKey(alias)
                 ? usesCaseInsensitive.get(alias).get(0)
                 : null;
-    }
-
-    @Override
-    public Map<String, List<IConstraint>> getConstraints() {
-        //constraints are stored in the corresponding global namespace scope
-        return globalNamespaceScope.getConstraints();
-    }
-
-    @Override
-    public List<IConstraint> getConstraintsForVariable(String variable) {
-        //constraints are stored in the corresponding global namespace scope
-        return globalNamespaceScope.getConstraintsForVariable(variable);
-    }
-
-    @Override
-    public void addConstraint(String variable, IConstraint constraint) {
-        //constraints are stored in the corresponding global namespace scope
-        globalNamespaceScope.addConstraint(variable, constraint);
-    }
-
-    @Override
-    public IUnionTypeSymbol getResultOfConstraintSolving(String variableId) {
-        //constraints are stored in the corresponding global namespace scope
-        return globalNamespaceScope.getResultOfConstraintSolving(variableId);
-    }
-
-    @Override
-    public void setResultOfConstraintSolving(String variableId, IUnionTypeSymbol unionTypeSymbol) {
-        //constraints are stored in the corresponding global namespace scope
-        globalNamespaceScope.setResultOfConstraintSolving(variableId, unionTypeSymbol);
     }
 }

@@ -6,17 +6,14 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.constraints;
 
-import ch.tsphp.common.IConstraint;
-import ch.tsphp.common.IScope;
-import ch.tsphp.common.symbols.IUnionTypeSymbol;
+import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
+import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
+import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
 import ch.tsphp.tinsphp.inference_engine.test.ActWithTimeout;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.AConstraintSolverTest;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -24,9 +21,9 @@ import java.util.concurrent.TimeoutException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
 
 public class DifficultConstraintSolverTest extends AConstraintSolverTest
 {
@@ -45,18 +42,20 @@ public class DifficultConstraintSolverTest extends AConstraintSolverTest
         // $b = $e + 1.2;  //competing circularity $e -> a -> refV b -> refV e  -> should win
         // $e = $a;
 
-        Map<String, List<IConstraint>> map = new HashMap<>();
-        final IScope scope = createScopeWithConstraints(map);
-        IConstraint intersectionA = createPartialAdditionWithInt("$b", scope);
-        IConstraint intersectionB1 = createPartialAdditionWithInt("$a", scope);
-        IConstraint intersectionB2 = createPartialAdditionWithFloat("$e", scope);
-
-        map.put("$a", list(type(intType), intersectionA));
-        map.put("$b", list(type(intType), intersectionB1, ref("$c", scope), intersectionB2));
-        map.put("$c", list(iRef("$a", scope)));
-        map.put("$d", list(iRef("$a", scope), ref("$b", scope)));
-        map.put("$e", list(iRef("$a", scope)));
-        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+        ITypeVariableSymbol $a = typeVar("$a");
+        ITypeVariableSymbol $b = typeVar("$b");
+        ITypeVariableSymbol $c = typeVar("$c");
+        ITypeVariableSymbol $d = typeVar("$d");
+        ITypeVariableSymbol $e = typeVar("$e");
+        IConstraint intersectionA = createPartialAdditionWithInt($b);
+        IConstraint intersectionB1 = createPartialAdditionWithInt($a);
+        IConstraint intersectionB2 = createPartialAdditionWithFloat($e);
+        when($a.getConstraints()).thenReturn(list(type(intType), intersectionA));
+        when($b.getConstraints()).thenReturn(list(type(intType), intersectionB1, ref($c), intersectionB2));
+        when($c.getConstraints()).thenReturn(list(ref($a)));
+        when($d.getConstraints()).thenReturn(list(ref($a), ref($b)));
+        when($e.getConstraints()).thenReturn(list(ref($a)));
+        final ITypeVariableCollection scope = createTypeVariableCollection($a, $b, $c, $d, $e);
 
         try {
             //act
@@ -64,24 +63,22 @@ public class DifficultConstraintSolverTest extends AConstraintSolverTest
             {
                 public Void call() {
                     IConstraintSolver solver = createConstraintSolver();
-                    solver.solveConstraintsOfScope(scope);
+                    solver.solveConstraints(scope);
                     return null;
                 }
-            }, 2000, TimeUnit.SECONDS);
+            }, TIMEOUT, TimeUnit.SECONDS);
 
             //assert
-            assertThat(result.size(), is(5));
-            assertThat(result, hasKey("$a"));
-            assertThat(result, hasKey("$b"));
-            assertThat(result, hasKey("$c"));
-            assertThat(result, hasKey("$d"));
-            assertThat(result, hasKey("$e"));
-            //everything must be num due to the addition $e + 1.2
-            assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("num"));
-            assertThat(result.get("$b").getTypeSymbols().keySet(), containsInAnyOrder("num"));
-            assertThat(result.get("$c").getTypeSymbols().keySet(), containsInAnyOrder("num"));
-            assertThat(result.get("$d").getTypeSymbols().keySet(), containsInAnyOrder("num"));
-            assertThat(result.get("$e").getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat($a.getType().isReadyForEval(), is(true));
+            assertThat($a.getType().getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat($b.getType().isReadyForEval(), is(true));
+            assertThat($b.getType().getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat($c.getType().isReadyForEval(), is(true));
+            assertThat($c.getType().getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat($d.getType().isReadyForEval(), is(true));
+            assertThat($d.getType().getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat($e.getType().isReadyForEval(), is(true));
+            assertThat($e.getType().getTypeSymbols().keySet(), containsInAnyOrder("num"));
         } catch (TimeoutException e) {
             fail("Did not terminate after 2 seconds, most probably endless loop");
         }
@@ -104,18 +101,22 @@ public class DifficultConstraintSolverTest extends AConstraintSolverTest
 
         // $e = $a;
 
-        Map<String, List<IConstraint>> map = new HashMap<>();
-        final IScope scope = createScopeWithConstraints(map);
-        IConstraint intersectionA = createPartialAdditionWithInt("$b", scope);
-        IConstraint intersectionB1 = createPartialAdditionWithInt("$a", scope);
-        IConstraint intersectionB2 = createPartialAdditionWithFloat("$e", scope);
+        ITypeVariableSymbol $a = typeVar("$a");
+        ITypeVariableSymbol $b = typeVar("$b");
+        ITypeVariableSymbol $c = typeVar("$c");
+        ITypeVariableSymbol $d = typeVar("$d");
+        ITypeVariableSymbol $e = typeVar("$e");
+        IConstraint intersectionA = createPartialAdditionWithInt($b);
+        IConstraint intersectionB1 = createPartialAdditionWithInt($a);
+        IConstraint intersectionB2 = createPartialAdditionWithFloat($e);
 
-        map.put("$a", list(type(intType), intersectionA));
-        map.put("$b", list(type(intType), intersectionB1, ref("$c", scope), intersectionB2));
-        map.put("$c", list(iRef("$a", scope)));
-        map.put("$d", list(iRef("$a", scope), ref("$b", scope)));
-        map.put("$e", list(ref("$a", scope), type(arrayType)));
-        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+        when($a.getConstraints()).thenReturn(list(type(intType), intersectionA));
+        when($b.getConstraints()).thenReturn(list(type(intType), intersectionB1, ref($c), intersectionB2));
+        when($c.getConstraints()).thenReturn(list(ref($a)));
+        when($d.getConstraints()).thenReturn(list(ref($a), ref($b)));
+        when($e.getConstraints()).thenReturn(list(ref($a), type(arrayType)));
+
+        final ITypeVariableCollection scope = createTypeVariableCollection($a, $b, $c, $d, $e);
 
         try {
             //act
@@ -123,23 +124,22 @@ public class DifficultConstraintSolverTest extends AConstraintSolverTest
             {
                 public Void call() {
                     IConstraintSolver solver = createConstraintSolver();
-                    solver.solveConstraintsOfScope(scope);
+                    solver.solveConstraints(scope);
                     return null;
                 }
-            }, 2000, TimeUnit.SECONDS);
+            }, TIMEOUT, TimeUnit.SECONDS);
 
             //assert
-            assertThat(result.size(), is(5));
-            assertThat(result, hasKey("$a"));
-            assertThat(result, hasKey("$b"));
-            assertThat(result, hasKey("$c"));
-            assertThat(result, hasKey("$d"));
-            assertThat(result, hasKey("$e"));
-            assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("int"));
-            assertThat(result.get("$b").getTypeSymbols().keySet(), containsInAnyOrder("int"));
-            assertThat(result.get("$c").getTypeSymbols().keySet(), containsInAnyOrder("int"));
-            assertThat(result.get("$d").getTypeSymbols().keySet(), containsInAnyOrder("int"));
-            assertThat(result.get("$e").getTypeSymbols().keySet(), containsInAnyOrder("int", "array"));
+            assertThat($a.getType().isReadyForEval(), is(true));
+            assertThat($a.getType().getTypeSymbols().keySet(), containsInAnyOrder("int"));
+            assertThat($b.getType().isReadyForEval(), is(true));
+            assertThat($b.getType().getTypeSymbols().keySet(), containsInAnyOrder("int"));
+            assertThat($c.getType().isReadyForEval(), is(true));
+            assertThat($c.getType().getTypeSymbols().keySet(), containsInAnyOrder("int"));
+            assertThat($d.getType().isReadyForEval(), is(true));
+            assertThat($d.getType().getTypeSymbols().keySet(), containsInAnyOrder("int"));
+            assertThat($e.getType().isReadyForEval(), is(true));
+            assertThat($e.getType().getTypeSymbols().keySet(), containsInAnyOrder("int", "array"));
         } catch (TimeoutException e) {
             fail("Did not terminate after 2 seconds, most probably endless loop");
         }
@@ -165,18 +165,22 @@ public class DifficultConstraintSolverTest extends AConstraintSolverTest
 
         // $e = $a;
 
-        Map<String, List<IConstraint>> map = new HashMap<>();
-        final IScope scope = createScopeWithConstraints(map);
-        IConstraint intersectionA = createPartialAdditionWithInt("$b", scope);
-        IConstraint intersectionB1 = createPartialAdditionWithInt("$a", scope);
-        IConstraint intersectionB2 = createPartialAdditionWithFloat("$e", scope);
+        ITypeVariableSymbol $a = typeVar("$a");
+        ITypeVariableSymbol $b = typeVar("$b");
+        ITypeVariableSymbol $c = typeVar("$c");
+        ITypeVariableSymbol $d = typeVar("$d");
+        ITypeVariableSymbol $e = typeVar("$e");
+        IConstraint intersectionA = createPartialAdditionWithInt($b);
+        IConstraint intersectionB1 = createPartialAdditionWithInt($a);
+        IConstraint intersectionB2 = createPartialAdditionWithFloat($e);
 
-        map.put("$a", list(type(intType), intersectionA));
-        map.put("$b", list(type(floatType), intersectionB1, ref("$c", scope), intersectionB2));
-        map.put("$c", list(iRef("$e", scope)));
-        map.put("$d", list(iRef("$a", scope), ref("$b", scope)));
-        map.put("$e", list(ref("$a", scope), type(arrayType)));
-        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+        when($a.getConstraints()).thenReturn(list(type(intType), intersectionA));
+        when($b.getConstraints()).thenReturn(list(type(floatType), intersectionB1, ref($c), intersectionB2));
+        when($c.getConstraints()).thenReturn(list(ref($e)));
+        when($d.getConstraints()).thenReturn(list(ref($a), ref($b)));
+        when($e.getConstraints()).thenReturn(list(ref($a), type(arrayType)));
+
+        final ITypeVariableCollection scope = createTypeVariableCollection($a, $b, $c, $d, $e);
 
         try {
             //act
@@ -184,23 +188,22 @@ public class DifficultConstraintSolverTest extends AConstraintSolverTest
             {
                 public Void call() {
                     IConstraintSolver solver = createConstraintSolver();
-                    solver.solveConstraintsOfScope(scope);
+                    solver.solveConstraints(scope);
                     return null;
                 }
-            }, 2000, TimeUnit.SECONDS);
+            }, TIMEOUT, TimeUnit.SECONDS);
 
             //assert
-            assertThat(result.size(), is(5));
-            assertThat(result, hasKey("$a"));
-            assertThat(result, hasKey("$b"));
-            assertThat(result, hasKey("$c"));
-            assertThat(result, hasKey("$d"));
-            assertThat(result, hasKey("$e"));
-            assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("int"));
-            assertThat(result.get("$b").getTypeSymbols().keySet(), containsInAnyOrder("int", "float", "array"));
-            assertThat(result.get("$c").getTypeSymbols().keySet(), containsInAnyOrder("int", "array"));
-            assertThat(result.get("$d").getTypeSymbols().keySet(), containsInAnyOrder("int", "float", "array"));
-            assertThat(result.get("$e").getTypeSymbols().keySet(), containsInAnyOrder("int", "array"));
+            assertThat($a.getType().isReadyForEval(), is(true));
+            assertThat($a.getType().getTypeSymbols().keySet(), containsInAnyOrder("int"));
+            assertThat($b.getType().isReadyForEval(), is(true));
+            assertThat($b.getType().getTypeSymbols().keySet(), containsInAnyOrder("int", "float", "array"));
+            assertThat($c.getType().isReadyForEval(), is(true));
+            assertThat($c.getType().getTypeSymbols().keySet(), containsInAnyOrder("int", "array"));
+            assertThat($d.getType().isReadyForEval(), is(true));
+            assertThat($d.getType().getTypeSymbols().keySet(), containsInAnyOrder("int", "float", "array"));
+            assertThat($e.getType().isReadyForEval(), is(true));
+            assertThat($e.getType().getTypeSymbols().keySet(), containsInAnyOrder("int", "array"));
         } catch (TimeoutException e) {
             fail("Did not terminate after 2 seconds, most probably endless loop");
         }
@@ -220,19 +223,23 @@ public class DifficultConstraintSolverTest extends AConstraintSolverTest
         // $b = $e + 1.2; //competing circularity $e -> a -> refV b -> refV e
         // $e = $a;
 
-        Map<String, List<IConstraint>> map = new HashMap<>();
-        final IScope scope = createScopeWithConstraints(map);
-        IConstraint intersectionA = createPartialAdditionWithInt("$b", scope);
-        IConstraint intersectionB1 = createPartialAdditionWithInt("$a", scope);
-        IConstraint intersectionB2 = createPartialAdditionWithFloat("$e", scope);
-        IConstraint intersectionD = createPartialAdditionWithInt("$a", scope);
+        ITypeVariableSymbol $a = typeVar("$a");
+        ITypeVariableSymbol $b = typeVar("$b");
+        ITypeVariableSymbol $c = typeVar("$c");
+        ITypeVariableSymbol $d = typeVar("$d");
+        ITypeVariableSymbol $e = typeVar("$e");
+        IConstraint intersectionA = createPartialAdditionWithInt($b);
+        IConstraint intersectionB1 = createPartialAdditionWithInt($a);
+        IConstraint intersectionB2 = createPartialAdditionWithFloat($e);
+        IConstraint intersectionD = createPartialAdditionWithInt($a);
 
-        map.put("$a", list(type(intType), intersectionA));
-        map.put("$b", list(type(floatType), intersectionB1, ref("$c", scope), intersectionB2));
-        map.put("$c", list(iRef("$e", scope)));
-        map.put("$d", list(iRef("$a", scope), intersectionD, ref("$b", scope)));
-        map.put("$e", list(iRef("$a", scope)));
-        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+        when($a.getConstraints()).thenReturn(list(type(intType), intersectionA));
+        when($b.getConstraints()).thenReturn(list(type(floatType), intersectionB1, ref($c), intersectionB2));
+        when($c.getConstraints()).thenReturn(list(ref($e)));
+        when($d.getConstraints()).thenReturn(list(ref($a), intersectionD, ref($b)));
+        when($e.getConstraints()).thenReturn(list(ref($a)));
+
+        final ITypeVariableCollection scope = createTypeVariableCollection($a, $b, $c, $d, $e);
 
         try {
             //act
@@ -240,23 +247,22 @@ public class DifficultConstraintSolverTest extends AConstraintSolverTest
             {
                 public Void call() {
                     IConstraintSolver solver = createConstraintSolver();
-                    solver.solveConstraintsOfScope(scope);
+                    solver.solveConstraints(scope);
                     return null;
                 }
-            }, 2000, TimeUnit.SECONDS);
+            }, TIMEOUT, TimeUnit.SECONDS);
 
             //assert
-            assertThat(result.size(), is(5));
-            assertThat(result, hasKey("$a"));
-            assertThat(result, hasKey("$b"));
-            assertThat(result, hasKey("$c"));
-            assertThat(result, hasKey("$d"));
-            assertThat(result, hasKey("$e"));
-            assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("num"));
-            assertThat(result.get("$b").getTypeSymbols().keySet(), containsInAnyOrder("num"));
-            assertThat(result.get("$c").getTypeSymbols().keySet(), containsInAnyOrder("num"));
-            assertThat(result.get("$d").getTypeSymbols().keySet(), containsInAnyOrder("num"));
-            assertThat(result.get("$e").getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat($a.getType().isReadyForEval(), is(true));
+            assertThat($a.getType().getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat($b.getType().isReadyForEval(), is(true));
+            assertThat($b.getType().getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat($c.getType().isReadyForEval(), is(true));
+            assertThat($c.getType().getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat($d.getType().isReadyForEval(), is(true));
+            assertThat($d.getType().getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat($e.getType().isReadyForEval(), is(true));
+            assertThat($e.getType().getTypeSymbols().keySet(), containsInAnyOrder("num"));
         } catch (TimeoutException e) {
             fail("Did not terminate after 2 seconds, most probably endless loop");
         }
@@ -279,27 +285,31 @@ public class DifficultConstraintSolverTest extends AConstraintSolverTest
         // $b = $b + $b;  //double self ref in intersection
         // $e = $a;
 
-        Map<String, List<IConstraint>> map = new HashMap<>();
-        final IScope scope = createScopeWithConstraints(map);
-        IConstraint intersectionA = createPartialAdditionWithInt("$b", scope);
-        IConstraint intersectionBA = createPartialAdditionWithInt("$a", scope);
-        IConstraint intersectionBC = createPartialAdditionWithFloat("$c", scope);
-        IConstraint intersectionBBB = createAdditionIntersection("$b", scope, "$b", scope);
-        IConstraint intersectionC = createPartialAdditionWithInt("$c", scope);
-        IConstraint intersectionD = createAdditionIntersection("$a", scope, "$b", scope);
+        ITypeVariableSymbol $a = typeVar("$a");
+        ITypeVariableSymbol $b = typeVar("$b");
+        ITypeVariableSymbol $c = typeVar("$c");
+        ITypeVariableSymbol $d = typeVar("$d");
+        ITypeVariableSymbol $e = typeVar("$e");
 
-        map.put("$a", list(type(intType), intersectionA));
-        map.put("$b", list(
+        IConstraint intersectionA = createPartialAdditionWithInt($b);
+        IConstraint intersectionBA = createPartialAdditionWithInt($a);
+        IConstraint intersectionBC = createPartialAdditionWithFloat($c);
+        IConstraint intersectionBBB = createAdditionIntersection($b, $b);
+        IConstraint intersectionC = createPartialAdditionWithInt($c);
+        IConstraint intersectionD = createAdditionIntersection($a, $b);
+
+        when($a.getConstraints()).thenReturn(list(type(intType), intersectionA));
+        when($b.getConstraints()).thenReturn(list(
                 type(floatType),
                 intersectionBA,
-                ref("$c", scope),
+                ref($c),
                 intersectionBC,
-                ref("$b", scope),
+                ref($b),
                 intersectionBBB));
-        map.put("$c", list(ref("$e", scope), intersectionC));
-        map.put("$d", list(intersectionD, ref("$b", scope)));
-        map.put("$e", list(iRef("$a", scope)));
-        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+        when($c.getConstraints()).thenReturn(list(ref($e), intersectionC));
+        when($d.getConstraints()).thenReturn(list(intersectionD, ref($b)));
+        when($e.getConstraints()).thenReturn(list(ref($a)));
+        final ITypeVariableCollection scope = createTypeVariableCollection($a, $b, $c, $d, $e);
 
         try {
             //act
@@ -307,23 +317,22 @@ public class DifficultConstraintSolverTest extends AConstraintSolverTest
             {
                 public Void call() {
                     IConstraintSolver solver = createConstraintSolver();
-                    solver.solveConstraintsOfScope(scope);
+                    solver.solveConstraints(scope);
                     return null;
                 }
-            }, 2000, TimeUnit.SECONDS);
+            }, TIMEOUT, TimeUnit.SECONDS);
 
             //assert
-            assertThat(result.size(), is(5));
-            assertThat(result, hasKey("$a"));
-            assertThat(result, hasKey("$b"));
-            assertThat(result, hasKey("$c"));
-            assertThat(result, hasKey("$d"));
-            assertThat(result, hasKey("$e"));
-            assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("num"));
-            assertThat(result.get("$b").getTypeSymbols().keySet(), containsInAnyOrder("num"));
-            assertThat(result.get("$c").getTypeSymbols().keySet(), containsInAnyOrder("num"));
-            assertThat(result.get("$d").getTypeSymbols().keySet(), containsInAnyOrder("num"));
-            assertThat(result.get("$e").getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat($a.getType().isReadyForEval(), is(true));
+            assertThat($a.getType().getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat($b.getType().isReadyForEval(), is(true));
+            assertThat($b.getType().getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat($c.getType().isReadyForEval(), is(true));
+            assertThat($c.getType().getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat($d.getType().isReadyForEval(), is(true));
+            assertThat($d.getType().getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat($e.getType().isReadyForEval(), is(true));
+            assertThat($e.getType().getTypeSymbols().keySet(), containsInAnyOrder("num"));
         } catch (TimeoutException e) {
             fail("Did not terminate after 2 seconds, most probably endless loop");
         }
@@ -348,27 +357,31 @@ public class DifficultConstraintSolverTest extends AConstraintSolverTest
         // $c = $b;  <-- different from above let's see if this one is a problem, $c = 1 + $c is going to be solved
         // iteratively already
 
-        Map<String, List<IConstraint>> map = new HashMap<>();
-        final IScope scope = createScopeWithConstraints(map);
-        IConstraint intersectionA = createPartialAdditionWithInt("$b", scope);
-        IConstraint intersectionBA = createPartialAdditionWithInt("$a", scope);
-        IConstraint intersectionBC = createPartialAdditionWithFloat("$c", scope);
-        IConstraint intersectionBBB = createAdditionIntersection("$b", scope, "$b", scope);
-        IConstraint intersectionC = createPartialAdditionWithInt("$c", scope);
-        IConstraint intersectionD = createAdditionIntersection("$a", scope, "$b", scope);
+        ITypeVariableSymbol $a = typeVar("$a");
+        ITypeVariableSymbol $b = typeVar("$b");
+        ITypeVariableSymbol $c = typeVar("$c");
+        ITypeVariableSymbol $d = typeVar("$d");
+        ITypeVariableSymbol $e = typeVar("$e");
 
-        map.put("$a", list(type(intType), intersectionA));
-        map.put("$b", list(
+        IConstraint intersectionA = createPartialAdditionWithInt($b);
+        IConstraint intersectionBA = createPartialAdditionWithInt($a);
+        IConstraint intersectionBC = createPartialAdditionWithFloat($c);
+        IConstraint intersectionBBB = createAdditionIntersection($b, $b);
+        IConstraint intersectionC = createPartialAdditionWithInt($c);
+        IConstraint intersectionD = createAdditionIntersection($a, $b);
+
+        when($a.getConstraints()).thenReturn(list(type(intType), intersectionA));
+        when($b.getConstraints()).thenReturn(list(
                 type(floatType),
                 intersectionBA,
-                ref("$c", scope),
+                ref($c),
                 intersectionBC,
-                ref("$b", scope),
+                ref($b),
                 intersectionBBB));
-        map.put("$c", list(ref("$e", scope), intersectionC, ref("$b", scope)));
-        map.put("$d", list(intersectionD, ref("$b", scope)));
-        map.put("$e", list(iRef("$a", scope)));
-        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+        when($c.getConstraints()).thenReturn(list(ref($e), intersectionC, ref($b)));
+        when($d.getConstraints()).thenReturn(list(intersectionD, ref($b)));
+        when($e.getConstraints()).thenReturn(list(ref($a)));
+        final ITypeVariableCollection scope = createTypeVariableCollection($a, $b, $c, $d, $e);
 
         try {
             //act
@@ -376,23 +389,22 @@ public class DifficultConstraintSolverTest extends AConstraintSolverTest
             {
                 public Void call() {
                     IConstraintSolver solver = createConstraintSolver();
-                    solver.solveConstraintsOfScope(scope);
+                    solver.solveConstraints(scope);
                     return null;
                 }
-            }, 2000, TimeUnit.SECONDS);
+            }, TIMEOUT, TimeUnit.SECONDS);
 
             //assert
-            assertThat(result.size(), is(5));
-            assertThat(result, hasKey("$a"));
-            assertThat(result, hasKey("$b"));
-            assertThat(result, hasKey("$c"));
-            assertThat(result, hasKey("$d"));
-            assertThat(result, hasKey("$e"));
-            assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("num"));
-            assertThat(result.get("$b").getTypeSymbols().keySet(), containsInAnyOrder("num"));
-            assertThat(result.get("$c").getTypeSymbols().keySet(), containsInAnyOrder("num"));
-            assertThat(result.get("$d").getTypeSymbols().keySet(), containsInAnyOrder("num"));
-            assertThat(result.get("$e").getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat($a.getType().isReadyForEval(), is(true));
+            assertThat($a.getType().getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat($b.getType().isReadyForEval(), is(true));
+            assertThat($b.getType().getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat($c.getType().isReadyForEval(), is(true));
+            assertThat($c.getType().getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat($d.getType().isReadyForEval(), is(true));
+            assertThat($d.getType().getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat($e.getType().isReadyForEval(), is(true));
+            assertThat($e.getType().getTypeSymbols().keySet(), containsInAnyOrder("num"));
         } catch (TimeoutException e) {
             fail("Did not terminate after 2 seconds, most probably endless loop");
         }
@@ -416,27 +428,31 @@ public class DifficultConstraintSolverTest extends AConstraintSolverTest
         // $e = $a;
         // $c = $b;       //let's see if this one is a problem, $c = 1 + $c is going to be solved iteratively already
 
-        Map<String, List<IConstraint>> map = new HashMap<>();
-        final IScope scope = createScopeWithConstraints(map);
-        IConstraint intersectionA = createPartialAdditionWithInt("$b", scope);
-        IConstraint intersectionBA = createPartialAdditionWithInt("$a", scope);
-        IConstraint intersectionBC = createPartialAdditionWithFloat("$c", scope);
-        IConstraint intersectionBBB = createAdditionIntersection("$b", scope, "$b", scope);
-        IConstraint intersectionC = createPartialAdditionWithInt("$c", scope);
-        IConstraint intersectionD = createAdditionIntersection("$a", scope, "$b", scope);
+        ITypeVariableSymbol $a = typeVar("$a");
+        ITypeVariableSymbol $b = typeVar("$b");
+        ITypeVariableSymbol $c = typeVar("$c");
+        ITypeVariableSymbol $d = typeVar("$d");
+        ITypeVariableSymbol $e = typeVar("$e");
 
-        map.put("$a", list(type(intType), intersectionA));
-        map.put("$b", list(
+        IConstraint intersectionA = createPartialAdditionWithInt($b);
+        IConstraint intersectionBA = createPartialAdditionWithInt($a);
+        IConstraint intersectionBC = createPartialAdditionWithFloat($c);
+        IConstraint intersectionBBB = createAdditionIntersection($b, $b);
+        IConstraint intersectionC = createPartialAdditionWithInt($c);
+        IConstraint intersectionD = createAdditionIntersection($a, $b);
+
+        when($a.getConstraints()).thenReturn(list(type(intType), intersectionA));
+        when($b.getConstraints()).thenReturn(list(
                 type(floatType),
                 intersectionBA,
-                ref("$c", scope),
+                ref($c),
                 intersectionBC,
-                ref("$b", scope),
+                ref($b),
                 intersectionBBB));
-        map.put("$c", list(intersectionC, ref("$b", scope)));
-        map.put("$d", list(intersectionD, ref("$b", scope)));
-        map.put("$e", list(iRef("$a", scope)));
-        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+        when($c.getConstraints()).thenReturn(list(intersectionC, ref($b)));
+        when($d.getConstraints()).thenReturn(list(intersectionD, ref($b)));
+        when($e.getConstraints()).thenReturn(list(ref($a)));
+        final ITypeVariableCollection scope = createTypeVariableCollection($a, $b, $c, $d, $e);
 
         try {
             //act
@@ -444,23 +460,22 @@ public class DifficultConstraintSolverTest extends AConstraintSolverTest
             {
                 public Void call() {
                     IConstraintSolver solver = createConstraintSolver();
-                    solver.solveConstraintsOfScope(scope);
+                    solver.solveConstraints(scope);
                     return null;
                 }
-            }, 2000, TimeUnit.SECONDS);
+            }, TIMEOUT, TimeUnit.SECONDS);
 
             //assert
-            assertThat(result.size(), is(5));
-            assertThat(result, hasKey("$a"));
-            assertThat(result, hasKey("$b"));
-            assertThat(result, hasKey("$c"));
-            assertThat(result, hasKey("$d"));
-            assertThat(result, hasKey("$e"));
-            assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("num"));
-            assertThat(result.get("$b").getTypeSymbols().keySet(), containsInAnyOrder("num"));
-            assertThat(result.get("$c").getTypeSymbols().keySet(), containsInAnyOrder("num"));
-            assertThat(result.get("$d").getTypeSymbols().keySet(), containsInAnyOrder("num"));
-            assertThat(result.get("$e").getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat($a.getType().isReadyForEval(), is(true));
+            assertThat($a.getType().getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat($b.getType().isReadyForEval(), is(true));
+            assertThat($b.getType().getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat($c.getType().isReadyForEval(), is(true));
+            assertThat($c.getType().getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat($d.getType().isReadyForEval(), is(true));
+            assertThat($d.getType().getTypeSymbols().keySet(), containsInAnyOrder("num"));
+            assertThat($e.getType().isReadyForEval(), is(true));
+            assertThat($e.getType().getTypeSymbols().keySet(), containsInAnyOrder("num"));
         } catch (TimeoutException e) {
             fail("Did not terminate after 2 seconds, most probably endless loop");
         }

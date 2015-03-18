@@ -240,7 +240,10 @@ public class ArrayKeyValueBranchesTest
                 throw new MockitoAssertionError("operator: " + operator + " failed. current counter: " + counter);
             }
         });
-        when(input.LT(1)).thenReturn(mock(ITSPHPAst.class));
+        ITSPHPAst ast = mock(ITSPHPAst.class);
+        //necessary since constants which cannot be resolved are transformed into strings
+        when(ast.getText()).thenReturn("#dummy");
+        when(input.LT(1)).thenReturn(ast);
         IReferencePhaseController controller = mock(IReferencePhaseController.class);
         ITSPHPAstAdaptor astAdaptor = mock(ITSPHPAstAdaptor.class);
         TinsPHPReferenceWalker walker = spy(new TinsPHPReferenceWalker(input, controller, astAdaptor));

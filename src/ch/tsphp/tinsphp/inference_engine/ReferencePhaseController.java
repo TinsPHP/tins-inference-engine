@@ -19,6 +19,7 @@ import ch.tsphp.common.exceptions.ReferenceException;
 import ch.tsphp.common.exceptions.TSPHPException;
 import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.common.symbols.modifiers.IModifierSet;
+import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.common.checking.AlreadyDefinedAsTypeResultDto;
 import ch.tsphp.tinsphp.common.checking.DoubleDefinitionCheckResultDto;
@@ -59,6 +60,7 @@ public class ReferencePhaseController implements IReferencePhaseController
     private final IScopeHelper scopeHelper;
     private final IModifierHelper modifierHelper;
     private final Map<String, ITypeSymbol> primitiveTypes;
+    private final Map<Integer, List<IMethodSymbol>> operators;
     private final IGlobalNamespaceScope globalDefaultNamespace;
 
     public ReferencePhaseController(
@@ -70,7 +72,7 @@ public class ReferencePhaseController implements IReferencePhaseController
             IVariableDeclarationCreator theVariableDeclarationCreator,
             IScopeHelper theScopeHelper,
             IModifierHelper theModifierHelper,
-            Map<String, ITypeSymbol> thePrimitiveTypes,
+            ICore theCore,
             IGlobalNamespaceScope theGlobalDefaultNamespace) {
         symbolFactory = theSymbolFactory;
         inferenceErrorReporter = theInferenceErrorReporter;
@@ -80,7 +82,8 @@ public class ReferencePhaseController implements IReferencePhaseController
         variableDeclarationCreator = theVariableDeclarationCreator;
         scopeHelper = theScopeHelper;
         modifierHelper = theModifierHelper;
-        primitiveTypes = thePrimitiveTypes;
+        primitiveTypes = theCore.getPrimitiveTypes();
+        operators = theCore.getOperators();
         globalDefaultNamespace = theGlobalDefaultNamespace;
     }
 
@@ -159,6 +162,17 @@ public class ReferencePhaseController implements IReferencePhaseController
             methodSymbol = symbolFactory.createErroneousMethodSymbol(identifier, exception);
         }
         return methodSymbol;
+    }
+
+    @Override
+    public IMethodSymbol resolveOperator(ITSPHPAst operator) {
+        List<IMethodSymbol> methodSymbols = operators.get(operator.getType());
+        if (methodSymbols.size() > 1) {
+
+        } else {
+
+        }
+        return null;
     }
 
     @Override

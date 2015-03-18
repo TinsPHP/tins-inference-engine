@@ -14,6 +14,7 @@ import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.common.symbols.modifiers.IModifierSet;
+import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.common.checking.AlreadyDefinedAsTypeResultDto;
 import ch.tsphp.tinsphp.common.checking.DoubleDefinitionCheckResultDto;
@@ -1867,6 +1868,8 @@ public class ReferencePhaseControllerTest
             IInferenceIssueReporter issueReporter,
             IAstModificationHelper astModificationHelper,
             IScopeHelper scopeHelper) {
+        ICore core = mock(ICore.class);
+        when(core.getPrimitiveTypes()).thenReturn(new HashMap<String, ITypeSymbol>());
         return createController(
                 mock(ISymbolFactory.class),
                 issueReporter,
@@ -1876,7 +1879,7 @@ public class ReferencePhaseControllerTest
                 mock(IVariableDeclarationCreator.class),
                 scopeHelper,
                 mock(IModifierHelper.class),
-                new HashMap<String, ITypeSymbol>(),
+                core,
                 mock(IGlobalNamespaceScope.class)
         );
     }
@@ -1884,7 +1887,8 @@ public class ReferencePhaseControllerTest
     private IReferencePhaseController createController(
             IInferenceIssueReporter issueReporter,
             ISymbolCheckController symbolCheckController) {
-
+        ICore core = mock(ICore.class);
+        when(core.getPrimitiveTypes()).thenReturn(new HashMap<String, ITypeSymbol>());
         return createController(
                 mock(ISymbolFactory.class),
                 issueReporter,
@@ -1894,7 +1898,7 @@ public class ReferencePhaseControllerTest
                 mock(IVariableDeclarationCreator.class),
                 mock(IScopeHelper.class),
                 mock(IModifierHelper.class),
-                new HashMap<String, ITypeSymbol>(),
+                core,
                 mock(IGlobalNamespaceScope.class)
         );
 
@@ -1932,6 +1936,8 @@ public class ReferencePhaseControllerTest
             ISymbolFactory symbolFactory,
             IInferenceIssueReporter issueReporter,
             IModifierHelper modifierHelper, Map<String, ITypeSymbol> primitiveTypes) {
+        ICore core = mock(ICore.class);
+        when(core.getPrimitiveTypes()).thenReturn(primitiveTypes);
         return createController(
                 symbolFactory,
                 issueReporter,
@@ -1941,13 +1947,15 @@ public class ReferencePhaseControllerTest
                 mock(IVariableDeclarationCreator.class),
                 mock(IScopeHelper.class),
                 modifierHelper,
-                primitiveTypes,
+                core,
                 mock(IGlobalNamespaceScope.class)
         );
     }
 
 
     private IReferencePhaseController createController(IGlobalNamespaceScope globalNamespaceScope) {
+        ICore core = mock(ICore.class);
+        when(core.getPrimitiveTypes()).thenReturn(new HashMap<String, ITypeSymbol>());
         return createController(
                 mock(ISymbolFactory.class),
                 mock(IInferenceIssueReporter.class),
@@ -1957,7 +1965,7 @@ public class ReferencePhaseControllerTest
                 mock(IVariableDeclarationCreator.class),
                 mock(IScopeHelper.class),
                 mock(IModifierHelper.class),
-                new HashMap<String, ITypeSymbol>(),
+                core,
                 globalNamespaceScope
         );
     }
@@ -1969,6 +1977,8 @@ public class ReferencePhaseControllerTest
     private IReferencePhaseController createController(
             ISymbolResolverController symbolResolverController,
             IVariableDeclarationCreator variableDeclarationCreator) {
+        ICore core = mock(ICore.class);
+        when(core.getPrimitiveTypes()).thenReturn(new HashMap<String, ITypeSymbol>());
         return createController(
                 mock(ISymbolFactory.class),
                 mock(IInferenceIssueReporter.class),
@@ -1978,7 +1988,7 @@ public class ReferencePhaseControllerTest
                 variableDeclarationCreator,
                 mock(IScopeHelper.class),
                 mock(IModifierHelper.class),
-                new HashMap<String, ITypeSymbol>(),
+                core,
                 mock(IGlobalNamespaceScope.class)
         );
     }
@@ -1992,7 +2002,7 @@ public class ReferencePhaseControllerTest
             IVariableDeclarationCreator theVariableDeclarationCreator,
             IScopeHelper scopeHelper,
             IModifierHelper modifierHelper,
-            Map<String, ITypeSymbol> thePrimitiveTypes,
+            ICore theCore,
             IGlobalNamespaceScope globalDefaultNamespace) {
         return new ReferencePhaseController(
                 symbolFactory,
@@ -2003,7 +2013,7 @@ public class ReferencePhaseControllerTest
                 theVariableDeclarationCreator,
                 scopeHelper,
                 modifierHelper,
-                thePrimitiveTypes,
+                theCore,
                 globalDefaultNamespace
         );
     }

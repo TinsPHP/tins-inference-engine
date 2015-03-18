@@ -196,7 +196,7 @@ primitiveAtomWithConstant
         |   array {$type=$array.start;}
         )
         {
-            $start.setEvalType(controller.resolvePrimitiveLiteral($type));
+           typeSymbol = controller.resolvePrimitiveLiteral($type);
         }
 
     |   cnst=CONSTANT
@@ -680,6 +680,10 @@ breakContinue
 expression
     :   atom
     |   operator
+        {
+            ITSPHPAst operator = $operator.start;
+            operator.setSymbol(controller.resolveOperator(operator));
+        }
     |   functionCall
     //TODO rstoll TINS-161 inference OOP    
     //|   methodCall

@@ -6,8 +6,9 @@
 
 package ch.tsphp.tinsphp.inference_engine.constraints;
 
-import ch.tsphp.common.IConstraint;
+
 import ch.tsphp.common.symbols.ITypeSymbol;
+import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 
 import java.util.List;
 

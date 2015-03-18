@@ -17,14 +17,19 @@ import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
+import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
 import ch.tsphp.tinsphp.common.utils.MapHelper;
 import ch.tsphp.tinsphp.inference_engine.scopes.GlobalNamespaceScope;
+import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import java.util.Map;
+
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.collection.IsMapContaining.hasKey;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.doAnswer;
@@ -242,6 +247,29 @@ public class GlobalNamespaceScopeTest
         assertThat(result, is(symbol));
     }
 
+    @Test
+    public void getTypeVariables_NothingDefined_ReturnsEmptyMap() {
+
+        IGlobalNamespaceScope globalNamespaceScope = createGlobalNamespaceScope();
+        Map<String, ITypeVariableSymbol> result = globalNamespaceScope.getTypeVariables();
+
+        MatcherAssert.assertThat(result.size(), is(0));
+    }
+
+    @Test
+    public void addAndGetTypeVariables_AddedOneFor$a_ReturnsMapWithCorrespondingConstraint() {
+        ITypeVariableSymbol $a = mock(ITypeVariableSymbol.class);
+        when($a.getAbsoluteName()).thenReturn("$a");
+
+
+        IGlobalNamespaceScope globalNamespaceScope = createGlobalNamespaceScope();
+        globalNamespaceScope.addTypeVariable($a);
+        Map<String, ITypeVariableSymbol> result = globalNamespaceScope.getTypeVariables();
+
+        MatcherAssert.assertThat(result.size(), is(1));
+        MatcherAssert.assertThat(result, hasKey("$a"));
+        MatcherAssert.assertThat(result.get("$a"), is($a));
+    }
 
     private IGlobalNamespaceScope createGlobalNamespaceScope() {
         return createGlobalNamespaceScope(mock(IScopeHelper.class));

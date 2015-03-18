@@ -6,18 +6,14 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.constraints;
 
-import ch.tsphp.common.IConstraint;
-import ch.tsphp.common.IScope;
-import ch.tsphp.common.symbols.ITypeSymbol;
-import ch.tsphp.common.symbols.IUnionTypeSymbol;
+
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
+import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
+import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
 import ch.tsphp.tinsphp.inference_engine.test.ActWithTimeout;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.AConstraintSolverTest;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -25,10 +21,9 @@ import java.util.concurrent.TimeoutException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.not;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
 
 public class RefConstraintSolverTest extends AConstraintSolverTest
 {
@@ -39,18 +34,15 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
         // $b = 1; $b = 1.2; $b = []; $a = 1;
         // $a = $b;
 
-        Map<String, List<IConstraint>> map = new HashMap<>();
-        IScope scope = createScopeWithConstraints(map);
-        map.put("$b", list(type(intType), type(fooType), type(arrayType)));
-        map.put("$a", list(ref("$b", scope), type(intType)));
-        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+        ITypeVariableSymbol $b = typeVar("$b", type(intType), type(fooType), type(arrayType));
+        ITypeVariableSymbol $a = typeVar("$a", ref($b), type(intType));
+        ITypeVariableCollection scope = createTypeVariableCollection($b, $a);
 
         IConstraintSolver solver = createConstraintSolver();
-        solver.solveConstraintsOfScope(scope);
+        solver.solveConstraints(scope);
 
-        assertThat(result.size(), is(2));
-        assertThat(result, hasKey("$a"));
-        assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("int", "Foo", "array"));
+        assertThat($a.getType().isReadyForEval(), is(true));
+        assertThat($a.getType().getTypeSymbols().keySet(), containsInAnyOrder("int", "Foo", "array"));
     }
 
     @Test
@@ -59,19 +51,15 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
         // $b = 1; $b = 1.2; $b = []; $a = 1;
         // $a = $b;
 
-        Map<String, List<IConstraint>> map = new HashMap<>();
-        IScope scope = createScopeWithConstraints(map);
-        map.put("$b", list(type(intType), type(fooType), type(arrayType)));
-        map.put("$a", list(iRef("$b", scope)));
-        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
-
+        ITypeVariableSymbol $b = typeVar("$b", type(intType), type(fooType), type(arrayType));
+        ITypeVariableSymbol $a = typeVar("$a", ref($b), type(intType));
+        ITypeVariableCollection scope = createTypeVariableCollection($b, $a);
 
         IConstraintSolver solver = createConstraintSolver();
-        solver.solveConstraintsOfScope(scope);
+        solver.solveConstraints(scope);
 
-        assertThat(result.size(), is(2));
-        assertThat(result, hasKey("$b"));
-        assertThat(result.get("$b").getTypeSymbols().keySet(), containsInAnyOrder("int", "Foo", "array"));
+        assertThat($b.getType().isReadyForEval(), is(true));
+        assertThat($b.getType().getTypeSymbols().keySet(), containsInAnyOrder("int", "Foo", "array"));
     }
 
     @Test
@@ -82,53 +70,34 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
         // $a = 1;
         // $a = $b;
 
-        Map<String, List<IConstraint>> refMap = new HashMap<>();
-        refMap.put("$b", list(type(intType), type(fooType), type(arrayType)));
-        IScope refScope = createScopeWithConstraints(refMap);
-        //necessary in order that refScope also saves results (is used by the algorithm)
-        createResolvingResult(refScope);
+        ITypeVariableSymbol $b = typeVar("$b", type(intType), type(fooType), type(arrayType));
+        ITypeVariableSymbol $a = typeVar("$a", ref($b), type(intType), type(floatType));
+        ITypeVariableCollection scope = createTypeVariableCollection($a);
 
-        Map<String, List<IConstraint>> map = new HashMap<>();
-        map.put("$a", list(ref("$b", refScope), type(intType), type(floatType)));
-        IScope scope = createScopeWithConstraints(map);
-        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
-
-        //act
         IConstraintSolver solver = createConstraintSolver();
-        solver.solveConstraintsOfScope(scope);
+        solver.solveConstraints(scope);
 
-
-        assertThat(result.size(), is(1));
-        assertThat(result, hasKey("$a"));
-        Map<String, ITypeSymbol> typesInUnion = result.get("$a").getTypeSymbols();
-        assertThat(typesInUnion.keySet(), containsInAnyOrder("int", "float", "Foo", "array"));
+        assertThat($a.getType().isReadyForEval(), is(true));
+        assertThat($a.getType().getTypeSymbols().keySet(), containsInAnyOrder("int", "float", "Foo", "array"));
     }
 
     @Test
-    public void solveConstraintsOfScope_InOtherScope_RefIsSolved() {
+    public void solveConstraintsOfScope_InOtherScope_RefIsSolvedAsWell() {
         // corresponds:
         // $b = 1; $b = 1.2; $b = [];
         // --- in different scope
         // $a = 1;
         // $a = $b;
 
-        Map<String, List<IConstraint>> refMap = new HashMap<>();
-        refMap.put("$b", list(type(intType), type(fooType), type(arrayType)));
-        IScope refScope = createScopeWithConstraints(refMap);
-        Map<String, IUnionTypeSymbol> result = createResolvingResult(refScope);
+        ITypeVariableSymbol $b = typeVar("$b", type(intType), type(fooType), type(arrayType));
+        ITypeVariableSymbol $a = typeVar("$a", ref($b), type(intType), type(floatType));
+        ITypeVariableCollection scope = createTypeVariableCollection($a);
 
-        Map<String, List<IConstraint>> map = new HashMap<>();
-        map.put("$a", list(ref("$b", refScope), type(intType), type(floatType)));
-        IScope scope = createScopeWithConstraints(map);
-        //necessary in order that refScope also saves results (is used by the algorithm)
-        createResolvingResult(scope);
-
-        //act
         IConstraintSolver solver = createConstraintSolver();
-        solver.solveConstraintsOfScope(scope);
+        solver.solveConstraints(scope);
 
-        assertThat(result.size(), is(1));
-        assertThat(result.get("$b").isReadyForEval(), is(true));
+        assertThat($b.getType().isReadyForEval(), is(true));
+        assertThat($b.getType().getTypeSymbols().keySet(), containsInAnyOrder("int", "Foo", "array"));
     }
 
     @Test
@@ -139,11 +108,11 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
         // $b = $a;
         // $a = $b;
 
-        Map<String, List<IConstraint>> map = new HashMap<>();
-        final IScope scope = createScopeWithConstraints(map);
-        map.put("$a", list(ref("$b", scope), type(intType)));
-        map.put("$b", list(type(intType), type(fooType), type(arrayType), ref("$a", scope)));
-        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+        ITypeVariableSymbol $b = typeVar("$b");
+        ITypeVariableSymbol $a = typeVar("$a");
+        when($b.getConstraints()).thenReturn(list(type(intType), type(fooType), type(arrayType), ref($a)));
+        when($a.getConstraints()).thenReturn(list(ref($b), type(intType)));
+        final ITypeVariableCollection scope = createTypeVariableCollection($a, $b);
 
         try {
             //act
@@ -151,17 +120,16 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
             {
                 public Void call() {
                     IConstraintSolver solver = createConstraintSolver();
-                    solver.solveConstraintsOfScope(scope);
+                    solver.solveConstraints(scope);
                     return null;
                 }
             }, TIMEOUT, TimeUnit.SECONDS);
 
             //assert
-            assertThat(result.size(), is(2));
-            assertThat(result, hasKey("$a"));
-            assertThat(result, hasKey("$b"));
-            assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("int", "Foo", "array"));
-            assertThat(result.get("$b").getTypeSymbols().keySet(), containsInAnyOrder("int", "Foo", "array"));
+            assertThat($a.getType().isReadyForEval(), is(true));
+            assertThat($a.getType().getTypeSymbols().keySet(), containsInAnyOrder("int", "Foo", "array"));
+            assertThat($b.getType().isReadyForEval(), is(true));
+            assertThat($b.getType().getTypeSymbols().keySet(), containsInAnyOrder("int", "Foo", "array"));
         } catch (TimeoutException e) {
             fail("Did not terminate after 2 seconds, most probably endless loop");
         }
@@ -177,17 +145,11 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
         // $a = 1;
         // $a = $b;
 
-        Map<String, List<IConstraint>> refMap = new HashMap<>();
-        IScope refScope = createScopeWithConstraints(refMap);
-        //necessary in order that refScope also saves results (is used by the algorithm)
-        createResolvingResult(refScope);
-
-        Map<String, List<IConstraint>> map = new HashMap<>();
-        final IScope scope = createScopeWithConstraints(map);
-        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
-
-        map.put("$a", list(ref("$b", refScope), type(intType)));
-        refMap.put("$b", list(type(intType), type(fooType), type(arrayType), ref("$a", scope)));
+        ITypeVariableSymbol $b = typeVar("$b");
+        ITypeVariableSymbol $a = typeVar("$a");
+        when($b.getConstraints()).thenReturn(list(type(intType), type(fooType), type(arrayType), ref($a)));
+        when($a.getConstraints()).thenReturn(list(ref($b), type(intType)));
+        final ITypeVariableCollection scope = createTypeVariableCollection($a);
 
         try {
             //act
@@ -195,16 +157,14 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
             {
                 public Void call() {
                     IConstraintSolver solver = createConstraintSolver();
-                    solver.solveConstraintsOfScope(scope);
+                    solver.solveConstraints(scope);
                     return null;
                 }
             }, TIMEOUT, TimeUnit.SECONDS);
 
             //assert
-            assertThat(result.size(), is(1));
-            assertThat(result, hasKey("$a"));
-            assertThat(result, not(hasKey("$b")));
-            assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("int", "Foo", "array"));
+            assertThat($a.getType().isReadyForEval(), is(true));
+            assertThat($a.getType().getTypeSymbols().keySet(), containsInAnyOrder("int", "Foo", "array"));
         } catch (TimeoutException e) {
             fail("Did not terminate after 2 seconds, most probably endless loop");
         }
@@ -220,17 +180,11 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
         // $a = 1;
         // $a = $b;
 
-        Map<String, List<IConstraint>> refMap = new HashMap<>();
-        IScope refScope = createScopeWithConstraints(refMap);
-        Map<String, IUnionTypeSymbol> refResult = createResolvingResult(refScope);
-
-        Map<String, List<IConstraint>> map = new HashMap<>();
-        final IScope scope = createScopeWithConstraints(map);
-        //necessary in order that scope also saves results (is used by the algorithm)
-        createResolvingResult(scope);
-
-        map.put("$a", list(ref("$b", refScope), type(intType)));
-        refMap.put("$b", list(type(intType), type(fooType), type(arrayType), ref("$a", scope)));
+        ITypeVariableSymbol $b = typeVar("$b");
+        ITypeVariableSymbol $a = typeVar("$a");
+        when($b.getConstraints()).thenReturn(list(type(intType), type(fooType), type(arrayType), ref($a)));
+        when($a.getConstraints()).thenReturn(list(ref($b), type(intType)));
+        final ITypeVariableCollection scope = createTypeVariableCollection($a);
 
         try {
             //act
@@ -238,16 +192,13 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
             {
                 public Void call() {
                     IConstraintSolver solver = createConstraintSolver();
-                    solver.solveConstraintsOfScope(scope);
+                    solver.solveConstraints(scope);
                     return null;
                 }
             }, TIMEOUT, TimeUnit.SECONDS);
 
             //assert
-            assertThat(refResult.size(), is(1));
-            assertThat(refResult, hasKey("$b"));
-            assertThat(refResult, not(hasKey("$a")));
-            assertThat(refResult.get("$b").isReadyForEval(), is(false));
+            assertThat($b.getType().isReadyForEval(), is(false));
         } catch (TimeoutException e) {
             fail("Did not terminate after 2 seconds, most probably endless loop");
         }
@@ -262,12 +213,13 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
         // $c = $a;
         // $b = $c;
 
-        Map<String, List<IConstraint>> map = new HashMap<>();
-        final IScope scope = createScopeWithConstraints(map);
-        map.put("$a", list(ref("$b", scope), type(arrayType)));
-        map.put("$b", list(ref("$c", scope), type(intType)));
-        map.put("$c", list(ref("$a", scope), type(floatType)));
-        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+        ITypeVariableSymbol $a = typeVar("$a");
+        ITypeVariableSymbol $b = typeVar("$b");
+        ITypeVariableSymbol $c = typeVar("$c");
+        when($a.getConstraints()).thenReturn(list(ref($b), type(arrayType)));
+        when($b.getConstraints()).thenReturn(list(ref($c), type(intType)));
+        when($c.getConstraints()).thenReturn(list(ref($a), type(floatType)));
+        final ITypeVariableCollection scope = createTypeVariableCollection($a, $b, $c);
 
         try {
             //act
@@ -275,19 +227,18 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
             {
                 public Void call() {
                     IConstraintSolver solver = createConstraintSolver();
-                    solver.solveConstraintsOfScope(scope);
+                    solver.solveConstraints(scope);
                     return null;
                 }
             }, TIMEOUT, TimeUnit.SECONDS);
 
             //assert
-            assertThat(result.size(), is(3));
-            assertThat(result, hasKey("$a"));
-            assertThat(result, hasKey("$b"));
-            assertThat(result, hasKey("$c"));
-            assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("int", "float", "array"));
-            assertThat(result.get("$b").getTypeSymbols().keySet(), containsInAnyOrder("int", "float", "array"));
-            assertThat(result.get("$c").getTypeSymbols().keySet(), containsInAnyOrder("int", "float", "array"));
+            assertThat($a.getType().isReadyForEval(), is(true));
+            assertThat($a.getType().getTypeSymbols().keySet(), containsInAnyOrder("int", "float", "array"));
+            assertThat($b.getType().isReadyForEval(), is(true));
+            assertThat($b.getType().getTypeSymbols().keySet(), containsInAnyOrder("int", "float", "array"));
+            assertThat($c.getType().isReadyForEval(), is(true));
+            assertThat($c.getType().getTypeSymbols().keySet(), containsInAnyOrder("int", "float", "array"));
         } catch (TimeoutException e) {
             fail("Did not terminate after 2 seconds, most probably endless loop");
         }
@@ -302,12 +253,13 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
         // $b = $c;
         // $c = $b;
 
-        Map<String, List<IConstraint>> map = new HashMap<>();
-        final IScope scope = createScopeWithConstraints(map);
-        map.put("$a", list(ref("$b", scope), type(arrayType)));
-        map.put("$b", list(ref("$c", scope), type(intType)));
-        map.put("$c", list(ref("$b", scope), type(floatType)));
-        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+        ITypeVariableSymbol $a = typeVar("$a");
+        ITypeVariableSymbol $b = typeVar("$b");
+        ITypeVariableSymbol $c = typeVar("$c");
+        when($a.getConstraints()).thenReturn(list(ref($b), type(arrayType)));
+        when($b.getConstraints()).thenReturn(list(ref($c), type(intType)));
+        when($c.getConstraints()).thenReturn(list(ref($b), type(floatType)));
+        final ITypeVariableCollection scope = createTypeVariableCollection($a, $b, $c);
 
         try {
             //act
@@ -315,19 +267,18 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
             {
                 public Void call() {
                     IConstraintSolver solver = createConstraintSolver();
-                    solver.solveConstraintsOfScope(scope);
+                    solver.solveConstraints(scope);
                     return null;
                 }
             }, TIMEOUT, TimeUnit.SECONDS);
 
             //assert
-            assertThat(result.size(), is(3));
-            assertThat(result, hasKey("$a"));
-            assertThat(result, hasKey("$b"));
-            assertThat(result, hasKey("$c"));
-            assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("int", "float", "array"));
-            assertThat(result.get("$b").getTypeSymbols().keySet(), containsInAnyOrder("int", "float"));
-            assertThat(result.get("$c").getTypeSymbols().keySet(), containsInAnyOrder("int", "float"));
+            assertThat($a.getType().isReadyForEval(), is(true));
+            assertThat($a.getType().getTypeSymbols().keySet(), containsInAnyOrder("int", "float", "array"));
+            assertThat($b.getType().isReadyForEval(), is(true));
+            assertThat($b.getType().getTypeSymbols().keySet(), containsInAnyOrder("int", "float"));
+            assertThat($c.getType().isReadyForEval(), is(true));
+            assertThat($c.getType().getTypeSymbols().keySet(), containsInAnyOrder("int", "float"));
         } catch (TimeoutException e) {
             fail("Did not terminate after 2 seconds, most probably endless loop");
         }
@@ -345,13 +296,15 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
         // $d = $c;
         // $b = $a;
 
-        Map<String, List<IConstraint>> map = new HashMap<>();
-        final IScope scope = createScopeWithConstraints(map);
-        map.put("$a", list(ref("$b", scope), type(arrayType)));
-        map.put("$b", list(ref("$c", scope), ref("$a", scope), type(intType)));
-        map.put("$c", list(ref("$d", scope), type(floatType)));
-        map.put("$d", list(iRef("$b", scope), ref("$c", scope)));
-        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+        ITypeVariableSymbol $a = typeVar("$a");
+        ITypeVariableSymbol $b = typeVar("$b");
+        ITypeVariableSymbol $c = typeVar("$c");
+        ITypeVariableSymbol $d = typeVar("$d");
+        when($a.getConstraints()).thenReturn(list(ref($b), type(arrayType)));
+        when($b.getConstraints()).thenReturn(list(ref($c), ref($a), type(intType)));
+        when($c.getConstraints()).thenReturn(list(ref($d), type(floatType)));
+        when($d.getConstraints()).thenReturn(list(ref($b), ref($c)));
+        final ITypeVariableCollection scope = createTypeVariableCollection($a, $b, $c, $d);
 
         try {
             //act
@@ -359,21 +312,20 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
             {
                 public Void call() {
                     IConstraintSolver solver = createConstraintSolver();
-                    solver.solveConstraintsOfScope(scope);
+                    solver.solveConstraints(scope);
                     return null;
                 }
             }, TIMEOUT, TimeUnit.SECONDS);
 
             //assert
-            assertThat(result.size(), is(4));
-            assertThat(result, hasKey("$a"));
-            assertThat(result, hasKey("$b"));
-            assertThat(result, hasKey("$c"));
-            assertThat(result, hasKey("$d"));
-            assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("int", "float", "array"));
-            assertThat(result.get("$b").getTypeSymbols().keySet(), containsInAnyOrder("int", "float", "array"));
-            assertThat(result.get("$c").getTypeSymbols().keySet(), containsInAnyOrder("int", "float", "array"));
-            assertThat(result.get("$d").getTypeSymbols().keySet(), containsInAnyOrder("int", "float", "array"));
+            assertThat($a.getType().isReadyForEval(), is(true));
+            assertThat($a.getType().getTypeSymbols().keySet(), containsInAnyOrder("int", "float", "array"));
+            assertThat($b.getType().isReadyForEval(), is(true));
+            assertThat($b.getType().getTypeSymbols().keySet(), containsInAnyOrder("int", "float", "array"));
+            assertThat($c.getType().isReadyForEval(), is(true));
+            assertThat($c.getType().getTypeSymbols().keySet(), containsInAnyOrder("int", "float", "array"));
+            assertThat($d.getType().isReadyForEval(), is(true));
+            assertThat($d.getType().getTypeSymbols().keySet(), containsInAnyOrder("int", "float", "array"));
         } catch (TimeoutException e) {
             fail("Did not terminate after 2 seconds, most probably endless loop");
         }
@@ -386,10 +338,9 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
         // $a = [];
         // $a = $a;
 
-        Map<String, List<IConstraint>> map = new HashMap<>();
-        final IScope scope = createScopeWithConstraints(map);
-        map.put("$a", list(ref("$a", scope), type(arrayType)));
-        Map<String, IUnionTypeSymbol> result = createResolvingResult(scope);
+        ITypeVariableSymbol $a = typeVar("$a");
+        when($a.getConstraints()).thenReturn(list(ref($a), type(arrayType)));
+        final ITypeVariableCollection scope = createTypeVariableCollection($a);
 
         try {
             //act
@@ -397,15 +348,14 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
             {
                 public Void call() {
                     IConstraintSolver solver = createConstraintSolver();
-                    solver.solveConstraintsOfScope(scope);
+                    solver.solveConstraints(scope);
                     return null;
                 }
             }, TIMEOUT, TimeUnit.SECONDS);
 
             //assert
-            assertThat(result.size(), is(1));
-            assertThat(result, hasKey("$a"));
-            assertThat(result.get("$a").getTypeSymbols().keySet(), containsInAnyOrder("array"));
+            assertThat($a.getType().isReadyForEval(), is(true));
+            assertThat($a.getType().getTypeSymbols().keySet(), containsInAnyOrder("array"));
         } catch (TimeoutException e) {
             fail("Did not terminate after 2 seconds, most probably endless loop");
         }

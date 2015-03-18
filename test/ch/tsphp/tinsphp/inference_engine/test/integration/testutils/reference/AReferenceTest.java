@@ -17,7 +17,7 @@ import ch.tsphp.common.IAstHelper;
 import ch.tsphp.common.ILowerCaseStringMap;
 import ch.tsphp.common.ITSPHPAstAdaptor;
 import ch.tsphp.common.TSPHPAstAdaptor;
-import ch.tsphp.common.symbols.ITypeSymbol;
+import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.common.checking.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
@@ -47,7 +47,6 @@ import org.junit.Ignore;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.Assert.assertFalse;
 
@@ -110,7 +109,7 @@ public abstract class AReferenceTest extends ADefinitionTest
                 variableDeclarationCreator,
                 scopeHelper,
                 modifierHelper,
-                core.getPrimitiveTypes(),
+                core,
                 definitionPhaseController.getGlobalDefaultNamespace()
         );
     }
@@ -224,7 +223,7 @@ public abstract class AReferenceTest extends ADefinitionTest
             IVariableDeclarationCreator theVariableDeclarationCreator,
             IScopeHelper theScopeHelper,
             IModifierHelper theModifierHelper,
-            Map<String, ITypeSymbol> thePrimitiveTypes,
+            ICore theCore,
             IGlobalNamespaceScope theGlobalDefaultNamespace) {
         return new ReferencePhaseController(
                 theSymbolFactory,
@@ -235,8 +234,7 @@ public abstract class AReferenceTest extends ADefinitionTest
                 theVariableDeclarationCreator,
                 theScopeHelper,
                 theModifierHelper,
-                thePrimitiveTypes,
-                theGlobalDefaultNamespace
+                theCore, theGlobalDefaultNamespace
         );
     }
 

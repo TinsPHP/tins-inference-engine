@@ -6,53 +6,47 @@
 
 package ch.tsphp.tinsphp.inference_engine.constraints;
 
-import ch.tsphp.common.IConstraint;
 import ch.tsphp.common.symbols.IUnionTypeSymbol;
+import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class ConstraintSolverDto
 {
 
-    public ScopeVariableDto currentVariable;
-    public Map<String, Integer> visitedVariables;
-    public Set<String> revisitVariables;
-    public List<IConstraint> constraints;
+    public ITypeVariableSymbol currentTypeVariable;
+    public Map<String, Integer> visitedTypeVariables;
+    public Set<String> revisitTypeVariables;
     public IUnionTypeSymbol unionTypeSymbol;
     public boolean notInIterativeMode = true;
     public boolean hasUnionChanged;
     public boolean hasNotCircularReference = true;
-    public ScopeVariableDto circularRefVariable;
+    public ITypeVariableSymbol circularRefTypeVariable;
 
     public ConstraintSolverDto(
             ConstraintSolverDto dto,
-            ScopeVariableDto theCurrentVariable,
-            List<IConstraint> theConstraints,
+            ITypeVariableSymbol theCurrentTypeVariable,
             IUnionTypeSymbol theUnionTypeSymbol) {
         this(
-                dto.visitedVariables,
-                dto.revisitVariables,
-                theCurrentVariable,
-                theConstraints,
+                dto.visitedTypeVariables,
+                dto.revisitTypeVariables,
+                theCurrentTypeVariable,
                 theUnionTypeSymbol
         );
         notInIterativeMode = dto.notInIterativeMode;
         hasUnionChanged = dto.hasUnionChanged;
-        circularRefVariable = dto.circularRefVariable;
+        circularRefTypeVariable = dto.circularRefTypeVariable;
     }
 
     public ConstraintSolverDto(
-            Map<String, Integer> theVisitedVariables,
-            Set<String> theVariablesToRevisit,
-            ScopeVariableDto theCurrentVariable,
-            List<IConstraint> theConstraints,
+            Map<String, Integer> theVisitedTypeVariables,
+            Set<String> theTypeVariablesToRevisit,
+            ITypeVariableSymbol theCurrentTypeVariable,
             IUnionTypeSymbol theUnionTypeSymbol) {
-        currentVariable = theCurrentVariable;
-        visitedVariables = theVisitedVariables;
-        revisitVariables = theVariablesToRevisit;
-        constraints = theConstraints;
+        currentTypeVariable = theCurrentTypeVariable;
+        visitedTypeVariables = theVisitedTypeVariables;
+        revisitTypeVariables = theTypeVariablesToRevisit;
         unionTypeSymbol = theUnionTypeSymbol;
     }
 }

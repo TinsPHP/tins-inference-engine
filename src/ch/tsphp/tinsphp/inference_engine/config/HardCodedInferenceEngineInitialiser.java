@@ -104,7 +104,7 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
                 variableDeclarationCreator,
                 scopeHelper,
                 modifierHelper,
-                core.getPrimitiveTypes(),
+                core,
                 definitionPhaseController.getGlobalDefaultNamespace()
         );
     }

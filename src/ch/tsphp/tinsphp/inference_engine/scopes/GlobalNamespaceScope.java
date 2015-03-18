@@ -18,15 +18,21 @@ import ch.tsphp.common.LowerCaseStringMap;
 import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
+import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
 import ch.tsphp.tinsphp.common.utils.MapHelper;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class GlobalNamespaceScope extends AScope implements IGlobalNamespaceScope
 {
 
     private final ILowerCaseStringMap<List<ISymbol>> symbolsCaseInsensitive = new LowerCaseStringMap<>();
+    //Warning! start code duplication - same as in MethodSymbol
+    private final Map<String, ITypeVariableSymbol> typeVariables = new HashMap<>();
+    //Warning! end code duplication - same as in MethodSymbol
 
     public GlobalNamespaceScope(IScopeHelper scopeHelper, String scopeName) {
         super(scopeHelper, scopeName, null);
@@ -86,4 +92,16 @@ public class GlobalNamespaceScope extends AScope implements IGlobalNamespaceScop
         }
         return typeNameWithoutPrefix;
     }
+
+    //Warning! start code duplication - same as in MethodSymbol
+    @Override
+    public Map<String, ITypeVariableSymbol> getTypeVariables() {
+        return typeVariables;
+    }
+
+    @Override
+    public void addTypeVariable(ITypeVariableSymbol typeVariableSymbol) {
+        typeVariables.put(typeVariableSymbol.getAbsoluteName(), typeVariableSymbol);
+    }
+    //Warning! end code duplication - same as in MethodSymbol
 }

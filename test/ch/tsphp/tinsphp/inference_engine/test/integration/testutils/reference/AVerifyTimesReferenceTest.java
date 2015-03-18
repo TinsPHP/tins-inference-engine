@@ -12,7 +12,7 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference;
 
-import ch.tsphp.common.symbols.ITypeSymbol;
+import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.common.checking.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
@@ -25,8 +25,6 @@ import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 import org.junit.Ignore;
 import org.mockito.exceptions.base.MockitoAssertionError;
-
-import java.util.Map;
 
 import static org.mockito.Mockito.spy;
 
@@ -62,7 +60,7 @@ public abstract class AVerifyTimesReferenceTest extends AReferenceTest
             IVariableDeclarationCreator theVariableDeclarationCreator,
             IScopeHelper theScopeHelper,
             IModifierHelper theModifierHelper,
-            Map<String, ITypeSymbol> thePrimitiveTypes,
+            ICore theCore,
             IGlobalNamespaceScope theGlobalDefaultNamespace) {
         return spy(super.createReferencePhaseController(
                 theSymbolFactory,
@@ -73,7 +71,7 @@ public abstract class AVerifyTimesReferenceTest extends AReferenceTest
                 theVariableDeclarationCreator,
                 theScopeHelper,
                 theModifierHelper,
-                thePrimitiveTypes,
+                theCore,
                 theGlobalDefaultNamespace
         ));
     }
