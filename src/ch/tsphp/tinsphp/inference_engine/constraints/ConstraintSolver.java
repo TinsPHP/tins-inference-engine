@@ -15,6 +15,7 @@ import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
+import ch.tsphp.tinsphp.symbols.constraints.TypeConstraint;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -17,11 +17,11 @@ import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
 import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.constraints.IntersectionConstraint;
 import ch.tsphp.tinsphp.inference_engine.constraints.OverloadDto;
-import ch.tsphp.tinsphp.inference_engine.constraints.TypeConstraint;
 import ch.tsphp.tinsphp.inference_engine.scopes.ScopeHelper;
 import ch.tsphp.tinsphp.symbols.ModifierHelper;
 import ch.tsphp.tinsphp.symbols.SymbolFactory;
 import ch.tsphp.tinsphp.symbols.UnionTypeSymbol;
+import ch.tsphp.tinsphp.symbols.constraints.TypeConstraint;
 import ch.tsphp.tinsphp.symbols.utils.OverloadResolver;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -158,7 +158,6 @@ public abstract class AConstraintSolverTest
     protected IConstraint type(ITypeSymbol typeSymbol) {
         return new TypeConstraint(typeSymbol);
     }
-
 
     protected ITypeVariableCollection createTypeVariableCollection(ITypeVariableSymbol... typeVariables) {
         Map<String, ITypeVariableSymbol> map = new HashMap<>();
