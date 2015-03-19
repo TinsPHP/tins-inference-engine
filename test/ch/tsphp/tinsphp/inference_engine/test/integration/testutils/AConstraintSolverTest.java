@@ -17,7 +17,6 @@ import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
 import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.constraints.IntersectionConstraint;
 import ch.tsphp.tinsphp.inference_engine.constraints.OverloadDto;
-import ch.tsphp.tinsphp.inference_engine.constraints.RefConstraint;
 import ch.tsphp.tinsphp.inference_engine.constraints.TypeConstraint;
 import ch.tsphp.tinsphp.inference_engine.scopes.ScopeHelper;
 import ch.tsphp.tinsphp.symbols.ModifierHelper;
@@ -132,22 +131,20 @@ public abstract class AConstraintSolverTest
         return typeVariableSymbol;
     }
 
+    protected List<IConstraint> list(IConstraint... constraints) {
+        List<IConstraint> list = new ArrayList<>();
+        Collections.addAll(list, constraints);
+        return list;
+    }
+
     protected <T> List<T> list(T... objects) {
         List<T> list = new ArrayList<>();
         Collections.addAll(list, objects);
         return list;
     }
 
-    protected IConstraint intersect(List<RefConstraint> variables, List<OverloadDto> overloads) {
+    protected IConstraint intersect(List<ITypeVariableSymbol> variables, List<OverloadDto> overloads) {
         return new IntersectionConstraint(variables, overloads);
-    }
-
-    protected IConstraint ref(ITypeVariableSymbol typeVariableSymbol) {
-        return refImpl(typeVariableSymbol);
-    }
-
-    protected RefConstraint refImpl(ITypeVariableSymbol typeVariableSymbol) {
-        return new RefConstraint(typeVariableSymbol);
     }
 
 //    protected IConstraint iRef(String refVariableName, IScope refScope) {
@@ -174,7 +171,7 @@ public abstract class AConstraintSolverTest
     }
 
     protected IConstraint createPartialAdditionWithInt(ITypeVariableSymbol typeVariableSymbol) {
-        return intersect(asList(refImpl(typeVariableSymbol)), asList(
+        return intersect(asList(typeVariableSymbol), asList(
                 new OverloadDto(asList(asList(type(intType))), intType),
                 new OverloadDto(asList(asList(type(numType))), numType)
         ));
@@ -182,14 +179,14 @@ public abstract class AConstraintSolverTest
 
 
     protected IConstraint createPartialAdditionWithFloat(ITypeVariableSymbol typeVariableSymbol) {
-        return intersect(asList(refImpl(typeVariableSymbol)), asList(
+        return intersect(asList(typeVariableSymbol), asList(
                 new OverloadDto(asList(asList(type(floatType))), floatType),
                 new OverloadDto(asList(asList(type(numType))), numType)
         ));
     }
 
     protected IConstraint createAdditionIntersection(ITypeVariableSymbol lhs, ITypeVariableSymbol rhs) {
-        return intersect(asList(refImpl(lhs), refImpl(rhs)),
+        return intersect(asList(lhs, rhs),
                 asList(
                         new OverloadDto(asList(asList(type(boolType)), asList(type(boolType))), intType),
                         new OverloadDto(asList(asList(type(intType)), asList(type(intType))), intType),

@@ -142,8 +142,8 @@ public class ConstraintSolver implements IConstraintSolver
     private void solveConstraint(ConstraintSolverDto dto, Iterator<IConstraint> iterator, IConstraint constraint) {
         if (constraint instanceof TypeConstraint) {
             resolveTypeConstraint(dto, iterator, (TypeConstraint) constraint);
-        } else if (constraint instanceof RefConstraint) {
-            resolveReferenceConstraint(dto, iterator, (RefConstraint) constraint);
+        } else if (constraint instanceof ITypeVariableSymbol) {
+            resolveReferenceConstraint(dto, iterator, (ITypeVariableSymbol) constraint);
         } else if (constraint instanceof IntersectionConstraint) {
             resolveIntersectionConstraint(dto, iterator, (IntersectionConstraint) constraint);
         }
@@ -157,8 +157,7 @@ public class ConstraintSolver implements IConstraintSolver
     }
 
     private void resolveReferenceConstraint(
-            ConstraintSolverDto dto, Iterator<IConstraint> iterator, RefConstraint refConstraint) {
-        ITypeVariableSymbol refTypeVariable = refConstraint.getTypeVariable();
+            ConstraintSolverDto dto, Iterator<IConstraint> iterator, ITypeVariableSymbol refTypeVariable) {
         if (dto.currentTypeVariable != refTypeVariable) {
             IUnionTypeSymbol unionTypeSymbol = refTypeVariable.getType();
             if (!unionTypeSymbol.isReadyForEval()) {
@@ -313,8 +312,7 @@ public class ConstraintSolver implements IConstraintSolver
     private List<IUnionTypeSymbol> resolveRefSymbolTypes(
             ConstraintSolverDto dto, IntersectionConstraint intersectionConstraint) {
         List<IUnionTypeSymbol> refVariableTypes = new ArrayList<>();
-        for (RefConstraint refConstraint : intersectionConstraint.getVariables()) {
-            ITypeVariableSymbol refTypeVariable = refConstraint.getTypeVariable();
+        for (ITypeVariableSymbol refTypeVariable : intersectionConstraint.getTypeVariables()) {
             IUnionTypeSymbol unionTypeSymbol = refTypeVariable.getType();
             if (!unionTypeSymbol.isReadyForEval()) {
                 if (notVisitedYet(dto, refTypeVariable)) {

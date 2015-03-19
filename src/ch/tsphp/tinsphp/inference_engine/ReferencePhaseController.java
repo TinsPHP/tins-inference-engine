@@ -167,6 +167,7 @@ public class ReferencePhaseController implements IReferencePhaseController
     @Override
     public IMethodSymbol resolveOperator(ITSPHPAst operator) {
         List<IMethodSymbol> methodSymbols = operators.get(operator.getType());
+
         return null;
     }
 

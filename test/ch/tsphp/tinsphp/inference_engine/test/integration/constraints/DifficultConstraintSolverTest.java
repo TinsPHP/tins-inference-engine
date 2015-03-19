@@ -51,10 +51,10 @@ public class DifficultConstraintSolverTest extends AConstraintSolverTest
         IConstraint intersectionB1 = createPartialAdditionWithInt($a);
         IConstraint intersectionB2 = createPartialAdditionWithFloat($e);
         when($a.getConstraints()).thenReturn(list(type(intType), intersectionA));
-        when($b.getConstraints()).thenReturn(list(type(intType), intersectionB1, ref($c), intersectionB2));
-        when($c.getConstraints()).thenReturn(list(ref($a)));
-        when($d.getConstraints()).thenReturn(list(ref($a), ref($b)));
-        when($e.getConstraints()).thenReturn(list(ref($a)));
+        when($b.getConstraints()).thenReturn(list(type(intType), intersectionB1, $c, intersectionB2));
+        when($c.getConstraints()).thenReturn(list($a));
+        when($d.getConstraints()).thenReturn(list($a, $b));
+        when($e.getConstraints()).thenReturn(list($a));
         final ITypeVariableCollection scope = createTypeVariableCollection($a, $b, $c, $d, $e);
 
         try {
@@ -111,10 +111,10 @@ public class DifficultConstraintSolverTest extends AConstraintSolverTest
         IConstraint intersectionB2 = createPartialAdditionWithFloat($e);
 
         when($a.getConstraints()).thenReturn(list(type(intType), intersectionA));
-        when($b.getConstraints()).thenReturn(list(type(intType), intersectionB1, ref($c), intersectionB2));
-        when($c.getConstraints()).thenReturn(list(ref($a)));
-        when($d.getConstraints()).thenReturn(list(ref($a), ref($b)));
-        when($e.getConstraints()).thenReturn(list(ref($a), type(arrayType)));
+        when($b.getConstraints()).thenReturn(list(type(intType), intersectionB1, $c, intersectionB2));
+        when($c.getConstraints()).thenReturn(list($a));
+        when($d.getConstraints()).thenReturn(list($a, $b));
+        when($e.getConstraints()).thenReturn(list($a, type(arrayType)));
 
         final ITypeVariableCollection scope = createTypeVariableCollection($a, $b, $c, $d, $e);
 
@@ -175,10 +175,10 @@ public class DifficultConstraintSolverTest extends AConstraintSolverTest
         IConstraint intersectionB2 = createPartialAdditionWithFloat($e);
 
         when($a.getConstraints()).thenReturn(list(type(intType), intersectionA));
-        when($b.getConstraints()).thenReturn(list(type(floatType), intersectionB1, ref($c), intersectionB2));
-        when($c.getConstraints()).thenReturn(list(ref($e)));
-        when($d.getConstraints()).thenReturn(list(ref($a), ref($b)));
-        when($e.getConstraints()).thenReturn(list(ref($a), type(arrayType)));
+        when($b.getConstraints()).thenReturn(list(type(floatType), intersectionB1, $c, intersectionB2));
+        when($c.getConstraints()).thenReturn(list($e));
+        when($d.getConstraints()).thenReturn(list($a, $b));
+        when($e.getConstraints()).thenReturn(list($a, type(arrayType)));
 
         final ITypeVariableCollection scope = createTypeVariableCollection($a, $b, $c, $d, $e);
 
@@ -234,10 +234,10 @@ public class DifficultConstraintSolverTest extends AConstraintSolverTest
         IConstraint intersectionD = createPartialAdditionWithInt($a);
 
         when($a.getConstraints()).thenReturn(list(type(intType), intersectionA));
-        when($b.getConstraints()).thenReturn(list(type(floatType), intersectionB1, ref($c), intersectionB2));
-        when($c.getConstraints()).thenReturn(list(ref($e)));
-        when($d.getConstraints()).thenReturn(list(ref($a), intersectionD, ref($b)));
-        when($e.getConstraints()).thenReturn(list(ref($a)));
+        when($b.getConstraints()).thenReturn(list(type(floatType), intersectionB1, $c, intersectionB2));
+        when($c.getConstraints()).thenReturn(list($e));
+        when($d.getConstraints()).thenReturn(list($a, intersectionD, $b));
+        when($e.getConstraints()).thenReturn(list($a));
 
         final ITypeVariableCollection scope = createTypeVariableCollection($a, $b, $c, $d, $e);
 
@@ -302,13 +302,13 @@ public class DifficultConstraintSolverTest extends AConstraintSolverTest
         when($b.getConstraints()).thenReturn(list(
                 type(floatType),
                 intersectionBA,
-                ref($c),
+                $c,
                 intersectionBC,
-                ref($b),
+                $b,
                 intersectionBBB));
-        when($c.getConstraints()).thenReturn(list(ref($e), intersectionC));
-        when($d.getConstraints()).thenReturn(list(intersectionD, ref($b)));
-        when($e.getConstraints()).thenReturn(list(ref($a)));
+        when($c.getConstraints()).thenReturn(list($e, intersectionC));
+        when($d.getConstraints()).thenReturn(list(intersectionD, $b));
+        when($e.getConstraints()).thenReturn(list($a));
         final ITypeVariableCollection scope = createTypeVariableCollection($a, $b, $c, $d, $e);
 
         try {
@@ -374,13 +374,13 @@ public class DifficultConstraintSolverTest extends AConstraintSolverTest
         when($b.getConstraints()).thenReturn(list(
                 type(floatType),
                 intersectionBA,
-                ref($c),
+                $c,
                 intersectionBC,
-                ref($b),
+                $b,
                 intersectionBBB));
-        when($c.getConstraints()).thenReturn(list(ref($e), intersectionC, ref($b)));
-        when($d.getConstraints()).thenReturn(list(intersectionD, ref($b)));
-        when($e.getConstraints()).thenReturn(list(ref($a)));
+        when($c.getConstraints()).thenReturn(list($e, intersectionC, $b));
+        when($d.getConstraints()).thenReturn(list(intersectionD, $b));
+        when($e.getConstraints()).thenReturn(list($a));
         final ITypeVariableCollection scope = createTypeVariableCollection($a, $b, $c, $d, $e);
 
         try {
@@ -445,13 +445,13 @@ public class DifficultConstraintSolverTest extends AConstraintSolverTest
         when($b.getConstraints()).thenReturn(list(
                 type(floatType),
                 intersectionBA,
-                ref($c),
+                $c,
                 intersectionBC,
-                ref($b),
+                $b,
                 intersectionBBB));
-        when($c.getConstraints()).thenReturn(list(intersectionC, ref($b)));
-        when($d.getConstraints()).thenReturn(list(intersectionD, ref($b)));
-        when($e.getConstraints()).thenReturn(list(ref($a)));
+        when($c.getConstraints()).thenReturn(list(intersectionC, $b));
+        when($d.getConstraints()).thenReturn(list(intersectionD, $b));
+        when($e.getConstraints()).thenReturn(list($a));
         final ITypeVariableCollection scope = createTypeVariableCollection($a, $b, $c, $d, $e);
 
         try {

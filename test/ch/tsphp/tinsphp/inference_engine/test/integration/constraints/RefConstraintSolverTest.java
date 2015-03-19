@@ -35,7 +35,7 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
         // $a = $b;
 
         ITypeVariableSymbol $b = typeVar("$b", type(intType), type(fooType), type(arrayType));
-        ITypeVariableSymbol $a = typeVar("$a", ref($b), type(intType));
+        ITypeVariableSymbol $a = typeVar("$a", $b, type(intType));
         ITypeVariableCollection scope = createTypeVariableCollection($b, $a);
 
         IConstraintSolver solver = createConstraintSolver();
@@ -52,7 +52,7 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
         // $a = $b;
 
         ITypeVariableSymbol $b = typeVar("$b", type(intType), type(fooType), type(arrayType));
-        ITypeVariableSymbol $a = typeVar("$a", ref($b), type(intType));
+        ITypeVariableSymbol $a = typeVar("$a", $b, type(intType));
         ITypeVariableCollection scope = createTypeVariableCollection($b, $a);
 
         IConstraintSolver solver = createConstraintSolver();
@@ -71,7 +71,7 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
         // $a = $b;
 
         ITypeVariableSymbol $b = typeVar("$b", type(intType), type(fooType), type(arrayType));
-        ITypeVariableSymbol $a = typeVar("$a", ref($b), type(intType), type(floatType));
+        ITypeVariableSymbol $a = typeVar("$a", $b, type(intType), type(floatType));
         ITypeVariableCollection scope = createTypeVariableCollection($a);
 
         IConstraintSolver solver = createConstraintSolver();
@@ -90,7 +90,7 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
         // $a = $b;
 
         ITypeVariableSymbol $b = typeVar("$b", type(intType), type(fooType), type(arrayType));
-        ITypeVariableSymbol $a = typeVar("$a", ref($b), type(intType), type(floatType));
+        ITypeVariableSymbol $a = typeVar("$a", $b, type(intType), type(floatType));
         ITypeVariableCollection scope = createTypeVariableCollection($a);
 
         IConstraintSolver solver = createConstraintSolver();
@@ -110,8 +110,8 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
 
         ITypeVariableSymbol $b = typeVar("$b");
         ITypeVariableSymbol $a = typeVar("$a");
-        when($b.getConstraints()).thenReturn(list(type(intType), type(fooType), type(arrayType), ref($a)));
-        when($a.getConstraints()).thenReturn(list(ref($b), type(intType)));
+        when($b.getConstraints()).thenReturn(list(type(intType), type(fooType), type(arrayType), $a));
+        when($a.getConstraints()).thenReturn(list($b, type(intType)));
         final ITypeVariableCollection scope = createTypeVariableCollection($a, $b);
 
         try {
@@ -147,8 +147,8 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
 
         ITypeVariableSymbol $b = typeVar("$b");
         ITypeVariableSymbol $a = typeVar("$a");
-        when($b.getConstraints()).thenReturn(list(type(intType), type(fooType), type(arrayType), ref($a)));
-        when($a.getConstraints()).thenReturn(list(ref($b), type(intType)));
+        when($b.getConstraints()).thenReturn(list(type(intType), type(fooType), type(arrayType), $a));
+        when($a.getConstraints()).thenReturn(list($b, type(intType)));
         final ITypeVariableCollection scope = createTypeVariableCollection($a);
 
         try {
@@ -182,8 +182,8 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
 
         ITypeVariableSymbol $b = typeVar("$b");
         ITypeVariableSymbol $a = typeVar("$a");
-        when($b.getConstraints()).thenReturn(list(type(intType), type(fooType), type(arrayType), ref($a)));
-        when($a.getConstraints()).thenReturn(list(ref($b), type(intType)));
+        when($b.getConstraints()).thenReturn(list(type(intType), type(fooType), type(arrayType), $a));
+        when($a.getConstraints()).thenReturn(list($b, type(intType)));
         final ITypeVariableCollection scope = createTypeVariableCollection($a);
 
         try {
@@ -216,9 +216,9 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
         ITypeVariableSymbol $a = typeVar("$a");
         ITypeVariableSymbol $b = typeVar("$b");
         ITypeVariableSymbol $c = typeVar("$c");
-        when($a.getConstraints()).thenReturn(list(ref($b), type(arrayType)));
-        when($b.getConstraints()).thenReturn(list(ref($c), type(intType)));
-        when($c.getConstraints()).thenReturn(list(ref($a), type(floatType)));
+        when($a.getConstraints()).thenReturn(list($b, type(arrayType)));
+        when($b.getConstraints()).thenReturn(list($c, type(intType)));
+        when($c.getConstraints()).thenReturn(list($a, type(floatType)));
         final ITypeVariableCollection scope = createTypeVariableCollection($a, $b, $c);
 
         try {
@@ -256,9 +256,9 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
         ITypeVariableSymbol $a = typeVar("$a");
         ITypeVariableSymbol $b = typeVar("$b");
         ITypeVariableSymbol $c = typeVar("$c");
-        when($a.getConstraints()).thenReturn(list(ref($b), type(arrayType)));
-        when($b.getConstraints()).thenReturn(list(ref($c), type(intType)));
-        when($c.getConstraints()).thenReturn(list(ref($b), type(floatType)));
+        when($a.getConstraints()).thenReturn(list($b, type(arrayType)));
+        when($b.getConstraints()).thenReturn(list($c, type(intType)));
+        when($c.getConstraints()).thenReturn(list($b, type(floatType)));
         final ITypeVariableCollection scope = createTypeVariableCollection($a, $b, $c);
 
         try {
@@ -300,10 +300,10 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
         ITypeVariableSymbol $b = typeVar("$b");
         ITypeVariableSymbol $c = typeVar("$c");
         ITypeVariableSymbol $d = typeVar("$d");
-        when($a.getConstraints()).thenReturn(list(ref($b), type(arrayType)));
-        when($b.getConstraints()).thenReturn(list(ref($c), ref($a), type(intType)));
-        when($c.getConstraints()).thenReturn(list(ref($d), type(floatType)));
-        when($d.getConstraints()).thenReturn(list(ref($b), ref($c)));
+        when($a.getConstraints()).thenReturn(list($b, type(arrayType)));
+        when($b.getConstraints()).thenReturn(list($c, $a, type(intType)));
+        when($c.getConstraints()).thenReturn(list($d, type(floatType)));
+        when($d.getConstraints()).thenReturn(list($b, $c));
         final ITypeVariableCollection scope = createTypeVariableCollection($a, $b, $c, $d);
 
         try {
@@ -339,7 +339,7 @@ public class RefConstraintSolverTest extends AConstraintSolverTest
         // $a = $a;
 
         ITypeVariableSymbol $a = typeVar("$a");
-        when($a.getConstraints()).thenReturn(list(ref($a), type(arrayType)));
+        when($a.getConstraints()).thenReturn(list($a, type(arrayType)));
         final ITypeVariableCollection scope = createTypeVariableCollection($a);
 
         try {

@@ -8,22 +8,23 @@ package ch.tsphp.tinsphp.inference_engine.constraints;
 
 
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
+import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
 
 import java.util.List;
 
 public class IntersectionConstraint implements IConstraint
 {
-    private List<RefConstraint> variables;
+    private List<ITypeVariableSymbol> typeVariables;
 
     private List<OverloadDto> overloads;
 
-    public IntersectionConstraint(List<RefConstraint> theVariables, List<OverloadDto> theOverloads) {
-        variables = theVariables;
+    public IntersectionConstraint(List<ITypeVariableSymbol> theVariables, List<OverloadDto> theOverloads) {
+        typeVariables = theVariables;
         overloads = theOverloads;
     }
 
-    public List<RefConstraint> getVariables() {
-        return variables;
+    public List<ITypeVariableSymbol> getTypeVariables() {
+        return typeVariables;
     }
 
     public List<OverloadDto> getOverloads() {

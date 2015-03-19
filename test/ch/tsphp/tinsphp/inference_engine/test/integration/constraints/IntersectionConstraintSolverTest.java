@@ -100,7 +100,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
         // $a = foo($b);
 
         ITypeVariableSymbol $b = typeVar("$b", type(floatType));
-        IConstraint intersection = intersect(asList(refImpl($b)), asList(
+        IConstraint intersection = intersect(asList($b), asList(
                 new OverloadDto(asList(asList(type(fooType))), arrayType)
         ));
         ITypeVariableSymbol $a = typeVar("$a", intersection);
@@ -124,7 +124,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
         // $b = foo($a);
 
         ITypeVariableSymbol $a = typeVar("$a", type(intType));
-        IConstraint intersection = intersect(asList(refImpl($a)), asList(
+        IConstraint intersection = intersect(asList($a), asList(
                 new OverloadDto(asList(asList(type(fooType))), arrayType)
         ));
         ITypeVariableSymbol $b = typeVar("$b", intersection);
@@ -150,7 +150,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
         // $c = 1 + $a;
 
         ITypeVariableSymbol $b = typeVar("$b", type(floatType));
-        IConstraint intersectionA = intersect(asList(refImpl($b)), asList(
+        IConstraint intersectionA = intersect(asList($b), asList(
                 new OverloadDto(asList(asList(type(fooType))), arrayType)
         ));
         ITypeVariableSymbol $a = typeVar("$a", intersectionA);
@@ -200,7 +200,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
         // $a = foo($b);  //where foo has overloads as bellow
 
         ITypeVariableSymbol $b = typeVar("$b", type(arrayType));
-        IConstraint intersection = intersect(asList(refImpl($b)), asList(
+        IConstraint intersection = intersect(asList($b), asList(
                 new OverloadDto(asList(asList(type(intType))), intType),
                 new OverloadDto(asList(asList(type(floatType))), floatType),
                 new OverloadDto(asList(asList(type(arrayType))), fooType),
@@ -225,7 +225,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
         // $b = foo($a);  //where foo has overloads as bellow
 
         ITypeVariableSymbol $a = typeVar("$a", type(arrayType));
-        IConstraint intersection = intersect(asList(refImpl($a)), asList(
+        IConstraint intersection = intersect(asList($a), asList(
                 new OverloadDto(asList(asList(type(intType))), intType),
                 new OverloadDto(asList(asList(type(floatType))), floatType),
                 new OverloadDto(asList(asList(type(arrayType))), fooType),
@@ -423,7 +423,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
         ITypeVariableSymbol $b = typeVar("$b");
         IConstraint intersection = createPartialAdditionWithInt($b);
         when($a.getConstraints()).thenReturn(list(type(intType), intersection));
-        when($b.getConstraints()).thenReturn(list(type(intType), ref($a)));
+        when($b.getConstraints()).thenReturn(list(type(intType), $a));
         final ITypeVariableCollection scope = createTypeVariableCollection($a, $b);
 
         try {
@@ -458,7 +458,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
         ITypeVariableSymbol $a = typeVar("$a");
         ITypeVariableSymbol $b = typeVar("$b");
         IConstraint intersection = createPartialAdditionWithInt($a);
-        when($a.getConstraints()).thenReturn(list(type(intType), ref($b)));
+        when($a.getConstraints()).thenReturn(list(type(intType), $b));
         when($b.getConstraints()).thenReturn(list(type(intType), intersection));
         final ITypeVariableCollection scope = createTypeVariableCollection($a, $b);
 
@@ -495,7 +495,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
         ITypeVariableSymbol $b = typeVar("$b");
         IConstraint intersection = createPartialAdditionWithInt($b);
         when($a.getConstraints()).thenReturn(list(type(intType), intersection));
-        when($b.getConstraints()).thenReturn(list(type(floatType), ref($a)));
+        when($b.getConstraints()).thenReturn(list(type(floatType), $a));
         final ITypeVariableCollection scope = createTypeVariableCollection($a, $b);
 
         try {
@@ -530,7 +530,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
         ITypeVariableSymbol $a = typeVar("$a");
         ITypeVariableSymbol $b = typeVar("$b");
         IConstraint intersection = createPartialAdditionWithInt($a);
-        when($a.getConstraints()).thenReturn(list(type(intType), ref($b)));
+        when($a.getConstraints()).thenReturn(list(type(intType), $b));
         when($b.getConstraints()).thenReturn(list(type(floatType), intersection));
         final ITypeVariableCollection scope = createTypeVariableCollection($a, $b);
 
@@ -568,11 +568,11 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
 
         ITypeVariableSymbol $a = typeVar("$a");
         ITypeVariableSymbol $b = typeVar("$b");
-        IConstraint intersection = intersect(asList(refImpl($b)), asList(
+        IConstraint intersection = intersect(asList($b), asList(
                 new OverloadDto(asList(asList(type(arrayType))), arrayType)
         ));
         when($a.getConstraints()).thenReturn(list(type(intType), intersection));
-        when($b.getConstraints()).thenReturn(list(type(floatType), ref($a)));
+        when($b.getConstraints()).thenReturn(list(type(floatType), $a));
         final ITypeVariableCollection scope = createTypeVariableCollection($a, $b);
 
         try {
@@ -609,8 +609,8 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
 
         ITypeVariableSymbol $a = typeVar("$a");
         ITypeVariableSymbol $b = typeVar("$b");
-        when($a.getConstraints()).thenReturn(list(type(intType), ref($b)));
-        IConstraint intersection = intersect(asList(refImpl($a)), asList(
+        when($a.getConstraints()).thenReturn(list(type(intType), $b));
+        IConstraint intersection = intersect(asList($a), asList(
                 new OverloadDto(asList(asList(type(arrayType))), arrayType)
         ));
         when($b.getConstraints()).thenReturn(list(type(floatType), intersection));
@@ -651,8 +651,8 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
         ITypeVariableSymbol $c = typeVar("$c");
         IConstraint intersection = createPartialAdditionWithInt($b);
         when($a.getConstraints()).thenReturn(list(type(intType), intersection));
-        when($b.getConstraints()).thenReturn(list(type(floatType), ref($a)));
-        when($c.getConstraints()).thenReturn(list(ref($a)));
+        when($b.getConstraints()).thenReturn(list(type(floatType), $a));
+        when($c.getConstraints()).thenReturn(list($a));
         final ITypeVariableCollection scope = createTypeVariableCollection($a, $b, $c);
 
         try {
@@ -690,10 +690,10 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
         ITypeVariableSymbol $a = typeVar("$a");
         ITypeVariableSymbol $b = typeVar("$b");
         ITypeVariableSymbol $c = typeVar("$c");
-        when($a.getConstraints()).thenReturn(list(type(intType), ref($b)));
+        when($a.getConstraints()).thenReturn(list(type(intType), $b));
         IConstraint intersection = createPartialAdditionWithInt($a);
         when($b.getConstraints()).thenReturn(list(type(floatType), intersection));
-        when($c.getConstraints()).thenReturn(list(ref($a)));
+        when($c.getConstraints()).thenReturn(list($a));
         final ITypeVariableCollection scope = createTypeVariableCollection($a, $b, $c);
 
         try {
