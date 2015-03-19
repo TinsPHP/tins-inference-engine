@@ -33,6 +33,7 @@ import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
+import ch.tsphp.tinsphp.common.symbols.IOverloadSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousTypeSymbol;
@@ -60,7 +61,7 @@ public class ReferencePhaseController implements IReferencePhaseController
     private final IScopeHelper scopeHelper;
     private final IModifierHelper modifierHelper;
     private final Map<String, ITypeSymbol> primitiveTypes;
-    private final Map<Integer, List<IMethodSymbol>> operators;
+    private final Map<Integer, IOverloadSymbol> operators;
     private final IGlobalNamespaceScope globalDefaultNamespace;
 
     public ReferencePhaseController(
@@ -165,10 +166,8 @@ public class ReferencePhaseController implements IReferencePhaseController
     }
 
     @Override
-    public IMethodSymbol resolveOperator(ITSPHPAst operator) {
-        List<IMethodSymbol> methodSymbols = operators.get(operator.getType());
-
-        return null;
+    public IOverloadSymbol resolveOperator(ITSPHPAst operator) {
+        return operators.get(operator.getType());
     }
 
     @Override
