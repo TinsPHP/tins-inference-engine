@@ -803,9 +803,9 @@ functionCall
         // function call has no callee and is therefor not resolved in this phase.
         // resolving occurs in the inference phase where overloads are taken into account
     :   ^(FUNCTION_CALL identifier=TYPE_NAME actualParameters)
-    	{
+       {
             $identifier.setSymbol(controller.resolveFunction($identifier));
-    	}
+       }
     ;
     
 actualParameters
