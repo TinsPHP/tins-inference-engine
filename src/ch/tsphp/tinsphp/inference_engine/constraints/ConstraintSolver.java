@@ -13,6 +13,7 @@ import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
+import ch.tsphp.tinsphp.common.symbols.IFunctionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
 import ch.tsphp.tinsphp.symbols.constraints.TypeConstraint;
@@ -27,13 +28,10 @@ import java.util.Set;
 
 public class ConstraintSolver implements IConstraintSolver
 {
-    private ITypeSymbol nothingTypeSymbol;
     private ISymbolFactory symbolFactory;
     private IOverloadResolver overloadResolver;
 
-    public ConstraintSolver(
-            ITypeSymbol theNothingTypeSymbol, ISymbolFactory theSymbolFactory, IOverloadResolver theOverloadResolver) {
-        nothingTypeSymbol = theNothingTypeSymbol;
+    public ConstraintSolver(ISymbolFactory theSymbolFactory, IOverloadResolver theOverloadResolver) {
         symbolFactory = theSymbolFactory;
         overloadResolver = theOverloadResolver;
     }
@@ -188,7 +186,8 @@ public class ConstraintSolver implements IConstraintSolver
     }
 
     private void mergeWithDtoAndCurrentVariable(ConstraintSolverDto dto, IUnionTypeSymbol unionTypeSymbol) {
-        dto.currentTypeVariable.getType().merge(unionTypeSymbol);
+        IUnionTypeSymbol currentUnionTypeSymbol = dto.currentTypeVariable.getType();
+        currentUnionTypeSymbol.merge(unionTypeSymbol);
         boolean hasChanged = dto.unionTypeSymbol.merge(unionTypeSymbol);
         dto.hasUnionChanged = dto.hasUnionChanged || hasChanged;
     }
@@ -263,7 +262,11 @@ public class ConstraintSolver implements IConstraintSolver
 
     private void resolveIntersectionConstraint(
             ConstraintSolverDto dto, Iterator<IConstraint> iterator, IntersectionConstraint intersectionConstraint) {
-        List<OverloadRankingDto> applicableOverloads = getApplicableOverloads(dto, intersectionConstraint);
+        List<IUnionTypeSymbol> refVariableTypes = resolveRefSymbolTypes(dto, intersectionConstraint);
+
+        List<OverloadRankingDto> applicableOverloads = getApplicableOverloads(
+                dto, refVariableTypes, intersectionConstraint);
+
         if (!applicableOverloads.isEmpty()) {
             OverloadRankingDto overloadRankingDto;
             try {
@@ -277,7 +280,7 @@ public class ConstraintSolver implements IConstraintSolver
             }
 
             if (overloadRankingDto != null) {
-                ITypeSymbol returnTypeSymbol = overloadRankingDto.overloadDto.returnTypeSymbol;
+                ITypeSymbol returnTypeSymbol = overloadRankingDto.overload.apply(refVariableTypes);
                 addToDtoUnionAndCurrentVariable(dto, returnTypeSymbol);
                 if (dto.hasNotCircularReference) {
                     iterator.remove();
@@ -287,17 +290,20 @@ public class ConstraintSolver implements IConstraintSolver
     }
 
     private void addToDtoUnionAndCurrentVariable(ConstraintSolverDto dto, ITypeSymbol typeSymbol) {
-        dto.currentTypeVariable.getType().addTypeSymbol(typeSymbol);
+        IUnionTypeSymbol currentUnionTypeSymbol = dto.currentTypeVariable.getType();
+        currentUnionTypeSymbol.addTypeSymbol(typeSymbol);
         boolean hasChanged = dto.unionTypeSymbol.addTypeSymbol(typeSymbol);
         dto.hasUnionChanged = dto.hasUnionChanged || hasChanged;
     }
 
     private List<OverloadRankingDto> getApplicableOverloads(
-            ConstraintSolverDto dto, IntersectionConstraint intersectionConstraint) {
+            ConstraintSolverDto dto,
+            List<IUnionTypeSymbol> refVariableTypes,
+            IntersectionConstraint intersectionConstraint) {
+
         List<OverloadRankingDto> applicableOverloads = new ArrayList<>();
-        List<IUnionTypeSymbol> refVariableTypes = resolveRefSymbolTypes(dto, intersectionConstraint);
         if (dto.hasNotCircularReference || inIterativeMode(dto)) {
-            for (OverloadDto overload : intersectionConstraint.getOverloads()) {
+            for (IFunctionTypeSymbol overload : intersectionConstraint.getOverloads()) {
                 OverloadRankingDto overloadRankingDto = getApplicableOverload(refVariableTypes, overload);
                 if (overloadRankingDto != null) {
                     applicableOverloads.add(overloadRankingDto);
@@ -368,8 +374,8 @@ public class ConstraintSolver implements IConstraintSolver
     }
 
     private OverloadRankingDto getApplicableOverload(
-            List<IUnionTypeSymbol> refVariableTypes, OverloadDto overloadDto) {
-        List<List<IConstraint>> parametersConstraints = overloadDto.parametersConstraints;
+            List<IUnionTypeSymbol> refVariableTypes, IFunctionTypeSymbol functionTypeSymbol) {
+        List<List<IConstraint>> parametersConstraints = functionTypeSymbol.getParametersConstraints();
         int parameterCount = parametersConstraints.size();
         int promotionTotalCount = 0;
         int promotionParameterCount = 0;
@@ -394,7 +400,7 @@ public class ConstraintSolver implements IConstraintSolver
 
         if (conversionDto != null) {
             return new OverloadRankingDto(
-                    overloadDto, promotionParameterCount, promotionTotalCount, parametersNeedImplicitConversion);
+                    functionTypeSymbol, promotionParameterCount, promotionTotalCount, parametersNeedImplicitConversion);
         }
         return null;
     }

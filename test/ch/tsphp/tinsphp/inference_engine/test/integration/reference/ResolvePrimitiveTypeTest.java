@@ -14,6 +14,7 @@ package ch.tsphp.tinsphp.inference_engine.test.integration.reference;
 
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ITypeSymbol;
+import ch.tsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.AstTestHelper;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference.ATypeSystemTest;
@@ -42,9 +43,11 @@ public class ResolvePrimitiveTypeTest extends ATypeSystemTest
         INamespaceScope scope = definitionPhaseController.defineNamespace("\\");
         ITSPHPAst ast = AstTestHelper.getAstWithTokenText(type, scope);
 
-        ITypeSymbol result = referencePhaseController.resolvePrimitiveType(ast, null);
+        IUnionTypeSymbol result = referencePhaseController.resolvePrimitiveType(ast, null);
 
-        assertThat(result, is(core.getPrimitiveTypes().get("\\" + type)));
+        assertThat(result.isReadyForEval(), is(true));
+        ITypeSymbol typeSymbol = result.getTypeSymbols().get(type);
+        assertThat(typeSymbol, is(core.getPrimitiveTypes().get("\\" + type)));
     }
 
     @Test
@@ -52,9 +55,11 @@ public class ResolvePrimitiveTypeTest extends ATypeSystemTest
         INamespaceScope scope = definitionPhaseController.defineNamespace("\\a\\a\\");
         ITSPHPAst ast = AstTestHelper.getAstWithTokenText(type, scope);
 
-        ITypeSymbol result = referencePhaseController.resolvePrimitiveType(ast, null);
+        IUnionTypeSymbol result = referencePhaseController.resolvePrimitiveType(ast, null);
 
-        assertThat(result, is(core.getPrimitiveTypes().get("\\" + type)));
+        assertThat(result.isReadyForEval(), is(true));
+        ITypeSymbol typeSymbol = result.getTypeSymbols().get(type);
+        assertThat(typeSymbol, is(core.getPrimitiveTypes().get("\\" + type)));
     }
 
     @Parameterized.Parameters

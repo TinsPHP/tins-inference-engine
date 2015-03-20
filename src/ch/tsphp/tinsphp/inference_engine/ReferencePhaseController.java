@@ -18,6 +18,7 @@ import ch.tsphp.common.ITSPHPErrorAst;
 import ch.tsphp.common.exceptions.ReferenceException;
 import ch.tsphp.common.exceptions.TSPHPException;
 import ch.tsphp.common.symbols.ITypeSymbol;
+import ch.tsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.common.symbols.modifiers.IModifierSet;
 import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.IVariableDeclarationCreator;
@@ -60,7 +61,7 @@ public class ReferencePhaseController implements IReferencePhaseController
     private final IVariableDeclarationCreator variableDeclarationCreator;
     private final IScopeHelper scopeHelper;
     private final IModifierHelper modifierHelper;
-    private final Map<String, ITypeSymbol> primitiveTypes;
+    private final Map<String, IUnionTypeSymbol> primitiveTypes = new HashMap<>();
     private final Map<Integer, IOverloadSymbol> operators;
     private final IGlobalNamespaceScope globalDefaultNamespace;
 
@@ -83,9 +84,12 @@ public class ReferencePhaseController implements IReferencePhaseController
         variableDeclarationCreator = theVariableDeclarationCreator;
         scopeHelper = theScopeHelper;
         modifierHelper = theModifierHelper;
-        primitiveTypes = theCore.getPrimitiveTypes();
         operators = theCore.getOperators();
         globalDefaultNamespace = theGlobalDefaultNamespace;
+
+        for (Map.Entry<String, ITypeSymbol> entry : theCore.getPrimitiveTypes().entrySet()) {
+            primitiveTypes.put(entry.getKey(), wrapIntoUnionTypeSymbol(entry.getValue()));
+        }
     }
 
     @Override
@@ -171,7 +175,7 @@ public class ReferencePhaseController implements IReferencePhaseController
     }
 
     @Override
-    public ITypeSymbol resolvePrimitiveType(ITSPHPAst typeAst, ITSPHPAst typeModifierAst) {
+    public IUnionTypeSymbol resolvePrimitiveType(ITSPHPAst typeAst, ITSPHPAst typeModifierAst) {
         return resolveType(
                 typeAst,
                 typeModifierAst,
@@ -187,8 +191,8 @@ public class ReferencePhaseController implements IReferencePhaseController
     }
 
     @Override
-    public ITypeSymbol resolveType(ITSPHPAst typeAst, ITSPHPAst typeModifierAst) {
-        ITypeSymbol symbol = resolveType(
+    public IUnionTypeSymbol resolveType(ITSPHPAst typeAst, ITSPHPAst typeModifierAst) {
+        IUnionTypeSymbol symbol = resolveType(
                 typeAst,
                 typeModifierAst,
                 new IResolveTypeCaller()
@@ -211,7 +215,8 @@ public class ReferencePhaseController implements IReferencePhaseController
         return symbol;
     }
 
-    private ITypeSymbol resolveType(ITSPHPAst typeAst, ITSPHPAst typeModifierAst, IResolveTypeCaller resolveCaller) {
+    private IUnionTypeSymbol resolveType(
+            ITSPHPAst typeAst, ITSPHPAst typeModifierAst, IResolveTypeCaller resolveCaller) {
 
         ITypeSymbol typeSymbol = resolveCaller.resolve(typeAst);
 
@@ -220,39 +225,46 @@ public class ReferencePhaseController implements IReferencePhaseController
             typeSymbol = symbolFactory.createErroneousTypeSymbol(typeAst, ex);
         }
 
-        typeSymbol = createUnionTypeIfNullableOrFalseable(typeModifierAst, typeSymbol);
+        IUnionTypeSymbol unionTypeSymbol;
+        if (typeSymbol instanceof IUnionTypeSymbol) {
+            unionTypeSymbol = (IUnionTypeSymbol) typeSymbol;
+        } else {
+            unionTypeSymbol = wrapIntoUnionTypeSymbol(typeSymbol);
+        }
 
-        return typeSymbol;
+        unionTypeSymbol = transformToNullableOrFalseableIfNecessary(typeModifierAst, unionTypeSymbol);
+
+        return unionTypeSymbol;
     }
 
-    private ITypeSymbol createUnionTypeIfNullableOrFalseable(ITSPHPAst typeModifierAst, ITypeSymbol typeSymbol) {
-        ITypeSymbol result = typeSymbol;
+    private IUnionTypeSymbol transformToNullableOrFalseableIfNecessary(
+            ITSPHPAst typeModifierAst, IUnionTypeSymbol currentType) {
 
         IModifierSet modifiers = typeModifierAst != null
                 ? modifierHelper.getModifiers(typeModifierAst)
                 : new ModifierSet();
 
-        final int maxNumberOfTypesInUnion = 3;
-        Map<String, ITypeSymbol> types = new HashMap<>(maxNumberOfTypesInUnion);
-        ITypeSymbol nullTypeSymbol = primitiveTypes.get(PrimitiveTypeNames.NULL);
-        if (modifiers.isNullable() && typeSymbol != nullTypeSymbol) {
-            types.put(PrimitiveTypeNames.NULL, nullTypeSymbol);
+        IUnionTypeSymbol unionTypeSymbol = currentType;
+        if (modifiers.isNullable() || modifiers.isFalseable()) {
+            unionTypeSymbol = symbolFactory.createUnionTypeSymbol();
+            unionTypeSymbol.merge(currentType);
+            if (modifiers.isNullable()) {
+                unionTypeSymbol.addTypeSymbol(primitiveTypes.get(PrimitiveTypeNames.NULL));
+            }
+            if (modifiers.isFalseable()) {
+                unionTypeSymbol.addTypeSymbol(primitiveTypes.get(PrimitiveTypeNames.FALSE));
+            }
+            unionTypeSymbol.seal();
         }
-
-        ITypeSymbol falseTypeSymbol = primitiveTypes.get(PrimitiveTypeNames.FALSE);
-        if (modifiers.isFalseable() && typeSymbol != falseTypeSymbol) {
-            types.put(PrimitiveTypeNames.FALSE, falseTypeSymbol);
-        }
-
-        if (!types.isEmpty()) {
-            types.put(getAbsoluteType(typeSymbol), typeSymbol);
-            result = symbolFactory.createUnionTypeSymbol(types);
-        }
-        return result;
+        return unionTypeSymbol;
     }
 
-    private String getAbsoluteType(ITypeSymbol typeSymbol) {
-        return typeSymbol.getDefinitionScope().getScopeName() + typeSymbol.getName();
+    private IUnionTypeSymbol wrapIntoUnionTypeSymbol(ITypeSymbol typeSymbol) {
+        IUnionTypeSymbol unionTypeSymbol;
+        unionTypeSymbol = symbolFactory.createUnionTypeSymbol();
+        unionTypeSymbol.addTypeSymbol(typeSymbol);
+        unionTypeSymbol.seal();
+        return unionTypeSymbol;
     }
 
     @Override
@@ -270,12 +282,13 @@ public class ReferencePhaseController implements IReferencePhaseController
         if (aliasTypeSymbol == null) {
             aliasTypeSymbol = symbolFactory.createAliasTypeSymbol(typeName, typeName.getText());
         }
+
         return aliasTypeSymbol;
     }
 
     @Override
-    public ITypeSymbol resolvePrimitiveLiteral(ITSPHPAst literal) {
-        ITypeSymbol typeSymbol;
+    public IUnionTypeSymbol resolvePrimitiveLiteral(ITSPHPAst literal) {
+        IUnionTypeSymbol typeSymbol;
         switch (literal.getType()) {
             case TokenTypes.Null:
                 typeSymbol = primitiveTypes.get(PrimitiveTypeNames.NULL);
@@ -303,6 +316,11 @@ public class ReferencePhaseController implements IReferencePhaseController
                 break;
         }
         return typeSymbol;
+    }
+
+    @Override
+    public IUnionTypeSymbol createUnionTypeSymbol() {
+        return symbolFactory.createUnionTypeSymbol();
     }
 
     @Override

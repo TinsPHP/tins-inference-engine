@@ -26,11 +26,12 @@ options {
 
 package ch.tsphp.tinsphp.inference_engine.antlr;
 
-import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.ITSPHPAstAdaptor;
 import ch.tsphp.common.ITSPHPErrorAst;
+import ch.tsphp.common.symbols.ITypeSymbol;
+import ch.tsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.tinsphp.common.scopes.ICaseInsensitiveScope;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
@@ -856,30 +857,30 @@ exit
     |   'exit'
     ;
 
-returnTypesOrUnknown[ITSPHPAst typeModifier] returns [ITypeSymbol type]
+returnTypesOrUnknown[ITSPHPAst typeModifier] returns [IUnionTypeSymbol type]
         //PHP does not allow to specify return types so far, hence only the unkown type is possible
-    :   '?' {$type = null;}
+    :   '?' {$type = controller.createUnionTypeSymbol();}
     ;    
     
-allTypesOrUnknown[ITSPHPAst typeModifier] returns [ITypeSymbol type]
+allTypesOrUnknown[ITSPHPAst typeModifier] returns [IUnionTypeSymbol type]
     :   scalarTypes[$typeModifier] {$type = $scalarTypes.type;}
     |   classInterfaceType[$typeModifier] {$type = $classInterfaceType.type;}
     |   arrayType[$typeModifier] {$type = $arrayType.type;}
     //unknown type - needs to be inferred during the inference phase
-    |   '?' {$type = null;}
+    |   '?' {$type = controller.createUnionTypeSymbol();}
     ;
     
-scalarTypesOrArrayType[ITSPHPAst typeModifier] returns [ITypeSymbol type]
+scalarTypesOrArrayType[ITSPHPAst typeModifier] returns [IUnionTypeSymbol type]
     :   scalarTypes[typeModifier] {$type = $scalarTypes.type;}
     |   arrayType[$typeModifier] {$type = $arrayType.type;}
     ;
 
-scalarTypesOrUnknown[ITSPHPAst typeModifier] returns [ITypeSymbol type]
+scalarTypesOrUnknown[ITSPHPAst typeModifier] returns [IUnionTypeSymbol type]
     :   scalarTypes[typeModifier] {$type = $scalarTypes.type;}
-    |   '?' {$type = null;}
+    |   '?' {$type = controller.createUnionTypeSymbol();}
     ;
     
-scalarTypes[ITSPHPAst typeModifier] returns [ITypeSymbol type]
+scalarTypes[ITSPHPAst typeModifier] returns [IUnionTypeSymbol type]
 //Warning! start duplicated code as in voidType, classInterfaceType and arrayOrResourceOrMixed
 @init{
     if(state.backtracking == 1 && $start instanceof ITSPHPErrorAst){
@@ -906,7 +907,7 @@ catch[RecognitionException re]{
     $type = controller.createErroneousTypeSymbol($start, re);
 }
     
-classInterfaceType[ITSPHPAst typeModifier] returns [ITypeSymbol type]
+classInterfaceType[ITSPHPAst typeModifier] returns [IUnionTypeSymbol type]
 //Warning! start duplicated code as in scalarTypes and arrayOrResourceOrMixed
 @init{
     if(state.backtracking == 1 && $start instanceof ITSPHPErrorAst){
@@ -929,7 +930,7 @@ catch[RecognitionException re]{
     $type = controller.createErroneousTypeSymbol($start, re);
 }
     
-arrayType[ITSPHPAst typeModifier] returns [ITypeSymbol type]
+arrayType[ITSPHPAst typeModifier] returns [IUnionTypeSymbol type]
 //Warning! start duplicated code as in scalarTypes, classInterfaceType
 @init{
     if(state.backtracking == 1 && $start instanceof ITSPHPErrorAst){

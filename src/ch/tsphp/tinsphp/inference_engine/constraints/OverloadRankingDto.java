@@ -12,6 +12,8 @@
 
 package ch.tsphp.tinsphp.inference_engine.constraints;
 
+import ch.tsphp.tinsphp.common.symbols.IFunctionTypeSymbol;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -21,7 +23,7 @@ import java.util.List;
 public class OverloadRankingDto implements Serializable
 {
 
-    public OverloadDto overloadDto;
+    public IFunctionTypeSymbol overload;
 
     /**
      * Count which tells how many parameters fit since they can be promoted.
@@ -47,11 +49,11 @@ public class OverloadRankingDto implements Serializable
     public List<ConversionDto> parametersNeedExplicitConversion;
 
     public OverloadRankingDto(
-            OverloadDto theOverload,
+            IFunctionTypeSymbol theOverload,
             int howManyParameterWerePromoted,
             int thePromotionsInTotal,
             List<ConversionDto> theseParametersNeedImplicitConversion) {
-        overloadDto = theOverload;
+        overload = theOverload;
         parameterPromotedCount = howManyParameterWerePromoted;
         promotionsTotal = thePromotionsInTotal;
         parametersNeedImplicitConversion = theseParametersNeedImplicitConversion;

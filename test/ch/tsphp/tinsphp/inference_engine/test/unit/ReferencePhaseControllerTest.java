@@ -22,6 +22,7 @@ import ch.tsphp.tinsphp.common.checking.ForwardReferenceCheckResultDto;
 import ch.tsphp.tinsphp.common.checking.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.checking.VariableInitialisedResultDto;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
+import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.resolving.ISymbolResolverController;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
@@ -37,10 +38,13 @@ import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousVariableSymbol;
 import ch.tsphp.tinsphp.inference_engine.ReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 import ch.tsphp.tinsphp.symbols.ModifierSet;
+import ch.tsphp.tinsphp.symbols.UnionTypeSymbol;
 import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
 import org.antlr.runtime.RecognitionException;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -53,7 +57,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsMapContaining.hasEntry;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyMap;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -95,7 +98,7 @@ public class ReferencePhaseControllerTest
     public void resolveConstant_SymbolResolverDoesNotFindSymbol_ReturnsErroneousVariableSymbol() {
         String aliasName = "Dummy";
         ITSPHPAst ast = createAst(aliasName);
-        ISymbolFactory symbolFactory = mock(ISymbolFactory.class);
+        ISymbolFactory symbolFactory = createSymbolFactoryMock();
         IErroneousVariableSymbol erroneousVariableSymbol = mock(IErroneousVariableSymbol.class);
         when(symbolFactory.createErroneousVariableSymbol(eq(ast), any(TSPHPException.class)))
                 .thenReturn(erroneousVariableSymbol);
@@ -152,48 +155,60 @@ public class ReferencePhaseControllerTest
     @Test
     public void resolvePrimitiveType_LocalName_ReturnsTypeSymbol() {
         String name = "dummy";
+        String absoluteName = "\\" + name;
         ITSPHPAst ast = createAst(name);
-        Map<String, ITypeSymbol> primitiveTypes = spy(new HashMap<String, ITypeSymbol>());
+        Map<String, ITypeSymbol> primitiveTypes = new HashMap<>();
         ITypeSymbol typeSymbol = mock(IScalarTypeSymbol.class);
-        primitiveTypes.put("\\" + name, typeSymbol);
+        when(typeSymbol.getAbsoluteName()).thenReturn(absoluteName);
+        primitiveTypes.put(absoluteName, typeSymbol);
 
-        IReferencePhaseController controller = createController(primitiveTypes);
-        ITypeSymbol result = controller.resolvePrimitiveType(ast, null);
+        ISymbolFactory symbolFactory = createSymbolFactoryMock();
 
-        verify(primitiveTypes).get("\\" + name);
-        assertThat(result, is(typeSymbol));
+        //act
+        IReferencePhaseController controller = createController(symbolFactory, primitiveTypes);
+        IUnionTypeSymbol result = controller.resolvePrimitiveType(ast, null);
+
+        assertThat(result.isReadyForEval(), is(true));
+        assertThat(result.getTypeSymbols(), hasEntry(absoluteName, typeSymbol));
+        assertThat(result.getTypeSymbols().size(), is(1));
     }
 
     @Test
     public void resolvePrimitiveType_AbsoluteName_ReturnsTypeSymbol() {
         String name = "\\dummy";
         ITSPHPAst ast = createAst(name);
-        Map<String, ITypeSymbol> primitiveTypes = spy(new HashMap<String, ITypeSymbol>());
+        Map<String, ITypeSymbol> primitiveTypes = new HashMap<>();
         ITypeSymbol typeSymbol = mock(IScalarTypeSymbol.class);
         primitiveTypes.put("\\dummy", typeSymbol);
 
-        IReferencePhaseController controller = createController(primitiveTypes);
-        ITypeSymbol result = controller.resolvePrimitiveType(ast, null);
+        ISymbolFactory symbolFactory = mock(ISymbolFactory.class);
+        IUnionTypeSymbol unionTypeSymbol = mock(IUnionTypeSymbol.class);
+        when(symbolFactory.createUnionTypeSymbol()).thenReturn(unionTypeSymbol);
 
-        verify(primitiveTypes).get(name);
-        assertThat(result, is(typeSymbol));
+        //act
+        IReferencePhaseController controller = createController(symbolFactory, primitiveTypes);
+        IUnionTypeSymbol result = controller.resolvePrimitiveType(ast, null);
+
+        assertThat(result, is(unionTypeSymbol));
+        verify(unionTypeSymbol).addTypeSymbol(typeSymbol);
+        verify(unionTypeSymbol).seal();
     }
 
     @Test
     public void resolvePrimitiveType_NonExistingName_ReturnsErroneousTypeSymbol() {
         String name = "nonExisting";
         ITSPHPAst ast = createAst(name);
-        Map<String, ITypeSymbol> primitiveTypes = spy(new HashMap<String, ITypeSymbol>());
-        ISymbolFactory symbolFactory = mock(ISymbolFactory.class);
+        Map<String, ITypeSymbol> primitiveTypes = new HashMap<>();
+        ISymbolFactory symbolFactory = createSymbolFactoryMock();
         IErroneousTypeSymbol erroneousTypeSymbol = mock(IErroneousTypeSymbol.class);
         when(symbolFactory.createErroneousTypeSymbol(any(ITSPHPAst.class), any(TSPHPException.class)))
                 .thenReturn(erroneousTypeSymbol);
         IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
 
+        //act
         IReferencePhaseController controller = createController(symbolFactory, issueReporter, primitiveTypes);
-        ITypeSymbol result = controller.resolvePrimitiveType(ast, null);
+        IUnionTypeSymbol result = controller.resolvePrimitiveType(ast, null);
 
-        verify(primitiveTypes).get("\\" + name);
         verify(symbolFactory).createErroneousTypeSymbol(eq(ast), any(TSPHPException.class));
         verify(issueReporter).unknownType(ast);
         assertThat(result, is((ITypeSymbol) erroneousTypeSymbol));
@@ -205,17 +220,12 @@ public class ReferencePhaseControllerTest
         ITSPHPAst ast = createAst(name);
         Map<String, ITypeSymbol> primitiveTypes = new HashMap<>();
         ITypeSymbol typeSymbol = mock(ITypeSymbol.class);
-        when(typeSymbol.getName()).thenReturn(name);
-        IScope scope = mock(IScope.class);
-        when(typeSymbol.getDefinitionScope()).thenReturn(scope);
-        String scopeName = "\\a\\";
-        when(scope.getScopeName()).thenReturn(scopeName);
+        when(typeSymbol.getAbsoluteName()).thenReturn("\\a\\" + name);
         primitiveTypes.put("\\dummy", typeSymbol);
         ITypeSymbol falseTypeSymbol = mock(ITypeSymbol.class);
+        when(falseTypeSymbol.getAbsoluteName()).thenReturn("\\false");
         primitiveTypes.put("\\false", falseTypeSymbol);
-        ISymbolFactory symbolFactory = mock(ISymbolFactory.class);
-        IUnionTypeSymbol unionTypeSymbol = mock(IUnionTypeSymbol.class);
-        when(symbolFactory.createUnionTypeSymbol(anyMap())).thenReturn(unionTypeSymbol);
+        ISymbolFactory symbolFactory = createSymbolFactoryMock();
         IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
         IModifierHelper modifierHelper = mock(IModifierHelper.class);
         ITSPHPAst modifierAst = mock(ITSPHPAst.class);
@@ -226,17 +236,13 @@ public class ReferencePhaseControllerTest
 
         IReferencePhaseController controller = createController(
                 symbolFactory, issueReporter, modifierHelper, primitiveTypes);
-        controller.resolvePrimitiveType(ast, modifierAst);
+        IUnionTypeSymbol result = controller.resolvePrimitiveType(ast, modifierAst);
 
-
-        ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
-        verify(symbolFactory).createUnionTypeSymbol(captor.capture());
-        Map<String, ITypeSymbol> result = (Map<String, ITypeSymbol>) captor.getValue();
-        assertThat(result, allOf(
+        assertThat(result.getTypeSymbols(), allOf(
                 hasEntry("\\a\\dummy", typeSymbol),
                 hasEntry("\\false", falseTypeSymbol)
         ));
-        assertThat(result.size(), is(2));
+        assertThat(result.getTypeSymbols().size(), is(2));
     }
 
     @Test
@@ -245,17 +251,12 @@ public class ReferencePhaseControllerTest
         ITSPHPAst ast = createAst(name);
         Map<String, ITypeSymbol> primitiveTypes = new HashMap<>();
         ITypeSymbol typeSymbol = mock(ITypeSymbol.class);
-        when(typeSymbol.getName()).thenReturn(name);
-        IScope scope = mock(IScope.class);
-        when(typeSymbol.getDefinitionScope()).thenReturn(scope);
-        String scopeName = "\\a\\";
-        when(scope.getScopeName()).thenReturn(scopeName);
+        when(typeSymbol.getAbsoluteName()).thenReturn("\\a\\dummy");
         primitiveTypes.put("\\dummy", typeSymbol);
         ITypeSymbol nullTypeSymbol = mock(ITypeSymbol.class);
+        when(nullTypeSymbol.getAbsoluteName()).thenReturn("\\null");
         primitiveTypes.put("\\null", nullTypeSymbol);
-        ISymbolFactory symbolFactory = mock(ISymbolFactory.class);
-        IUnionTypeSymbol unionTypeSymbol = mock(IUnionTypeSymbol.class);
-        when(symbolFactory.createUnionTypeSymbol(anyMap())).thenReturn(unionTypeSymbol);
+        ISymbolFactory symbolFactory = createSymbolFactoryMock();
         IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
         IModifierHelper modifierHelper = mock(IModifierHelper.class);
         ITSPHPAst modifierAst = mock(ITSPHPAst.class);
@@ -266,17 +267,13 @@ public class ReferencePhaseControllerTest
 
         IReferencePhaseController controller = createController(
                 symbolFactory, issueReporter, modifierHelper, primitiveTypes);
-        controller.resolvePrimitiveType(ast, modifierAst);
+        IUnionTypeSymbol result = controller.resolvePrimitiveType(ast, modifierAst);
 
-
-        ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
-        verify(symbolFactory).createUnionTypeSymbol(captor.capture());
-        Map<String, ITypeSymbol> result = (Map<String, ITypeSymbol>) captor.getValue();
-        assertThat(result, allOf(
+        assertThat(result.getTypeSymbols(), allOf(
                 hasEntry("\\a\\dummy", typeSymbol),
                 hasEntry("\\null", nullTypeSymbol)
         ));
-        assertThat(result.size(), is(2));
+        assertThat(result.getTypeSymbols().size(), is(2));
     }
 
     @Test
@@ -285,19 +282,17 @@ public class ReferencePhaseControllerTest
         ITSPHPAst ast = createAst(name);
         Map<String, ITypeSymbol> primitiveTypes = new HashMap<>();
         ITypeSymbol typeSymbol = mock(ITypeSymbol.class);
-        when(typeSymbol.getName()).thenReturn(name);
-        IScope scope = mock(IScope.class);
-        when(typeSymbol.getDefinitionScope()).thenReturn(scope);
-        String scopeName = "\\a\\";
-        when(scope.getScopeName()).thenReturn(scopeName);
+        when(typeSymbol.getAbsoluteName()).thenReturn("\\a\\" + name);
         primitiveTypes.put("\\dummy", typeSymbol);
         ITypeSymbol nullTypeSymbol = mock(ITypeSymbol.class);
+        when(nullTypeSymbol.getAbsoluteName()).thenReturn("\\null");
         primitiveTypes.put("\\null", nullTypeSymbol);
         ITypeSymbol falseTypeSymbol = mock(ITypeSymbol.class);
+        when(falseTypeSymbol.getAbsoluteName()).thenReturn("\\false");
         primitiveTypes.put("\\false", falseTypeSymbol);
-        ISymbolFactory symbolFactory = mock(ISymbolFactory.class);
-        IUnionTypeSymbol unionTypeSymbol = mock(IUnionTypeSymbol.class);
-        when(symbolFactory.createUnionTypeSymbol(anyMap())).thenReturn(unionTypeSymbol);
+        ISymbolFactory symbolFactory = createSymbolFactoryMock();
+
+//        when(symbolFactory.createUnionTypeSymbol()).thenReturn(new UnionTypeSymbol(mock(IOverloadResolver.class)));
         IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
         IModifierHelper modifierHelper = mock(IModifierHelper.class);
         ITSPHPAst modifierAst = mock(ITSPHPAst.class);
@@ -309,33 +304,27 @@ public class ReferencePhaseControllerTest
 
         IReferencePhaseController controller = createController(
                 symbolFactory, issueReporter, modifierHelper, primitiveTypes);
-        controller.resolvePrimitiveType(ast, modifierAst);
+        IUnionTypeSymbol result = controller.resolvePrimitiveType(ast, modifierAst);
 
-
-        ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
-        verify(symbolFactory).createUnionTypeSymbol(captor.capture());
-        Map<String, ITypeSymbol> result = (Map<String, ITypeSymbol>) captor.getValue();
-        assertThat(result, allOf(
+        assertThat(result.getTypeSymbols(), allOf(
                 hasEntry("\\a\\dummy", typeSymbol),
                 hasEntry("\\false", falseTypeSymbol),
                 hasEntry("\\null", nullTypeSymbol)
         ));
-        assertThat(result.size(), is(3));
+        assertThat(result.getTypeSymbols().size(), is(3));
     }
 
     @Test
     public void resolvePrimitiveType_False_ReturnsFalseTypeSymbolAndNotUnionType() {
         String name = "false";
+        String absoluteName = "\\false";
         ITSPHPAst ast = createAst(name);
         Map<String, ITypeSymbol> primitiveTypes = new HashMap<>();
         ITypeSymbol falseTypeSymbol = mock(ITypeSymbol.class);
         when(falseTypeSymbol.getName()).thenReturn(name);
-        IScope scope = mock(IScope.class);
-        when(falseTypeSymbol.getDefinitionScope()).thenReturn(scope);
-        String scopeName = "\\a\\";
-        when(scope.getScopeName()).thenReturn(scopeName);
-        primitiveTypes.put("\\false", falseTypeSymbol);
-        ISymbolFactory symbolFactory = mock(ISymbolFactory.class);
+        when(falseTypeSymbol.getAbsoluteName()).thenReturn(absoluteName);
+        primitiveTypes.put(absoluteName, falseTypeSymbol);
+        ISymbolFactory symbolFactory = createSymbolFactoryMock();
         IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
 
         IModifierHelper modifierHelper = mock(IModifierHelper.class);
@@ -346,26 +335,24 @@ public class ReferencePhaseControllerTest
 
         IReferencePhaseController controller = createController(
                 symbolFactory, issueReporter, modifierHelper, primitiveTypes);
-        ITypeSymbol result = controller.resolvePrimitiveType(ast, modifierAst);
+        IUnionTypeSymbol result = controller.resolvePrimitiveType(ast, modifierAst);
 
-        assertThat(result, is(falseTypeSymbol));
+        assertThat(result.isReadyForEval(), is(true));
+        assertThat(result.getTypeSymbols(), hasEntry(absoluteName, falseTypeSymbol));
+        assertThat(result.getTypeSymbols().size(), is(1));
     }
 
     @Test
     public void resolvePrimitiveType_Null_ReturnsNullTypeSymbolAndNotUnionType() {
         String name = "null";
+        String absoluteName = "\\null";
         ITSPHPAst ast = createAst(name);
         Map<String, ITypeSymbol> primitiveTypes = new HashMap<>();
         ITypeSymbol nullTypeSymbol = mock(ITypeSymbol.class);
         when(nullTypeSymbol.getName()).thenReturn(name);
-        IScope scope = mock(IScope.class);
-        when(nullTypeSymbol.getDefinitionScope()).thenReturn(scope);
-        String scopeName = "\\a\\";
-        when(scope.getScopeName()).thenReturn(scopeName);
-        primitiveTypes.put("\\null", nullTypeSymbol);
-        ISymbolFactory symbolFactory = mock(ISymbolFactory.class);
-        IUnionTypeSymbol unionTypeSymbol = mock(IUnionTypeSymbol.class);
-        when(symbolFactory.createUnionTypeSymbol(anyMap())).thenReturn(unionTypeSymbol);
+        when(nullTypeSymbol.getAbsoluteName()).thenReturn(absoluteName);
+        primitiveTypes.put(absoluteName, nullTypeSymbol);
+        ISymbolFactory symbolFactory = createSymbolFactoryMock();
         IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
         IModifierHelper modifierHelper = mock(IModifierHelper.class);
         ITSPHPAst modifierAst = mock(ITSPHPAst.class);
@@ -375,10 +362,11 @@ public class ReferencePhaseControllerTest
 
         IReferencePhaseController controller = createController(
                 symbolFactory, issueReporter, modifierHelper, primitiveTypes);
-        ITypeSymbol result = controller.resolvePrimitiveType(ast, modifierAst);
+        IUnionTypeSymbol result = controller.resolvePrimitiveType(ast, modifierAst);
 
-
-        assertThat(result, is(nullTypeSymbol));
+        assertThat(result.isReadyForEval(), is(true));
+        assertThat(result.getTypeSymbols(), hasEntry(absoluteName, nullTypeSymbol));
+        assertThat(result.getTypeSymbols().size(), is(1));
     }
 
     @Test
@@ -386,7 +374,7 @@ public class ReferencePhaseControllerTest
         ITSPHPAst ast = mock(ITSPHPAst.class);
 
         IReferencePhaseController controller = createController();
-        ITypeSymbol result = controller.resolvePrimitiveLiteral(ast);
+        IUnionTypeSymbol result = controller.resolvePrimitiveLiteral(ast);
 
         assertThat(result, is(nullValue()));
     }
@@ -399,10 +387,17 @@ public class ReferencePhaseControllerTest
         ITypeSymbol typeSymbol = mock(ITypeSymbol.class);
         types.put("\\null", typeSymbol);
 
-        IReferencePhaseController controller = createController(types);
-        ITypeSymbol result = controller.resolvePrimitiveLiteral(ast);
+        ISymbolFactory symbolFactory = mock(ISymbolFactory.class);
+        IUnionTypeSymbol unionTypeSymbol = mock(IUnionTypeSymbol.class);
+        when(symbolFactory.createUnionTypeSymbol()).thenReturn(unionTypeSymbol);
 
-        assertThat(result, is(typeSymbol));
+        //act
+        IReferencePhaseController controller = createController(symbolFactory, types);
+        IUnionTypeSymbol result = controller.resolvePrimitiveLiteral(ast);
+
+        assertThat(result, is(unionTypeSymbol));
+        verify(unionTypeSymbol).addTypeSymbol(typeSymbol);
+        verify(unionTypeSymbol).seal();
     }
 
     @Test
@@ -414,10 +409,17 @@ public class ReferencePhaseControllerTest
         ITypeSymbol typeSymbol = mock(ITypeSymbol.class);
         types.put("\\false", typeSymbol);
 
-        IReferencePhaseController controller = createController(types);
-        ITypeSymbol result = controller.resolvePrimitiveLiteral(ast);
+        ISymbolFactory symbolFactory = mock(ISymbolFactory.class);
+        IUnionTypeSymbol unionTypeSymbol = mock(IUnionTypeSymbol.class);
+        when(symbolFactory.createUnionTypeSymbol()).thenReturn(unionTypeSymbol);
 
-        assertThat(result, is(typeSymbol));
+        //act
+        IReferencePhaseController controller = createController(symbolFactory, types);
+        IUnionTypeSymbol result = controller.resolvePrimitiveLiteral(ast);
+
+        assertThat(result, is(unionTypeSymbol));
+        verify(unionTypeSymbol).addTypeSymbol(typeSymbol);
+        verify(unionTypeSymbol).seal();
     }
 
     @Test
@@ -429,10 +431,17 @@ public class ReferencePhaseControllerTest
         ITypeSymbol typeSymbol = mock(ITypeSymbol.class);
         types.put("\\true", typeSymbol);
 
-        IReferencePhaseController controller = createController(types);
-        ITypeSymbol result = controller.resolvePrimitiveLiteral(ast);
+        ISymbolFactory symbolFactory = mock(ISymbolFactory.class);
+        IUnionTypeSymbol unionTypeSymbol = mock(IUnionTypeSymbol.class);
+        when(symbolFactory.createUnionTypeSymbol()).thenReturn(unionTypeSymbol);
 
-        assertThat(result, is(typeSymbol));
+        //act
+        IReferencePhaseController controller = createController(symbolFactory, types);
+        IUnionTypeSymbol result = controller.resolvePrimitiveLiteral(ast);
+
+        assertThat(result, is(unionTypeSymbol));
+        verify(unionTypeSymbol).addTypeSymbol(typeSymbol);
+        verify(unionTypeSymbol).seal();
     }
 
     @Test
@@ -443,10 +452,17 @@ public class ReferencePhaseControllerTest
         ITypeSymbol typeSymbol = mock(ITypeSymbol.class);
         types.put("\\int", typeSymbol);
 
-        IReferencePhaseController controller = createController(types);
-        ITypeSymbol result = controller.resolvePrimitiveLiteral(ast);
+        ISymbolFactory symbolFactory = mock(ISymbolFactory.class);
+        IUnionTypeSymbol unionTypeSymbol = mock(IUnionTypeSymbol.class);
+        when(symbolFactory.createUnionTypeSymbol()).thenReturn(unionTypeSymbol);
 
-        assertThat(result, is(typeSymbol));
+        //act
+        IReferencePhaseController controller = createController(symbolFactory, types);
+        IUnionTypeSymbol result = controller.resolvePrimitiveLiteral(ast);
+
+        assertThat(result, is(unionTypeSymbol));
+        verify(unionTypeSymbol).addTypeSymbol(typeSymbol);
+        verify(unionTypeSymbol).seal();
     }
 
     @Test
@@ -457,10 +473,17 @@ public class ReferencePhaseControllerTest
         ITypeSymbol typeSymbol = mock(ITypeSymbol.class);
         types.put("\\float", typeSymbol);
 
-        IReferencePhaseController controller = createController(types);
-        ITypeSymbol result = controller.resolvePrimitiveLiteral(ast);
+        ISymbolFactory symbolFactory = mock(ISymbolFactory.class);
+        IUnionTypeSymbol unionTypeSymbol = mock(IUnionTypeSymbol.class);
+        when(symbolFactory.createUnionTypeSymbol()).thenReturn(unionTypeSymbol);
 
-        assertThat(result, is(typeSymbol));
+        //act
+        IReferencePhaseController controller = createController(symbolFactory, types);
+        IUnionTypeSymbol result = controller.resolvePrimitiveLiteral(ast);
+
+        assertThat(result, is(unionTypeSymbol));
+        verify(unionTypeSymbol).addTypeSymbol(typeSymbol);
+        verify(unionTypeSymbol).seal();
     }
 
     @Test
@@ -471,10 +494,17 @@ public class ReferencePhaseControllerTest
         ITypeSymbol typeSymbol = mock(ITypeSymbol.class);
         types.put("\\string", typeSymbol);
 
-        IReferencePhaseController controller = createController(types);
-        ITypeSymbol result = controller.resolvePrimitiveLiteral(ast);
+        ISymbolFactory symbolFactory = mock(ISymbolFactory.class);
+        IUnionTypeSymbol unionTypeSymbol = mock(IUnionTypeSymbol.class);
+        when(symbolFactory.createUnionTypeSymbol()).thenReturn(unionTypeSymbol);
 
-        assertThat(result, is(typeSymbol));
+        //act
+        IReferencePhaseController controller = createController(symbolFactory, types);
+        IUnionTypeSymbol result = controller.resolvePrimitiveLiteral(ast);
+
+        assertThat(result, is(unionTypeSymbol));
+        verify(unionTypeSymbol).addTypeSymbol(typeSymbol);
+        verify(unionTypeSymbol).seal();
     }
 
     @Test
@@ -485,10 +515,17 @@ public class ReferencePhaseControllerTest
         ITypeSymbol typeSymbol = mock(ITypeSymbol.class);
         types.put("\\array", typeSymbol);
 
-        IReferencePhaseController controller = createController(types);
-        ITypeSymbol result = controller.resolvePrimitiveLiteral(ast);
+        ISymbolFactory symbolFactory = mock(ISymbolFactory.class);
+        IUnionTypeSymbol unionTypeSymbol = mock(IUnionTypeSymbol.class);
+        when(symbolFactory.createUnionTypeSymbol()).thenReturn(unionTypeSymbol);
 
-        assertThat(result, is(typeSymbol));
+        //act
+        IReferencePhaseController controller = createController(symbolFactory, types);
+        IUnionTypeSymbol result = controller.resolvePrimitiveLiteral(ast);
+
+        assertThat(result, is(unionTypeSymbol));
+        verify(unionTypeSymbol).addTypeSymbol(typeSymbol);
+        verify(unionTypeSymbol).seal();
     }
 
     @Test
@@ -496,7 +533,7 @@ public class ReferencePhaseControllerTest
         ITSPHPErrorAst ast = mock(ITSPHPErrorAst.class);
         TSPHPException exception = new TSPHPException();
         when(ast.getException()).thenReturn(exception);
-        ISymbolFactory symbolFactory = mock(ISymbolFactory.class);
+        ISymbolFactory symbolFactory = createSymbolFactoryMock();
 
         IReferencePhaseController controller = createController(symbolFactory);
         controller.createErroneousTypeSymbol(ast);
@@ -508,7 +545,7 @@ public class ReferencePhaseControllerTest
     public void createErroneousTypeSymbol2_Standard_DelegatesToSymbolFactory() {
         ITSPHPErrorAst ast = mock(ITSPHPErrorAst.class);
         RecognitionException exception = new RecognitionException();
-        ISymbolFactory symbolFactory = mock(ISymbolFactory.class);
+        ISymbolFactory symbolFactory = createSymbolFactoryMock();
 
         IReferencePhaseController controller = createController(symbolFactory);
         controller.createErroneousTypeSymbol(ast, exception);
@@ -560,7 +597,7 @@ public class ReferencePhaseControllerTest
         String aliasName = "Dummy";
         ITSPHPAst ast = createAst(aliasName);
         ITSPHPAst alias = mock(ITSPHPAst.class);
-        ISymbolFactory symbolFactory = mock(ISymbolFactory.class);
+        ISymbolFactory symbolFactory = createSymbolFactoryMock();
         IAliasTypeSymbol aliasTypeSymbol = mock(IAliasTypeSymbol.class);
         when(symbolFactory.createAliasTypeSymbol(ast, aliasName)).thenReturn(aliasTypeSymbol);
 
@@ -1871,7 +1908,7 @@ public class ReferencePhaseControllerTest
         ICore core = mock(ICore.class);
         when(core.getPrimitiveTypes()).thenReturn(new HashMap<String, ITypeSymbol>());
         return createController(
-                mock(ISymbolFactory.class),
+                createSymbolFactoryMock(),
                 issueReporter,
                 astModificationHelper,
                 mock(ISymbolResolverController.class),
@@ -1890,7 +1927,7 @@ public class ReferencePhaseControllerTest
         ICore core = mock(ICore.class);
         when(core.getPrimitiveTypes()).thenReturn(new HashMap<String, ITypeSymbol>());
         return createController(
-                mock(ISymbolFactory.class),
+                createSymbolFactoryMock(),
                 issueReporter,
                 mock(IAstModificationHelper.class),
                 mock(ISymbolResolverController.class),
@@ -1912,12 +1949,25 @@ public class ReferencePhaseControllerTest
         );
     }
 
-    private IReferencePhaseController createController(Map<String, ITypeSymbol> primitiveTypes) {
+    private IReferencePhaseController createController(
+            ISymbolFactory symbolFactory, Map<String, ITypeSymbol> primitiveTypes) {
         return createController(
-                mock(ISymbolFactory.class),
+                symbolFactory,
                 mock(IInferenceIssueReporter.class),
                 primitiveTypes
         );
+    }
+
+    private ISymbolFactory createSymbolFactoryMock() {
+        ISymbolFactory symbolFactory = mock(ISymbolFactory.class);
+        when(symbolFactory.createUnionTypeSymbol()).then(new Answer<Object>()
+        {
+            @Override
+            public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
+                return new UnionTypeSymbol(mock(IOverloadResolver.class));
+            }
+        });
+        return symbolFactory;
     }
 
     private IReferencePhaseController createController(
@@ -1957,7 +2007,7 @@ public class ReferencePhaseControllerTest
         ICore core = mock(ICore.class);
         when(core.getPrimitiveTypes()).thenReturn(new HashMap<String, ITypeSymbol>());
         return createController(
-                mock(ISymbolFactory.class),
+                createSymbolFactoryMock(),
                 mock(IInferenceIssueReporter.class),
                 mock(IAstModificationHelper.class),
                 mock(ISymbolResolverController.class),
@@ -1980,7 +2030,7 @@ public class ReferencePhaseControllerTest
         ICore core = mock(ICore.class);
         when(core.getPrimitiveTypes()).thenReturn(new HashMap<String, ITypeSymbol>());
         return createController(
-                mock(ISymbolFactory.class),
+                createSymbolFactoryMock(),
                 mock(IInferenceIssueReporter.class),
                 mock(IAstModificationHelper.class),
                 symbolResolverController,

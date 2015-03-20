@@ -10,7 +10,6 @@ import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
 import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
-import ch.tsphp.tinsphp.inference_engine.constraints.OverloadDto;
 import ch.tsphp.tinsphp.inference_engine.test.ActWithTimeout;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.AConstraintSolverTest;
 import org.junit.Test;
@@ -101,7 +100,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
 
         ITypeVariableSymbol $b = typeVar("$b", type(floatType));
         IConstraint intersection = intersect(asList($b), asList(
-                new OverloadDto(asList(asList(type(fooType))), arrayType)
+                funcUnary(fooType, arrayType)
         ));
         ITypeVariableSymbol $a = typeVar("$a", intersection);
         ITypeVariableCollection scope = createTypeVariableCollection($a, $b);
@@ -125,7 +124,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
 
         ITypeVariableSymbol $a = typeVar("$a", type(intType));
         IConstraint intersection = intersect(asList($a), asList(
-                new OverloadDto(asList(asList(type(fooType))), arrayType)
+                funcUnary(fooType, arrayType)
         ));
         ITypeVariableSymbol $b = typeVar("$b", intersection);
         ITypeVariableCollection scope = createTypeVariableCollection($a, $b);
@@ -151,7 +150,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
 
         ITypeVariableSymbol $b = typeVar("$b", type(floatType));
         IConstraint intersectionA = intersect(asList($b), asList(
-                new OverloadDto(asList(asList(type(fooType))), arrayType)
+                funcUnary(fooType, arrayType)
         ));
         ITypeVariableSymbol $a = typeVar("$a", intersectionA);
         IConstraint intersectionC = createPartialAdditionWithInt($a);
@@ -201,10 +200,10 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
 
         ITypeVariableSymbol $b = typeVar("$b", type(arrayType));
         IConstraint intersection = intersect(asList($b), asList(
-                new OverloadDto(asList(asList(type(intType))), intType),
-                new OverloadDto(asList(asList(type(floatType))), floatType),
-                new OverloadDto(asList(asList(type(arrayType))), fooType),
-                new OverloadDto(asList(asList(type(fooType))), arrayType)
+                funcUnary(intType, intType),
+                funcUnary(floatType, floatType),
+                funcUnary(arrayType, fooType),
+                funcUnary(fooType, arrayType)
         ));
         ITypeVariableSymbol $a = typeVar("$a", intersection);
         ITypeVariableCollection scope = createTypeVariableCollection($a, $b);
@@ -226,10 +225,10 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
 
         ITypeVariableSymbol $a = typeVar("$a", type(arrayType));
         IConstraint intersection = intersect(asList($a), asList(
-                new OverloadDto(asList(asList(type(intType))), intType),
-                new OverloadDto(asList(asList(type(floatType))), floatType),
-                new OverloadDto(asList(asList(type(arrayType))), fooType),
-                new OverloadDto(asList(asList(type(fooType))), arrayType)
+                funcUnary(intType, intType),
+                funcUnary(floatType, floatType),
+                funcUnary(arrayType, fooType),
+                funcUnary(fooType, arrayType)
         ));
         ITypeVariableSymbol $b = typeVar("$b", intersection);
         ITypeVariableCollection scope = createTypeVariableCollection($a, $b);
@@ -569,7 +568,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
         ITypeVariableSymbol $a = typeVar("$a");
         ITypeVariableSymbol $b = typeVar("$b");
         IConstraint intersection = intersect(asList($b), asList(
-                new OverloadDto(asList(asList(type(arrayType))), arrayType)
+                funcUnary(arrayType, arrayType)
         ));
         when($a.getConstraints()).thenReturn(list(type(intType), intersection));
         when($b.getConstraints()).thenReturn(list(type(floatType), $a));
@@ -611,7 +610,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
         ITypeVariableSymbol $b = typeVar("$b");
         when($a.getConstraints()).thenReturn(list(type(intType), $b));
         IConstraint intersection = intersect(asList($a), asList(
-                new OverloadDto(asList(asList(type(arrayType))), arrayType)
+                funcUnary(arrayType, arrayType)
         ));
         when($b.getConstraints()).thenReturn(list(type(floatType), intersection));
         final ITypeVariableCollection scope = createTypeVariableCollection($a, $b);

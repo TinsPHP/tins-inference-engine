@@ -12,12 +12,13 @@ import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
+import ch.tsphp.tinsphp.common.symbols.IFunctionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
 import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.constraints.IntersectionConstraint;
-import ch.tsphp.tinsphp.inference_engine.constraints.OverloadDto;
 import ch.tsphp.tinsphp.inference_engine.scopes.ScopeHelper;
+import ch.tsphp.tinsphp.symbols.ConstantFunctionTypeSymbol;
 import ch.tsphp.tinsphp.symbols.ModifierHelper;
 import ch.tsphp.tinsphp.symbols.SymbolFactory;
 import ch.tsphp.tinsphp.symbols.UnionTypeSymbol;
@@ -143,7 +144,7 @@ public abstract class AConstraintSolverTest
         return list;
     }
 
-    protected IConstraint intersect(List<ITypeVariableSymbol> variables, List<OverloadDto> overloads) {
+    protected IConstraint intersect(List<ITypeVariableSymbol> variables, List<IFunctionTypeSymbol> overloads) {
         return new IntersectionConstraint(variables, overloads);
     }
 
@@ -171,38 +172,50 @@ public abstract class AConstraintSolverTest
 
     protected IConstraint createPartialAdditionWithInt(ITypeVariableSymbol typeVariableSymbol) {
         return intersect(asList(typeVariableSymbol), asList(
-                new OverloadDto(asList(asList(type(intType))), intType),
-                new OverloadDto(asList(asList(type(numType))), numType)
+                funcUnary(intType, intType),
+                funcUnary(numType, numType)
         ));
     }
 
+    protected IFunctionTypeSymbol funcUnary(ITypeSymbol parameterType, ITypeSymbol returnType) {
+        IFunctionTypeSymbol function = new ConstantFunctionTypeSymbol("+", asList("$lhs"), returnType, mixedType);
+        function.addParameterConstraint("$lhs", type(parameterType));
+        return function;
+    }
+
+    protected IFunctionTypeSymbol funcBinary(ITypeSymbol lhsType, ITypeSymbol rhsType, ITypeSymbol returnType) {
+        IFunctionTypeSymbol function = new ConstantFunctionTypeSymbol("+", asList("$lhs", "$rhs"), returnType,
+                mixedType);
+        function.addParameterConstraint("$lhs", type(lhsType));
+        function.addParameterConstraint("$rhs", type(rhsType));
+        return function;
+    }
 
     protected IConstraint createPartialAdditionWithFloat(ITypeVariableSymbol typeVariableSymbol) {
         return intersect(asList(typeVariableSymbol), asList(
-                new OverloadDto(asList(asList(type(floatType))), floatType),
-                new OverloadDto(asList(asList(type(numType))), numType)
+                funcUnary(floatType, floatType),
+                funcUnary(numType, numType)
         ));
     }
 
     protected IConstraint createAdditionIntersection(ITypeVariableSymbol lhs, ITypeVariableSymbol rhs) {
-        return intersect(asList(lhs, rhs),
-                asList(
-                        new OverloadDto(asList(asList(type(boolType)), asList(type(boolType))), intType),
-                        new OverloadDto(asList(asList(type(intType)), asList(type(intType))), intType),
-                        new OverloadDto(asList(asList(type(floatType)), asList(type(floatType))), floatType),
-                        new OverloadDto(asList(asList(type(numType)), asList(type(numType))), numType),
-                        new OverloadDto(asList(asList(type(arrayType)), asList(type(arrayType))), arrayType)
-                ));
+        return intersect(asList(lhs, rhs), asList(
+                funcBinary(boolType, boolType, intType),
+                funcBinary(intType, intType, intType),
+                funcBinary(floatType, floatType, floatType),
+                funcBinary(numType, numType, numType),
+                funcBinary(arrayType, arrayType, arrayType)
+        ));
     }
 
     protected IConstraintSolver createConstraintSolver() {
         IOverloadResolver overloadResolver = new OverloadResolver();
-        return createConstraintSolver(nothingType,
+        return createConstraintSolver(
                 new SymbolFactory(new ScopeHelper(), new ModifierHelper(), overloadResolver), overloadResolver);
     }
 
-    protected IConstraintSolver createConstraintSolver(
-            ITypeSymbol theNothingTypeSymbol, ISymbolFactory theSymbolFactory, IOverloadResolver overloadResolver) {
-        return new ConstraintSolver(theNothingTypeSymbol, theSymbolFactory, overloadResolver);
+    protected IConstraintSolver createConstraintSolver(ISymbolFactory theSymbolFactory,
+            IOverloadResolver overloadResolver) {
+        return new ConstraintSolver(theSymbolFactory, overloadResolver);
     }
 }
