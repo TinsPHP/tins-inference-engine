@@ -59,10 +59,10 @@ public class VariableDeclarationTest extends AInferenceTypeTest
                 },
                 {
                         "$a = 1; $b = $a; $b = 1.2; $a = $b;", new AbsoluteTypeNameTestStruct[]{
-                        testStruct("$a", "\\.\\.", "num", 1, 2, 0, 0),
-                        testStruct("$b", "\\.\\.", "num", 1, 3, 0, 0),
-                        testStruct("$a", "\\.\\.", "num", 1, 4, 0, 0),
-                        testStruct("$a", "\\.\\.", "num", 1, 5, 0, 0)}
+                        testStruct("$a", "\\.\\.", "{int V float}", 1, 2, 0, 0),
+                        testStruct("$b", "\\.\\.", "{int V float}", 1, 3, 0, 0),
+                        testStruct("$b", "\\.\\.", "{int V float}", 1, 4, 0, 0),
+                        testStruct("$a", "\\.\\.", "{int V float}", 1, 5, 0, 0)}
                 },
                 //TODO rstoll TINS-344 seeding and constants
 //                {

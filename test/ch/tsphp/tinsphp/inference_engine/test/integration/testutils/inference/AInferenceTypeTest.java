@@ -34,8 +34,8 @@ public class AInferenceTypeTest extends AInferenceTest
 
             Assert.assertNotNull(testString + " failed. testCandidate is null. should be " + testStruct.astText,
                     testCandidate);
-            Assert.assertEquals(testString + " failed. wrong ast text,", testStruct.astText,
-                    testCandidate.toStringTree());
+            Assert.assertEquals(testString + " failed. wrong ast text (testStruct Nr " + counter + ")",
+                    testStruct.astText, testCandidate.toStringTree());
 
             ISymbol symbol = testCandidate.getSymbol();
             Assert.assertNotNull(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + ")." +
