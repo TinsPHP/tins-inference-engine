@@ -8,6 +8,7 @@ package ch.tsphp.tinsphp.inference_engine.test.integration.reference;
 
 import ch.tsphp.tinsphp.common.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
+import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.inference_engine.resolver.PutAtTopVariableDeclarationCreator;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference.AReferenceAstTest;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
@@ -33,8 +34,11 @@ public class VariableImplicitDeclarationAstTest extends AReferenceAstTest
     }
 
     protected IVariableDeclarationCreator createVariableDeclarationCreator(
-            IAstModificationHelper theAstModificationHelper, IDefinitionPhaseController theDefinitionPhaseController) {
-        return new PutAtTopVariableDeclarationCreator(theAstModificationHelper, theDefinitionPhaseController);
+            ISymbolFactory theSymbolFactory,
+            IAstModificationHelper theAstModificationHelper,
+            IDefinitionPhaseController theDefinitionPhaseController) {
+        return new PutAtTopVariableDeclarationCreator(theSymbolFactory, theAstModificationHelper,
+                theDefinitionPhaseController);
     }
 
     @Parameterized.Parameters

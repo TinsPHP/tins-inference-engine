@@ -11,6 +11,7 @@ import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.tinsphp.common.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
+import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
@@ -18,13 +19,17 @@ import org.antlr.runtime.Token;
 
 public class PutAtTopVariableDeclarationCreator implements IVariableDeclarationCreator
 {
+    private final ISymbolFactory symbolFactory;
     private final IAstModificationHelper astModificationHelper;
     private final IDefinitionPhaseController definitionPhaseController;
     private final IGlobalNamespaceScope globalDefaultNamespaceScope;
 
     public PutAtTopVariableDeclarationCreator(
-            IAstModificationHelper theAstModificationHelper, IDefinitionPhaseController theDefinitionPhaseController) {
+            ISymbolFactory theSymbolFactory,
+            IAstModificationHelper theAstModificationHelper,
+            IDefinitionPhaseController theDefinitionPhaseController) {
 
+        symbolFactory = theSymbolFactory;
         astModificationHelper = theAstModificationHelper;
         definitionPhaseController = theDefinitionPhaseController;
         globalDefaultNamespaceScope = definitionPhaseController.getGlobalDefaultNamespace();
@@ -40,9 +45,13 @@ public class PutAtTopVariableDeclarationCreator implements IVariableDeclarationC
         IVariableSymbol symbol;
         if (parent.getType() == TokenTypes.Namespace) {
             symbol = createVariableInNamespaceScope(parent, variableId);
+            symbol.setDefinitionScope(parent.getScope());
         } else {
             symbol = createVariableInMethodScope(parent, variableId);
         }
+
+        symbol.setType(symbolFactory.createUnionTypeSymbol());
+
         return symbol;
     }
 

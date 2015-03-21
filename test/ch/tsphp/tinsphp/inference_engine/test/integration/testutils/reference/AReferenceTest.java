@@ -98,7 +98,8 @@ public abstract class AReferenceTest extends ADefinitionTest
         symbolResolvers.add(core.getCoreSymbolResolver());
         symbolCheckController = createSymbolCheckController(userSymbolResolver, symbolResolvers);
 
-        variableDeclarationCreator = createVariableDeclarationCreator(astModificationHelper, definitionPhaseController);
+        variableDeclarationCreator = createVariableDeclarationCreator(symbolFactory, astModificationHelper,
+                definitionPhaseController);
 
         referencePhaseController = createReferencePhaseController(
                 symbolFactory,
@@ -210,8 +211,11 @@ public abstract class AReferenceTest extends ADefinitionTest
     }
 
     protected IVariableDeclarationCreator createVariableDeclarationCreator(
-            IAstModificationHelper theAstModificationHelper, IDefinitionPhaseController theDefinitionPhaseController) {
-        return new TestPutAtTopVariableDeclarationCreator(theAstModificationHelper, theDefinitionPhaseController);
+            ISymbolFactory theSymbolFactory,
+            IAstModificationHelper theAstModificationHelper,
+            IDefinitionPhaseController theDefinitionPhaseController) {
+        return new TestPutAtTopVariableDeclarationCreator(
+                theSymbolFactory, theAstModificationHelper, theDefinitionPhaseController);
     }
 
     protected IReferencePhaseController createReferencePhaseController(

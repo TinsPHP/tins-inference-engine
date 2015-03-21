@@ -93,7 +93,7 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
                 additionalSymbolResolvers);
 
         IVariableDeclarationCreator variableDeclarationCreator =
-                new PutAtTopVariableDeclarationCreator(astModificationHelper, definitionPhaseController);
+                new PutAtTopVariableDeclarationCreator(symbolFactory, astModificationHelper, definitionPhaseController);
 
         referencePhaseController = new ReferencePhaseController(
                 symbolFactory,

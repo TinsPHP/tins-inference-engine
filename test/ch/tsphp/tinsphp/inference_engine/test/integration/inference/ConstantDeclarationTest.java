@@ -33,12 +33,12 @@ public class ConstantDeclarationTest extends AInferenceTypeTest
     @Parameterized.Parameters
     public static Collection<Object[]> testStrings() {
         return Arrays.asList(new Object[][]{
-//                {"const a = null;", testStructs("(a# null)", "\\.\\.", "null", 1, 0, 1)},
-//                {"const a = false;", testStructs("(a# false)", "\\.\\.", "false", 1, 0, 1)},
-//                {"const a = true;", testStructs("(a# true)", "\\.\\.", "true", 1, 0, 1)},
-//                {"const a = 1;", testStructs("(a# 1)", "\\.\\.", "int", 1, 0, 1)},
-//                {"const a = 1.4;", testStructs("(a# 1.4)", "\\.\\.", "float", 1, 0, 1)},
-//                {"const a = 'h';", testStructs("(a# 'h')", "\\.\\.", "string", 1, 0, 1)},
+                {"const a = null;", testStructs("(a# null)", "\\.\\.", "null", 1, 0, 1)},
+                {"const a = false;", testStructs("(a# false)", "\\.\\.", "false", 1, 0, 1)},
+                {"const a = true;", testStructs("(a# true)", "\\.\\.", "true", 1, 0, 1)},
+                {"const a = 1;", testStructs("(a# 1)", "\\.\\.", "int", 1, 0, 1)},
+                {"const a = 1.4;", testStructs("(a# 1.4)", "\\.\\.", "float", 1, 0, 1)},
+                {"const a = 'h';", testStructs("(a# 'h')", "\\.\\.", "string", 1, 0, 1)},
                 {
                         "const a = 1; const b = a;", new AbsoluteTypeNameTestStruct[]{
                         testStruct("(a# 1)", "\\.\\.", "int", 1, 0, 1),

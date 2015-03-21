@@ -8,6 +8,7 @@ package ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference;
 
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
+import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.inference_engine.resolver.PutAtTopVariableDeclarationCreator;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 
@@ -15,8 +16,10 @@ public class TestPutAtTopVariableDeclarationCreator extends PutAtTopVariableDecl
 {
 
     public TestPutAtTopVariableDeclarationCreator(
-            IAstModificationHelper theAstModificationHelper, IDefinitionPhaseController theDefinitionPhaseController) {
-        super(theAstModificationHelper, theDefinitionPhaseController);
+            ISymbolFactory theSymbolFactory,
+            IAstModificationHelper theAstModificationHelper,
+            IDefinitionPhaseController theDefinitionPhaseController) {
+        super(theSymbolFactory, theAstModificationHelper, theDefinitionPhaseController);
     }
 
     @Override

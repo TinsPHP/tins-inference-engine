@@ -64,7 +64,7 @@ statement
 //TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0
     :   /*useDefinitionList
     |*/   definition
-    //|   instruction
+    |   instruction
     ;
 
 //TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0
@@ -380,10 +380,10 @@ interfaceBodyDefinition
     ;    
 */
 
-//TODO  TINS-71 inference procedural - take into account control structures
-/*
 instruction
     :   variableDeclarationList
+    //TODO  TINS-71 inference procedural - take into account control structures
+    /*
     |   ifCondition
     |   switchCondition
     |   forLoop
@@ -391,20 +391,24 @@ instruction
     |   whileLoop
     |   doWhileLoop
     |   tryCatch
+    */
     |   ^(EXPRESSION expression?)
+    //TODO  TINS-71 inference procedural - take into account control structures
+    /*
     |   ^('return' expression?)
     |   ^('throw' expression)
     |   ^('echo' expression+)
     |   breakContinue
+    */
     ;
-    
+
 variableDeclarationList
     :   ^(VARIABLE_DECLARATION_LIST
             ^(TYPE tMod=. type=.)
             variableDeclaration+ 
         )
     ;
-        
+
 variableDeclaration
     :   ^(variableId=VariableId expression)
         {
@@ -412,7 +416,6 @@ variableDeclaration
         }
     |   variableId=VariableId
     ;    
-*/
 
 //TODO  TINS-71 inference procedural - take into account control structures    
 /*
@@ -493,10 +496,9 @@ breakContinue
 
 expression
     :   atom
-    //TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0
-    /*
     |   operator
-    |   functionCall
+        //TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0
+    /*|   functionCall
     //TODO rstoll TINS-161 inference OOP    
     //|   methodCall
     //|   methodCallStatic
@@ -508,18 +510,15 @@ expression
         
 atom
     :   primitiveAtomWithConstant
-    //TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0
-    //|   variable
+    |   variable
     //TODO rstoll TINS-223 - reference phase - resolve this and self
     //|   thisVariable
     ;
 
-//TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0
-/*
 variable    
     :   varId=VariableId
     ;
-*/
+
     
 //TODO TINS-223 - reference phase - resolve this and self
 /*    
@@ -530,23 +529,32 @@ thisVariable
 */
 
 
-//TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0
-/*
+
 operator  
-    :   ^(unaryOperator expression)
+    : ^('=' varId=expression rhs=expression)
+      {
+          controller.createRefConstraint(currentScope, $varId.start, $rhs.start);
+      }
+    //TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0
+/*  ^(unaryOperator expression)
     |   ^(binaryOperatorExcludingAssign lhs=expression rhs=expression)
         {
             controller.createIntersectionConstraint(currentScope, $start, $lhs.start, $rhs.start); 
         }
     |   ^(assignOperator varId=expression expression)
+        {
+            controller.createAssignment(currentScope, $varId, $expression.start);
+        }
     |   ^('?' expression expression expression)
     |   ^(CAST ^(TYPE tMod=. type=.) expression)
     |   ^(Instanceof expr=expression (variable|TYPE_NAME))
 
     //|   ^('new' classInterfaceType[null] actualParameters)
     |   ^('clone' expression)
+    */
     ;
-        
+//TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0
+/*        
 unaryOperator
     :   PRE_INCREMENT
     |   PRE_DECREMENT
