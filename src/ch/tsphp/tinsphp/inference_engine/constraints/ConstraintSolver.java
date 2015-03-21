@@ -12,7 +12,7 @@ import ch.tsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
-import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
+import ch.tsphp.tinsphp.common.inference.constraints.IReadOnlyTypeVariableCollection;
 import ch.tsphp.tinsphp.common.symbols.IFunctionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
@@ -37,7 +37,7 @@ public class ConstraintSolver implements IConstraintSolver
     }
 
     @Override
-    public void solveConstraints(ITypeVariableCollection currentScope) {
+    public void solveConstraints(IReadOnlyTypeVariableCollection currentScope) {
 
         for (Map.Entry<String, ITypeVariableSymbol> constraintsEntry : currentScope.getTypeVariables().entrySet()) {
             ITypeVariableSymbol constraintSymbol = constraintsEntry.getValue();

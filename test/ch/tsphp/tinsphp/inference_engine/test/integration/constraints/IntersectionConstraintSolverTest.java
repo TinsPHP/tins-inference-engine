@@ -30,7 +30,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
 {
 
     @Test
-    public void solveConstraintsOfScope_AdditionWithIntAndInt$b_$aAnd$bAreInt() {
+    public void solveConstraints_AdditionWithIntAndInt$b_$aAnd$bAreInt() {
         // corresponds:
         // $b = 1;
         // $a = $b + 1;
@@ -50,7 +50,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void solveConstraintsOfScope_AdditionWithFloatAndFloat$b_$aAnd$bAreFloat() {
+    public void solveConstraints_AdditionWithFloatAndFloat$b_$aAnd$bAreFloat() {
         // corresponds:
         // $b = 1.2;
         // $a = $b + 1.2;
@@ -70,7 +70,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void solveConstraintsOfScope_AdditionWithFloatAndFloat$bFromOtherScope_$aAnd$bAreFloat() {
+    public void solveConstraints_AdditionWithFloatAndFloat$bFromOtherScope_$aAnd$bAreFloat() {
         // corresponds:
         // $b = 1.2;
         // --- different scope
@@ -91,7 +91,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void solveConstraintsOfScope_ErroneousFuncCallWhichExpectsFooAndFloat$bGiven_$aIsEmptyAnd$bIsFloat() {
+    public void solveConstraints_ErroneousFuncCallWhichExpectsFooAndFloat$bGiven_$aIsEmptyAnd$bIsFloat() {
         // corresponds:
         // function foo(Foo $f){}
         // $b = 1.2;
@@ -115,7 +115,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void solveConstraintsOfScope_ErroneousFuncCallWhichExpectsFooInt$aGiven_$aIsIntAnd$bIsEmpty() {
+    public void solveConstraints_ErroneousFuncCallWhichExpectsFooInt$aGiven_$aIsIntAnd$bIsEmpty() {
         // corresponds:
         // function foo(Foo $f){}
         // $a = 1;
@@ -140,7 +140,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
 
     @Test
     public void
-    solveConstraintsOfScope_AdditionWithIntAndEmpty$aDueToErroneousCallWithFloat$b_$aIsEmptyAnd$bIsFloatAnd$cIsInt() {
+    solveConstraints_AdditionWithIntAndEmpty$aDueToErroneousCallWithFloat$b_$aIsEmptyAnd$bIsFloatAnd$cIsInt() {
         // corresponds:
         // function foo(Foo $f){}
         // $b = 1.2;
@@ -169,7 +169,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void solveConstraintsOfScope_AdditionWithInt$bAndFloat$c_$aIsNumAnd$bIsIntAnd$cIsFloat() {
+    public void solveConstraints_AdditionWithInt$bAndFloat$c_$aIsNumAnd$bIsIntAnd$cIsFloat() {
         // corresponds:
         // $b = 1;
         // $c = 1.2;
@@ -193,7 +193,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void solveConstraintsOfScope_MultipleOverloadsAndArray$b_$aIsFooAnd$bIsArray() {
+    public void solveConstraints_MultipleOverloadsAndArray$b_$aIsFooAnd$bIsArray() {
         // corresponds:
         // $b = [1];
         // $a = foo($b);  //where foo has overloads as bellow
@@ -218,7 +218,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void solveConstraintsOfScope_MultipleOverloadsAndArray$a_$aIsArrayAnd$bIsFooy() {
+    public void solveConstraints_MultipleOverloadsAndArray$a_$aIsArrayAnd$bIsFooy() {
         // corresponds:
         // $a = [1];
         // $b = foo($a);  //where foo has overloads as bellow
@@ -243,7 +243,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void solveConstraintsOfScope_AdditionWithIntAndSelfRefInt$a_$aIsInt()
+    public void solveConstraints_AdditionWithIntAndSelfRefInt$a_$aIsInt()
             throws ExecutionException, InterruptedException {
         // corresponds:
         // $a = 1;
@@ -275,7 +275,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void solveConstraintsOfScope_AdditionWithInt$bAndSelfRefInt$a_$aAnd$bAreInt()
+    public void solveConstraints_AdditionWithInt$bAndSelfRefInt$a_$aAnd$bAreInt()
             throws ExecutionException, InterruptedException {
         // corresponds:
         // $a = 1; $b = 1;
@@ -309,7 +309,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void solveConstraintsOfScope_AdditionWithSelfRefInt$aAndInt$b_$aAnd$bAreInt()
+    public void solveConstraints_AdditionWithSelfRefInt$aAndInt$b_$aAnd$bAreInt()
             throws ExecutionException, InterruptedException {
         // corresponds:
         // $a = 1; $b = 1;
@@ -343,7 +343,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void solveConstraintsOfScope_AdditionWithFloat$bAndSelfRefInt$a_$aIsNumAnd$bIsFloat()
+    public void solveConstraints_AdditionWithFloat$bAndSelfRefInt$a_$aIsNumAnd$bIsFloat()
             throws ExecutionException, InterruptedException {
         // corresponds:
         // $a = 1; $b = 1.5;
@@ -377,7 +377,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void solveConstraintsOfScope_AdditionWithInt$bAndSelfRefFloat$a_$aIsNumAnd$bIsInt()
+    public void solveConstraints_AdditionWithInt$bAndSelfRefFloat$a_$aIsNumAnd$bIsInt()
             throws ExecutionException, InterruptedException {
         // corresponds:
         // $a = 1.5; $b = 1;
@@ -411,7 +411,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void solveConstraintsOfScope_AdditionWithIntAndInt$bWithRefToInt$a_$aAnd$bAreInt()
+    public void solveConstraints_AdditionWithIntAndInt$bWithRefToInt$a_$aAnd$bAreInt()
             throws ExecutionException, InterruptedException {
         // corresponds:
         // $a = 1; $b = 1;
@@ -447,7 +447,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void solveConstraintsOfScope_AdditionWithIntAndInt$aWithRefToInt$b_$aAnd$bAreInt()
+    public void solveConstraints_AdditionWithIntAndInt$aWithRefToInt$b_$aAnd$bAreInt()
             throws ExecutionException, InterruptedException {
         // corresponds:
         // $a = 1; $b = 1;
@@ -483,7 +483,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void solveConstraintsOfScope_AdditionWithIntAndFloat$bWithRefToInt$a_$aAnd$bAreNum()
+    public void solveConstraints_AdditionWithIntAndFloat$bWithRefToInt$a_$aAnd$bAreNum()
             throws ExecutionException, InterruptedException {
         // corresponds:
         // $a = 1; $b = 1.2;
@@ -519,7 +519,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void solveConstraintsOfScope_AdditionWithIntAndInt$aWithRefToFloat$b_$aAnd$bAreNum()
+    public void solveConstraints_AdditionWithIntAndInt$aWithRefToFloat$b_$aAnd$bAreNum()
             throws ExecutionException, InterruptedException {
         // corresponds:
         // $a = 1; $b = 1.2;
@@ -555,7 +555,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void solveConstraintsOfScope_AdditionWithArrayAndFloat$bWithRefToInt$a_$aIsIntAnd$bIsIntAndFloat()
+    public void solveConstraints_AdditionWithArrayAndFloat$bWithRefToInt$a_$aIsIntAnd$bIsIntAndFloat()
             throws ExecutionException, InterruptedException {
         // notice, $a will be int since there does not exist an overload for float x array
         // the resurrection phase would add the necessary error
@@ -596,7 +596,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void solveConstraintsOfScope_AdditionWithArrayAndInt$aWithRefToFloat$b_$aAnd$bAreIntAndFloat()
+    public void solveConstraints_AdditionWithArrayAndInt$aWithRefToFloat$b_$aAnd$bAreIntAndFloat()
             throws ExecutionException, InterruptedException {
         // notice, $b will be int since there does not exist an overload for float x array
         // the resurrection phase would add the necessary error
@@ -637,7 +637,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void solveConstraintsOfScope_$cWithRefTo$aAnd$aAdditionWithIntAndFloat$bWithRefToInt$a_$aAnd$bAnd$cAreNum()
+    public void solveConstraints_$cWithRefTo$aAnd$aAdditionWithIntAndFloat$bWithRefToInt$a_$aAnd$bAnd$cAreNum()
             throws ExecutionException, InterruptedException {
         // corresponds:
         // $a = 1; $b = 1.2;
@@ -678,7 +678,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void solveConstraintsOfScope_$cWithRefTo$aAnd$bAdditionWithIntAndInt$aWithRefToFloat$b_$aAnd$bAnd$cAreNum()
+    public void solveConstraints_$cWithRefTo$aAnd$bAdditionWithIntAndInt$aWithRefToFloat$b_$aAnd$bAnd$cAreNum()
             throws ExecutionException, InterruptedException {
         // corresponds:
         // $a = 1; $b = 1.2;
@@ -719,7 +719,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void solveConstraintsOfScope_IntersectionCircleWith$aAddIntAndFloat$bAnd$bAddIntAndInt$a_$aAnd$bAreNum()
+    public void solveConstraints_IntersectionCircleWith$aAddIntAndFloat$bAnd$bAddIntAndInt$a_$aAnd$bAreNum()
             throws ExecutionException, InterruptedException {
         // corresponds:
         // $a = 1; $b = 1.2;
@@ -758,7 +758,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void solveConstraintsOfScope_IntersectionCircleWith$aAddIntAndInt$bAnd$bAddIntAndFloat$a_$aAnd$bAreNum()
+    public void solveConstraints_IntersectionCircleWith$aAddIntAndInt$bAnd$bAddIntAndFloat$a_$aAnd$bAreNum()
             throws ExecutionException, InterruptedException {
         // corresponds:
         // $a = 1.5; $b = 1;
@@ -797,7 +797,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void solveConstraintsOfScope_AdditionWithTwiceSelfRefIntAndFloat$a_$aIsNum()
+    public void solveConstraints_AdditionWithTwiceSelfRefIntAndFloat$a_$aIsNum()
             throws ExecutionException, InterruptedException {
         // corresponds:
         // $a = 1;

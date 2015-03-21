@@ -8,13 +8,11 @@ package ch.tsphp.tinsphp.inference_engine.test.integration.testutils.inference;
 
 import ch.tsphp.tinsphp.common.inference.IInferencePhaseController;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
-import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
 import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.inference_engine.InferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPInferenceWalker;
-import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.WriteExceptionToConsole;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference.AReferenceTest;
 import org.antlr.runtime.RecognitionException;
@@ -32,7 +30,6 @@ public abstract class AInferenceTest extends AReferenceTest
 
     protected ErrorReportingTinsPHPInferenceWalker inference;
     protected IInferencePhaseController inferencePhaseController;
-    protected IConstraintSolver constraintSolver;
 
     public AInferenceTest(String testString) {
         super(testString);
@@ -41,8 +38,6 @@ public abstract class AInferenceTest extends AReferenceTest
     }
 
     private void init() {
-        constraintSolver = createConstraintSolver(symbolFactory, overloadResolver);
-
         inferencePhaseController = createInferencePhaseController(
                 symbolFactory, inferenceErrorReporter, constraintSolver);
     }
@@ -90,12 +85,6 @@ public abstract class AInferenceTest extends AReferenceTest
 
     protected void registerInferenceErrorLogger() {
         inference.registerIssueLogger(new WriteExceptionToConsole());
-    }
-
-
-    protected IConstraintSolver createConstraintSolver(
-            ISymbolFactory theSymbolFactory, IOverloadResolver theOverloadResolver) {
-        return new ConstraintSolver(theSymbolFactory, theOverloadResolver);
     }
 
     protected IInferencePhaseController createInferencePhaseController(

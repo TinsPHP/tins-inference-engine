@@ -178,14 +178,14 @@ public abstract class AConstraintSolverTest
     }
 
     protected IFunctionTypeSymbol funcUnary(ITypeSymbol parameterType, ITypeSymbol returnType) {
-        IFunctionTypeSymbol function = new ConstantFunctionTypeSymbol("+", asList("$lhs"), returnType, mixedType);
+        IFunctionTypeSymbol function = new ConstantFunctionTypeSymbol("+", asList("$lhs"), mixedType, returnType);
         function.addParameterConstraint("$lhs", type(parameterType));
         return function;
     }
 
     protected IFunctionTypeSymbol funcBinary(ITypeSymbol lhsType, ITypeSymbol rhsType, ITypeSymbol returnType) {
-        IFunctionTypeSymbol function = new ConstantFunctionTypeSymbol("+", asList("$lhs", "$rhs"), returnType,
-                mixedType);
+        IFunctionTypeSymbol function = new ConstantFunctionTypeSymbol(
+                "+", asList("$lhs", "$rhs"), mixedType, returnType);
         function.addParameterConstraint("$lhs", type(lhsType));
         function.addParameterConstraint("$rhs", type(rhsType));
         return function;

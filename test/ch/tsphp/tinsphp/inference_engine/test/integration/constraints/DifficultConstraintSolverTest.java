@@ -29,7 +29,7 @@ public class DifficultConstraintSolverTest extends AConstraintSolverTest
 {
 
     @Test
-    public void resolveConstraints_CompetingCircularRefWithRefToBeginning_ShouldGoBackToTheBeginning()
+    public void solveConstraints_CompetingCircularRefWithRefToBeginning_ShouldGoBackToTheBeginning()
             throws ExecutionException, InterruptedException {
         // corresponds:
         // $a = 1; $b = 1;
@@ -85,7 +85,7 @@ public class DifficultConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void resolveConstraints_CompetingCircularRefWithRefToBeginningAndErroneousAddition_SeeComment()
+    public void solveConstraints_CompetingCircularRefWithRefToBeginningAndErroneousAddition_SeeComment()
             throws ExecutionException, InterruptedException {
         // corresponds:
         // $a = 1; $b = 1; $e = [];
@@ -146,7 +146,7 @@ public class DifficultConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void resolveConstraints_CompetingCircularRefWithTwoRefToBeginningAndErroneousAddition_SeeComment()
+    public void solveConstraints_CompetingCircularRefWithTwoRefToBeginningAndErroneousAddition_SeeComment()
             throws ExecutionException, InterruptedException {
         // corresponds:
         // $a = 1; $b = 1.2; $e = [];
@@ -210,7 +210,7 @@ public class DifficultConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void resolveConstraints_CompetingCircularRefWithTwoRefToBeginningTwoOtherRefs_SeeComment()
+    public void solveConstraints_CompetingCircularRefWithTwoRefToBeginningTwoOtherRefs_SeeComment()
             throws ExecutionException, InterruptedException {
         // corresponds:
         // $a = 1; $b = 1.2;
@@ -269,7 +269,7 @@ public class DifficultConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void resolveConstraints_CompetingCircularRefIncludingSelfRef_SeeComment()
+    public void solveConstraints_CompetingCircularRefIncludingSelfRef_SeeComment()
             throws ExecutionException, InterruptedException {
         // corresponds:
         // $a = 1; $b = 1.2;
@@ -339,7 +339,7 @@ public class DifficultConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void resolveConstraints_CompetingCircularRefIncludingSelfRef2_SeeComment()
+    public void solveConstraints_CompetingCircularRefIncludingSelfRef2_SeeComment()
             throws ExecutionException, InterruptedException {
         // corresponds:
         // $a = 1; $b = 1.2;
@@ -411,7 +411,7 @@ public class DifficultConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void resolveConstraints_CompetingCircularRefIncludingSelfRef3_SeeComment()
+    public void solveConstraints_CompetingCircularRefIncludingSelfRef3_SeeComment()
             throws ExecutionException, InterruptedException {
         // corresponds:
         // $a = 1; $b = 1.2;

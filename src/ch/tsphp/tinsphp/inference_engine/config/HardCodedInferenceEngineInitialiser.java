@@ -14,6 +14,7 @@ import ch.tsphp.tinsphp.common.checking.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.common.inference.IInferenceEngineInitialiser;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
+import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.resolving.ISymbolResolver;
@@ -25,6 +26,7 @@ import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.core.Core;
 import ch.tsphp.tinsphp.inference_engine.DefinitionPhaseController;
 import ch.tsphp.tinsphp.inference_engine.ReferencePhaseController;
+import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.issues.HardCodedIssueMessageProvider;
 import ch.tsphp.tinsphp.inference_engine.issues.InferenceIssueReporter;
 import ch.tsphp.tinsphp.inference_engine.resolver.PutAtTopVariableDeclarationCreator;
@@ -47,6 +49,7 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
     private final IScopeHelper scopeHelper;
     private final IModifierHelper modifierHelper;
     private final IOverloadResolver overloadResolver;
+    private final IConstraintSolver constraintSolver;
     private final ISymbolFactory symbolFactory;
     private final IScopeFactory scopeFactory;
     private final IAstModificationHelper astModificationHelper;
@@ -61,7 +64,10 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
         scopeHelper = new ScopeHelper();
         modifierHelper = new ModifierHelper();
         overloadResolver = new OverloadResolver();
+
         symbolFactory = new SymbolFactory(scopeHelper, modifierHelper, overloadResolver);
+        constraintSolver = new ConstraintSolver(symbolFactory, overloadResolver);
+        symbolFactory.setConstraintSolver(constraintSolver);
         scopeFactory = new ScopeFactory(scopeHelper);
         inferenceErrorReporter = new InferenceIssueReporter(new HardCodedIssueMessageProvider());
 

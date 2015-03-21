@@ -18,12 +18,15 @@ import ch.tsphp.common.ITSPHPAstAdaptor;
 import ch.tsphp.common.ParserUnitDto;
 import ch.tsphp.common.TSPHPAstAdaptor;
 import ch.tsphp.tinsphp.common.ICore;
+import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
 import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
+import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.core.Core;
 import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPDefinitionWalker;
+import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.scopes.ScopeHelper;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.ATest;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.TestDefinitionPhaseController;
@@ -57,6 +60,7 @@ public abstract class ADefinitionTest extends ATest
     protected IScopeHelper scopeHelper;
     protected IModifierHelper modifierHelper;
     protected IOverloadResolver overloadResolver;
+    protected IConstraintSolver constraintSolver;
     protected ICore core;
 
     public ADefinitionTest(String theTestString) {
@@ -74,6 +78,8 @@ public abstract class ADefinitionTest extends ATest
         modifierHelper = createModifierHelper();
         overloadResolver = createOverloadResolver();
         symbolFactory = createTestSymbolFactory(scopeHelper, modifierHelper, overloadResolver);
+        constraintSolver = createConstraintSolver(symbolFactory, overloadResolver);
+        symbolFactory.setConstraintSolver(constraintSolver);
 
         definitionPhaseController = createTestDefiner(symbolFactory, scopeFactory);
         core = createCore(symbolFactory);
@@ -133,6 +139,11 @@ public abstract class ADefinitionTest extends ATest
 
     protected IOverloadResolver createOverloadResolver() {
         return new OverloadResolver();
+    }
+
+    protected IConstraintSolver createConstraintSolver(
+            ISymbolFactory theSymbolFactory, IOverloadResolver theOverloadResolver) {
+        return new ConstraintSolver(theSymbolFactory, theOverloadResolver);
     }
 
     protected TestSymbolFactory createTestSymbolFactory(
