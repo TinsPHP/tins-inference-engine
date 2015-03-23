@@ -549,7 +549,7 @@ operator
         {
             controller.createIntersectionConstraint(currentScope, $start,$expression.start);
         }
-    | */  ^('=' lhs=expression rhs=expression)
+    | */  ^(binaryOperator lhs=expression rhs=expression)
         {
             controller.createIntersectionConstraint(currentScope, $start, $lhs.start, $rhs.start); 
         }
@@ -587,7 +587,7 @@ unaryOperator
     |   POST_DECREMENT
     |   'clone'
     ;
-
+*/
 binaryOperator
     :   'or'
     |   'xor'
@@ -633,7 +633,7 @@ binaryOperator
     |   '/'
     |   '%'
     ;
-*/
+
 //TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0
 /*    
 functionCall

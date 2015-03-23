@@ -71,8 +71,8 @@ public class NotCorrectStartNodeTypeTest extends AInferenceWalkerTest
                 //TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0
 //                {"assignOperator", Else},
                 {"atom", Else},
+                {"binaryOperator", Else},
                 //TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0
-//                {"binaryOperatorExcludingAssign", Else},
 //                {"block", Else},
                 //TODO  TINS-71 inference procedural - take into account control structures
 //                {"blockConditional", Else},
@@ -121,7 +121,8 @@ public class NotCorrectStartNodeTypeTest extends AInferenceWalkerTest
 //                {"methodDefinition", Else},
 //                {"methodModifier", Else},
                 {"namespace", Else},
-                {"operator", Else},
+                //TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0
+//                {"operator", Else},
                 //TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0
 //                {"parameterDeclaration", Else},
 //                {"parameterDeclarationList", Else},
