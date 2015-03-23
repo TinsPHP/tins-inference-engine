@@ -37,8 +37,16 @@ public class ConstraintSolver implements IConstraintSolver
     }
 
     @Override
-    public void solveConstraints(IReadOnlyTypeVariableCollection currentScope) {
+    public void solveAndRemoveConstraints(IReadOnlyTypeVariableCollection currentScope) {
+        solveConstraints(currentScope, true);
+    }
 
+    @Override
+    public void solveConstraints(IReadOnlyTypeVariableCollection currentScope) {
+        solveConstraints(currentScope, false);
+    }
+
+    private void solveConstraints(IReadOnlyTypeVariableCollection currentScope, boolean shallRemoveConstraints) {
         for (Map.Entry<String, ITypeVariableSymbol> constraintsEntry : currentScope.getTypeVariables().entrySet()) {
             ITypeVariableSymbol constraintSymbol = constraintsEntry.getValue();
             Map<String, Integer> visitedTypeVariables = new HashMap<>();
@@ -49,13 +57,17 @@ public class ConstraintSolver implements IConstraintSolver
                 ConstraintSolverDto dto = new ConstraintSolverDto(
                         visitedTypeVariables,
                         typeVariablesToRevisit,
-                        constraintSymbol,
+                        shallRemoveConstraints, constraintSymbol,
                         unionTypeSymbol
                 );
 
                 addToVisitedAndSolve(constraintSymbol, dto);
                 unionTypeSymbol.seal();
             }
+        }
+
+        for (ITypeVariableSymbol typeVariableSymbol : currentScope.getTypeVariablesWhichNeedToBeSealed()) {
+            typeVariableSymbol.getType().seal();
         }
     }
 
@@ -152,7 +164,13 @@ public class ConstraintSolver implements IConstraintSolver
             TypeConstraint constraint) {
         ITypeSymbol typeSymbol = constraint.getTypeSymbol();
         addToDtoUnionAndCurrentVariable(dto, typeSymbol);
-        iterator.remove();
+        removeIfNecessary(dto, iterator);
+    }
+
+    private void removeIfNecessary(ConstraintSolverDto dto, Iterator<IConstraint> iterator) {
+        if (dto.shallRemoveConstraints) {
+            iterator.remove();
+        }
     }
 
     private void resolveReferenceConstraint(
@@ -169,7 +187,7 @@ public class ConstraintSolver implements IConstraintSolver
                     addToVisitedAndSolve(refTypeVariable, refDto);
                     if (refDto.hasNotCircularReference) {
                         unionTypeSymbol.seal();
-                        iterator.remove();
+                        removeIfNecessary(dto, iterator);
                     } else {
                         propagateCircularReferenceFromTo(refDto, dto);
                     }
@@ -177,11 +195,11 @@ public class ConstraintSolver implements IConstraintSolver
                     reportCircularReference(dto, refTypeVariable);
                 }
             } else {
-                iterator.remove();
+                removeIfNecessary(dto, iterator);
             }
             mergeWithDtoAndCurrentVariable(dto, unionTypeSymbol);
         } else {
-            iterator.remove();
+            removeIfNecessary(dto, iterator);
         }
     }
 
@@ -264,6 +282,7 @@ public class ConstraintSolver implements IConstraintSolver
             ConstraintSolverDto dto, Iterator<IConstraint> iterator, IntersectionConstraint intersectionConstraint) {
         List<IUnionTypeSymbol> refVariableTypes = resolveRefSymbolTypes(dto, intersectionConstraint);
 
+
         List<OverloadRankingDto> applicableOverloads = getApplicableOverloads(
                 dto, refVariableTypes, intersectionConstraint);
 
@@ -274,18 +293,19 @@ public class ConstraintSolver implements IConstraintSolver
             } catch (AmbiguousCallException ex) {
                 //TODO if several calls are valid due to data polymorphism, then we need to take
                 // the union of all result Types. For Instance float V array + array => once float once array both
-                // with promotion level = 1 (one cast from float V array to float and one from float V array to array)
+                // with promotion level = 1 (one cast from float V array to float and one from float V array to
+                // array)
+
                 // another example without casting is float V array + float V array => float V array
                 overloadRankingDto = ex.getAmbiguousOverloads().get(0);
             }
 
-            if (overloadRankingDto != null) {
-                ITypeSymbol returnTypeSymbol = overloadRankingDto.overload.apply(refVariableTypes);
-                addToDtoUnionAndCurrentVariable(dto, returnTypeSymbol);
-                if (dto.hasNotCircularReference) {
-                    iterator.remove();
-                }
-            }
+            ITypeSymbol returnTypeSymbol = overloadRankingDto.overload.apply(refVariableTypes);
+            addToDtoUnionAndCurrentVariable(dto, returnTypeSymbol);
+        }
+
+        if (dto.hasNotCircularReference) {
+            removeIfNecessary(dto, iterator);
         }
     }
 
@@ -335,14 +355,14 @@ public class ConstraintSolver implements IConstraintSolver
                     );
                     addToVisitedAndSolve(refTypeVariable, refDto);
                     if (refDto.hasNotCircularReference) {
-                        unionTypeSymbol.seal();
-                        refVariableTypes.add(accumulatorUnion);
+//                        accumulatorUnion.seal();
+                        refVariableTypes.add(unionTypeSymbol);
                     } else {
                         propagateCircularReferenceFromTo(refDto, dto);
                         if (dto.notInIterativeMode) {
                             break;
                         }
-                        refVariableTypes.add(accumulatorUnion);
+                        refVariableTypes.add(unionTypeSymbol);
                     }
                 } else {
 

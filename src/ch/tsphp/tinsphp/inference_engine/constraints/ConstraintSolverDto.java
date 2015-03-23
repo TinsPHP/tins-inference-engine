@@ -23,6 +23,7 @@ public class ConstraintSolverDto
     public boolean hasUnionChanged;
     public boolean hasNotCircularReference = true;
     public ITypeVariableSymbol circularRefTypeVariable;
+    public boolean shallRemoveConstraints;
 
     public ConstraintSolverDto(
             ConstraintSolverDto dto,
@@ -31,7 +32,7 @@ public class ConstraintSolverDto
         this(
                 dto.visitedTypeVariables,
                 dto.revisitTypeVariables,
-                theCurrentTypeVariable,
+                dto.shallRemoveConstraints, theCurrentTypeVariable,
                 theUnionTypeSymbol
         );
         notInIterativeMode = dto.notInIterativeMode;
@@ -42,11 +43,13 @@ public class ConstraintSolverDto
     public ConstraintSolverDto(
             Map<String, Integer> theVisitedTypeVariables,
             Set<String> theTypeVariablesToRevisit,
+            boolean shouldRemoveConstraints,
             ITypeVariableSymbol theCurrentTypeVariable,
             IUnionTypeSymbol theUnionTypeSymbol) {
         currentTypeVariable = theCurrentTypeVariable;
         visitedTypeVariables = theVisitedTypeVariables;
         revisitTypeVariables = theTypeVariablesToRevisit;
         unionTypeSymbol = theUnionTypeSymbol;
+        shallRemoveConstraints = shouldRemoveConstraints;
     }
 }

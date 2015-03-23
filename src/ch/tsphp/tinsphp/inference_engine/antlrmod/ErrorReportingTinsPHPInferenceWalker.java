@@ -17,6 +17,7 @@ import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
 import ch.tsphp.tinsphp.common.issues.IIssueLogger;
 import ch.tsphp.tinsphp.common.issues.IIssueReporter;
 import ch.tsphp.tinsphp.common.issues.IssueReporterHelper;
+import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPInferenceWalker;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.TreeNodeStream;
@@ -34,8 +35,9 @@ public class ErrorReportingTinsPHPInferenceWalker extends TinsPHPInferenceWalker
     private final Collection<IIssueLogger> issueLoggers = new ArrayDeque<>();
     private boolean hasFoundFatalError;
 
-    public ErrorReportingTinsPHPInferenceWalker(TreeNodeStream input, IInferencePhaseController controller) {
-        super(input, controller);
+    public ErrorReportingTinsPHPInferenceWalker(
+            TreeNodeStream input, IInferencePhaseController controller, IGlobalNamespaceScope globalDefaultNameScope) {
+        super(input, controller, globalDefaultNameScope);
     }
 
     @Override

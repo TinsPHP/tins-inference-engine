@@ -13,6 +13,7 @@
 package ch.tsphp.tinsphp.inference_engine.test.integration.testutils.inference;
 
 import ch.tsphp.tinsphp.common.inference.IInferencePhaseController;
+import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPInferenceWalker;
 import org.antlr.runtime.RecognizerSharedState;
 import org.antlr.runtime.tree.TreeNodeStream;
@@ -21,8 +22,8 @@ public class TestTinsPHPInferenceWalker extends ErrorReportingTinsPHPInferenceWa
 {
 
     public TestTinsPHPInferenceWalker(
-            TreeNodeStream input, IInferencePhaseController controller) {
-        super(input, controller);
+            TreeNodeStream input, IInferencePhaseController controller, IGlobalNamespaceScope globalDefaultNameScope) {
+        super(input, controller, globalDefaultNameScope);
     }
 
     public RecognizerSharedState getState() {

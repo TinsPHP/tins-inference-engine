@@ -10,6 +10,7 @@ import ch.tsphp.tinsphp.common.inference.IInferencePhaseController;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
+import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.inference_engine.InferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPInferenceWalker;
@@ -39,7 +40,10 @@ public abstract class AInferenceTest extends AReferenceTest
 
     private void init() {
         inferencePhaseController = createInferencePhaseController(
-                symbolFactory, inferenceErrorReporter, constraintSolver);
+                symbolFactory,
+                inferenceErrorReporter,
+                constraintSolver,
+                definitionPhaseController.getGlobalDefaultNamespace());
     }
 
 
@@ -62,7 +66,10 @@ public abstract class AInferenceTest extends AReferenceTest
 
     protected void afterAssertsInReferencePhase() {
         commonTreeNodeStream.reset();
-        inference = createInferenceWalker(commonTreeNodeStream, inferencePhaseController);
+        inference = createInferenceWalker(
+                commonTreeNodeStream,
+                inferencePhaseController,
+                definitionPhaseController.getGlobalDefaultNamespace());
         registerInferenceErrorLogger();
 
         try {
@@ -90,16 +97,19 @@ public abstract class AInferenceTest extends AReferenceTest
     protected IInferencePhaseController createInferencePhaseController(
             ISymbolFactory theSymbolFactory,
             IInferenceIssueReporter theInferenceErrorReporter,
-            IConstraintSolver theConstraintSolver) {
+            IConstraintSolver theConstraintSolver,
+            IGlobalNamespaceScope theGlobalDefaultNamespaceScope) {
         return new InferencePhaseController(
                 theSymbolFactory,
                 theInferenceErrorReporter,
-                theConstraintSolver);
+                theConstraintSolver, theGlobalDefaultNamespaceScope);
     }
 
     protected ErrorReportingTinsPHPInferenceWalker createInferenceWalker(
             CommonTreeNodeStream theCommonTreeNodeStream,
-            IInferencePhaseController theController) {
-        return new ErrorReportingTinsPHPInferenceWalker(theCommonTreeNodeStream, theController);
+            IInferencePhaseController theController,
+            IGlobalNamespaceScope theGlobalDefaultNamespaceScope) {
+        return new ErrorReportingTinsPHPInferenceWalker(
+                theCommonTreeNodeStream, theController, theGlobalDefaultNamespaceScope);
     }
 }

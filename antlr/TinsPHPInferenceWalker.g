@@ -26,15 +26,16 @@ options {
 
 package ch.tsphp.tinsphp.inference_engine.antlr;
 
-import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.ITSPHPErrorAst;
+import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
 import ch.tsphp.tinsphp.common.scopes.ICaseInsensitiveScope;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
+import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
 import ch.tsphp.tinsphp.common.inference.IInferencePhaseController;
 }
 
@@ -42,9 +43,13 @@ import ch.tsphp.tinsphp.common.inference.IInferencePhaseController;
 private IInferencePhaseController controller;
 private ITypeVariableCollection currentScope;
 
-public TinsPHPInferenceWalker(TreeNodeStream input, IInferencePhaseController theController) {
+public TinsPHPInferenceWalker(
+        TreeNodeStream input, 
+        IInferencePhaseController theController, 
+        IGlobalNamespaceScope globalDefaultNamespaceScope) {
     this(input);
     controller = theController;
+    currentScope = globalDefaultNamespaceScope;
 }
 }
 
@@ -53,11 +58,10 @@ compilationUnit
     ;
     
 namespace
-    :   ^(Namespace {currentScope = (ITypeVariableCollection) $Namespace.getScope().getEnclosingScope();}
+    :   ^(Namespace
             (TYPE_NAME|DEFAULT_NAMESPACE) 
             ^(NAMESPACE_BODY statement*)
         )
-        {controller.addTypeVariableCollection((IGlobalNamespaceScope)currentScope);}
     ;    
 
 statement
@@ -155,8 +159,11 @@ constDeclaration
 
 unaryPrimitiveAtom
     :   primitiveAtomWithConstant
+    //TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0  
+    /*
     |   ^(UNARY_MINUS primitiveAtomWithConstant)
     |   ^(UNARY_PLUS primitiveAtomWithConstant)
+    */
     ; 
     
 primitiveAtomWithConstant
@@ -410,11 +417,17 @@ variableDeclarationList
     ;
 
 variableDeclaration
-    :   ^(variableId=VariableId expression)
+    :  //TODO rstoll TINS-351 SmartVariableDeclarationCreator
+       /*
+       ^(VariableId expression)
         {
-           //TODO as soon as a more sophisticated VariableDeclarator is used this will be necessary
+            controller.createRefConstraint(currentScope, $VariableId, $expression.start);
         }
-    |   variableId=VariableId
+        
+    |*/   VariableId
+        {
+            currentScope.addTypeVariableWhichNeedToBeSealed((ITypeVariableSymbol)$VariableId.getSymbol());
+        }
     ;    
 
 //TODO  TINS-71 inference procedural - take into account control structures    
@@ -530,31 +543,38 @@ thisVariable
 
 
 
-operator  
-    : ^('=' varId=expression rhs=expression)
-      {
-          controller.createRefConstraint(currentScope, $varId.start, $rhs.start);
-      }
-    //TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0
-/*  ^(unaryOperator expression)
-    |   ^(binaryOperatorExcludingAssign lhs=expression rhs=expression)
+operator
+//TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0  
+    : /*  ^(unaryOperator expression)
+        {
+            controller.createIntersectionConstraint(currentScope, $start,$expression.start);
+        }
+    | */  ^('=' lhs=expression rhs=expression)
         {
             controller.createIntersectionConstraint(currentScope, $start, $lhs.start, $rhs.start); 
         }
-    |   ^(assignOperator varId=expression expression)
+    //TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0
+    /*|   ^('?' cond=expression ifExpr=expression elseExpr=expression)
         {
-            controller.createAssignment(currentScope, $varId, $expression.start);
+            controller.createIntersectionConstraint(currentScope, $start, $cond.start, $ifExpr.start, $elseExpr.start);
         }
-    |   ^('?' expression expression expression)
     |   ^(CAST ^(TYPE tMod=. type=.) expression)
-    |   ^(Instanceof expr=expression (variable|TYPE_NAME))
+    |   ^(Instanceof 
+            lhs=expression 
+            (   variable {rhsType=$variable.start;}
+            |   rhsType=TYPE_NAME  { controller.createTypeConstraint($start);}
+            )
+        )
+        {
+            controller.createIntersectionConstraint(currentScope, $lhs.start, $rhsType);
+        }
 
     //|   ^('new' classInterfaceType[null] actualParameters)
-    |   ^('clone' expression)
     */
     ;
+
 //TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0
-/*        
+/*
 unaryOperator
     :   PRE_INCREMENT
     |   PRE_DECREMENT
@@ -565,14 +585,26 @@ unaryOperator
     |   UNARY_PLUS
     |   POST_INCREMENT
     |   POST_DECREMENT
+    |   'clone'
     ;
-    
-binaryOperatorExcludingAssign
-// operators can be overloaded and thus type information is needed to resolve them
-// they are resolved during the inference phase
+
+binaryOperator
     :   'or'
     |   'xor'
     |   'and'
+    
+    |   '='
+    |   '+='
+    |   '-='
+    |   '*='
+    |   '/='
+    |   '&='
+    |   '|='
+    |   '^='
+    |   '%='
+    |   '.='
+    |   '<<='
+    |   '>>='
     
     |   '||'
     |   '&&'
@@ -601,24 +633,9 @@ binaryOperatorExcludingAssign
     |   '/'
     |   '%'
     ;
-    
-assignOperator
-// operators can be overloaded and thus type information is needed to resolve them
-// they are resolved during the inference phase
-    :   '='
-    |   '+='
-    |   '-='
-    |   '*='
-    |   '/='
-    |   '&='
-    |   '|='
-    |   '^='
-    |   '%='
-    |   '.='
-    |   '<<='
-    |   '>>='
-    ;
-    
+*/
+//TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0
+/*    
 functionCall
         // function call has no callee and is therefor not resolved in this phase.
         // resolving occurs in the inference phase where overloads are taken into account

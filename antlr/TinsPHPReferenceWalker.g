@@ -731,7 +731,12 @@ operator
         }
     |   ^('?' expression expression expression)
     |   ^(CAST ^(TYPE tMod=. scalarTypesOrArrayType[$tMod]) expression)
-    |   ^(Instanceof expr=expression (variable|classInterfaceType[null]))
+    |   ^(Instanceof 
+            expression 
+            (   variable
+            |   classInterfaceType[null] {$classInterfaceType.start.setEvalType($classInterfaceType.type);}
+            )
+        )
     //|   ^('new' classInterfaceType[null] actualParameters)
     |   ^('clone' expression)
     ;

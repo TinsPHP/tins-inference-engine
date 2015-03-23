@@ -64,17 +64,6 @@ public class VariableDeclarationTest extends AInferenceTypeTest
                         testStruct("$b", "\\.\\.", "{int V float}", 1, 4, 0, 0),
                         testStruct("$a", "\\.\\.", "{int V float}", 1, 5, 0, 0)}
                 },
-                //TODO rstoll TINS-344 seeding and constants
-//                {
-//                        "const a = 1, b = 'h';", new AbsoluteTypeNameTestStruct[]{
-//                        testStruct("(a# 1)", "\\.\\.", "int", 1, 0, 1),
-//                        testStruct("(b# a#)", "\\.\\.", "int", 1, 0, 2)}
-//                },
-//                {
-//                        "const a = 1, b = a;", new AbsoluteTypeNameTestStruct[]{
-//                        testStruct("(a# 1)", "\\.\\.", "int", 1, 0, 1),
-//                        testStruct("(b# a#)", "\\.\\.", "int", 1, 0, 2)}
-//                },
         });
     }
 }

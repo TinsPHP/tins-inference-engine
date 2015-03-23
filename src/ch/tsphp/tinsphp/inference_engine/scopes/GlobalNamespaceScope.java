@@ -21,7 +21,9 @@ import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
 import ch.tsphp.tinsphp.common.utils.MapHelper;
 
-import java.util.HashMap;
+import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,7 +33,8 @@ public class GlobalNamespaceScope extends AScope implements IGlobalNamespaceScop
 
     private final ILowerCaseStringMap<List<ISymbol>> symbolsCaseInsensitive = new LowerCaseStringMap<>();
     //Warning! start code duplication - same as in MethodSymbol
-    private final Map<String, ITypeVariableSymbol> typeVariables = new HashMap<>();
+    private final Map<String, ITypeVariableSymbol> typeVariables = new LinkedHashMap<>();
+    private final Collection<ITypeVariableSymbol> typeVariablesWhichNeedToBeSealed = new ArrayDeque<>();
     //Warning! end code duplication - same as in MethodSymbol
 
     public GlobalNamespaceScope(IScopeHelper scopeHelper, String scopeName) {
@@ -102,6 +105,16 @@ public class GlobalNamespaceScope extends AScope implements IGlobalNamespaceScop
     @Override
     public void addTypeVariable(ITypeVariableSymbol typeVariableSymbol) {
         typeVariables.put(typeVariableSymbol.getAbsoluteName(), typeVariableSymbol);
+    }
+
+    @Override
+    public void addTypeVariableWhichNeedToBeSealed(ITypeVariableSymbol typeVariableSymbol) {
+        typeVariablesWhichNeedToBeSealed.add(typeVariableSymbol);
+    }
+
+    @Override
+    public Collection<ITypeVariableSymbol> getTypeVariablesWhichNeedToBeSealed() {
+        return typeVariablesWhichNeedToBeSealed;
     }
     //Warning! end code duplication - same as in MethodSymbol
 }

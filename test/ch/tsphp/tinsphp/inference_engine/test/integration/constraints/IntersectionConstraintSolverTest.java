@@ -70,7 +70,7 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
     }
 
     @Test
-    public void solveConstraints_AdditionWithFloatAndFloat$bFromOtherScope_$aAnd$bAreFloat() {
+    public void solveConstraints_AdditionWithFloatAndFloat$bFromOtherScope_$aIsFloat$bIsNotYetReady() {
         // corresponds:
         // $b = 1.2;
         // --- different scope
@@ -86,8 +86,9 @@ public class IntersectionConstraintSolverTest extends AConstraintSolverTest
 
         assertThat($a.getType().isReadyForEval(), is(true));
         assertThat($a.getType().getTypeSymbols().keySet(), containsInAnyOrder("float"));
-        assertThat($b.getType().isReadyForEval(), is(true));
-        assertThat($b.getType().getTypeSymbols().keySet(), containsInAnyOrder("float"));
+        //since we do not know (yet) that + has no side effects, we cannot seal $b during the solving process of $b
+        assertThat($b.getType().isReadyForEval(), is(false));
+
     }
 
     @Test
