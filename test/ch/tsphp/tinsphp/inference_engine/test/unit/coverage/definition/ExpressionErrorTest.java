@@ -19,7 +19,6 @@ import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPDefinitionWalker.EO
 import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPDefinitionWalker.EXPRESSION;
 import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPDefinitionWalker.Instanceof;
 import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPDefinitionWalker.TYPE;
-import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPDefinitionWalker.TYPE_NAME;
 import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPDefinitionWalker.Try;
 import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPDefinitionWalker.TypeInt;
 import static org.antlr.runtime.tree.TreeParser.UP;
@@ -36,7 +35,7 @@ public class ExpressionErrorTest extends ADefinitionWalkerTest
 
         TestTinsPHPDefinitionWalker walker = spy(createWalker(ast));
         walker.setBacktrackingLevel(1);
-        walker.expression();
+        walker.expression(false);
 
         assertThat(walker.getState().failed, is(true));
         assertThat(treeNodeStream.LA(1), is(EOF));
@@ -51,7 +50,7 @@ public class ExpressionErrorTest extends ADefinitionWalkerTest
 
         TestTinsPHPDefinitionWalker walker = spy(createWalker(ast));
         walker.setBacktrackingLevel(1);
-        walker.expression();
+        walker.expression(false);
 
         assertThat(walker.getState().failed, is(true));
         assertThat(treeNodeStream.LA(1), is(Try));
@@ -65,7 +64,7 @@ public class ExpressionErrorTest extends ADefinitionWalkerTest
 
         TestTinsPHPDefinitionWalker walker = spy(createWalker(ast));
         walker.setBacktrackingLevel(1);
-        walker.expression();
+        walker.expression(false);
 
         assertThat(walker.getState().failed, is(true));
         assertThat(treeNodeStream.LA(1), is(UP));
@@ -82,7 +81,7 @@ public class ExpressionErrorTest extends ADefinitionWalkerTest
 
         TestTinsPHPDefinitionWalker walker = spy(createWalker(ast));
         walker.setBacktrackingLevel(1);
-        walker.expression();
+        walker.expression(false);
 
         assertThat(walker.getState().failed, is(true));
         assertThat(treeNodeStream.LA(1), is(UP));
@@ -99,7 +98,7 @@ public class ExpressionErrorTest extends ADefinitionWalkerTest
 
         TestTinsPHPDefinitionWalker walker = spy(createWalker(ast));
         walker.setBacktrackingLevel(1);
-        walker.expression();
+        walker.expression(false);
 
         assertThat(walker.getState().failed, is(true));
         assertThat(treeNodeStream.LA(1), is(Try));
@@ -118,7 +117,7 @@ public class ExpressionErrorTest extends ADefinitionWalkerTest
 
         TestTinsPHPDefinitionWalker walker = spy(createWalker(ast));
         walker.setBacktrackingLevel(1);
-        walker.expression();
+        walker.expression(false);
 
         assertThat(walker.getState().failed, is(true));
         assertThat(treeNodeStream.LA(1), is(EXPRESSION));
@@ -131,7 +130,7 @@ public class ExpressionErrorTest extends ADefinitionWalkerTest
 
         TestTinsPHPDefinitionWalker walker = spy(createWalker(ast));
         walker.setBacktrackingLevel(1);
-        walker.expression();
+        walker.expression(false);
 
         assertThat(walker.getState().failed, is(true));
         assertThat(treeNodeStream.LA(1), is(EOF));
@@ -146,7 +145,7 @@ public class ExpressionErrorTest extends ADefinitionWalkerTest
 
         TestTinsPHPDefinitionWalker walker = spy(createWalker(ast));
         walker.setBacktrackingLevel(1);
-        walker.expression();
+        walker.expression(false);
 
         assertThat(walker.getState().failed, is(true));
         assertThat(treeNodeStream.LA(1), is(Try));
@@ -163,7 +162,7 @@ public class ExpressionErrorTest extends ADefinitionWalkerTest
 
         TestTinsPHPDefinitionWalker walker = spy(createWalker(ast));
         walker.setBacktrackingLevel(1);
-        walker.expression();
+        walker.expression(false);
 
         assertThat(walker.getState().failed, is(true));
         assertThat(treeNodeStream.LA(1), is(Try));

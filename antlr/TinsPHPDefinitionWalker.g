@@ -60,13 +60,14 @@ topdown
     |   blockConditional
     |   foreachLoop
     |   catchBlock
+    |   ternary
     
         //symbols
     |   constantDefinitionList
     |   variableDeclarationList
     |   parameterDeclarationList
     |   methodFunctionCall
-    |   expression
+    |   expression[false]
     |   returnBreakContinue
     ;
 
@@ -171,6 +172,19 @@ catchBlock
          }
     ;
 
+ternary	
+    :   ^('?' 
+            cond=. 
+            {currentScope = definer.defineConditionalScope(currentScope);}
+            expression[true]
+            {
+                currentScope = currentScope.getEnclosingScope();
+                currentScope = definer.defineConditionalScope(currentScope);
+            }
+            expression[true]
+            {currentScope = currentScope.getEnclosingScope();}
+        )
+    ;
 
 constantDefinitionList
     :   ^(CONSTANT_DECLARATION_LIST ^(TYPE tMod=. type=.) constantDeclaration[$tMod, $type]+)
@@ -218,7 +232,7 @@ methodFunctionCall
         {$identifier.setScope(currentScope);}
     ;
 
-expression    
+expression[boolean isTernary]
     :   (   identifier=CONSTANT
         |   identifier=VariableId
         //TODO rstoll TINS-161 inference OOP  
@@ -233,7 +247,11 @@ expression
         //TODO rstoll TINS-161 inference OOP          
         //|   ^('new' identifier=TYPE_NAME .)
         )
-        {$identifier.setScope(currentScope);}
+        {
+            if(isTernary || $start.getParent().getType() != QuestionMark){
+                $identifier.setScope(currentScope);
+            }
+        }
     ;
 
 primitiveTypesWithoutResource

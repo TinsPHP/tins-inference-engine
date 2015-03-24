@@ -17,7 +17,7 @@ import org.mockito.ArgumentCaptor;
 
 import java.lang.reflect.InvocationTargetException;
 
-import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPDefinitionWalker.Try;
+import static ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPDefinitionWalker.Else;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
@@ -27,55 +27,81 @@ import static org.mockito.Mockito.verify;
 public class NotCorrectStartNodeTypeForRulesWithParamsTest extends ADefinitionWalkerTest
 {
     @Test
+    public void expression_withoutBacktracking_reportNoViableAltException()
+            throws RecognitionException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        ITSPHPAst ast = createAst(Else);
+
+        TestTinsPHPDefinitionWalker walker = spy(createWalker(ast));
+        walker.expression(false);
+
+        ArgumentCaptor<NoViableAltException> captor = ArgumentCaptor.forClass(NoViableAltException.class);
+        verify(walker).reportError(captor.capture());
+        assertThat(captor.getValue().token.getType(), is(Else));
+    }
+
+    @Test
+    public void expression_BacktrackingEnabled_StateFailedIsTrue()
+            throws RecognitionException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        ITSPHPAst ast = createAst(Else);
+
+        TestTinsPHPDefinitionWalker walker = spy(createWalker(ast));
+        walker.setBacktrackingLevel(1);
+        walker.expression(false);
+
+        assertThat(walker.getState().failed, is(true));
+        assertThat(treeNodeStream.LA(1), is(Else));
+    }
+
+    @Test
     public void variableDeclaration_withoutBacktracking_reportNoViableAltException()
             throws RecognitionException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        ITSPHPAst ast = createAst(Try);
+        ITSPHPAst ast = createAst(Else);
 
         TestTinsPHPDefinitionWalker walker = spy(createWalker(ast));
         walker.variableDeclaration(mock(ITSPHPAst.class), mock(ITSPHPAst.class));
 
         ArgumentCaptor<NoViableAltException> captor = ArgumentCaptor.forClass(NoViableAltException.class);
         verify(walker).reportError(captor.capture());
-        assertThat(captor.getValue().token.getType(), is(Try));
+        assertThat(captor.getValue().token.getType(), is(Else));
     }
 
     @Test
     public void variableDeclaration_BacktrackingEnabled_StateFailedIsTrue()
             throws RecognitionException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        ITSPHPAst ast = createAst(Try);
+        ITSPHPAst ast = createAst(Else);
 
         TestTinsPHPDefinitionWalker walker = spy(createWalker(ast));
         walker.setBacktrackingLevel(1);
         walker.variableDeclaration(mock(ITSPHPAst.class), mock(ITSPHPAst.class));
 
         assertThat(walker.getState().failed, is(true));
-        assertThat(treeNodeStream.LA(1), is(Try));
+        assertThat(treeNodeStream.LA(1), is(Else));
     }
 
     @Test
     public void constantDeclaration_withoutBacktracking_reportMismatchedTreeNodeException()
             throws RecognitionException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        ITSPHPAst ast = createAst(Try);
+        ITSPHPAst ast = createAst(Else);
 
         TestTinsPHPDefinitionWalker walker = spy(createWalker(ast));
         walker.constantDeclaration(mock(ITSPHPAst.class), mock(ITSPHPAst.class));
 
         ArgumentCaptor<MismatchedTreeNodeException> captor = ArgumentCaptor.forClass(MismatchedTreeNodeException.class);
         verify(walker).reportError(captor.capture());
-        assertThat(captor.getValue().token.getType(), is(Try));
+        assertThat(captor.getValue().token.getType(), is(Else));
     }
 
     @Test
     public void constantDeclaration_BacktrackingEnabled_StateFailedIsTrue()
             throws RecognitionException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        ITSPHPAst ast = createAst(Try);
+        ITSPHPAst ast = createAst(Else);
 
         TestTinsPHPDefinitionWalker walker = spy(createWalker(ast));
         walker.setBacktrackingLevel(1);
         walker.constantDeclaration(mock(ITSPHPAst.class), mock(ITSPHPAst.class));
 
         assertThat(walker.getState().failed, is(true));
-        assertThat(treeNodeStream.LA(1), is(Try));
+        assertThat(treeNodeStream.LA(1), is(Else));
     }
 }
 
