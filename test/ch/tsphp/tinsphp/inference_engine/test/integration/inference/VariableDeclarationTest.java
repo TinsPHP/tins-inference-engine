@@ -59,10 +59,10 @@ public class VariableDeclarationTest extends AInferenceTypeTest
                 },
                 {
                         "$a = 1; $b = $a; $b = 1.2; $a = $b;", new AbsoluteTypeNameTestStruct[]{
-                        testStruct("$a", "\\.\\.", "{int V float}", 1, 2, 0, 0),
-                        testStruct("$b", "\\.\\.", "{int V float}", 1, 3, 0, 0),
-                        testStruct("$b", "\\.\\.", "{int V float}", 1, 4, 0, 0),
-                        testStruct("$a", "\\.\\.", "{int V float}", 1, 5, 0, 0)}
+                        testStruct("$a", "\\.\\.", "int", 1, 2, 0, 0),
+                        testStruct("$b", "\\.\\.", "int", 1, 3, 0, 0),
+                        testStruct("$b", "\\.\\.", "float", 1, 4, 0, 0),
+                        testStruct("$a", "\\.\\.", "float", 1, 5, 0, 0)}
                 },
         });
     }

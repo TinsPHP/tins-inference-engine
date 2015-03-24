@@ -49,7 +49,7 @@ public class AInferenceTypeTest extends AInferenceTest
                     " " +
                     "typeSymbol was null", typeSymbol);
             Assert.assertEquals(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
-                    "wrong type scope", testStruct.absoluteTypeName, typeSymbol.getAbsoluteName());
+                    "wrong type", testStruct.absoluteTypeName, typeSymbol.getAbsoluteName());
             ++counter;
         }
     }

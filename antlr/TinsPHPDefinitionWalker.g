@@ -172,7 +172,7 @@ catchBlock
          }
     ;
 
-ternary	
+ternary
     :   ^('?' 
             cond=. 
             {currentScope = definer.defineConditionalScope(currentScope);}

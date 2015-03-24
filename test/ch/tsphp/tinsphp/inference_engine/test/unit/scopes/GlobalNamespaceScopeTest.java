@@ -26,10 +26,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import java.util.Map;
+import java.util.Deque;
 
+import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.collection.IsMapContaining.hasKey;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.doAnswer;
@@ -251,7 +251,7 @@ public class GlobalNamespaceScopeTest
     public void getTypeVariables_NothingDefined_ReturnsEmptyMap() {
 
         IGlobalNamespaceScope globalNamespaceScope = createGlobalNamespaceScope();
-        Map<String, ITypeVariableSymbol> result = globalNamespaceScope.getTypeVariables();
+        Deque<ITypeVariableSymbol> result = globalNamespaceScope.getTypeVariables();
 
         MatcherAssert.assertThat(result.size(), is(0));
     }
@@ -264,11 +264,10 @@ public class GlobalNamespaceScopeTest
 
         IGlobalNamespaceScope globalNamespaceScope = createGlobalNamespaceScope();
         globalNamespaceScope.addTypeVariable($a);
-        Map<String, ITypeVariableSymbol> result = globalNamespaceScope.getTypeVariables();
+        Deque<ITypeVariableSymbol> result = globalNamespaceScope.getTypeVariables();
 
+        MatcherAssert.assertThat(result, hasItem($a));
         MatcherAssert.assertThat(result.size(), is(1));
-        MatcherAssert.assertThat(result, hasKey("$a"));
-        MatcherAssert.assertThat(result.get("$a"), is($a));
     }
 
     private IGlobalNamespaceScope createGlobalNamespaceScope() {

@@ -9,6 +9,7 @@ package ch.tsphp.tinsphp.inference_engine.constraints;
 import ch.tsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
 
+import java.util.Deque;
 import java.util.Map;
 import java.util.Set;
 
@@ -23,16 +24,17 @@ public class ConstraintSolverDto
     public boolean hasUnionChanged;
     public boolean hasNotCircularReference = true;
     public ITypeVariableSymbol circularRefTypeVariable;
-    public boolean shallRemoveConstraints;
+    public Deque<ITypeVariableSymbol> typeVariables;
 
     public ConstraintSolverDto(
             ConstraintSolverDto dto,
             ITypeVariableSymbol theCurrentTypeVariable,
             IUnionTypeSymbol theUnionTypeSymbol) {
         this(
+                dto.typeVariables,
                 dto.visitedTypeVariables,
                 dto.revisitTypeVariables,
-                dto.shallRemoveConstraints, theCurrentTypeVariable,
+                theCurrentTypeVariable,
                 theUnionTypeSymbol
         );
         notInIterativeMode = dto.notInIterativeMode;
@@ -41,15 +43,15 @@ public class ConstraintSolverDto
     }
 
     public ConstraintSolverDto(
+            Deque<ITypeVariableSymbol> theTypeVariables,
             Map<String, Integer> theVisitedTypeVariables,
             Set<String> theTypeVariablesToRevisit,
-            boolean shouldRemoveConstraints,
             ITypeVariableSymbol theCurrentTypeVariable,
             IUnionTypeSymbol theUnionTypeSymbol) {
+        typeVariables = theTypeVariables;
         currentTypeVariable = theCurrentTypeVariable;
         visitedTypeVariables = theVisitedTypeVariables;
         revisitTypeVariables = theTypeVariablesToRevisit;
         unionTypeSymbol = theUnionTypeSymbol;
-        shallRemoveConstraints = shouldRemoveConstraints;
     }
 }

@@ -36,6 +36,7 @@ import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
+import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbolWithRef;
 import ch.tsphp.tinsphp.common.inference.IInferencePhaseController;
 }
 
@@ -426,7 +427,7 @@ variableDeclaration
         
     |*/   VariableId
         {
-            currentScope.addTypeVariableWhichNeedToBeSealed((ITypeVariableSymbol)$VariableId.getSymbol());
+            currentScope.addTypeVariableWithRef((ITypeVariableSymbolWithRef)$VariableId.getSymbol());
         }
     ;    
 
@@ -530,6 +531,9 @@ atom
 
 variable    
     :   varId=VariableId
+        {
+            controller.createRefVariable(currentScope, $varId);
+        }
     ;
 
     

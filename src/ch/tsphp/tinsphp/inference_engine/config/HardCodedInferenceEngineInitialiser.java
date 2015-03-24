@@ -48,8 +48,6 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
 {
     private final IScopeHelper scopeHelper;
     private final IModifierHelper modifierHelper;
-    private final IOverloadResolver overloadResolver;
-    private final IConstraintSolver constraintSolver;
     private final ISymbolFactory symbolFactory;
     private final IScopeFactory scopeFactory;
     private final IAstModificationHelper astModificationHelper;
@@ -63,10 +61,10 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
     public HardCodedInferenceEngineInitialiser() {
         scopeHelper = new ScopeHelper();
         modifierHelper = new ModifierHelper();
-        overloadResolver = new OverloadResolver();
+        IOverloadResolver overloadResolver = new OverloadResolver();
 
         symbolFactory = new SymbolFactory(scopeHelper, modifierHelper, overloadResolver);
-        constraintSolver = new ConstraintSolver(symbolFactory, overloadResolver);
+        IConstraintSolver constraintSolver = new ConstraintSolver(symbolFactory, overloadResolver);
         symbolFactory.setConstraintSolver(constraintSolver);
         scopeFactory = new ScopeFactory(scopeHelper);
         inferenceErrorReporter = new InferenceIssueReporter(new HardCodedIssueMessageProvider());

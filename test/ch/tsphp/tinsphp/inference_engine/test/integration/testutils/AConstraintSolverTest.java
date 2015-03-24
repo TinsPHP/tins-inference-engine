@@ -15,6 +15,7 @@ import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
 import ch.tsphp.tinsphp.common.symbols.IFunctionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
+import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbolWithRef;
 import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.constraints.IntersectionConstraint;
 import ch.tsphp.tinsphp.inference_engine.scopes.ScopeHelper;
@@ -27,12 +28,12 @@ import ch.tsphp.tinsphp.symbols.utils.OverloadResolver;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static org.mockito.Mockito.mock;
@@ -121,12 +122,35 @@ public abstract class AConstraintSolverTest
         return new HashSet<>(asList(symbols));
     }
 
-    protected ITypeVariableSymbol typeVar(String id, IConstraint... constraints) {
+    protected ITypeVariableSymbolWithRef typeVarWithRef(String id, ITypeSymbol... types) {
+        ITypeVariableSymbolWithRef typeVariableSymbol = mock(ITypeVariableSymbolWithRef.class);
+        when(typeVariableSymbol.getAbsoluteName()).thenReturn(id);
+        IUnionTypeSymbol unionTypeSymbol = new UnionTypeSymbol(overloadResolver);
+        for (ITypeSymbol type : types) {
+            unionTypeSymbol.addTypeSymbol(type);
+        }
+        unionTypeSymbol.seal();
+        when(typeVariableSymbol.getType()).thenReturn(unionTypeSymbol);
+        return typeVariableSymbol;
+    }
+
+
+    protected ITypeVariableSymbol typeVar(String id, ITypeSymbol... types) {
         ITypeVariableSymbol typeVariableSymbol = mock(ITypeVariableSymbol.class);
         when(typeVariableSymbol.getAbsoluteName()).thenReturn(id);
-        if (constraints.length > 0) {
-            when(typeVariableSymbol.getConstraints()).thenReturn(list(constraints));
+        IUnionTypeSymbol unionTypeSymbol = new UnionTypeSymbol(overloadResolver);
+        for (ITypeSymbol type : types) {
+            unionTypeSymbol.addTypeSymbol(type);
         }
+        unionTypeSymbol.seal();
+        when(typeVariableSymbol.getType()).thenReturn(unionTypeSymbol);
+        return typeVariableSymbol;
+    }
+
+    protected ITypeVariableSymbol typeVar(String id, IConstraint constraints) {
+        ITypeVariableSymbol typeVariableSymbol = mock(ITypeVariableSymbol.class);
+        when(typeVariableSymbol.getAbsoluteName()).thenReturn(id);
+        when(typeVariableSymbol.getConstraint()).thenReturn(constraints);
         IUnionTypeSymbol unionTypeSymbol = new UnionTypeSymbol(overloadResolver);
         when(typeVariableSymbol.getType()).thenReturn(unionTypeSymbol);
         return typeVariableSymbol;
@@ -161,12 +185,12 @@ public abstract class AConstraintSolverTest
     }
 
     protected ITypeVariableCollection createTypeVariableCollection(ITypeVariableSymbol... typeVariables) {
-        Map<String, ITypeVariableSymbol> map = new HashMap<>();
+        Deque<ITypeVariableSymbol> deque = new ArrayDeque<>();
         for (ITypeVariableSymbol typeVariableSymbol : typeVariables) {
-            map.put(typeVariableSymbol.getAbsoluteName(), typeVariableSymbol);
+            deque.addLast(typeVariableSymbol);
         }
         ITypeVariableCollection scope = mock(ITypeVariableCollection.class);
-        when(scope.getTypeVariables()).thenReturn(map);
+        when(scope.getTypeVariables()).thenReturn(deque);
         return scope;
     }
 
@@ -179,15 +203,15 @@ public abstract class AConstraintSolverTest
 
     protected IFunctionTypeSymbol funcUnary(ITypeSymbol parameterType, ITypeSymbol returnType) {
         IFunctionTypeSymbol function = new ConstantFunctionTypeSymbol("+", asList("$lhs"), mixedType, returnType);
-        function.addParameterConstraint("$lhs", type(parameterType));
+        function.addInputConstraint("$lhs", type(parameterType));
         return function;
     }
 
     protected IFunctionTypeSymbol funcBinary(ITypeSymbol lhsType, ITypeSymbol rhsType, ITypeSymbol returnType) {
         IFunctionTypeSymbol function = new ConstantFunctionTypeSymbol(
                 "+", asList("$lhs", "$rhs"), mixedType, returnType);
-        function.addParameterConstraint("$lhs", type(lhsType));
-        function.addParameterConstraint("$rhs", type(rhsType));
+        function.addInputConstraint("$lhs", type(lhsType));
+        function.addInputConstraint("$rhs", type(rhsType));
         return function;
     }
 
@@ -211,7 +235,11 @@ public abstract class AConstraintSolverTest
     protected IConstraintSolver createConstraintSolver() {
         IOverloadResolver overloadResolver = new OverloadResolver();
         return createConstraintSolver(
-                new SymbolFactory(new ScopeHelper(), new ModifierHelper(), overloadResolver), overloadResolver);
+                createSymbolFactory(overloadResolver), overloadResolver);
+    }
+
+    protected SymbolFactory createSymbolFactory(IOverloadResolver overloadResolver) {
+        return new SymbolFactory(new ScopeHelper(), new ModifierHelper(), overloadResolver);
     }
 
     protected IConstraintSolver createConstraintSolver(ISymbolFactory theSymbolFactory,
