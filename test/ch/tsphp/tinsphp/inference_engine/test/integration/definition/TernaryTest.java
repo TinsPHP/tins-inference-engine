@@ -36,12 +36,12 @@ public class TernaryTest extends ADefinitionScopeTest
     public static Collection<Object[]> testStrings() {
         List<Object[]> collection = new ArrayList<>();
 
-        collection.addAll(getVariations("", "", "\\.\\.cScope.", new Integer[]{1}));
-        collection.addAll(getVariations("namespace{", "}", "\\.\\.cScope.", new Integer[]{1}));
+        collection.addAll(getVariations("", "", "\\.\\.", new Integer[]{1}));
+        collection.addAll(getVariations("namespace{", "}", "\\.\\.", new Integer[]{1}));
 
         //nBody function block
         collection.addAll(getVariations("function foo(){", "}",
-                "\\.\\.foo().cScope.", new Integer[]{1, 0, 4}));
+                "\\.\\.foo().", new Integer[]{1, 0, 4}));
 
         //TODO rstoll TINS-161 inference OOP
         //nBody class classBody mDecl block
@@ -55,9 +55,11 @@ public class TernaryTest extends ADefinitionScopeTest
         Integer[] stepIn = new Integer[]{};
         return Arrays.asList(new Object[][]{
                 {prefix + " $x ? $a : $b;" + appendix, new ScopeTestStruct[]{
-                        new ScopeTestStruct("$a", fullScopeName,
+                        new ScopeTestStruct("$x", fullScopeName,
+                                ScopeTestHelper.getAstAccessOrder(accessToScope, stepIn, 0, 0, 0)),
+                        new ScopeTestStruct("$a", fullScopeName + "cScope.",
                                 ScopeTestHelper.getAstAccessOrder(accessToScope, stepIn, 0, 0, 1)),
-                        new ScopeTestStruct("$b", fullScopeName,
+                        new ScopeTestStruct("$b", fullScopeName + "cScope.",
                                 ScopeTestHelper.getAstAccessOrder(accessToScope, stepIn, 0, 0, 2)),
                 }},
         });

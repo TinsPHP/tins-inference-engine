@@ -174,7 +174,7 @@ catchBlock
 
 ternary
     :   ^('?' 
-            cond=. 
+            expression[true]
             {currentScope = definer.defineConditionalScope(currentScope);}
             expression[true]
             {
