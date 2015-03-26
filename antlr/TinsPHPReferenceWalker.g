@@ -730,7 +730,11 @@ operator
             }
         }
     |   ^('?' expression expression expression)
-    |   ^(CAST ^(TYPE tMod=. scalarTypesOrArrayType[$tMod]) expression)
+    |   ^(CAST 
+            ^(TYPE tMod=. scalarTypesOrArrayType[$tMod])
+                {$scalarTypesOrArrayType.start.setEvalType($scalarTypesOrArrayType.type);}
+            expression
+        )
     |   ^(Instanceof 
             expression 
             (   variable

@@ -36,16 +36,18 @@ public abstract class ADefinitionScopeTest extends ADefinitionTest
     }
 
     public static void verifyDefinitions(ScopeTestStruct[] testStructs, ITSPHPAst ast, String testString) {
+        int counter = 0;
         for (ScopeTestStruct testStruct : testStructs) {
             ITSPHPAst testCandidate = ScopeTestHelper.getAst(ast, testString, testStruct);
-            Assert.assertNotNull(testString + " failed. testCandidate is null. should be " + testStruct.astText,
-                    testCandidate);
-            Assert.assertEquals(testString + " failed. wrong ast text,", testStruct.astText,
-                    testCandidate.toStringTree());
+            Assert.assertNotNull(testString + " failed (testStruct Nr " + counter + "). testCandidate is null. should" +
+                    " be " + testStruct.astText, testCandidate);
+            Assert.assertEquals(testString + " failed (testStruct Nr " + counter + "). wrong ast text,",
+                    testStruct.astText, testCandidate.toStringTree());
 
-            Assert.assertEquals(testString + " -- " + testStruct.astText + " failed. wrong scope,", testStruct.astScope,
+            Assert.assertEquals(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
+                            "wrong scope,", testStruct.astScope,
                     ScopeTestHelper.getEnclosingScopeNames(testCandidate.getScope()));
+            ++counter;
         }
-
     }
 }

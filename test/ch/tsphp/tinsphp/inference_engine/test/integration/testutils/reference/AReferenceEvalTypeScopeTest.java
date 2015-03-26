@@ -45,15 +45,6 @@ public abstract class AReferenceEvalTypeScopeTest extends AReferenceTest
                     testStruct.astText,
                     testCandidate.toStringTree());
 
-//            ISymbol symbol = testCandidate.getEvalType();
-//            Assert.assertNotNull(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter +
-// ")." +
-//                    " symbol was null", symbol);
-//            Assert.assertEquals(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + ")
-// . " +
-//                            "wrong scope,",
-//                    testStruct.astScope, ScopeTestHelper.getEnclosingScopeNames(symbol.getDefinitionScope()));
-
             ITypeSymbol typeSymbol = testCandidate.getEvalType();
             if (testStruct.typeText != null) {
                 Assert.assertNotNull(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter +

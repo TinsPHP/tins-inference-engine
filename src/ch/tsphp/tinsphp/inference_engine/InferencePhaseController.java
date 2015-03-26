@@ -8,6 +8,7 @@ package ch.tsphp.tinsphp.inference_engine;
 
 
 import ch.tsphp.common.ITSPHPAst;
+import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.inference.IInferencePhaseController;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
@@ -66,7 +67,7 @@ public class InferencePhaseController implements IInferencePhaseController
     @Override
     public void createTypeConstraint(ITSPHPAst literal) {
         ITypeVariableSymbol typeVariableSymbol = symbolFactory.createExpressionTypeVariableSymbol(literal);
-        typeVariableSymbol.setType(literal.getEvalType());
+        typeVariableSymbol.setType((ITypeSymbol) literal.getEvalType());
         literal.setSymbol(typeVariableSymbol);
     }
 

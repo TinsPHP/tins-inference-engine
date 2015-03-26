@@ -82,15 +82,12 @@ public class ConstraintSolver implements IConstraintSolver
 
     private boolean resolveTransferConstraint(ConstraintSolverDto dto, TransferConstraint constraint) {
         IUnionTypeSymbol unionTypeSymbol = constraint.getTypeVariableSymbol().getType();
-        if (unionTypeSymbol.isReadyForEval()) {
-            dto.currentTypeVariable.getType().merge(unionTypeSymbol);
-            //TODO right now I am not sure how I am going to use dto.unionTypeSymbol, will see when dealing with
-            //recursive functions
-            boolean hasChanged = dto.unionTypeSymbol.merge(unionTypeSymbol);
-            dto.hasUnionChanged = dto.hasUnionChanged || hasChanged;
-            return true;
-        }
-        return false;
+        dto.currentTypeVariable.getType().merge(unionTypeSymbol);
+        //TODO right now I am not sure how I am going to use dto.unionTypeSymbol, will see when dealing with
+        //recursive functions
+        boolean hasChanged = dto.unionTypeSymbol.merge(unionTypeSymbol);
+        dto.hasUnionChanged = dto.hasUnionChanged || hasChanged;
+        return true;
     }
 
     private boolean resolveIntersectionConstraint(
@@ -308,11 +305,14 @@ public class ConstraintSolver implements IConstraintSolver
 
     private boolean resolveUnionConstraint(ConstraintSolverDto dto, UnionConstraint unionConstraint) {
         boolean allTypesReady = true;
+        boolean hasChanged;
         for (ITypeVariableSymbol refTypeVariable : unionConstraint.getTypeVariables()) {
-            if (!resolveReferenceConstraint(dto, refTypeVariable)) {
-                allTypesReady = false;
-                break;
-            }
+            IUnionTypeSymbol unionTypeSymbol = refTypeVariable.getType();
+            dto.currentTypeVariable.getType().merge(unionTypeSymbol);
+            //TODO right now I am not sure how I am going to use dto.unionTypeSymbol, will see when dealing with
+            //recursive functions
+            hasChanged = dto.unionTypeSymbol.merge(unionTypeSymbol);
+            dto.hasUnionChanged = dto.hasUnionChanged || hasChanged;
         }
         return allTypesReady;
     }

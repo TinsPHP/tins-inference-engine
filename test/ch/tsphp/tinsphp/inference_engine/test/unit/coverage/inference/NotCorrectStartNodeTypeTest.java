@@ -140,8 +140,7 @@ public class NotCorrectStartNodeTypeTest extends AInferenceWalkerTest
 //                {"thisVariable", Else},
                 //TODO  TINS-71 inference procedural - take into account control structures
 //                {"tryCatch", Else},
-                //TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0
-//                {"unaryOperator", Else},
+                {"unaryOperator", Else},
                 {"unaryPrimitiveAtom", Else},
                 //TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0
 //                {"useDeclaration", Else},

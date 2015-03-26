@@ -545,8 +545,6 @@ thisVariable
     ;
 */
 
-
-
 operator
 //TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0  
     :   ^(unaryOperator expression)
@@ -557,12 +555,16 @@ operator
         {
             controller.createIntersectionConstraint(currentScope, $start, $lhs.start, $rhs.start); 
         }
-    //TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0
-    /*|   ^('?' cond=expression ifExpr=expression elseExpr=expression)
+
+    |   ^('?' cond=expression ifExpr=expression elseExpr=expression)
         {
             controller.createIntersectionConstraint(currentScope, $start, $cond.start, $ifExpr.start, $elseExpr.start);
         }
     |   ^(CAST ^(TYPE tMod=. type=.) expression)
+        {
+            controller.createTypeConstraint($type);
+            controller.createIntersectionConstraint(currentScope, $start, $type, $expression.start);
+        }
     |   ^(Instanceof 
             lhs=expression 
             (   variable {rhsType=$variable.start;}
@@ -570,11 +572,10 @@ operator
             )
         )
         {
-            controller.createIntersectionConstraint(currentScope, $lhs.start, $rhsType);
+            controller.createIntersectionConstraint(currentScope, $start, $lhs.start, $rhsType);
         }
 
     //|   ^('new' classInterfaceType[null] actualParameters)
-    */
     ;
 
 unaryOperator
