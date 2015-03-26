@@ -187,8 +187,50 @@ public class OperatorTest extends AInferenceTypeTest
                 {"2 % 1;", testStructs("(% 2 1)", "", "{int V false}", 1, 0, 0)},
                 // instanceof
                 //TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0
-                // unary operators
-                //TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0
+                // preIncr
+                {"$a = false; ++$a;", testStructs("(preIncr $a)", "", "bool", 1, 2, 0)},
+                {"$a = true; ++$a;", testStructs("(preIncr $a)", "", "bool", 1, 2, 0)},
+                {"$a = 1; ++$a;", testStructs("(preIncr $a)", "", "int", 1, 2, 0)},
+                {"$a = 1.5; ++$a;", testStructs("(preIncr $a)", "", "float", 1, 2, 0)},
+                //TODO num -> num
+                //preDecr
+                {"$a = false; --$a;", testStructs("(preDecr $a)", "", "bool", 1, 2, 0)},
+                {"$a = true; --$a;", testStructs("(preDecr $a)", "", "bool", 1, 2, 0)},
+                {"$a = 1; --$a;", testStructs("(preDecr $a)", "", "int", 1, 2, 0)},
+                {"$a = 1.5; --$a;", testStructs("(preDecr $a)", "", "float", 1, 2, 0)},
+                //TODO num -> num
+                // postIncr
+                {"$a = false; $a++;", testStructs("(postIncr $a)", "", "bool", 1, 2, 0)},
+                {"$a = true; $a++;", testStructs("(postIncr $a)", "", "bool", 1, 2, 0)},
+                {"$a = 1; $a++;", testStructs("(postIncr $a)", "", "int", 1, 2, 0)},
+                {"$a = 1.5; $a++;", testStructs("(postIncr $a)", "", "float", 1, 2, 0)},
+                //TODO num -> num
+                //postDecr
+                {"$a = false; $a--;", testStructs("(postDecr $a)", "", "bool", 1, 2, 0)},
+                {"$a = true; $a--;", testStructs("(postDecr $a)", "", "bool", 1, 2, 0)},
+                {"$a = 1; $a--;", testStructs("(postDecr $a)", "", "int", 1, 2, 0)},
+                {"$a = 1.5; $a--;", testStructs("(postDecr $a)", "", "float", 1, 2, 0)},
+                //TODO num -> num
+                //@
+                {"@false;", testStructs("(@ false)", "", "false", 1, 0, 0)},
+                {"@true;", testStructs("(@ true)", "", "true", 1, 0, 0)},
+                {"@1;", testStructs("(@ 1)", "", "int", 1, 0, 0)},
+                {"@1.3;", testStructs("(@ 1.3)", "", "float", 1, 0, 0)},
+                {"@'a';", testStructs("(@ 'a')", "", "string", 1, 0, 0)},
+                {"@[1];", testStructs("(@ (array 1))", "", "array", 1, 0, 0)},
+                //~
+                {"~1;", testStructs("(~ 1)", "", "int", 1, 0, 0)},
+                {"~'a';", testStructs("(~ 'a')", "", "string", 1, 0, 0)},
+                //uMinus
+                {"-false;", testStructs("(uMinus false)", "", "int", 1, 0, 0)},
+                {"-true;", testStructs("(uMinus true)", "", "int", 1, 0, 0)},
+                {"-1;", testStructs("(uMinus 1)", "", "int", 1, 0, 0)},
+                {"-1.5;", testStructs("(uMinus 1.5)", "", "float", 1, 0, 0)},
+                //uPlus
+                {"+false;", testStructs("(uPlus false)", "", "int", 1, 0, 0)},
+                {"+true;", testStructs("(uPlus true)", "", "int", 1, 0, 0)},
+                {"+1;", testStructs("(uPlus 1)", "", "int", 1, 0, 0)},
+                {"+1.5;", testStructs("(uPlus 1.5)", "", "float", 1, 0, 0)},
         });
     }
 }

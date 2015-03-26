@@ -55,7 +55,7 @@ public class InferencePhaseController implements IInferencePhaseController
         refVariableSymbol.setType(symbolFactory.createUnionTypeSymbol());
         refVariableSymbol.setDefinitionScope(variableId.getScope());
         //TODO not sure if this bidirectional relationship is necessary
-        refVariableSymbol.setOriginal(variableSymbol);
+        refVariableSymbol.setPreviousTypeVariable(currentVariableSymbol);
         refVariableSymbol.setConstraint(new TransferConstraint(currentVariableSymbol));
         variableId.setSymbol(refVariableSymbol);
 

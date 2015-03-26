@@ -549,11 +549,11 @@ thisVariable
 
 operator
 //TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0  
-    : /*  ^(unaryOperator expression)
+    :   ^(unaryOperator expression)
         {
             controller.createIntersectionConstraint(currentScope, $start,$expression.start);
         }
-    | */  ^(binaryOperator lhs=expression rhs=expression)
+    |   ^(binaryOperator lhs=expression rhs=expression)
         {
             controller.createIntersectionConstraint(currentScope, $start, $lhs.start, $rhs.start); 
         }
@@ -577,8 +577,6 @@ operator
     */
     ;
 
-//TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0
-/*
 unaryOperator
     :   PRE_INCREMENT
     |   PRE_DECREMENT
@@ -589,9 +587,10 @@ unaryOperator
     |   UNARY_PLUS
     |   POST_INCREMENT
     |   POST_DECREMENT
-    |   'clone'
+    //TODO OOP
+    //|   'clone'
     ;
-*/
+
 binaryOperator
     :   'or'
     |   'xor'
