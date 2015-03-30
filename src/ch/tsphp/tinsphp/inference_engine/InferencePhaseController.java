@@ -8,7 +8,6 @@ package ch.tsphp.tinsphp.inference_engine;
 
 
 import ch.tsphp.common.ITSPHPAst;
-import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.inference.IInferencePhaseController;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
@@ -56,7 +55,7 @@ public class InferencePhaseController implements IInferencePhaseController
         refVariableSymbol.setType(symbolFactory.createUnionTypeSymbol());
         refVariableSymbol.setDefinitionScope(variableId.getScope());
         //TODO not sure if this bidirectional relationship is necessary
-        refVariableSymbol.setPreviousTypeVariable(currentVariableSymbol);
+        refVariableSymbol.setOriginal(variableSymbol);
         refVariableSymbol.setConstraint(new TransferConstraint(currentVariableSymbol));
         variableId.setSymbol(refVariableSymbol);
 
@@ -67,7 +66,7 @@ public class InferencePhaseController implements IInferencePhaseController
     @Override
     public void createTypeConstraint(ITSPHPAst literal) {
         ITypeVariableSymbol typeVariableSymbol = symbolFactory.createExpressionTypeVariableSymbol(literal);
-        typeVariableSymbol.setType((ITypeSymbol) literal.getEvalType());
+        typeVariableSymbol.setType(literal.getEvalType());
         literal.setSymbol(typeVariableSymbol);
     }
 
