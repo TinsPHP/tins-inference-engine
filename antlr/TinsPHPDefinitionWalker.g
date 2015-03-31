@@ -61,6 +61,7 @@ topdown
     |   foreachLoop
     |   catchBlock
     |   ternary
+    |   logicOperators
     
         //symbols
     |   constantDefinitionList
@@ -186,6 +187,19 @@ ternary
         )
     ;
 
+logicOperators
+    :   ^((   'or'
+        |   'and'
+        |   '||'
+        |   '&&'
+        )
+            expression[true]
+            {currentScope = definer.defineConditionalScope(currentScope);}
+            expression[true]
+            {currentScope = currentScope.getEnclosingScope();}
+        )
+    ;
+
 constantDefinitionList
     :   ^(CONSTANT_DECLARATION_LIST ^(TYPE tMod=. type=.) constantDeclaration[$tMod, $type]+)
     ;
@@ -232,7 +246,7 @@ methodFunctionCall
         {$identifier.setScope(currentScope);}
     ;
 
-expression[boolean isTernary]
+expression[boolean parentIsExpressionWithConditionalScope]
     :   (   identifier=CONSTANT
         |   identifier=VariableId
         //TODO rstoll TINS-161 inference OOP  
@@ -248,7 +262,13 @@ expression[boolean isTernary]
         //|   ^('new' identifier=TYPE_NAME .)
         )
         {
-            if(isTernary || $start.getParent().getType() != QuestionMark){
+            int tokenType = $start.getParent().getType();
+            if(parentIsExpressionWithConditionalScope || 
+                (tokenType  != QuestionMark 
+                    && tokenType != LogicOrWeak && tokenType != LogicAndWeak 
+                    && tokenType != LogicOr && tokenType != LogicAnd
+                )
+            ){
                 $identifier.setScope(currentScope);
             }
         }
