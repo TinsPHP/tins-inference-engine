@@ -13,6 +13,7 @@ import ch.tsphp.tinsphp.common.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.common.checking.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.common.inference.IInferenceEngineInitialiser;
+import ch.tsphp.tinsphp.common.inference.IInferencePhaseController;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
@@ -25,6 +26,7 @@ import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.core.Core;
 import ch.tsphp.tinsphp.inference_engine.DefinitionPhaseController;
+import ch.tsphp.tinsphp.inference_engine.InferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.ReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.issues.HardCodedIssueMessageProvider;
@@ -51,9 +53,11 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
     private final ISymbolFactory symbolFactory;
     private final IScopeFactory scopeFactory;
     private final IAstModificationHelper astModificationHelper;
+    private final IConstraintSolver constraintSolver;
 
     private IDefinitionPhaseController definitionPhaseController;
     private IReferencePhaseController referencePhaseController;
+    private IInferencePhaseController inferencePhaseController;
     private InferenceIssueReporter inferenceErrorReporter;
     private ICore core;
     private final List<ISymbolResolver> additionalSymbolResolvers;
@@ -64,7 +68,7 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
         IOverloadResolver overloadResolver = new OverloadResolver();
 
         symbolFactory = new SymbolFactory(scopeHelper, modifierHelper, overloadResolver);
-        IConstraintSolver constraintSolver = new ConstraintSolver(symbolFactory, overloadResolver);
+        constraintSolver = new ConstraintSolver(symbolFactory, overloadResolver);
         symbolFactory.setConstraintSolver(constraintSolver);
         scopeFactory = new ScopeFactory(scopeHelper);
         inferenceErrorReporter = new InferenceIssueReporter(new HardCodedIssueMessageProvider());
@@ -111,6 +115,12 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
                 core,
                 definitionPhaseController.getGlobalDefaultNamespace()
         );
+
+        inferencePhaseController = new InferencePhaseController(
+                symbolFactory,
+                inferenceErrorReporter,
+                constraintSolver,
+                definitionPhaseController.getGlobalDefaultNamespace());
     }
 
     @Override
@@ -121,6 +131,11 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
     @Override
     public IReferencePhaseController getReferencePhaseController() {
         return referencePhaseController;
+    }
+
+    @Override
+    public IInferencePhaseController getInferencePhaseController() {
+        return inferencePhaseController;
     }
 
     @Override

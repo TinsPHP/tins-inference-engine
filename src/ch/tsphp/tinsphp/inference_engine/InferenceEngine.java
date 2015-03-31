@@ -16,6 +16,7 @@ import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.issues.IIssueLogger;
 import ch.tsphp.tinsphp.common.issues.IssueReporterHelper;
 import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPDefinitionWalker;
+import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPInferenceWalker;
 import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPReferenceWalker;
 import ch.tsphp.tinsphp.inference_engine.config.HardCodedInferenceEngineInitialiser;
 import org.antlr.runtime.RecognitionException;
@@ -32,7 +33,6 @@ public class InferenceEngine implements IInferenceEngine, IIssueLogger
     private final ITSPHPAstAdaptor astAdaptor;
     private final IInferenceIssueReporter inferenceIssueReporter;
     private final Collection<IIssueLogger> issueLoggers = new ArrayDeque<>();
-
 
     private EnumSet<EIssueSeverity> foundIssues = EnumSet.noneOf(EIssueSeverity.class);
 
@@ -79,6 +79,26 @@ public class InferenceEngine implements IInferenceEngine, IIssueLogger
 
     @Override
     public void enrichtWithTypes(ITSPHPAst ast, TreeNodeStream treeNodeStream) {
+        treeNodeStream.reset();
+        ErrorReportingTinsPHPInferenceWalker referenceWalker = new ErrorReportingTinsPHPInferenceWalker(
+                treeNodeStream,
+                inferenceEngineInitialiser.getInferencePhaseController(),
+                inferenceEngineInitialiser.getDefinitionPhaseController().getGlobalDefaultNamespace());
+
+        for (IIssueLogger logger : issueLoggers) {
+            referenceWalker.registerIssueLogger(logger);
+        }
+        referenceWalker.registerIssueLogger(this);
+        try {
+            referenceWalker.compilationUnit();
+        } catch (RecognitionException ex) {
+            // should never happen, ErrorReportingTSPHPReferenceWalker should catch it already.
+            // but just in case and to be complete
+            log(new TSPHPException(ex), EIssueSeverity.FatalError);
+            for (IIssueLogger logger : issueLoggers) {
+                logger.log(new TSPHPException(ex), EIssueSeverity.FatalError);
+            }
+        }
     }
 
     @Override
