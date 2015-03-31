@@ -267,7 +267,7 @@ expression
         |   String
         //expression can be used for key and value in arrays and an assignment could also happen in such an expression
         |   TypeArray
-	
+
         |   'or'
         |   'xor'
         |   'and'
