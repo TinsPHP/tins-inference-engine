@@ -16,7 +16,7 @@ import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.TSPHPAst;
 import ch.tsphp.common.TSPHPAstAdaptor;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
-import ch.tsphp.tinsphp.inference_engine.antlr.TinsPHPDefinitionWalker;
+import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
 import org.antlr.runtime.CommonToken;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 import org.antlr.runtime.tree.TreeNodeStream;
@@ -33,11 +33,13 @@ public abstract class AWalkerTest
     }
 
     protected ITSPHPAst createAst(int tokenType) {
-        return new TSPHPAst(new CommonToken(tokenType));
+        TSPHPAst ast = new TSPHPAst(new CommonToken(tokenType));
+        ast.setParent(new TSPHPAst(new CommonToken(TokenTypes.NAMESPACE_BODY)));
+        return ast;
     }
 
     protected ITSPHPAst createVariable() {
-        ITSPHPAst variable = createAst(TinsPHPDefinitionWalker.VariableId);
+        ITSPHPAst variable = createAst(TokenTypes.VariableId);
         variable.setSymbol(mock(IVariableSymbol.class));
         return variable;
     }

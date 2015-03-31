@@ -86,7 +86,7 @@ public class VariableDefinitionListErrorTest extends ADefinitionWalkerTest
 
         ArgumentCaptor<EarlyExitException> captor = ArgumentCaptor.forClass(EarlyExitException.class);
         verify(walker).reportError(captor.capture());
-        assertThat(captor.getValue().token.getType(), is(EOF));
+        assertThat(captor.getValue().token.getType(), is(UP));
     }
 
     @Test
@@ -102,27 +102,7 @@ public class VariableDefinitionListErrorTest extends ADefinitionWalkerTest
         walker.variableDeclarationList();
 
         assertThat(walker.getState().failed, is(true));
-        //EOF due to matchAny
-        assertThat(treeNodeStream.LA(1), is(EOF));
-    }
-
-    @Test
-    public void superfluousChildInType_BacktrackingEnabled_StateFailedIsTrue()
-            throws RecognitionException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        ITSPHPAst ast = createAst(VARIABLE_DECLARATION_LIST);
-        ITSPHPAst type = createAst(TYPE);
-        type.addChild(createAst(TYPE_MODIFIER));
-        type.addChild(createAst(Identifier));
-        type.addChild(createAst(Try));
-        ast.addChild(type);
-
-        TestTinsPHPDefinitionWalker walker = spy(createWalker(ast));
-        walker.setBacktrackingLevel(1);
-        walker.variableDeclarationList();
-
-        assertThat(walker.getState().failed, is(true));
-        //EOF due to matchAny
-        assertThat(treeNodeStream.LA(1), is(Try));
+        assertThat(treeNodeStream.LA(1), is(UP));
     }
 
     @Test

@@ -86,7 +86,7 @@ public class ConstantDefinitionListErrorTest extends ADefinitionWalkerTest
 
         ArgumentCaptor<EarlyExitException> captor = ArgumentCaptor.forClass(EarlyExitException.class);
         verify(walker).reportError(captor.capture());
-        assertThat(captor.getValue().token.getType(), is(EOF));
+        assertThat(captor.getValue().token.getType(), is(UP));
     }
 
     @Test
@@ -102,8 +102,8 @@ public class ConstantDefinitionListErrorTest extends ADefinitionWalkerTest
         walker.constantDefinitionList();
 
         assertThat(walker.getState().failed, is(true));
-        //EOF due to matchAny
-        assertThat(treeNodeStream.LA(1), is(EOF));
+        //UP since constantDeclaration needs to be at least one
+        assertThat(treeNodeStream.LA(1), is(UP));
     }
 
     @Test

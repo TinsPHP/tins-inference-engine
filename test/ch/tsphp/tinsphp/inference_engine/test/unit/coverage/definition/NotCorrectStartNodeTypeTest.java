@@ -88,14 +88,12 @@ public class NotCorrectStartNodeTypeTest extends ADefinitionWalkerTest
                 {"constantDefinitionList", Try},
                 //TODO rstoll TINS-161 inference OOP
 //                {"constructDefinition", Try},
-                //requires parameters - see NotCorrectStartNodeTypeForRulesWithParamsTest
-//                {"expression", Try},
+                {"expression", Try},
                 {"exitNamespace", Try},
                 {"exitScope", Try},
                 {"foreachLoop", Try},
                 //TODO rstoll TINS-161 inference OOP
 //                {"interfaceDefinition", Try},
-                {"methodFunctionCall", Try},
                 {"methodFunctionDefinition", Try},
                 {"namespaceDefinition", Try},
                 {"parameterDeclaration", Try},

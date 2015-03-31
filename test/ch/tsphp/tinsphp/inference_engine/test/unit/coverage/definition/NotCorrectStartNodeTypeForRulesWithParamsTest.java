@@ -27,32 +27,6 @@ import static org.mockito.Mockito.verify;
 public class NotCorrectStartNodeTypeForRulesWithParamsTest extends ADefinitionWalkerTest
 {
     @Test
-    public void expression_withoutBacktracking_reportNoViableAltException()
-            throws RecognitionException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        ITSPHPAst ast = createAst(Else);
-
-        TestTinsPHPDefinitionWalker walker = spy(createWalker(ast));
-        walker.expression(false);
-
-        ArgumentCaptor<NoViableAltException> captor = ArgumentCaptor.forClass(NoViableAltException.class);
-        verify(walker).reportError(captor.capture());
-        assertThat(captor.getValue().token.getType(), is(Else));
-    }
-
-    @Test
-    public void expression_BacktrackingEnabled_StateFailedIsTrue()
-            throws RecognitionException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        ITSPHPAst ast = createAst(Else);
-
-        TestTinsPHPDefinitionWalker walker = spy(createWalker(ast));
-        walker.setBacktrackingLevel(1);
-        walker.expression(false);
-
-        assertThat(walker.getState().failed, is(true));
-        assertThat(treeNodeStream.LA(1), is(Else));
-    }
-
-    @Test
     public void variableDeclaration_withoutBacktracking_reportNoViableAltException()
             throws RecognitionException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         ITSPHPAst ast = createAst(Else);

@@ -60,21 +60,18 @@ topdown
     |   blockConditional
     |   foreachLoop
     |   catchBlock
-    |   ternary
-    |   logicOperators
     
         //symbols
     |   constantDefinitionList
     |   variableDeclarationList
     |   parameterDeclarationList
-    |   methodFunctionCall
-    |   expression[false]
     |   returnBreakContinue
     ;
 
 bottomup
     :   exitNamespace
     |   exitScope
+    |   expression
     ;
 
 exitNamespace
@@ -99,7 +96,7 @@ exitScope
                 currentScope = currentScope.getEnclosingScope();
             }
         }
-    ;   
+    ;
     
 namespaceDefinition
     :   ^(Namespace t=(TYPE_NAME|DEFAULT_NAMESPACE) .)
@@ -173,40 +170,13 @@ catchBlock
          }
     ;
 
-ternary
-    :   ^('?' 
-            expression[true]
-            {currentScope = definer.defineConditionalScope(currentScope);}
-            expression[true]
-            {
-                currentScope = currentScope.getEnclosingScope();
-                currentScope = definer.defineConditionalScope(currentScope);
-            }
-            expression[true]
-            {currentScope = currentScope.getEnclosingScope();}
-        )
-    ;
-
-logicOperators
-    :   ^((   'or'
-        |   'and'
-        |   '||'
-        |   '&&'
-        )
-            expression[true]
-            {currentScope = definer.defineConditionalScope(currentScope);}
-            expression[true]
-            {currentScope = currentScope.getEnclosingScope();}
-        )
-    ;
-
 constantDefinitionList
     :   ^(CONSTANT_DECLARATION_LIST ^(TYPE tMod=. type=.) constantDeclaration[$tMod, $type]+)
     ;
 
 constantDeclaration[ITSPHPAst tMod, ITSPHPAst type]
     :   ^(identifier=Identifier .)
-        { definer.defineConstant(currentScope,$tMod, $type,$identifier); }
+        { definer.defineConstant(currentScope,$tMod, $type, $identifier); }
     ;
 
 parameterDeclarationList
@@ -215,7 +185,7 @@ parameterDeclarationList
 
 parameterDeclaration
     :   ^(PARAMETER_DECLARATION
-            ^(TYPE tMod=. type=.) variableDeclaration[$tMod,$type]
+            ^(TYPE tMod=. type=.) variableDeclaration[$tMod, $type]
         )
     ;
 
@@ -227,26 +197,43 @@ variableDeclarationList
     ;
         
 variableDeclaration[ITSPHPAst tMod, ITSPHPAst type]
-    :
-        (   ^(variableId=VariableId .)
+    :   (   ^(variableId=VariableId .)
         |   variableId=VariableId
         )
         {definer.defineVariable(currentScope, $tMod, $type, $variableId);}
     ;
-  
-methodFunctionCall
-    :   //TODO rstoll TINS-161 inference OOP    
-    //    ^(METHOD_CALL callee=. identifier=Identifier .)
-    //    {$callee.setScope(currentScope);}
-    //|   ^(METHOD_CALL_STATIC callee=. identifier=Identifier .)
-    //    {$callee.setScope(currentScope);}
-    //|   ^(METHOD_CALL_POSTFIX identifier=Identifier .)
-    
-        ^(FUNCTION_CALL identifier=TYPE_NAME .)
-        {$identifier.setScope(currentScope);}
-    ;
 
-expression[boolean parentIsExpressionWithConditionalScope]
+expression
+@after{
+    int tokenType = $start.getParent().getType();
+    boolean isLogicOperator = tokenType == LogicOrWeak || tokenType == LogicAndWeak 
+        || tokenType == LogicOr || tokenType == LogicAnd;
+    
+    boolean isTernary = tokenType == QuestionMark;       
+        
+    if(isLogicOperator){
+        if($start.getChildIndex() == 0){
+        //create conditional scope after first element of a logic operator (due to short circuit)
+            currentScope = definer.defineConditionalScope(currentScope);
+        } else {
+            //reset scope after logic operator
+           // currentScope = currentScope.getEnclosingScope();
+        }
+    } else if(isTernary){
+        int childIndex = $start.getChildIndex();
+        if(childIndex == 0){
+            //create conditional scope for if part of ternary
+            currentScope = definer.defineConditionalScope(currentScope);
+        } else if(childIndex == 1){
+            currentScope = currentScope.getEnclosingScope();
+            //create conditional scope for else part of ternary
+            currentScope = definer.defineConditionalScope(currentScope);
+        } else {
+            //reset scope after ternary
+            currentScope = currentScope.getEnclosingScope();
+        }
+    }
+}
     :   (   identifier=CONSTANT
         |   identifier=VariableId
         //TODO rstoll TINS-161 inference OOP  
@@ -260,18 +247,86 @@ expression[boolean parentIsExpressionWithConditionalScope]
         |   ^('instanceof' . (identifier=VariableId /* | TODO rstoll TINS-161 inference OOP identifier=TYPE_NAME*/))
         //TODO rstoll TINS-161 inference OOP          
         //|   ^('new' identifier=TYPE_NAME .)
+       //TODO rstoll TINS-161 inference OOP
+        //    ^(METHOD_CALL callee=. identifier=Identifier .)
+        //    {$callee.setScope(currentScope);}
+        //|   ^(METHOD_CALL_STATIC callee=. identifier=Identifier .)
+        //    {$callee.setScope(currentScope);}
+        //|   ^(METHOD_CALL_POSTFIX identifier=Identifier .)
+
+        |   ^(FUNCTION_CALL identifier=TYPE_NAME .)
         )
-        {
-            int tokenType = $start.getParent().getType();
-            if(parentIsExpressionWithConditionalScope || 
-                (tokenType  != QuestionMark 
-                    && tokenType != LogicOrWeak && tokenType != LogicAndWeak 
-                    && tokenType != LogicOr && tokenType != LogicAnd
-                )
-            ){
-                $identifier.setScope(currentScope);
-            }
-        }
+        {$identifier.setScope(currentScope);}
+
+        //first child of logic operators or ternary can also be a literal
+    |   (   Null
+        |   False
+        |   True
+        |   Int
+        |   Float
+        |   String
+        //expression can be used for key and value in arrays and an assignment could also happen in such an expression
+        |   TypeArray
+	
+        |   'or'
+        |   'xor'
+        |   'and'
+        
+        |   '='
+        |   '+='
+        |   '-='
+        |   '*='
+        |   '/='
+        |   '&='
+        |   '|='
+        |   '^='
+        |   '%='
+        |   '.='
+        |   '<<='
+        |   '>>='
+        
+        |   '?'
+        
+        |   '||'
+        |   '&&'
+        |   '|'
+        |   '^'
+        |   '&'
+        
+        |   '=='
+        |   '!='
+        |   '==='
+        |   '!=='
+        
+        |   '<'
+        |   '<='
+        |   '>'
+        |   '>='
+        
+        |   '<<'
+        |   '>>'
+        
+        |   '+'
+        |   '-'
+        |   '.'
+        
+        |   '*'
+        |   '/'
+        |   '%'
+        
+        |   PRE_INCREMENT
+        |   PRE_DECREMENT
+        |   '@'
+        |   '~'
+        |   '!'
+        |   UNARY_MINUS
+        |   UNARY_PLUS
+        |   POST_INCREMENT
+        |   POST_DECREMENT
+        
+        |   ARRAY_ACCESS
+        |   'exit'
+        )
     ;
 
 primitiveTypesWithoutResource

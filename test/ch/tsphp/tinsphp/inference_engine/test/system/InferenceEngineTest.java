@@ -104,7 +104,7 @@ public class InferenceEngineTest
         inferenceEngine.registerIssueLogger(logger2);
         inferenceEngine.enrichWithDefinitions(parserUnitDto.compilationUnit, commonTreeNodeStream);
         inferenceEngine.enrichWithReferences(parserUnitDto.compilationUnit, commonTreeNodeStream);
-        inferenceEngine.enrichtWithTypes(parserUnitDto.compilationUnit, commonTreeNodeStream);
+        //inferenceEngine.enrichtWithTypes(parserUnitDto.compilationUnit, commonTreeNodeStream);
 
         verify(logger1).log(any(TSPHPException.class), any(EIssueSeverity.class));
         verify(logger2).log(any(TSPHPException.class), any(EIssueSeverity.class));

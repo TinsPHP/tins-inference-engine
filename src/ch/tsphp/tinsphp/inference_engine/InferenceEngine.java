@@ -80,17 +80,17 @@ public class InferenceEngine implements IInferenceEngine, IIssueLogger
     @Override
     public void enrichtWithTypes(ITSPHPAst ast, TreeNodeStream treeNodeStream) {
         treeNodeStream.reset();
-        ErrorReportingTinsPHPInferenceWalker referenceWalker = new ErrorReportingTinsPHPInferenceWalker(
+        ErrorReportingTinsPHPInferenceWalker inferenceWalker = new ErrorReportingTinsPHPInferenceWalker(
                 treeNodeStream,
                 inferenceEngineInitialiser.getInferencePhaseController(),
                 inferenceEngineInitialiser.getDefinitionPhaseController().getGlobalDefaultNamespace());
 
         for (IIssueLogger logger : issueLoggers) {
-            referenceWalker.registerIssueLogger(logger);
+            inferenceWalker.registerIssueLogger(logger);
         }
-        referenceWalker.registerIssueLogger(this);
+        inferenceWalker.registerIssueLogger(this);
         try {
-            referenceWalker.compilationUnit();
+            inferenceWalker.compilationUnit();
         } catch (RecognitionException ex) {
             // should never happen, ErrorReportingTSPHPReferenceWalker should catch it already.
             // but just in case and to be complete

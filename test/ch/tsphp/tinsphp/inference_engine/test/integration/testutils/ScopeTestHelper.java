@@ -39,7 +39,6 @@ public class ScopeTestHelper
 
     public static Collection<Object[]> testStrings(String prefix, String appendix,
             String fullScopeName, Integer[] accessToScope) {
-
         fullScopeName += ".";
         List<Object[]> collection = new ArrayList<>();
 
