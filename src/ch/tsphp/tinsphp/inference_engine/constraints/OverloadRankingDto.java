@@ -26,17 +26,17 @@ public class OverloadRankingDto implements Serializable
     public IFunctionTypeSymbol overload;
 
     /**
-     * Count which tells how many parameters fit since they can be promoted.
+     * Count which tells how many parameters require up casts.
      * <p/>
-     * Promotion is happening when for instance Exception is required and ErrorException provided (this corresponds
+     * An up cast is happening when for instance Exception is required and ErrorException provided (this corresponds
      * to one promotion level)
      */
-    public int parameterPromotedCount;
+    public int parameterUpCastCount;
 
     /**
      * Summation of promotion levels.
      */
-    public int promotionsTotal;
+    public int upCastsTotal;
 
     /**
      * All the parameters which need an implicit conversion
@@ -48,14 +48,18 @@ public class OverloadRankingDto implements Serializable
      */
     public List<ConversionDto> parametersNeedExplicitConversion;
 
+    public boolean isPartialApplication;
+
     public OverloadRankingDto(
             IFunctionTypeSymbol theOverload,
             int howManyParameterWerePromoted,
             int thePromotionsInTotal,
-            List<ConversionDto> theseParametersNeedImplicitConversion) {
+            List<ConversionDto> theseParametersNeedImplicitConversion,
+            boolean isItPartialApplication) {
         overload = theOverload;
-        parameterPromotedCount = howManyParameterWerePromoted;
-        promotionsTotal = thePromotionsInTotal;
+        parameterUpCastCount = howManyParameterWerePromoted;
+        upCastsTotal = thePromotionsInTotal;
         parametersNeedImplicitConversion = theseParametersNeedImplicitConversion;
+        isPartialApplication = isItPartialApplication;
     }
 }

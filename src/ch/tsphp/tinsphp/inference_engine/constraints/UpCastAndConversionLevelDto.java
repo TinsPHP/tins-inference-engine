@@ -20,14 +20,14 @@ import java.io.Serializable;
  * The casting level tells how many castings (implicit and explicit) have to be applied until one type is casted to
  * another.
  */
-public class PromotionAndConversionLevelDto implements Serializable
+public class UpCastAndConversionLevelDto implements Serializable
 {
 
-    public int promotionLevel;
+    public int upCastLevel;
     public int conversionLevel;
 
-    public PromotionAndConversionLevelDto(int thePromotionLevel, int theConversionLevel) {
-        promotionLevel = thePromotionLevel;
+    public UpCastAndConversionLevelDto(int thePromotionLevel, int theConversionLevel) {
+        upCastLevel = thePromotionLevel;
         conversionLevel = theConversionLevel;
     }
 }

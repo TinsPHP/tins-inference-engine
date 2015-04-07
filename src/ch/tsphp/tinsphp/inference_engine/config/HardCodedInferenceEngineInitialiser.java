@@ -77,7 +77,7 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
         astModificationHelper = new AstModificationHelper(astHelper);
         additionalSymbolResolvers = new ArrayList<>();
 
-        core = new Core(symbolFactory, astHelper);
+        core = new Core(symbolFactory, overloadResolver, astHelper);
         additionalSymbolResolvers.add(core.getCoreSymbolResolver());
 
         init();

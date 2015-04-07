@@ -7,101 +7,306 @@
 package ch.tsphp.tinsphp.inference_engine.test.integration.constraints;
 
 
-import ch.tsphp.common.symbols.ITypeSymbol;
-import ch.tsphp.common.symbols.IUnionTypeSymbol;
+import ch.tsphp.common.AstHelper;
+import ch.tsphp.common.TSPHPAstAdaptor;
+import ch.tsphp.tinsphp.common.ICore;
+import ch.tsphp.tinsphp.common.inference.constraints.IBinding;
+import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
-import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
-import ch.tsphp.tinsphp.common.symbols.IFunctionTypeSymbol;
+import ch.tsphp.tinsphp.common.inference.constraints.IIntersectionConstraint;
+import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
+import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
+import ch.tsphp.tinsphp.common.symbols.IOverloadSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
-import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
-import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbolWithRef;
-import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.AConstraintSolverTest;
-import ch.tsphp.tinsphp.symbols.PolymorphicFunctionTypeSymbol;
-import ch.tsphp.tinsphp.symbols.constraints.TypeConstraint;
+import ch.tsphp.tinsphp.core.Core;
+import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintSolver;
+import ch.tsphp.tinsphp.inference_engine.scopes.ScopeHelper;
+import ch.tsphp.tinsphp.symbols.ModifierHelper;
+import ch.tsphp.tinsphp.symbols.PrimitiveTypeNames;
+import ch.tsphp.tinsphp.symbols.SymbolFactory;
+import ch.tsphp.tinsphp.symbols.constraints.IntersectionConstraint;
+import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
+import ch.tsphp.tinsphp.symbols.utils.OverloadResolver;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Deque;
 import java.util.List;
 
+import static ch.tsphp.tinsphp.inference_engine.test.integration.testutils.BindingMatcher.isBinding;
+import static ch.tsphp.tinsphp.inference_engine.test.integration.testutils.BindingMatcher.lowerConstraints;
+import static ch.tsphp.tinsphp.inference_engine.test.integration.testutils.BindingMatcher.typeVars;
+import static ch.tsphp.tinsphp.inference_engine.test.integration.testutils.BindingMatcher.upperConstraints;
+import static ch.tsphp.tinsphp.inference_engine.test.integration.testutils.BindingMatcher.vars;
+import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.core.Is.is;
-import static org.mockito.Mockito.verify;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.core.IsCollectionContaining.hasItem;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class ConstraintSolverTest extends AConstraintSolverTest
+public class ConstraintSolverTest
 {
+    private static IOverloadResolver overloadResolver;
+    private static ISymbolFactory symbolFactory;
+    private static ICore core;
+
+    @BeforeClass
+    public static void init() {
+        overloadResolver = new OverloadResolver();
+        symbolFactory = new SymbolFactory(new ScopeHelper(), new ModifierHelper(), overloadResolver);
+        core = new Core(symbolFactory, overloadResolver, new AstHelper(new TSPHPAstAdaptor()));
+    }
 
     @Test
-    public void solveConstraints_RefConstraint_UnionContainsTypesOfRef() {
-        //corresponds:
-        //predefined $b = 1 V 1.2; V [];
-        // ? $a = $b;
+    public void solveConstraints_Addition_HasThreeOverloads() {
+        //corresponds to: function foo($x, $y){ return $x + $y; }
+        IConstraintCollection collection = mock(IConstraintCollection.class);
+        IVariable rtn = var("rtn");
+        IVariable $x = var("$x");
+        IVariable $y = var("$y");
+        when(collection.getLowerBoundConstraints()).thenReturn(asList(
+                intersect(rtn, asList($x, $y), core.getOperators().get(TokenTypes.Plus))
+        ));
 
-        ITypeVariableSymbol $b = typeVar("$b", intType, floatType, arrayType);
-        ITypeVariableSymbol $a = typeVar("$a", $b);
-        ITypeVariableCollection scope = createTypeVariableCollection($a);
 
         IConstraintSolver solver = createConstraintSolver();
-        solver.solveConstraints(scope);
+        List<IBinding> bindings = solver.solveConstraints(collection);
 
-        ArgumentCaptor<ITypeSymbol> captor = ArgumentCaptor.forClass(ITypeSymbol.class);
-        verify($a).setType(captor.capture());
-        IUnionTypeSymbol unionTypeSymbol = (IUnionTypeSymbol) captor.getValue();
-        assertThat(unionTypeSymbol.isReadyForEval(), is(true));
-        assertThat(unionTypeSymbol.getTypeSymbols().keySet(), containsInAnyOrder("int", "float", "array"));
+
+        assertThat(bindings, hasItem(isBinding(
+                vars("$x", "$y", "rtn"),
+                typeVars("T1", "T1", "T1"),
+                lowerConstraints(null, null, null),
+                upperConstraints(asList("num"), asList("num"), asList("num"))
+        )));
+        assertThat(bindings, hasItem(isBinding(
+                vars("$x", "$y", "rtn"),
+                typeVars("T2", "T3", "T1"),
+                lowerConstraints(asList("bool"), asList("bool"), asList("int")),
+                upperConstraints(asList("bool"), asList("bool"), asList("int"))
+        )));
+        assertThat(bindings, hasItem(isBinding(
+                vars("$x", "$y", "rtn"),
+                typeVars("T2", "T3", "T1"),
+                lowerConstraints(asList("array"), asList("array"), asList("array")),
+                upperConstraints(asList("array"), asList("array"), asList("array"))
+        )));
+        assertThat(bindings, hasSize(3));
+    }
+
+    @Test
+    public void solveConstraints_PartialAdditionWithInt_HasOneOverload() {
+        //corresponds to: function foo($x){ return $x + 1; }
+        IConstraintCollection collection = mock(IConstraintCollection.class);
+        IVariable rtn = var("rtn");
+        IVariable $x = var("$x");
+        IVariable e1 = var("e1");
+        when(e1.getType()).thenReturn(core.getPrimitiveTypes().get(PrimitiveTypeNames.INT));
+        when(collection.getLowerBoundConstraints()).thenReturn(asList(
+                intersect(rtn, asList($x, e1), core.getOperators().get(TokenTypes.Plus))
+        ));
+
+
+        IConstraintSolver solver = createConstraintSolver();
+        List<IBinding> bindings = solver.solveConstraints(collection);
+
+
+        assertThat(bindings, hasItem(isBinding(
+                vars("$x", "e1", "rtn"),
+                typeVars("T1", "T1", "T1"),
+                lowerConstraints(asList("int"), asList("int"), asList("int")),
+                upperConstraints(asList("num"), asList("num"), asList("num"))
+        )));
+        assertThat(bindings, hasSize(1));
+    }
+
+    @Test
+    public void solveConstraints_PartialAdditionWithFloat_HasOneOverload() {
+        //corresponds to: function foo($x){ return $x + 1.4; }
+        IConstraintCollection collection = mock(IConstraintCollection.class);
+        IVariable rtn = var("rtn");
+        IVariable $x = var("$x");
+        IVariable e1 = var("e1");
+        when(e1.getType()).thenReturn(core.getPrimitiveTypes().get(PrimitiveTypeNames.FLOAT));
+        when(collection.getLowerBoundConstraints()).thenReturn(asList(
+                intersect(rtn, asList($x, e1), core.getOperators().get(TokenTypes.Plus))
+        ));
+
+
+        IConstraintSolver solver = createConstraintSolver();
+        List<IBinding> bindings = solver.solveConstraints(collection);
+
+
+        assertThat(bindings, hasItem(isBinding(
+                vars("$x", "e1", "rtn"),
+                typeVars("T1", "T1", "T1"),
+                lowerConstraints(asList("float"), asList("float"), asList("float")),
+                upperConstraints(asList("num"), asList("num"), asList("num"))
+        )));
+        assertThat(bindings, hasSize(1));
+    }
+
+
+    @Test
+    public void solveConstraints_PartialAdditionWithNum_HasOneOverload() {
+        //corresponds to: function foo($x){ return $x + 1.4 + 1; }
+        IConstraintCollection collection = mock(IConstraintCollection.class);
+        IVariable rtn = var("rtn");
+        IVariable $x = var("$x");
+        IVariable e1 = var("e1");
+        when(e1.getType()).thenReturn(core.getPrimitiveTypes().get(PrimitiveTypeNames.NUM));
+        when(collection.getLowerBoundConstraints()).thenReturn(asList(
+                intersect(rtn, asList($x, e1), core.getOperators().get(TokenTypes.Plus))
+        ));
+
+
+        IConstraintSolver solver = createConstraintSolver();
+        List<IBinding> bindings = solver.solveConstraints(collection);
+
+
+        assertThat(bindings, hasItem(isBinding(
+                vars("$x", "e1", "rtn"),
+                typeVars("T1", "T1", "T1"),
+                lowerConstraints(asList("num"), asList("num"), asList("num")),
+                upperConstraints(asList("num"), asList("num"), asList("num"))
+        )));
+        assertThat(bindings, hasSize(1));
+    }
+
+    @Test
+    public void solveConstraints_PartialAdditionWithArray_HasOneOverload() {
+        //corresponds to: function foo($x){ return $x + []; }
+        IConstraintCollection collection = mock(IConstraintCollection.class);
+        IVariable rtn = var("rtn");
+        IVariable $x = var("$x");
+        IVariable e1 = var("e1");
+        when(e1.getType()).thenReturn(core.getPrimitiveTypes().get(PrimitiveTypeNames.ARRAY));
+        when(collection.getLowerBoundConstraints()).thenReturn(asList(
+                intersect(rtn, asList($x, e1), core.getOperators().get(TokenTypes.Plus))
+        ));
+
+
+        IConstraintSolver solver = createConstraintSolver();
+        List<IBinding> bindings = solver.solveConstraints(collection);
+
+
+        assertThat(bindings, hasItem(isBinding(
+                vars("$x", "e1", "rtn"),
+                typeVars("T2", "T3", "T1"),
+                lowerConstraints(asList("array"), asList("array"), asList("array")),
+                upperConstraints(asList("array"), asList("array"), asList("array"))
+        )));
+        assertThat(bindings, hasSize(1));
+    }
+
+    @Test
+    public void solveConstraints_PartialAdditionWithBool_HasOneOverload() {
+        //corresponds to: function foo($x){ return $x + true; }
+        IConstraintCollection collection = mock(IConstraintCollection.class);
+        IVariable rtn = var("rtn");
+        IVariable $x = var("$x");
+        IVariable e1 = var("e1");
+        when(e1.getType()).thenReturn(core.getPrimitiveTypes().get(PrimitiveTypeNames.BOOL));
+        when(collection.getLowerBoundConstraints()).thenReturn(asList(
+                intersect(rtn, asList($x, e1), core.getOperators().get(TokenTypes.Plus))
+        ));
+
+
+        IConstraintSolver solver = createConstraintSolver();
+        List<IBinding> bindings = solver.solveConstraints(collection);
+
+
+        assertThat(bindings, hasItem(isBinding(
+                vars("$x", "e1", "rtn"),
+                typeVars("T2", "T3", "T1"),
+                lowerConstraints(asList("bool"), asList("bool"), asList("int")),
+                upperConstraints(asList("bool"), asList("bool"), asList("int"))
+        )));
+        assertThat(bindings, hasSize(1));
     }
 
 //    @Test
-//    public void solveConstraints_IntersectionConstraint_UnionContainsTypesOfRef() {
-//        //corresponds (= is a function as well with by-ref semantic):
-//        //predefined $b = 1 V 1.2; V [];
-//        // $a = $b;
+//    public void solveConstraints_MultiplePlusMinusAndMultiple_HasThreeOverloads() {
+//        //corresponds to: function foo($x, $y, $a, $b){ return $a * ($x + $y) - $a * $b; }
+//        IConstraintCollection collection = mock(IConstraintCollection.class);
+//        IVariable rtn = var("rtn");
+//        IVariable $x = var("$x");
+//        IVariable $y = var("$y");
+//        IVariable $a = var("$a");
+//        IVariable $b = var("$b");
+//        IVariable e1 = var("e1"); //$x + $y
+//        IVariable e2 = var("e2"); //$a * $b
+//        IVariable e3 = var("e3"); //e1 - e2
+//        when(collection.getLowerBoundConstraints()).thenReturn(asList(
+//                intersect(e1, asList($x, $y), core.getOperators().get(TokenTypes.Plus)),
+//                intersect(e2, asList($a, $b), core.getOperators().get(TokenTypes.Multiply)),
+//                intersect(e3, asList(e1, e2), core.getOperators().get(TokenTypes.Minus)),
+//                intersect(rtn, asList($a, e3), core.getOperators().get(TokenTypes.Multiply))
+//        ));
 //
-//        IOverloadResolver overloadResolver = new OverloadResolver();
-//        ISymbolFactory symbolFactory = createSymbolFactory(overloadResolver);
-//        IConstraintSolver solver = createConstraintSolver(symbolFactory, overloadResolver);
 //
-//        ITypeVariableSymbol $a = typeVar("$a");
-//        ITypeVariableSymbol $b = typeVar("$b", intType, floatType, arrayType);
-//        new IntersectionConstraint(asList($a, $b), getAssignmentOverloads(symbolFactory, solver));
-//        ITypeVariableSymbol e1 = typeVar("@e1", );
-//        ITypeVariableCollection scope = createTypeVariableCollection(e1);
+//        IConstraintSolver solver = createConstraintSolver();
+//        List<IBinding> bindings = solver.solveConstraints(collection);
 //
 //
-//        solver.solveConstraints(scope);
+//        List<String> num = asList("num");
+//        assertThat(bindings, hasItem(isBinding(
+//                vars("$x", "$y", "$a", "$b", "e1", "e2", "e3", "rtn"),
+//                typeVars("T1", "T1", "T1", "T1", "T1", "T1", "T1", "T1"),
+//                lowerConstraints(null, null, null, null, null, null, null, null),
+//                upperConstraints(num, num, num, num, num, num, num, num)
+//        )));
 //
-//        assertThat($a.getType().isReadyForEval(), is(true));
-//        assertThat($a.getType().getTypeSymbols().keySet(), containsInAnyOrder("int", "float", "array"));
 //    }
 
-    public List<IFunctionTypeSymbol> getAssignmentOverloads(ISymbolFactory symbolFactory, IConstraintSolver solver) {
-        Deque<ITypeVariableSymbol> typeVariables = new ArrayDeque<>();
-        ITypeVariableSymbolWithRef lhs = typeVarWithRef("$lhs");
-        ITypeVariableSymbolWithRef rhs = typeVarWithRef("$rhs");
-        ITypeVariableSymbolWithRef rtn = typeVarWithRef("return");
-        when(lhs.getConstraint()).thenReturn(rhs);
-        when(rtn.getConstraint()).thenReturn(lhs);
-        typeVariables.add(lhs);
-        typeVariables.add(rtn);
-        IFunctionTypeSymbol function = new PolymorphicFunctionTypeSymbol(
-                "=",
-                Arrays.asList(lhs, rhs),
-                mixedType,
-                rtn,
-                typeVariables,
-                symbolFactory,
-                solver);
-        function.addInputConstraint("$lhs", new TypeConstraint(mixedType));
-        function.addInputConstraint("$rhs", new TypeConstraint(mixedType));
-        function.addOutputConstraint("$lhs", rhs);
+//    @Test
+//    public void solveConstraints_Division_HasTwoOverloads() {
+//        //corresponds to: function foo($x, $y){ return $x / $y; }
+//        IConstraintCollection collection = mock(IConstraintCollection.class);
+//        IVariable rtn = var("rtn");
+//        IVariable $x = var("$x");
+//        IVariable $y = var("$y");
+//        when(collection.getLowerBoundConstraints()).thenReturn(asList(
+//                intersect(rtn, asList($x, $y), core.getOperators().get(TokenTypes.Divide))
+//        ));
+//
+//
+//        IConstraintSolver solver = createConstraintSolver();
+//        List<IBinding> bindings = solver.solveConstraints(collection);
+//
+//
+//        assertThat(bindings, hasItem(isBinding(
+//                vars("$x", "$y", "rtn"),
+//                typeVars("T2", "T3", "T1"),
+//                lowerConstraints(asList("bool"), asList("bool"), asList("{int V false}")),
+//                upperConstraints(asList("bool"), asList("bool"), asList("{int V false}"))
+//        )));
+//        assertThat(bindings, hasItem(isBinding(
+//                vars("$x", "$y", "rtn"),
+//                typeVars("T2", "T2", "T1"),
+//                lowerConstraints(asList("float"), asList("float"), asList("@T2", "false")),
+//                upperConstraints(asList("num"), asList("num"), null)
+//        )));
+//    }
 
-        List<IFunctionTypeSymbol> list = new ArrayList<>(1);
-        list.add(function);
-        return list;
+    private IVariable var(String name) {
+        IVariable mock = mock(IVariable.class);
+        when(mock.getAbsoluteName()).thenReturn(name);
+        return mock;
+    }
+
+    private IIntersectionConstraint intersect(
+            IVariable returnVariable, List<IVariable> arguments, IOverloadSymbol overloads) {
+        return new IntersectionConstraint(returnVariable, arguments, overloads.getOverloads());
+    }
+
+    private IConstraintSolver createConstraintSolver() {
+        return createConstraintSolver(symbolFactory, overloadResolver);
+    }
+
+    private IConstraintSolver createConstraintSolver(
+            ISymbolFactory theSymbolFactory, IOverloadResolver theOverloadResolver) {
+        return new ConstraintSolver(theSymbolFactory, theOverloadResolver);
     }
 }
+

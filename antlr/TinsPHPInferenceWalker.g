@@ -30,6 +30,7 @@ import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.ITSPHPErrorAst;
 import ch.tsphp.common.symbols.ITypeSymbol;
+import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
 import ch.tsphp.tinsphp.common.scopes.ICaseInsensitiveScope;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
@@ -42,7 +43,7 @@ import ch.tsphp.tinsphp.common.inference.IInferencePhaseController;
 
 @members {
 private IInferencePhaseController controller;
-private ITypeVariableCollection currentScope;
+private IConstraintCollection currentScope;
 
 public TinsPHPInferenceWalker(
         TreeNodeStream input, 
@@ -427,7 +428,7 @@ variableDeclaration
         
     |*/   VariableId
         {
-            currentScope.addTypeVariableWithRef((ITypeVariableSymbolWithRef)$VariableId.getSymbol());
+           // currentScope.addTypeVariableWithRef((ITypeVariableSymbolWithRef)$VariableId.getSymbol());
         }
     ;    
 
@@ -549,21 +550,21 @@ operator
 //TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0  
     :   ^(unaryOperator expression)
         {
-            controller.createIntersectionConstraint(currentScope, $start,$expression.start);
+           // controller.createIntersectionConstraint(currentScope, $start,$expression.start);
         }
     |   ^(binaryOperator lhs=expression rhs=expression)
         {
-            controller.createIntersectionConstraint(currentScope, $start, $lhs.start, $rhs.start); 
+           // controller.createIntersectionConstraint(currentScope, $start, $lhs.start, $rhs.start);
         }
 
     |   ^('?' cond=expression ifExpr=expression elseExpr=expression)
         {
-            controller.createIntersectionConstraint(currentScope, $start, $cond.start, $ifExpr.start, $elseExpr.start);
+           // controller.createIntersectionConstraint(currentScope, $start, $cond.start, $ifExpr.start, $elseExpr.start);
         }
     |   ^(CAST ^(TYPE tMod=. type=.) expression)
         {
             controller.createTypeConstraint($type);
-            controller.createIntersectionConstraint(currentScope, $start, $type, $expression.start);
+           // controller.createIntersectionConstraint(currentScope, $start, $type, $expression.start);
         }
     |   ^(Instanceof 
             lhs=expression 
@@ -572,7 +573,7 @@ operator
             )
         )
         {
-            controller.createIntersectionConstraint(currentScope, $start, $lhs.start, $rhsType);
+            //controller.createIntersectionConstraint(currentScope, $start, $lhs.start, $rhsType);
         }
 
     //|   ^('new' classInterfaceType[null] actualParameters)

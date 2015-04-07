@@ -8,31 +8,33 @@ package ch.tsphp.tinsphp.inference_engine.constraints;
 
 
 import ch.tsphp.common.symbols.ITypeSymbol;
-import ch.tsphp.common.symbols.IUnionTypeSymbol;
+import ch.tsphp.tinsphp.common.inference.constraints.BoundException;
+import ch.tsphp.tinsphp.common.inference.constraints.IBinding;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
+import ch.tsphp.tinsphp.common.inference.constraints.IIntersectionConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
-import ch.tsphp.tinsphp.common.inference.constraints.IReadOnlyTypeVariableCollection;
+import ch.tsphp.tinsphp.common.inference.constraints.IReadOnlyConstraintCollection;
+import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
+import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
+import ch.tsphp.tinsphp.common.inference.constraints.LowerBoundException;
 import ch.tsphp.tinsphp.common.symbols.IFunctionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
-import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
-import ch.tsphp.tinsphp.symbols.constraints.TransferConstraint;
 import ch.tsphp.tinsphp.symbols.constraints.TypeConstraint;
-import ch.tsphp.tinsphp.symbols.constraints.UnionConstraint;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class ConstraintSolver implements IConstraintSolver
 {
     private final ISymbolFactory symbolFactory;
     private final IOverloadResolver overloadResolver;
+    Deque<ConstraintSolverDto> workDeque = new ArrayDeque<>();
+    List<IBinding> solvedBindings = new ArrayList<>();
 
     public ConstraintSolver(
             ISymbolFactory theSymbolFactory,
@@ -41,279 +43,128 @@ public class ConstraintSolver implements IConstraintSolver
         overloadResolver = theOverloadResolver;
     }
 
-    @Override
-    public void solveConstraints(IReadOnlyTypeVariableCollection currentScope) {
-        Deque<ITypeVariableSymbol> typeVariables = new ArrayDeque<>(currentScope.getTypeVariables());
-        while (!typeVariables.isEmpty()) {
-            Map<String, Integer> visitedTypeVariables = new HashMap<>();
-            Set<String> typeVariablesToRevisit = new HashSet<>();
-            ITypeVariableSymbol constraintSymbol = typeVariables.removeFirst();
-            IUnionTypeSymbol unionTypeSymbol = constraintSymbol.getType();
+    public List<IBinding> solveConstraints(IReadOnlyConstraintCollection collection) {
 
-            ConstraintSolverDto dto = new ConstraintSolverDto(
-                    typeVariables,
-                    visitedTypeVariables,
-                    typeVariablesToRevisit,
-                    constraintSymbol,
-                    unionTypeSymbol
-            );
+        IBinding binding = new Binding(overloadResolver);
+        workDeque.add(new ConstraintSolverDto(0, binding));
+        List<IIntersectionConstraint> lowerBoundConstraints = collection.getLowerBoundConstraints();
 
-            IConstraint constraint = constraintSymbol.getConstraint();
-            solveConstraint(dto, constraint);
+        while (!workDeque.isEmpty()) {
+            ConstraintSolverDto constraintSolver3Dto = workDeque.removeFirst();
+            if (constraintSolver3Dto.pointer < lowerBoundConstraints.size()) {
+                IIntersectionConstraint constraint = lowerBoundConstraints.get(constraintSolver3Dto.pointer);
+                solve(constraintSolver3Dto, constraint);
+            } else {
+                solvedBindings.add(constraintSolver3Dto.binding);
+            }
         }
 
-        for (ITypeVariableSymbol typeVariableSymbol : currentScope.getTypeVariablesWithRef()) {
-            typeVariableSymbol.getType().seal();
+        if (solvedBindings.size() == 0) {
+            //TODO error case if no overload could be found
+        }
+        return solvedBindings;
+    }
+
+    private void solve(ConstraintSolverDto constraintSolver3Dto, IIntersectionConstraint constraint) {
+        createBindingIfNecessary(constraintSolver3Dto.binding, constraint.getLeftHandSide());
+        for (IVariable argument : constraint.getArguments()) {
+            createBindingIfNecessary(constraintSolver3Dto.binding, argument);
+        }
+
+        for (IFunctionTypeSymbol overload : constraint.getOverloads()) {
+            solveOverLoad(constraintSolver3Dto, constraint, overload);
         }
     }
 
-    private boolean solveConstraint(ConstraintSolverDto dto, IConstraint constraint) {
-        if (constraint instanceof TransferConstraint) {
-            return resolveTransferConstraint(dto, (TransferConstraint) constraint);
-        } else if (constraint instanceof IntersectionConstraint) {
-            return resolveIntersectionConstraint(dto, (IntersectionConstraint) constraint);
-        } else if (constraint instanceof ITypeVariableSymbol) {
-            return resolveReferenceConstraint(dto, (ITypeVariableSymbol) constraint);
-        } else if (constraint instanceof UnionConstraint) {
-            return resolveUnionConstraint(dto, (UnionConstraint) constraint);
-        }
-        throw new IllegalArgumentException("Unknown TypeConstraint " + constraint.getClass());
-    }
-
-    private boolean resolveTransferConstraint(ConstraintSolverDto dto, TransferConstraint constraint) {
-        IUnionTypeSymbol unionTypeSymbol = constraint.getTypeVariableSymbol().getType();
-        dto.currentTypeVariable.getType().merge(unionTypeSymbol);
-        //TODO right now I am not sure how I am going to use dto.unionTypeSymbol, will see when dealing with
-        //recursive functions
-        boolean hasChanged = dto.unionTypeSymbol.merge(unionTypeSymbol);
-        dto.hasUnionChanged = dto.hasUnionChanged || hasChanged;
-        return true;
-    }
-
-    private boolean resolveIntersectionConstraint(
-            ConstraintSolverDto dto, IntersectionConstraint intersectionConstraint) {
-        boolean allArgumentsReady = true;
-        List<IUnionTypeSymbol> refVariableTypes = new ArrayList<>();
-        List<ITypeVariableSymbol> refTypeVariables = intersectionConstraint.getTypeVariables();
-        for (ITypeVariableSymbol refTypeVariable : refTypeVariables) {
-            IUnionTypeSymbol unionTypeSymbol = refTypeVariable.getType();
-//            if (!unionTypeSymbol.isReadyForEval()) {
-//                allArgumentsReady = false;
-//                break;
-//            }
-            refVariableTypes.add(unionTypeSymbol);
-        }
-
-        if (allArgumentsReady) {
-            List<OverloadRankingDto> applicableOverloads = getApplicableOverloads(
-                    dto, refVariableTypes, intersectionConstraint);
-
-            if (!applicableOverloads.isEmpty()) {
-                OverloadRankingDto overloadRankingDto;
+    private void createBindingIfNecessary(IBinding binding, IVariable variable) {
+        String absoluteName = variable.getAbsoluteName();
+        Map<String, String> bindings = binding.getVariable2TypeVariable();
+        if (!bindings.containsKey(absoluteName)) {
+            String typeVariableName = binding.getNextTypeVariable();
+            bindings.put(absoluteName, typeVariableName);
+            //if it is a literal then the type variable is already set in stone and will not change anymore
+            ITypeSymbol typeSymbol = variable.getType();
+            if (typeSymbol != null) {
                 try {
-                    overloadRankingDto = getMostSpecificApplicableOverload(applicableOverloads);
-                } catch (AmbiguousCallException ex) {
-                    //TODO if several calls are valid due to data polymorphism, then we need to take
-                    // the union of all result Types. For Instance float V array + array => once float once array both
-                    // with promotion level = 1 (one cast from float V array to float and one from float V array to
-                    // array)
-
-                    // another example without casting is float V array + float V array => float V array
-                    overloadRankingDto = ex.getAmbiguousOverloads().get(0);
-                }
-
-                //TODO apply needs to retrieve visited functions, otherwise recursive functions would loop indefinitely
-                ITypeSymbol returnTypeSymbol = overloadRankingDto.overload.apply(refTypeVariables);
-                addToDtoUnionAndCurrentVariable(dto, returnTypeSymbol);
-            } else {
-                //TODO deal with the error case, how to proceed if no applicable overload was found?
-                //Data flow analysis should abort from this point on
-            }
-            return true;
-        }
-        return false;
-    }
-
-    private void addToDtoUnionAndCurrentVariable(ConstraintSolverDto dto, ITypeSymbol typeSymbol) {
-        IUnionTypeSymbol newType = symbolFactory.createUnionTypeSymbol();
-        newType.addTypeSymbol(typeSymbol);
-        newType.seal();
-        dto.currentTypeVariable.setType(newType);
-        //TODO right now I am not sure how I am going to use dto.unionTypeSymbol, will see when dealing with
-        //recursive functions
-        boolean hasChanged = dto.unionTypeSymbol.addTypeSymbol(typeSymbol);
-        dto.hasUnionChanged = dto.hasUnionChanged || hasChanged;
-    }
-
-    private List<OverloadRankingDto> getApplicableOverloads(
-            ConstraintSolverDto dto,
-            List<IUnionTypeSymbol> refVariableTypes,
-            IntersectionConstraint intersectionConstraint) {
-
-        List<OverloadRankingDto> applicableOverloads = new ArrayList<>();
-        for (IFunctionTypeSymbol overload : intersectionConstraint.getOverloads()) {
-            OverloadRankingDto overloadRankingDto = getApplicableOverload(refVariableTypes, overload);
-            if (overloadRankingDto != null) {
-                applicableOverloads.add(overloadRankingDto);
-                if (isOverloadWithoutPromotionNorConversion(overloadRankingDto)) {
-                    break;
+                    binding.getTypeVariables().addLowerBound(typeVariableName, new TypeConstraint(typeSymbol));
+                } catch (LowerBoundException e) {
+                    //should not happen, if it does, then throw exception
+                    throw new RuntimeException(e);
                 }
             }
         }
-
-        return applicableOverloads;
     }
 
-    private boolean isOverloadWithoutPromotionNorConversion(OverloadRankingDto dto) {
-        return dto.parameterPromotedCount == 0 && dto.parametersNeedImplicitConversion.size() == 0
-                && (dto.parametersNeedExplicitConversion == null || dto.parametersNeedExplicitConversion.size() == 0);
-    }
 
-    private OverloadRankingDto getApplicableOverload(
-            List<IUnionTypeSymbol> refVariableTypes, IFunctionTypeSymbol functionTypeSymbol) {
-        List<List<IConstraint>> parametersConstraints = functionTypeSymbol.getInputConstraints();
-        int parameterCount = parametersConstraints.size();
-        int promotionTotalCount = 0;
-        int promotionParameterCount = 0;
-        ConversionDto conversionDto = null;
-        List<ConversionDto> parametersNeedImplicitConversion = new ArrayList<>();
+    private void solveOverLoad(ConstraintSolverDto constraintSolver3Dto, IIntersectionConstraint constraint,
+            IFunctionTypeSymbol overload) {
+        List<IVariable> arguments = constraint.getArguments();
 
-        for (int i = 0; i < parameterCount; ++i) {
-            conversionDto = getConversionDto(refVariableTypes.get(i), parametersConstraints.get(i));
-            if (conversionDto != null) {
-                if (conversionDto.promotionLevel != 0) {
-                    ++promotionParameterCount;
-                    promotionTotalCount += conversionDto.promotionLevel;
+        int numberOfArguments = arguments.size();
+        if (numberOfArguments >= overload.getNumberOfNonOptionalParameters()) {
+
+            Binding binding = new Binding(overloadResolver, (Binding) constraintSolver3Dto.binding);
+
+            try {
+                List<String> parameterTypeVariables = overload.getParameterTypeVariables();
+                int numberOfParameters = parameterTypeVariables.size();
+                Map<String, String> mapping = new HashMap<>(numberOfParameters + 1);
+                String rhsTypeVariable = overload.getReturnTypeVariable();
+                IVariable leftHandSide = constraint.getLeftHandSide();
+                mergeTypeVariables(binding, overload, mapping, leftHandSide, rhsTypeVariable);
+
+                int count = numberOfParameters <= numberOfArguments ? numberOfParameters : numberOfArguments;
+                for (int i = 0; i < count; ++i) {
+                    IVariable argument = arguments.get(i);
+                    String parameterTypeVariable = parameterTypeVariables.get(i);
+                    mergeTypeVariables(binding, overload, mapping, argument, parameterTypeVariable);
                 }
-                //TODO conversions
-//                if (conversionDto.castingMethods != null) {
-//                    parametersNeedImplicitConversion.add(castingDto);
-//                }
-            } else {
-                break;
+
+                workDeque.add(new ConstraintSolverDto(constraintSolver3Dto.pointer + 1, binding));
+
+            } catch (BoundException ex) {
+                //That is ok, we will deal with it in solveConstraints
             }
         }
-
-        if (conversionDto != null) {
-            return new OverloadRankingDto(
-                    functionTypeSymbol, promotionParameterCount, promotionTotalCount, parametersNeedImplicitConversion);
-        }
-        return null;
     }
 
-    private ConversionDto getConversionDto(IUnionTypeSymbol refVariableType, List<IConstraint> parameterConstraints) {
+    private void mergeTypeVariables(
+            IBinding binding,
+            IFunctionTypeSymbol overload,
+            Map<String, String> mapping,
+            IVariable bindingVariable,
+            String overloadTypeVariable) throws BoundException {
+        String bindingVariableName = bindingVariable.getAbsoluteName();
+        String bindingTypeVariable = binding.getVariable2TypeVariable().get(bindingVariableName);
+        ITypeVariableCollection collection = binding.getTypeVariables();
 
-        //TODO take conversions into account - implicit conversions should be preferred over explicit conversions
-        ConversionDto conversionDto = null;
-        int highestPromotionLevel = -1;
-        for (IConstraint constraint : parameterConstraints) {
-            if (constraint instanceof TypeConstraint) {
-                conversionDto = getConversionDto(refVariableType, (TypeConstraint) constraint);
-            }
-            if (conversionDto != null) {
-                if (highestPromotionLevel < conversionDto.promotionLevel) {
-                    highestPromotionLevel = conversionDto.promotionLevel;
-                }
-            } else {
-                break;
-            }
-        }
-        if (conversionDto != null) {
-            conversionDto.promotionLevel = highestPromotionLevel;
-        }
-        return conversionDto;
-    }
-
-    private ConversionDto getConversionDto(IUnionTypeSymbol refVariableType, TypeConstraint constraint) {
-        ConversionDto conversionDto;
-        int promotionLevel = overloadResolver.getPromotionLevelFromTo(refVariableType, constraint.getTypeSymbol());
-        if (overloadResolver.isSameOrSubType(promotionLevel)) {
-            conversionDto = new ConversionDto(promotionLevel, 0);
+        String lhsTypeVariable;
+        if (mapping.containsKey(overloadTypeVariable)) {
+            lhsTypeVariable = mapping.get(overloadTypeVariable);
+            binding.getVariable2TypeVariable().put(bindingVariableName, lhsTypeVariable);
+            addRightToLeft(collection, lhsTypeVariable, collection, bindingTypeVariable);
         } else {
-            //TODO castingDto = getImplicitCastingDto();
-            conversionDto = null;
+            lhsTypeVariable = bindingTypeVariable;
+            mapping.put(overloadTypeVariable, lhsTypeVariable);
         }
-        return conversionDto;
+
+        addRightToLeft(collection, lhsTypeVariable, overload.getTypeVariables(), overloadTypeVariable);
     }
 
-
-    public OverloadRankingDto getMostSpecificApplicableOverload(List<OverloadRankingDto> overloadRankingDtos) throws
-            AmbiguousCallException {
-
-        List<OverloadRankingDto> ambiguousOverloadRankingDtos = new ArrayList<>();
-
-        OverloadRankingDto mostSpecificMethodDto = overloadRankingDtos.get(0);
-
-        int overloadDtosSize = overloadRankingDtos.size();
-        for (int i = 1; i < overloadDtosSize; ++i) {
-            OverloadRankingDto overloadRankingDto = overloadRankingDtos.get(i);
-            if (isSecondBetter(mostSpecificMethodDto, overloadRankingDto)) {
-                mostSpecificMethodDto = overloadRankingDto;
-                if (ambiguousOverloadRankingDtos.size() > 0) {
-                    ambiguousOverloadRankingDtos = new ArrayList<>();
-                }
-            } else if (isSecondEqual(mostSpecificMethodDto, overloadRankingDto)) {
-                ambiguousOverloadRankingDtos.add(overloadRankingDto);
+    private void addRightToLeft(
+            ITypeVariableCollection leftCollection, String left,
+            ITypeVariableCollection rightCollection, String right) throws BoundException {
+        if (rightCollection.hasUpperBounds(right)) {
+            for (IConstraint upperBound : rightCollection.getUpperBounds(right)) {
+                leftCollection.addUpperBound(left, upperBound);
             }
         }
-        if (!ambiguousOverloadRankingDtos.isEmpty()) {
-            ambiguousOverloadRankingDtos.add(mostSpecificMethodDto);
-            throw new AmbiguousCallException(ambiguousOverloadRankingDtos);
+        if (rightCollection.hasLowerBounds(right)) {
+            for (IConstraint lowerBound : rightCollection.getLowerBounds(right)) {
+                leftCollection.addLowerBound(left, lowerBound);
+            }
         }
-
-        return mostSpecificMethodDto;
-    }
-
-    private boolean isSecondBetter(OverloadRankingDto mostSpecificMethodDto, OverloadRankingDto methodDto) {
-
-        int mostSpecificCastingSize = mostSpecificMethodDto.parametersNeedImplicitConversion.size();
-        int challengerCastingSize = methodDto.parametersNeedImplicitConversion.size();
-        boolean isSecondBetter = mostSpecificCastingSize > challengerCastingSize;
-        if (!isSecondBetter && mostSpecificCastingSize == challengerCastingSize) {
-            int mostSpecificParameterCount = mostSpecificMethodDto.parameterPromotedCount;
-            int challengerParameterCount = methodDto.parameterPromotedCount;
-            isSecondBetter = mostSpecificParameterCount > challengerParameterCount
-                    || (mostSpecificParameterCount == challengerParameterCount
-                    && mostSpecificMethodDto.promotionsTotal > methodDto.promotionsTotal);
-        }
-        return isSecondBetter;
-    }
-
-    private boolean isSecondEqual(OverloadRankingDto mostSpecificMethodDto, OverloadRankingDto methodDto) {
-        return mostSpecificMethodDto.parametersNeedImplicitConversion.size() == methodDto
-                .parametersNeedImplicitConversion.size()
-                && mostSpecificMethodDto.parameterPromotedCount == methodDto.parameterPromotedCount
-                && mostSpecificMethodDto.promotionsTotal == methodDto.promotionsTotal;
-    }
-
-    private boolean resolveReferenceConstraint(ConstraintSolverDto dto, ITypeVariableSymbol refTypeVariable) {
-        IUnionTypeSymbol unionTypeSymbol = refTypeVariable.getType();
-        if (unionTypeSymbol.isReadyForEval()) {
-            IUnionTypeSymbol newType = symbolFactory.createUnionTypeSymbol();
-            newType.merge(unionTypeSymbol);
-            newType.seal();
-            dto.currentTypeVariable.setType(newType);
-            //TODO right now I am not sure how I am going to use dto.unionTypeSymbol, will see when dealing with
-            //recursive functions
-            boolean hasChanged = dto.unionTypeSymbol.merge(unionTypeSymbol);
-            dto.hasUnionChanged = dto.hasUnionChanged || hasChanged;
-            return true;
-        }
-        return false;
     }
 
 
-    private boolean resolveUnionConstraint(ConstraintSolverDto dto, UnionConstraint unionConstraint) {
-        boolean allTypesReady = true;
-        boolean hasChanged;
-        for (ITypeVariableSymbol refTypeVariable : unionConstraint.getTypeVariables()) {
-            IUnionTypeSymbol unionTypeSymbol = refTypeVariable.getType();
-            dto.currentTypeVariable.getType().merge(unionTypeSymbol);
-            //TODO right now I am not sure how I am going to use dto.unionTypeSymbol, will see when dealing with
-            //recursive functions
-            hasChanged = dto.unionTypeSymbol.merge(unionTypeSymbol);
-            dto.hasUnionChanged = dto.hasUnionChanged || hasChanged;
-        }
-        return allTypesReady;
-    }
 }

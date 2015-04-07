@@ -9,8 +9,8 @@ package ch.tsphp.tinsphp.inference_engine;
 
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.tinsphp.common.inference.IInferencePhaseController;
+import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
-import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
@@ -18,8 +18,6 @@ import ch.tsphp.tinsphp.common.symbols.IOverloadSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
-import ch.tsphp.tinsphp.inference_engine.constraints.IntersectionConstraint;
-import ch.tsphp.tinsphp.symbols.constraints.TransferConstraint;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +43,7 @@ public class InferencePhaseController implements IInferencePhaseController
     }
 
     @Override
-    public void createRefVariable(ITypeVariableCollection collection, ITSPHPAst variableId) {
+    public void createRefVariable(IConstraintCollection collection, ITSPHPAst variableId) {
         IVariableSymbol variableSymbol = (IVariableSymbol) variableId.getSymbol();
         ITypeVariableSymbol currentVariableSymbol = variableSymbol.getCurrentTypeVariable();
 
@@ -56,40 +54,40 @@ public class InferencePhaseController implements IInferencePhaseController
         refVariableSymbol.setDefinitionScope(variableId.getScope());
         //TODO not sure if this bidirectional relationship is necessary
         refVariableSymbol.setOriginal(variableSymbol);
-        refVariableSymbol.setConstraint(new TransferConstraint(currentVariableSymbol));
+//        refVariableSymbol.setConstraint(new TransferConstraint(currentVariableSymbol));
         variableId.setSymbol(refVariableSymbol);
 
         variableSymbol.addRefVariable(refVariableSymbol);
-        collection.addTypeVariable(refVariableSymbol);
+//        collection.addTypeVariable(refVariableSymbol);
     }
 
     @Override
     public void createTypeConstraint(ITSPHPAst literal) {
-        ITypeVariableSymbol typeVariableSymbol = symbolFactory.createExpressionTypeVariableSymbol(literal);
-        typeVariableSymbol.setType(literal.getEvalType());
-        literal.setSymbol(typeVariableSymbol);
+//        ITypeVariableSymbol typeVariableSymbol = symbolFactory.createExpressionTypeVariableSymbol(literal);
+//        typeVariableSymbol.setType(literal.getEvalType());
+//        literal.setSymbol(typeVariableSymbol);
     }
 
     @Override
-    public void createRefConstraint(ITypeVariableCollection collection, ITSPHPAst identifier, ITSPHPAst rhs) {
-        IVariableSymbol variableSymbol = (IVariableSymbol) identifier.getSymbol();
-        variableSymbol.setConstraint((ITypeVariableSymbol) rhs.getSymbol());
-        collection.addTypeVariable(variableSymbol);
+    public void createRefConstraint(IConstraintCollection collection, ITSPHPAst identifier, ITSPHPAst rhs) {
+//        IVariableSymbol variableSymbol = (IVariableSymbol) identifier.getSymbol();
+//        variableSymbol.setConstraint((ITypeVariableSymbol) rhs.getSymbol());
+//        collection.addTypeVariable(variableSymbol);
     }
 
     @Override
     public void createIntersectionConstraint(
-            ITypeVariableCollection collection, ITSPHPAst operator, ITSPHPAst... arguments) {
+            IConstraintCollection collection, ITSPHPAst operator, ITSPHPAst... arguments) {
         List<ITypeVariableSymbol> typeVariables = new ArrayList<>(arguments.length);
         for (ITSPHPAst argument : arguments) {
             typeVariables.add((ITypeVariableSymbol) argument.getSymbol());
         }
         IOverloadSymbol overloadSymbol = (IOverloadSymbol) operator.getSymbol();
-        ITypeVariableSymbol typeVariableSymbol = symbolFactory.createExpressionTypeVariableSymbol(operator);
-        typeVariableSymbol.setType(symbolFactory.createUnionTypeSymbol());
-        typeVariableSymbol.setConstraint(new IntersectionConstraint(typeVariables, overloadSymbol.getOverloads()));
-        operator.setSymbol(typeVariableSymbol);
-        collection.addTypeVariable(typeVariableSymbol);
+//        ITypeVariableSymbol typeVariableSymbol = symbolFactory.createExpressionTypeVariableSymbol(operator);
+//        typeVariableSymbol.setType(symbolFactory.createUnionTypeSymbol());
+//        typeVariableSymbol.setConstraint(new IntersectionConstraint(typeVariables, overloadSymbol.getOverloads()));
+//        operator.setSymbol(typeVariableSymbol);
+//        collection.addTypeVariable(typeVariableSymbol);
     }
 
     @Override
@@ -99,7 +97,7 @@ public class InferencePhaseController implements IInferencePhaseController
 
     @Override
     public void solveAllConstraints() {
-        for (ITypeVariableCollection scope : functionScopes) {
+        for (IConstraintCollection scope : functionScopes) {
             constraintSolver.solveConstraints(scope);
         }
 

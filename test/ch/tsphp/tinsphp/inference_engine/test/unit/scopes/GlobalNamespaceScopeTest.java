@@ -17,18 +17,13 @@ import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
-import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
 import ch.tsphp.tinsphp.common.utils.MapHelper;
 import ch.tsphp.tinsphp.inference_engine.scopes.GlobalNamespaceScope;
-import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import java.util.Deque;
-
-import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
@@ -245,29 +240,6 @@ public class GlobalNamespaceScopeTest
         ISymbol result = globalNamespaceScope.resolveCaseInsensitive(ast);
 
         assertThat(result, is(symbol));
-    }
-
-    @Test
-    public void getTypeVariables_NothingDefined_ReturnsEmptyMap() {
-
-        IGlobalNamespaceScope globalNamespaceScope = createGlobalNamespaceScope();
-        Deque<ITypeVariableSymbol> result = globalNamespaceScope.getTypeVariables();
-
-        MatcherAssert.assertThat(result.size(), is(0));
-    }
-
-    @Test
-    public void addAndGetTypeVariables_AddedOneFor$a_ReturnsMapWithCorrespondingConstraint() {
-        ITypeVariableSymbol $a = mock(ITypeVariableSymbol.class);
-        when($a.getAbsoluteName()).thenReturn("$a");
-
-
-        IGlobalNamespaceScope globalNamespaceScope = createGlobalNamespaceScope();
-        globalNamespaceScope.addTypeVariable($a);
-        Deque<ITypeVariableSymbol> result = globalNamespaceScope.getTypeVariables();
-
-        MatcherAssert.assertThat(result, hasItem($a));
-        MatcherAssert.assertThat(result.size(), is(1));
     }
 
     private IGlobalNamespaceScope createGlobalNamespaceScope() {

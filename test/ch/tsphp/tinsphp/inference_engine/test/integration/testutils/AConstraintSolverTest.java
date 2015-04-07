@@ -9,17 +9,11 @@ package ch.tsphp.tinsphp.inference_engine.test.integration.testutils;
 import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
-import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
-import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
-import ch.tsphp.tinsphp.common.symbols.IFunctionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbolWithRef;
-import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintSolver;
-import ch.tsphp.tinsphp.inference_engine.constraints.IntersectionConstraint;
 import ch.tsphp.tinsphp.inference_engine.scopes.ScopeHelper;
-import ch.tsphp.tinsphp.symbols.ConstantFunctionTypeSymbol;
 import ch.tsphp.tinsphp.symbols.ModifierHelper;
 import ch.tsphp.tinsphp.symbols.SymbolFactory;
 import ch.tsphp.tinsphp.symbols.UnionTypeSymbol;
@@ -28,10 +22,8 @@ import ch.tsphp.tinsphp.symbols.utils.OverloadResolver;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 
@@ -63,6 +55,8 @@ public abstract class AConstraintSolverTest
     //Warning! end code duplication - same as in OverloadResolverPromotionLevelTest from the symbols component
 
     protected static IOverloadResolver overloadResolver = new OverloadResolver();
+    protected static ISymbolFactory symbolFactory
+            = new SymbolFactory(new ScopeHelper(), new ModifierHelper(), overloadResolver);
 
     @BeforeClass
     public static void init() {
@@ -147,14 +141,14 @@ public abstract class AConstraintSolverTest
         return typeVariableSymbol;
     }
 
-    protected ITypeVariableSymbol typeVar(String id, IConstraint constraints) {
-        ITypeVariableSymbol typeVariableSymbol = mock(ITypeVariableSymbol.class);
-        when(typeVariableSymbol.getAbsoluteName()).thenReturn(id);
-        when(typeVariableSymbol.getConstraint()).thenReturn(constraints);
-        IUnionTypeSymbol unionTypeSymbol = new UnionTypeSymbol(overloadResolver);
-        when(typeVariableSymbol.getType()).thenReturn(unionTypeSymbol);
-        return typeVariableSymbol;
-    }
+//    protected ITypeVariableSymbol typeVar(String id, IConstraint constraints) {
+//        ITypeVariableSymbol typeVariableSymbol = mock(ITypeVariableSymbol.class);
+//        when(typeVariableSymbol.getAbsoluteName()).thenReturn(id);
+//        when(typeVariableSymbol.getConstraint()).thenReturn(constraints);
+//        IUnionTypeSymbol unionTypeSymbol = new UnionTypeSymbol(overloadResolver);
+//        when(typeVariableSymbol.getType()).thenReturn(unionTypeSymbol);
+//        return typeVariableSymbol;
+//    }
 
     protected List<IConstraint> list(IConstraint... constraints) {
         List<IConstraint> list = new ArrayList<>();
@@ -168,9 +162,9 @@ public abstract class AConstraintSolverTest
         return list;
     }
 
-    protected IConstraint intersect(List<ITypeVariableSymbol> variables, List<IFunctionTypeSymbol> overloads) {
-        return new IntersectionConstraint(variables, overloads);
-    }
+//    protected IConstraint intersect(List<ITypeVariableSymbol> variables, List<IFunctionTypeSymbol> overloads) {
+//        return new IntersectionConstraint(typeVar("TODO"), variables, overloads);
+//    }
 
 //    protected IConstraint iRef(String refVariableName, IScope refScope) {
 //        return ref(refVariableName, refScope);
@@ -184,66 +178,70 @@ public abstract class AConstraintSolverTest
         return new TypeConstraint(typeSymbol);
     }
 
-    protected ITypeVariableCollection createTypeVariableCollection(ITypeVariableSymbol... typeVariables) {
-        Deque<ITypeVariableSymbol> deque = new ArrayDeque<>();
-        for (ITypeVariableSymbol typeVariableSymbol : typeVariables) {
-            deque.addLast(typeVariableSymbol);
-        }
-        ITypeVariableCollection scope = mock(ITypeVariableCollection.class);
-        when(scope.getTypeVariables()).thenReturn(deque);
-        return scope;
-    }
+//    protected ITypeVariableCollection createTypeVariableCollection(ITypeVariableSymbol... typeVariables) {
+//        Deque<ITypeVariableSymbol> deque = new ArrayDeque<>();
+//        for (ITypeVariableSymbol typeVariableSymbol : typeVariables) {
+//            deque.addLast(typeVariableSymbol);
+//        }
+//        ITypeVariableCollection scope = mock(ITypeVariableCollection.class);
+//        when(scope.getTypeVariables()).thenReturn(deque);
+//        return scope;
+//    }
+//
+//    protected IConstraint createPartialAdditionWithInt(ITypeVariableSymbol typeVariableSymbol) {
+//        return intersect(asList(typeVariableSymbol), asList(
+//                funcUnary(intType, intType),
+//                funcUnary(numType, numType)
+//        ));
+//    }
+//
+//    protected IFunctionTypeSymbol funcUnary(ITypeSymbol parameterType, ITypeSymbol returnType) {
+//        IFunctionTypeSymbol function = new ConstantFunctionTypeSymbol("+", asList("$lhs"), mixedType, returnType);
+//        function.addInputConstraint("$lhs", type(parameterType));
+//        return function;
+//    }
+//
+//    protected IFunctionTypeSymbol funcBinary(ITypeSymbol lhsType, ITypeSymbol rhsType, ITypeSymbol returnType) {
+//        IFunctionTypeSymbol function = new ConstantFunctionTypeSymbol(
+//                "+", asList("$lhs", "$rhs"), mixedType, returnType);
+//        function.addInputConstraint("$lhs", type(lhsType));
+//        function.addInputConstraint("$rhs", type(rhsType));
+//        return function;
+//    }
+//
+//    protected IConstraint createPartialAdditionWithFloat(ITypeVariableSymbol typeVariableSymbol) {
+//        return intersect(asList(typeVariableSymbol), asList(
+//                funcUnary(floatType, floatType),
+//                funcUnary(numType, numType)
+//        ));
+//    }
+//
+//    protected IConstraint createAdditionIntersection(ITypeVariableSymbol lhs, ITypeVariableSymbol rhs) {
+//        return intersect(asList(lhs, rhs), asList(
+//                funcBinary(boolType, boolType, intType),
+//                funcBinary(intType, intType, intType),
+//                funcBinary(floatType, floatType, floatType),
+//                funcBinary(numType, numType, numType),
+//                funcBinary(arrayType, arrayType, arrayType)
+//        ));
+//    }
 
-    protected IConstraint createPartialAdditionWithInt(ITypeVariableSymbol typeVariableSymbol) {
-        return intersect(asList(typeVariableSymbol), asList(
-                funcUnary(intType, intType),
-                funcUnary(numType, numType)
-        ));
-    }
+//    protected IConstraintSolver createConstraintSolver() {
+//        return createConstraintSolver(symbolFactory, overloadResolver);
+//    }
 
-    protected IFunctionTypeSymbol funcUnary(ITypeSymbol parameterType, ITypeSymbol returnType) {
-        IFunctionTypeSymbol function = new ConstantFunctionTypeSymbol("+", asList("$lhs"), mixedType, returnType);
-        function.addInputConstraint("$lhs", type(parameterType));
-        return function;
-    }
+//
+//    protected IConstraintSolver createConstraintSolver(
+//            ISymbolFactory theSymbolFactory, IOverloadResolver overloadResolver) {
+//        return new ConstraintSolver(theSymbolFactory, overloadResolver);
+//    }
 
-    protected IFunctionTypeSymbol funcBinary(ITypeSymbol lhsType, ITypeSymbol rhsType, ITypeSymbol returnType) {
-        IFunctionTypeSymbol function = new ConstantFunctionTypeSymbol(
-                "+", asList("$lhs", "$rhs"), mixedType, returnType);
-        function.addInputConstraint("$lhs", type(lhsType));
-        function.addInputConstraint("$rhs", type(rhsType));
-        return function;
-    }
-
-    protected IConstraint createPartialAdditionWithFloat(ITypeVariableSymbol typeVariableSymbol) {
-        return intersect(asList(typeVariableSymbol), asList(
-                funcUnary(floatType, floatType),
-                funcUnary(numType, numType)
-        ));
-    }
-
-    protected IConstraint createAdditionIntersection(ITypeVariableSymbol lhs, ITypeVariableSymbol rhs) {
-        return intersect(asList(lhs, rhs), asList(
-                funcBinary(boolType, boolType, intType),
-                funcBinary(intType, intType, intType),
-                funcBinary(floatType, floatType, floatType),
-                funcBinary(numType, numType, numType),
-                funcBinary(arrayType, arrayType, arrayType)
-        ));
-    }
-
-    protected IConstraintSolver createConstraintSolver() {
-        IOverloadResolver overloadResolver = new OverloadResolver();
-        return createConstraintSolver(
-                createSymbolFactory(overloadResolver), overloadResolver);
-    }
-
-    protected SymbolFactory createSymbolFactory(IOverloadResolver overloadResolver) {
-        return new SymbolFactory(new ScopeHelper(), new ModifierHelper(), overloadResolver);
-    }
-
-    protected IConstraintSolver createConstraintSolver(ISymbolFactory theSymbolFactory,
-            IOverloadResolver overloadResolver) {
-        return new ConstraintSolver(theSymbolFactory, overloadResolver);
-    }
+//    protected ConstraintSolver2 createConstraintSolver2() {
+//        return createConstraintSolver2(symbolFactory, overloadResolver);
+//    }
+//
+//    protected ConstraintSolver2 createConstraintSolver2(
+//            ISymbolFactory theSymbolFactory, IOverloadResolver overloadResolver) {
+//        return new ConstraintSolver2(theSymbolFactory, overloadResolver, mixedType);
+//    }
 }

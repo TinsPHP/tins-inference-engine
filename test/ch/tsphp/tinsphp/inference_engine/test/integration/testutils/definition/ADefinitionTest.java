@@ -82,7 +82,7 @@ public abstract class ADefinitionTest extends ATest
         symbolFactory.setConstraintSolver(constraintSolver);
 
         definitionPhaseController = createTestDefiner(symbolFactory, scopeFactory);
-        core = createCore(symbolFactory);
+        core = createCore(symbolFactory, overloadResolver);
     }
 
     public void runTest() {
@@ -151,8 +151,8 @@ public abstract class ADefinitionTest extends ATest
         return new TestSymbolFactory(theScopeHelper, theModifierHelper, theOverloadResolver);
     }
 
-    protected ICore createCore(TestSymbolFactory symbolFactory) {
-        return new Core(symbolFactory, AstHelperRegistry.get());
+    protected ICore createCore(TestSymbolFactory symbolFactory, IOverloadResolver overloadResolver) {
+        return new Core(symbolFactory, overloadResolver, AstHelperRegistry.get());
     }
 
     protected TestDefinitionPhaseController createTestDefiner(TestSymbolFactory theSymbolFactory,

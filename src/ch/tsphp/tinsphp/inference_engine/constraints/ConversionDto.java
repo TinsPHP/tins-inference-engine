@@ -16,7 +16,7 @@ import ch.tsphp.common.ITSPHPAst;
 
 import java.util.List;
 
-public class ConversionDto extends PromotionAndConversionLevelDto
+public class ConversionDto extends UpCastAndConversionLevelDto
 {
 
     public ITSPHPAst actualParameter;

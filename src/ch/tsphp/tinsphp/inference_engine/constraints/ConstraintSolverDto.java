@@ -6,52 +6,19 @@
 
 package ch.tsphp.tinsphp.inference_engine.constraints;
 
-import ch.tsphp.common.symbols.IUnionTypeSymbol;
-import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
+import ch.tsphp.tinsphp.common.inference.constraints.IBinding;
 
 import java.util.Deque;
-import java.util.Map;
-import java.util.Set;
 
 public class ConstraintSolverDto
 {
+    public int pointer;
+    public IBinding binding;
+    public Deque<IBinding> workList;
+    public Deque<IBinding> solvedBindings;
 
-    public ITypeVariableSymbol currentTypeVariable;
-    public Map<String, Integer> visitedTypeVariables;
-    public Set<String> revisitTypeVariables;
-    public IUnionTypeSymbol unionTypeSymbol;
-    public boolean notInIterativeMode = true;
-    public boolean hasUnionChanged;
-    public boolean hasNotCircularReference = true;
-    public ITypeVariableSymbol circularRefTypeVariable;
-    public Deque<ITypeVariableSymbol> typeVariables;
-
-    public ConstraintSolverDto(
-            ConstraintSolverDto dto,
-            ITypeVariableSymbol theCurrentTypeVariable,
-            IUnionTypeSymbol theUnionTypeSymbol) {
-        this(
-                dto.typeVariables,
-                dto.visitedTypeVariables,
-                dto.revisitTypeVariables,
-                theCurrentTypeVariable,
-                theUnionTypeSymbol
-        );
-        notInIterativeMode = dto.notInIterativeMode;
-        hasUnionChanged = dto.hasUnionChanged;
-        circularRefTypeVariable = dto.circularRefTypeVariable;
-    }
-
-    public ConstraintSolverDto(
-            Deque<ITypeVariableSymbol> theTypeVariables,
-            Map<String, Integer> theVisitedTypeVariables,
-            Set<String> theTypeVariablesToRevisit,
-            ITypeVariableSymbol theCurrentTypeVariable,
-            IUnionTypeSymbol theUnionTypeSymbol) {
-        typeVariables = theTypeVariables;
-        currentTypeVariable = theCurrentTypeVariable;
-        visitedTypeVariables = theVisitedTypeVariables;
-        revisitTypeVariables = theTypeVariablesToRevisit;
-        unionTypeSymbol = theUnionTypeSymbol;
+    public ConstraintSolverDto(int thePointer, IBinding theBinding) {
+        pointer = thePointer;
+        binding = theBinding;
     }
 }
