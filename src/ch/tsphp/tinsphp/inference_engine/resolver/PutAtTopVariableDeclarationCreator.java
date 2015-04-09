@@ -50,8 +50,6 @@ public class PutAtTopVariableDeclarationCreator implements IVariableDeclarationC
             symbol = createVariableInMethodScope(parent, variableId);
         }
 
-        symbol.setType(symbolFactory.createUnionTypeSymbol());
-
         return symbol;
     }
 

@@ -65,7 +65,7 @@ public abstract class AReferenceTypeScopeTest extends AReferenceTest
                         testStruct.typeText, typeSymbol.getName());
             } else {
                 Assert.assertNull(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + ")" +
-                        ". type was not null", typeSymbol.evalSelf());
+                        ". type was not null", typeSymbol);
             }
             ++counter;
         }

@@ -12,11 +12,18 @@ import java.util.List;
 
 public class AbsoluteTypeNameTestStruct extends ScopeTestStruct
 {
-    public String absoluteTypeName;
+    public List<String> lowerTypes;
+    public List<String> upperTypes;
+
+    public AbsoluteTypeNameTestStruct(
+            String theAstText, String theDefinitionScope, List<Integer> theAstAccessOrder, String theAbsoluteTypeName) {
+        super(theAstText, theDefinitionScope, theAstAccessOrder);
+    }
 
     public AbsoluteTypeNameTestStruct(String theAstText, String theDefinitionScope, List<Integer> theAstAccessOrder,
-            String theAbsoluteTypeName) {
+            List<String> theLowerTypes, List<String> theUpperTypes) {
         super(theAstText, theDefinitionScope, theAstAccessOrder);
-        absoluteTypeName = theAbsoluteTypeName;
+        lowerTypes = theLowerTypes;
+        upperTypes = theUpperTypes;
     }
 }

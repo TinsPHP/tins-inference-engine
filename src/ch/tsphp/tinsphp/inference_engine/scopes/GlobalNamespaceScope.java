@@ -16,6 +16,7 @@ import ch.tsphp.common.ILowerCaseStringMap;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.LowerCaseStringMap;
 import ch.tsphp.common.symbols.ISymbol;
+import ch.tsphp.tinsphp.common.inference.constraints.IBinding;
 import ch.tsphp.tinsphp.common.inference.constraints.IIntersectionConstraint;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
@@ -32,6 +33,7 @@ public class GlobalNamespaceScope extends AScope implements IGlobalNamespaceScop
     //Warning! start code duplication - same as in MethodSymbol
     private final List<IIntersectionConstraint> lowerBoundConstraints = new ArrayList<>();
     private final List<IIntersectionConstraint> upperBoundConstraints = new ArrayList<>();
+    private List<IBinding> bindings;
     //Warning! end code duplication - same as in MethodSymbol
 
     public GlobalNamespaceScope(IScopeHelper scopeHelper, String scopeName) {
@@ -93,7 +95,7 @@ public class GlobalNamespaceScope extends AScope implements IGlobalNamespaceScop
         return typeNameWithoutPrefix;
     }
 
-    //Warning! start code duplication - same as in GlobalNamespaceScope
+    //Warning! start code duplication - same as in MethodSymbol
     @Override
     public List<IIntersectionConstraint> getLowerBoundConstraints() {
         return lowerBoundConstraints;
@@ -113,5 +115,18 @@ public class GlobalNamespaceScope extends AScope implements IGlobalNamespaceScop
     public void addUpperBoundConstraint(IIntersectionConstraint constraint) {
         upperBoundConstraints.add(constraint);
     }
-    //Warning! end code duplication - same as in GlobalNamespaceScope
+    //Warning! end code duplication - same as in MethodSymbol
+
+
+    //Warning! start code duplication - same as in MethodSymbol
+    @Override
+    public List<IBinding> getBindings() {
+        return bindings;
+    }
+
+    @Override
+    public void setBindings(List<IBinding> theBindings) {
+        bindings = theBindings;
+    }
+    //Warning! end code duplication - same as in MethodSymbol
 }

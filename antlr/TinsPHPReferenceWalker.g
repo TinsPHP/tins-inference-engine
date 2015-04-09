@@ -31,7 +31,6 @@ import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.ITSPHPAstAdaptor;
 import ch.tsphp.common.ITSPHPErrorAst;
 import ch.tsphp.common.symbols.ITypeSymbol;
-import ch.tsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.tinsphp.common.scopes.ICaseInsensitiveScope;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
@@ -866,30 +865,30 @@ exit
     |   'exit'
     ;
 
-returnTypesOrUnknown[ITSPHPAst typeModifier] returns [IUnionTypeSymbol type]
+returnTypesOrUnknown[ITSPHPAst typeModifier] returns [ITypeSymbol type]
         //PHP does not allow to specify return types so far, hence only the unkown type is possible
-    :   '?' {$type = controller.createUnionTypeSymbol();}
+    :   '?' {$type = null;}
     ;    
     
-allTypesOrUnknown[ITSPHPAst typeModifier] returns [IUnionTypeSymbol type]
+allTypesOrUnknown[ITSPHPAst typeModifier] returns [ITypeSymbol type]
     :   scalarTypes[$typeModifier] {$type = $scalarTypes.type;}
     |   classInterfaceType[$typeModifier] {$type = $classInterfaceType.type;}
     |   arrayType[$typeModifier] {$type = $arrayType.type;}
     //unknown type - needs to be inferred during the inference phase
-    |   '?' {$type = controller.createUnionTypeSymbol();}
+    |   '?' {$type = null;}
     ;
     
-scalarTypesOrArrayType[ITSPHPAst typeModifier] returns [IUnionTypeSymbol type]
+scalarTypesOrArrayType[ITSPHPAst typeModifier] returns [ITypeSymbol type]
     :   scalarTypes[typeModifier] {$type = $scalarTypes.type;}
     |   arrayType[$typeModifier] {$type = $arrayType.type;}
     ;
 
-scalarTypesOrUnknown[ITSPHPAst typeModifier] returns [IUnionTypeSymbol type]
+scalarTypesOrUnknown[ITSPHPAst typeModifier] returns [ITypeSymbol type]
     :   scalarTypes[typeModifier] {$type = $scalarTypes.type;}
-    |   '?' {$type = controller.createUnionTypeSymbol();}
+    |   '?' {$type = null;}
     ;
     
-scalarTypes[ITSPHPAst typeModifier] returns [IUnionTypeSymbol type]
+scalarTypes[ITSPHPAst typeModifier] returns [ITypeSymbol type]
 //Warning! start duplicated code as in voidType, classInterfaceType and arrayOrResourceOrMixed
 @init{
     if(state.backtracking == 1 && $start instanceof ITSPHPErrorAst){
@@ -916,7 +915,7 @@ catch[RecognitionException re]{
     $type = controller.createErroneousTypeSymbol($start, re);
 }
     
-classInterfaceType[ITSPHPAst typeModifier] returns [IUnionTypeSymbol type]
+classInterfaceType[ITSPHPAst typeModifier] returns [ITypeSymbol type]
 //Warning! start duplicated code as in scalarTypes and arrayOrResourceOrMixed
 @init{
     if(state.backtracking == 1 && $start instanceof ITSPHPErrorAst){
@@ -939,7 +938,7 @@ catch[RecognitionException re]{
     $type = controller.createErroneousTypeSymbol($start, re);
 }
     
-arrayType[ITSPHPAst typeModifier] returns [IUnionTypeSymbol type]
+arrayType[ITSPHPAst typeModifier] returns [ITypeSymbol type]
 //Warning! start duplicated code as in scalarTypes, classInterfaceType
 @init{
     if(state.backtracking == 1 && $start instanceof ITSPHPErrorAst){

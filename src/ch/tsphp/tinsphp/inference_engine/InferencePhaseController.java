@@ -9,17 +9,23 @@ package ch.tsphp.tinsphp.inference_engine;
 
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.tinsphp.common.inference.IInferencePhaseController;
+import ch.tsphp.tinsphp.common.inference.constraints.IBinding;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
+import ch.tsphp.tinsphp.common.inference.constraints.IIntersectionConstraint;
+import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
+import ch.tsphp.tinsphp.common.symbols.IFunctionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IOverloadSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
+import ch.tsphp.tinsphp.symbols.constraints.IntersectionConstraint;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class InferencePhaseController implements IInferencePhaseController
@@ -29,78 +35,68 @@ public class InferencePhaseController implements IInferencePhaseController
     private final IConstraintSolver constraintSolver;
     private final List<IMethodSymbol> functionScopes = new ArrayList<>();
     private final IGlobalNamespaceScope globalDefaultNamespaceScope;
+    private final IFunctionTypeSymbol assignFunction;
 
 
     public InferencePhaseController(
             ISymbolFactory theSymbolFactory,
             IInferenceIssueReporter theInferenceErrorReporter,
             IConstraintSolver theConstraintSolver,
-            IGlobalNamespaceScope theGlobalDefaultNamespaceScope) {
+            IGlobalNamespaceScope theGlobalDefaultNamespaceScope,
+            IFunctionTypeSymbol theAssignFunction) {
         symbolFactory = theSymbolFactory;
         inferenceIssueReporter = theInferenceErrorReporter;
         constraintSolver = theConstraintSolver;
         globalDefaultNamespaceScope = theGlobalDefaultNamespaceScope;
-    }
-
-    @Override
-    public void createRefVariable(IConstraintCollection collection, ITSPHPAst variableId) {
-        IVariableSymbol variableSymbol = (IVariableSymbol) variableId.getSymbol();
-        ITypeVariableSymbol currentVariableSymbol = variableSymbol.getCurrentTypeVariable();
-
-        variableId.setText(variableId.getText() + variableId.getLine() + "|" + variableId.getCharPositionInLine());
-        IVariableSymbol refVariableSymbol = symbolFactory.createVariableSymbol(null, variableId);
-        variableId.setText(variableSymbol.getName());
-        refVariableSymbol.setType(symbolFactory.createUnionTypeSymbol());
-        refVariableSymbol.setDefinitionScope(variableId.getScope());
-        //TODO not sure if this bidirectional relationship is necessary
-        refVariableSymbol.setOriginal(variableSymbol);
-//        refVariableSymbol.setConstraint(new TransferConstraint(currentVariableSymbol));
-        variableId.setSymbol(refVariableSymbol);
-
-        variableSymbol.addRefVariable(refVariableSymbol);
-//        collection.addTypeVariable(refVariableSymbol);
+        assignFunction = theAssignFunction;
     }
 
     @Override
     public void createTypeConstraint(ITSPHPAst literal) {
-//        ITypeVariableSymbol typeVariableSymbol = symbolFactory.createExpressionTypeVariableSymbol(literal);
-//        typeVariableSymbol.setType(literal.getEvalType());
-//        literal.setSymbol(typeVariableSymbol);
+        ITypeVariableSymbol typeVariableSymbol = symbolFactory.createExpressionTypeVariableSymbol(literal);
+        typeVariableSymbol.setType(literal.getEvalType());
+        literal.setSymbol(typeVariableSymbol);
     }
 
     @Override
     public void createRefConstraint(IConstraintCollection collection, ITSPHPAst identifier, ITSPHPAst rhs) {
-//        IVariableSymbol variableSymbol = (IVariableSymbol) identifier.getSymbol();
-//        variableSymbol.setConstraint((ITypeVariableSymbol) rhs.getSymbol());
-//        collection.addTypeVariable(variableSymbol);
+        IVariableSymbol variableSymbol = (IVariableSymbol) identifier.getSymbol();
+
+        IIntersectionConstraint constraint = new IntersectionConstraint(
+                variableSymbol,
+                Arrays.asList(variableSymbol, (IVariable) rhs.getSymbol()),
+                Arrays.asList(assignFunction));
+        collection.addLowerBoundConstraint(constraint);
     }
 
     @Override
     public void createIntersectionConstraint(
             IConstraintCollection collection, ITSPHPAst operator, ITSPHPAst... arguments) {
-        List<ITypeVariableSymbol> typeVariables = new ArrayList<>(arguments.length);
+        List<IVariable> typeVariables = new ArrayList<>(arguments.length);
         for (ITSPHPAst argument : arguments) {
-            typeVariables.add((ITypeVariableSymbol) argument.getSymbol());
+            typeVariables.add((IVariable) argument.getSymbol());
         }
+
         IOverloadSymbol overloadSymbol = (IOverloadSymbol) operator.getSymbol();
-//        ITypeVariableSymbol typeVariableSymbol = symbolFactory.createExpressionTypeVariableSymbol(operator);
-//        typeVariableSymbol.setType(symbolFactory.createUnionTypeSymbol());
-//        typeVariableSymbol.setConstraint(new IntersectionConstraint(typeVariables, overloadSymbol.getOverloads()));
-//        operator.setSymbol(typeVariableSymbol);
-//        collection.addTypeVariable(typeVariableSymbol);
+        ITypeVariableSymbol expressionVariable = symbolFactory.createExpressionTypeVariableSymbol(operator);
+        IIntersectionConstraint constraint = new IntersectionConstraint(
+                expressionVariable, typeVariables, overloadSymbol.getOverloads());
+        collection.addLowerBoundConstraint(constraint);
     }
 
     @Override
-    public void addTypeVariableCollection(IMethodSymbol scope) {
+    public void addMethodSymbol(IMethodSymbol scope) {
         functionScopes.add(scope);
     }
 
     @Override
     public void solveAllConstraints() {
-        for (IConstraintCollection scope : functionScopes) {
-            constraintSolver.solveConstraints(scope);
+        for (IMethodSymbol scope : functionScopes) {
+            List<IBinding> bindings = constraintSolver.solveConstraints(scope);
+            scope.setBindings(bindings);
         }
 
-        constraintSolver.solveConstraints(globalDefaultNamespaceScope);
+        List<IBinding> bindings = constraintSolver.solveConstraints(globalDefaultNamespaceScope);
+        globalDefaultNamespaceScope.setBindings(bindings);
     }
 }

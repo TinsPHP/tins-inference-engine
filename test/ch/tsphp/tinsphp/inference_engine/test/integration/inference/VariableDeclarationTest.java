@@ -18,8 +18,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import java.util.Arrays;
 import java.util.Collection;
+
+import static java.util.Arrays.asList;
 
 
 @RunWith(Parameterized.class)
@@ -45,24 +46,24 @@ public class VariableDeclarationTest extends AInferenceTypeTest
 
     @Parameterized.Parameters
     public static Collection<Object[]> testStrings() {
-        return Arrays.asList(new Object[][]{
-                {"$a = null;", testStructs("$a", "\\.\\.", "null", 1, 1, 0, 0)},
-                {"$a = false;", testStructs("$a", "\\.\\.", "false", 1, 1, 0, 0)},
-                {"$a = true;", testStructs("$a", "\\.\\.", "true", 1, 1, 0, 0)},
-                {"$a = 1;", testStructs("$a", "\\.\\.", "int", 1, 1, 0, 0)},
-                {"$a = 1.4;", testStructs("$a", "\\.\\.", "float", 1, 1, 0, 0)},
-                {"$a = 'h';", testStructs("$a", "\\.\\.", "string", 1, 1, 0, 0)},
+        return asList(new Object[][]{
+                {"$a = null;", testStructs("$a", "\\.\\.", asList("null"), null, 1, 1, 0, 0)},
+                {"$a = false;", testStructs("$a", "\\.\\.", asList("false"), null, 1, 1, 0, 0)},
+                {"$a = true;", testStructs("$a", "\\.\\.", asList("true"), null, 1, 1, 0, 0)},
+                {"$a = 1;", testStructs("$a", "\\.\\.", asList("int"), null, 1, 1, 0, 0)},
+                {"$a = 1.4;", testStructs("$a", "\\.\\.", asList("float"), null, 1, 1, 0, 0)},
+                {"$a = 'h';", testStructs("$a", "\\.\\.", asList("string"), null, 1, 1, 0, 0)},
                 {
                         "$a = 1; $b = $a;", new AbsoluteTypeNameTestStruct[]{
-                        testStruct("$a", "\\.\\.", "int", 1, 2, 0, 0),
-                        testStruct("$b", "\\.\\.", "int", 1, 3, 0, 0)}
+                        testStruct("$a", "\\.\\.", asList("int"), null, 1, 2, 0, 0),
+                        testStruct("$b", "\\.\\.", asList("int"), null, 1, 3, 0, 0)}
                 },
                 {
-                        "$a = 1; $b = $a; $b = 1.2; $a = $b;", new AbsoluteTypeNameTestStruct[]{
-                        testStruct("$a", "\\.\\.", "int", 1, 2, 0, 0),
-                        testStruct("$b", "\\.\\.", "int", 1, 3, 0, 0),
-                        testStruct("$b", "\\.\\.", "float", 1, 4, 0, 0),
-                        testStruct("$a", "\\.\\.", "float", 1, 5, 0, 0)}
+                        "$a = 1;\n $b = $a;\n $b = 1.2;\n $a = $b;", new AbsoluteTypeNameTestStruct[]{
+                        testStruct("$a", "\\.\\.", asList("int", "float"), null, 1, 2, 0, 0),
+                        testStruct("$b", "\\.\\.", asList("int", "float"), null, 1, 3, 0, 0),
+                        testStruct("$b", "\\.\\.", asList("int", "float"), null, 1, 4, 0, 0),
+                        testStruct("$a", "\\.\\.", asList("int", "float"), null, 1, 5, 0, 0)}
                 },
         });
     }

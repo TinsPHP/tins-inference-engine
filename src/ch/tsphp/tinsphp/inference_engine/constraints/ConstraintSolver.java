@@ -8,7 +8,6 @@ package ch.tsphp.tinsphp.inference_engine.constraints;
 
 
 import ch.tsphp.common.symbols.ITypeSymbol;
-import ch.tsphp.tinsphp.common.inference.constraints.BoundException;
 import ch.tsphp.tinsphp.common.inference.constraints.IBinding;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
@@ -17,9 +16,10 @@ import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
 import ch.tsphp.tinsphp.common.inference.constraints.IReadOnlyConstraintCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
-import ch.tsphp.tinsphp.common.inference.constraints.LowerBoundException;
+import ch.tsphp.tinsphp.common.inference.constraints.TypeVariableConstraint;
 import ch.tsphp.tinsphp.common.symbols.IFunctionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
+import ch.tsphp.tinsphp.symbols.constraints.BoundException;
 import ch.tsphp.tinsphp.symbols.constraints.TypeConstraint;
 
 import java.util.ArrayDeque;
@@ -78,93 +78,146 @@ public class ConstraintSolver implements IConstraintSolver
 
     private void createBindingIfNecessary(IBinding binding, IVariable variable) {
         String absoluteName = variable.getAbsoluteName();
-        Map<String, String> bindings = binding.getVariable2TypeVariable();
+        Map<String, TypeVariableConstraint> bindings = binding.getVariable2TypeVariable();
         if (!bindings.containsKey(absoluteName)) {
-            String typeVariableName = binding.getNextTypeVariable();
-            bindings.put(absoluteName, typeVariableName);
-            //if it is a literal then the type variable is already set in stone and will not change anymore
+            TypeVariableConstraint typeVariableConstraint = binding.getNextTypeVariable();
+            bindings.put(absoluteName, typeVariableConstraint);
+            //if it is a literal then we know already the lower bound.
             ITypeSymbol typeSymbol = variable.getType();
             if (typeSymbol != null) {
-                try {
-                    binding.getTypeVariables().addLowerBound(typeVariableName, new TypeConstraint(typeSymbol));
-                } catch (LowerBoundException e) {
-                    //should not happen, if it does, then throw exception
-                    throw new RuntimeException(e);
-                }
+                typeVariableConstraint.setIsConstant();
+                ITypeVariableCollection typeVariables = binding.getTypeVariables();
+                TypeConstraint constraint = new TypeConstraint(typeSymbol);
+                String typeVariable = typeVariableConstraint.getTypeVariable();
+                typeVariables.addLowerBound(typeVariable, constraint);
+
             }
         }
     }
-
 
     private void solveOverLoad(ConstraintSolverDto constraintSolver3Dto, IIntersectionConstraint constraint,
             IFunctionTypeSymbol overload) {
-        List<IVariable> arguments = constraint.getArguments();
-
-        int numberOfArguments = arguments.size();
-        if (numberOfArguments >= overload.getNumberOfNonOptionalParameters()) {
-
+        if (constraint.getArguments().size() >= overload.getNumberOfNonOptionalParameters()) {
             Binding binding = new Binding(overloadResolver, (Binding) constraintSolver3Dto.binding);
+            aggregateBinding(constraintSolver3Dto, constraint, overload, binding);
+        }
+    }
 
-            try {
-                List<String> parameterTypeVariables = overload.getParameterTypeVariables();
-                int numberOfParameters = parameterTypeVariables.size();
-                Map<String, String> mapping = new HashMap<>(numberOfParameters + 1);
+    private void aggregateBinding(
+            ConstraintSolverDto constraintSolver3Dto,
+            IIntersectionConstraint constraint,
+            IFunctionTypeSymbol overload,
+            Binding binding) {
+
+        List<IVariable> arguments = constraint.getArguments();
+        List<String> parameterTypeVariables = overload.getParameterTypeVariables();
+        int numberOfParameters = parameterTypeVariables.size();
+        Map<String, TypeVariableConstraint> mapping = new HashMap<>(numberOfParameters + 1);
+        int numberOfArguments = arguments.size();
+        int count = numberOfParameters <= numberOfArguments ? numberOfParameters : numberOfArguments;
+        try {
+            int iterateCount = 0;
+            boolean needToIterateOverload = true;
+            while (needToIterateOverload) {
+
                 String rhsTypeVariable = overload.getReturnTypeVariable();
                 IVariable leftHandSide = constraint.getLeftHandSide();
-                mergeTypeVariables(binding, overload, mapping, leftHandSide, rhsTypeVariable);
+                needToIterateOverload = !mergeTypeVariables(binding, overload, mapping, leftHandSide, rhsTypeVariable);
 
-                int count = numberOfParameters <= numberOfArguments ? numberOfParameters : numberOfArguments;
                 for (int i = 0; i < count; ++i) {
                     IVariable argument = arguments.get(i);
                     String parameterTypeVariable = parameterTypeVariables.get(i);
-                    mergeTypeVariables(binding, overload, mapping, argument, parameterTypeVariable);
+                    boolean needToIterateParameter = !mergeTypeVariables(
+                            binding, overload, mapping, argument, parameterTypeVariable);
+                    needToIterateOverload = needToIterateOverload || needToIterateParameter;
                 }
 
-                workDeque.add(new ConstraintSolverDto(constraintSolver3Dto.pointer + 1, binding));
-
-            } catch (BoundException ex) {
-                //That is ok, we will deal with it in solveConstraints
+                if (iterateCount > 1) {
+                    throw new IllegalStateException("overload uses type variables "
+                            + "which are not part of the signature.");
+                }
+                ++iterateCount;
             }
+            workDeque.add(new ConstraintSolverDto(constraintSolver3Dto.pointer + 1, binding));
+        } catch (BoundException ex) {
+            //That is ok, we will deal with it in solveConstraints
         }
     }
 
-    private void mergeTypeVariables(
+    private boolean mergeTypeVariables(
             IBinding binding,
             IFunctionTypeSymbol overload,
-            Map<String, String> mapping,
+            Map<String, TypeVariableConstraint> mapping,
             IVariable bindingVariable,
             String overloadTypeVariable) throws BoundException {
+        ITypeVariableCollection bindingTypeVariables = binding.getTypeVariables();
         String bindingVariableName = bindingVariable.getAbsoluteName();
-        String bindingTypeVariable = binding.getVariable2TypeVariable().get(bindingVariableName);
-        ITypeVariableCollection collection = binding.getTypeVariables();
+        TypeVariableConstraint bindingTypeVariableConstraint
+                = binding.getVariable2TypeVariable().get(bindingVariableName);
+
+        boolean canMergeBinding;
 
         String lhsTypeVariable;
         if (mapping.containsKey(overloadTypeVariable)) {
-            lhsTypeVariable = mapping.get(overloadTypeVariable);
-            binding.getVariable2TypeVariable().put(bindingVariableName, lhsTypeVariable);
-            addRightToLeft(collection, lhsTypeVariable, collection, bindingTypeVariable);
+            lhsTypeVariable = mapping.get(overloadTypeVariable).getTypeVariable();
+            String rhsTypeVariable = bindingTypeVariableConstraint.getTypeVariable();
+            canMergeBinding = lhsTypeVariable.equals(rhsTypeVariable);
+            if (!canMergeBinding) {
+                canMergeBinding = addRightToLeft(
+                        mapping, bindingTypeVariables, lhsTypeVariable, bindingTypeVariables, rhsTypeVariable);
+                if (canMergeBinding) {
+                    bindingTypeVariableConstraint.setTypeVariable(lhsTypeVariable);
+                }
+                //TODO remove lower and upper bounds of unused type variable
+            }
         } else {
-            lhsTypeVariable = bindingTypeVariable;
-            mapping.put(overloadTypeVariable, lhsTypeVariable);
+            lhsTypeVariable = bindingTypeVariableConstraint.getTypeVariable();
+            mapping.put(overloadTypeVariable, bindingTypeVariableConstraint);
+            canMergeBinding = true;
         }
 
-        addRightToLeft(collection, lhsTypeVariable, overload.getTypeVariables(), overloadTypeVariable);
+        ITypeVariableCollection overloadTypeVariables = overload.getTypeVariables();
+        boolean canMergeOverload = addRightToLeft(
+                mapping, bindingTypeVariables, lhsTypeVariable, overloadTypeVariables, overloadTypeVariable);
+
+        return canMergeBinding && canMergeOverload;
     }
 
-    private void addRightToLeft(
+    private boolean addRightToLeft(
+            Map<String, TypeVariableConstraint> mapping,
             ITypeVariableCollection leftCollection, String left,
             ITypeVariableCollection rightCollection, String right) throws BoundException {
+
         if (rightCollection.hasUpperBounds(right)) {
             for (IConstraint upperBound : rightCollection.getUpperBounds(right)) {
+                //upper bounds do not have TypeVariableConstraint
                 leftCollection.addUpperBound(left, upperBound);
             }
         }
+
+        boolean couldAddLower = true;
         if (rightCollection.hasLowerBounds(right)) {
             for (IConstraint lowerBound : rightCollection.getLowerBounds(right)) {
-                leftCollection.addLowerBound(left, lowerBound);
+                if (lowerBound instanceof TypeConstraint) {
+                    leftCollection.addLowerBound(left, lowerBound);
+                } else if (lowerBound instanceof TypeVariableConstraint) {
+                    String typeVariable = ((TypeVariableConstraint) lowerBound).getTypeVariable();
+                    if (typeVariable.charAt(0) != Binding.TYPE_VARIABLE_PREFIX) {
+                        if (mapping.containsKey(typeVariable)) {
+                            leftCollection.addLowerBound(left, mapping.get(typeVariable));
+                        } else {
+                            couldAddLower = false;
+                            break;
+                        }
+                    } else {
+                        leftCollection.addLowerBound(left, lowerBound);
+                    }
+                } else {
+                    throw new UnsupportedOperationException(lowerBound.getClass().getName() + " not supported.");
+                }
             }
         }
+
+        return couldAddLower;
     }
-
-
 }

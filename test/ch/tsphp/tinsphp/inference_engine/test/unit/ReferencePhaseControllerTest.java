@@ -166,11 +166,9 @@ public class ReferencePhaseControllerTest
 
         //act
         IReferencePhaseController controller = createController(symbolFactory, primitiveTypes);
-        IUnionTypeSymbol result = controller.resolvePrimitiveType(ast, null);
+        ITypeSymbol result = controller.resolvePrimitiveType(ast, null);
 
-        assertThat(result.isReadyForEval(), is(true));
-        assertThat(result.getTypeSymbols(), hasEntry(absoluteName, typeSymbol));
-        assertThat(result.getTypeSymbols().size(), is(1));
+        assertThat(result, is(typeSymbol));
     }
 
     @Test
@@ -187,11 +185,9 @@ public class ReferencePhaseControllerTest
 
         //act
         IReferencePhaseController controller = createController(symbolFactory, primitiveTypes);
-        IUnionTypeSymbol result = controller.resolvePrimitiveType(ast, null);
+        ITypeSymbol result = controller.resolvePrimitiveType(ast, null);
 
-        assertThat(result, is(unionTypeSymbol));
-        verify(unionTypeSymbol).addTypeSymbol(typeSymbol);
-        verify(unionTypeSymbol).seal();
+        assertThat(result, is(typeSymbol));
     }
 
     @Test
@@ -207,7 +203,7 @@ public class ReferencePhaseControllerTest
 
         //act
         IReferencePhaseController controller = createController(symbolFactory, issueReporter, primitiveTypes);
-        IUnionTypeSymbol result = controller.resolvePrimitiveType(ast, null);
+        ITypeSymbol result = controller.resolvePrimitiveType(ast, null);
 
         verify(symbolFactory).createErroneousTypeSymbol(eq(ast), any(TSPHPException.class));
         verify(issueReporter).unknownType(ast);
@@ -233,10 +229,9 @@ public class ReferencePhaseControllerTest
         modifiers.add(TokenTypes.LogicNot);
         when(modifierHelper.getModifiers(modifierAst)).thenReturn(modifiers);
 
-
         IReferencePhaseController controller = createController(
                 symbolFactory, issueReporter, modifierHelper, primitiveTypes);
-        IUnionTypeSymbol result = controller.resolvePrimitiveType(ast, modifierAst);
+        IUnionTypeSymbol result = (IUnionTypeSymbol) controller.resolvePrimitiveType(ast, modifierAst);
 
         assertThat(result.getTypeSymbols(), allOf(
                 hasEntry("\\a\\dummy", typeSymbol),
@@ -267,7 +262,7 @@ public class ReferencePhaseControllerTest
 
         IReferencePhaseController controller = createController(
                 symbolFactory, issueReporter, modifierHelper, primitiveTypes);
-        IUnionTypeSymbol result = controller.resolvePrimitiveType(ast, modifierAst);
+        IUnionTypeSymbol result = (IUnionTypeSymbol) controller.resolvePrimitiveType(ast, modifierAst);
 
         assertThat(result.getTypeSymbols(), allOf(
                 hasEntry("\\a\\dummy", typeSymbol),
@@ -292,7 +287,6 @@ public class ReferencePhaseControllerTest
         primitiveTypes.put("\\false", falseTypeSymbol);
         ISymbolFactory symbolFactory = createSymbolFactoryMock();
 
-//        when(symbolFactory.createUnionTypeSymbol()).thenReturn(new UnionTypeSymbol(mock(IOverloadResolver.class)));
         IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
         IModifierHelper modifierHelper = mock(IModifierHelper.class);
         ITSPHPAst modifierAst = mock(ITSPHPAst.class);
@@ -304,7 +298,7 @@ public class ReferencePhaseControllerTest
 
         IReferencePhaseController controller = createController(
                 symbolFactory, issueReporter, modifierHelper, primitiveTypes);
-        IUnionTypeSymbol result = controller.resolvePrimitiveType(ast, modifierAst);
+        IUnionTypeSymbol result = (IUnionTypeSymbol) controller.resolvePrimitiveType(ast, modifierAst);
 
         assertThat(result.getTypeSymbols(), allOf(
                 hasEntry("\\a\\dummy", typeSymbol),
@@ -335,11 +329,9 @@ public class ReferencePhaseControllerTest
 
         IReferencePhaseController controller = createController(
                 symbolFactory, issueReporter, modifierHelper, primitiveTypes);
-        IUnionTypeSymbol result = controller.resolvePrimitiveType(ast, modifierAst);
+        ITypeSymbol result = controller.resolvePrimitiveType(ast, modifierAst);
 
-        assertThat(result.isReadyForEval(), is(true));
-        assertThat(result.getTypeSymbols(), hasEntry(absoluteName, falseTypeSymbol));
-        assertThat(result.getTypeSymbols().size(), is(1));
+        assertThat(result, is(falseTypeSymbol));
     }
 
     @Test
@@ -362,11 +354,9 @@ public class ReferencePhaseControllerTest
 
         IReferencePhaseController controller = createController(
                 symbolFactory, issueReporter, modifierHelper, primitiveTypes);
-        IUnionTypeSymbol result = controller.resolvePrimitiveType(ast, modifierAst);
+        ITypeSymbol result = controller.resolvePrimitiveType(ast, modifierAst);
 
-        assertThat(result.isReadyForEval(), is(true));
-        assertThat(result.getTypeSymbols(), hasEntry(absoluteName, nullTypeSymbol));
-        assertThat(result.getTypeSymbols().size(), is(1));
+        assertThat(result, is(nullTypeSymbol));
     }
 
     @Test
@@ -374,7 +364,7 @@ public class ReferencePhaseControllerTest
         ITSPHPAst ast = mock(ITSPHPAst.class);
 
         IReferencePhaseController controller = createController();
-        IUnionTypeSymbol result = controller.resolvePrimitiveLiteral(ast);
+        ITypeSymbol result = controller.resolvePrimitiveLiteral(ast);
 
         assertThat(result, is(nullValue()));
     }
@@ -393,11 +383,9 @@ public class ReferencePhaseControllerTest
 
         //act
         IReferencePhaseController controller = createController(symbolFactory, types);
-        IUnionTypeSymbol result = controller.resolvePrimitiveLiteral(ast);
+        ITypeSymbol result = controller.resolvePrimitiveLiteral(ast);
 
-        assertThat(result, is(unionTypeSymbol));
-        verify(unionTypeSymbol).addTypeSymbol(typeSymbol);
-        verify(unionTypeSymbol).seal();
+        assertThat(result, is(typeSymbol));
     }
 
     @Test
@@ -415,11 +403,9 @@ public class ReferencePhaseControllerTest
 
         //act
         IReferencePhaseController controller = createController(symbolFactory, types);
-        IUnionTypeSymbol result = controller.resolvePrimitiveLiteral(ast);
+        ITypeSymbol result = controller.resolvePrimitiveLiteral(ast);
 
-        assertThat(result, is(unionTypeSymbol));
-        verify(unionTypeSymbol).addTypeSymbol(typeSymbol);
-        verify(unionTypeSymbol).seal();
+        assertThat(result, is(typeSymbol));
     }
 
     @Test
@@ -437,11 +423,9 @@ public class ReferencePhaseControllerTest
 
         //act
         IReferencePhaseController controller = createController(symbolFactory, types);
-        IUnionTypeSymbol result = controller.resolvePrimitiveLiteral(ast);
+        ITypeSymbol result = controller.resolvePrimitiveLiteral(ast);
 
-        assertThat(result, is(unionTypeSymbol));
-        verify(unionTypeSymbol).addTypeSymbol(typeSymbol);
-        verify(unionTypeSymbol).seal();
+        assertThat(result, is(typeSymbol));
     }
 
     @Test
@@ -458,11 +442,9 @@ public class ReferencePhaseControllerTest
 
         //act
         IReferencePhaseController controller = createController(symbolFactory, types);
-        IUnionTypeSymbol result = controller.resolvePrimitiveLiteral(ast);
+        ITypeSymbol result = controller.resolvePrimitiveLiteral(ast);
 
-        assertThat(result, is(unionTypeSymbol));
-        verify(unionTypeSymbol).addTypeSymbol(typeSymbol);
-        verify(unionTypeSymbol).seal();
+        assertThat(result, is(typeSymbol));
     }
 
     @Test
@@ -479,11 +461,9 @@ public class ReferencePhaseControllerTest
 
         //act
         IReferencePhaseController controller = createController(symbolFactory, types);
-        IUnionTypeSymbol result = controller.resolvePrimitiveLiteral(ast);
+        ITypeSymbol result = controller.resolvePrimitiveLiteral(ast);
 
-        assertThat(result, is(unionTypeSymbol));
-        verify(unionTypeSymbol).addTypeSymbol(typeSymbol);
-        verify(unionTypeSymbol).seal();
+        assertThat(result, is(typeSymbol));
     }
 
     @Test
@@ -500,11 +480,9 @@ public class ReferencePhaseControllerTest
 
         //act
         IReferencePhaseController controller = createController(symbolFactory, types);
-        IUnionTypeSymbol result = controller.resolvePrimitiveLiteral(ast);
+        ITypeSymbol result = controller.resolvePrimitiveLiteral(ast);
 
-        assertThat(result, is(unionTypeSymbol));
-        verify(unionTypeSymbol).addTypeSymbol(typeSymbol);
-        verify(unionTypeSymbol).seal();
+        assertThat(result, is(typeSymbol));
     }
 
     @Test
@@ -521,11 +499,9 @@ public class ReferencePhaseControllerTest
 
         //act
         IReferencePhaseController controller = createController(symbolFactory, types);
-        IUnionTypeSymbol result = controller.resolvePrimitiveLiteral(ast);
+        ITypeSymbol result = controller.resolvePrimitiveLiteral(ast);
 
-        assertThat(result, is(unionTypeSymbol));
-        verify(unionTypeSymbol).addTypeSymbol(typeSymbol);
-        verify(unionTypeSymbol).seal();
+        assertThat(result, is(typeSymbol));
     }
 
     @Test

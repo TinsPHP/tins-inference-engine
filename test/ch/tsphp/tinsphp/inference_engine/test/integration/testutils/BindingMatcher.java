@@ -8,6 +8,7 @@ package ch.tsphp.tinsphp.inference_engine.test.integration.testutils;
 
 import ch.tsphp.tinsphp.common.inference.constraints.IBinding;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
+import ch.tsphp.tinsphp.common.inference.constraints.TypeVariableConstraint;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -17,73 +18,47 @@ import java.util.Map;
 
 public class BindingMatcher extends BaseMatcher<IBinding>
 {
-    final String[] variables;
-    final String[] typeVariables;
-    final List<String>[] lowerBoundLists;
-    final List<String>[] upperBoundLists;
+    final BindingMatcherDto[] dtos;
 
-    public static Matcher<? super IBinding> isBinding(
-            final String[] vars, final String[] typeVars, final List<String>[] lower,
-            final List<String>[] upper) {
-        return new BindingMatcher(vars, typeVars, lower, upper);
+    public static Matcher<? super IBinding> withVariableBindings(BindingMatcherDto... dtos) {
+        return new BindingMatcher(dtos);
     }
 
-    @SafeVarargs
-    public static List<String>[] lowerConstraints(List<String>... constraints) {
-        return constraints;
+    public static BindingMatcherDto varBinding(
+            String theVariable, String theTypeVariable, List<String> theLowerBounds, List<String> theUpperBounds) {
+        return new BindingMatcherDto(theVariable, theTypeVariable, theLowerBounds, theUpperBounds);
     }
 
-    @SafeVarargs
-    public static List<String>[] upperConstraints(List<String>... constraints) {
-        return constraints;
-    }
-
-    public static String[] vars(String... vars) {
-        return vars;
-    }
-
-    public static String[] typeVars(String... vars) {
-        return vars;
-    }
-
-    public BindingMatcher(
-            final String[] theVars,
-            final String[] theTypeVars,
-            final List<String>[] theLowerBounds,
-            final List<String>[] theUpperBounds) {
-        variables = theVars;
-        typeVariables = theTypeVars;
-        lowerBoundLists = theLowerBounds;
-        upperBoundLists = theUpperBounds;
+    public BindingMatcher(BindingMatcherDto[] bindingDtos) {
+        dtos = bindingDtos;
     }
 
     @Override
     public boolean matches(Object o) {
         IBinding binding = (IBinding) o;
-        Map<String, String> variable2TypeVariable = binding.getVariable2TypeVariable();
+        Map<String, TypeVariableConstraint> variable2TypeVariable = binding.getVariable2TypeVariable();
         ITypeVariableCollection typeVariables = binding.getTypeVariables();
 
         int size = variable2TypeVariable.size();
-        boolean ok = size == variables.length;
+        boolean ok = size == dtos.length;
         if (ok) {
             for (int i = 0; i < size; ++i) {
-                String variableName = variables[i];
-                String typeVariable = this.typeVariables[i];
-                List<String> lowerBounds = lowerBoundLists[i];
-                List<String> upperBounds = upperBoundLists[i];
-                ok = variable2TypeVariable.containsKey(variableName);
+                BindingMatcherDto dto = dtos[i];
+                ok = variable2TypeVariable.containsKey(dto.variableName);
                 if (ok) {
-                    ok = variable2TypeVariable.get(variableName).equals(typeVariable);
+                    ok = variable2TypeVariable.get(dto.variableName).getTypeVariable().equals(dto.typeVariable);
                 }
                 if (ok) {
-                    ok = lowerBounds == null && !typeVariables.hasLowerBounds(typeVariable)
-                            || lowerBounds != null
-                            && typeVariables.getLowerBoundConstraintIds(typeVariable).containsAll(lowerBounds);
+                    ok = dto.lowerBounds == null && !typeVariables.hasLowerBounds(dto.typeVariable)
+                            || dto.lowerBounds != null
+                            && typeVariables.hasLowerBounds(dto.typeVariable)
+                            && typeVariables.getLowerBoundConstraintIds(dto.typeVariable).containsAll(dto.lowerBounds);
                 }
                 if (ok) {
-                    ok = upperBounds == null && !typeVariables.hasUpperBounds(typeVariable)
-                            || upperBounds != null
-                            && typeVariables.getUpperBoundConstraintIds(typeVariable).containsAll(upperBounds);
+                    ok = dto.upperBounds == null && !typeVariables.hasUpperBounds(dto.typeVariable)
+                            || dto.upperBounds != null
+                            && typeVariables.hasUpperBounds(dto.typeVariable)
+                            && typeVariables.getUpperBoundConstraintIds(dto.typeVariable).containsAll(dto.upperBounds);
                 }
                 if (!ok) {
                     break;
@@ -101,18 +76,36 @@ public class BindingMatcher extends BaseMatcher<IBinding>
     @Override
     public void describeTo(Description description) {
         description.appendText("[");
-        for (int i = 0; i < typeVariables.length; ++i) {
+        for (int i = 0; i < dtos.length; ++i) {
             if (i != 0) {
                 description.appendText(", ");
             }
-            description.appendText(variables[i]).appendText(":");
-            description.appendText(typeVariables[i]);
-            description.appendText("<")
-                    .appendText(lowerBoundLists[i] != null ? lowerBoundLists[i].toString() : "[]")
-                    .appendText(",")
-                    .appendText(upperBoundLists[i] != null ? upperBoundLists[i].toString() : "[]")
-                    .appendText(">");
+            description.appendText(dtos[i].toString());
         }
         description.appendText("]");
+    }
+
+    public static class BindingMatcherDto
+    {
+        public String variableName;
+        public String typeVariable;
+        public List<String> lowerBounds;
+        public List<String> upperBounds;
+
+        private BindingMatcherDto(
+                String theVariable, String theTypeVariable, List<String> theLowerBounds, List<String> theUpperBounds) {
+            variableName = theVariable;
+            typeVariable = theTypeVariable;
+            lowerBounds = theLowerBounds;
+            upperBounds = theUpperBounds;
+        }
+
+        @Override
+        public String toString() {
+            return variableName + ":" + typeVariable
+                    + "<" + (lowerBounds != null ? lowerBounds.toString() : "[]") + ","
+                    + (upperBounds != null ? upperBounds.toString() : "[]")
+                    + ">";
+        }
     }
 }
