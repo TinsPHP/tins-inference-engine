@@ -33,8 +33,8 @@ public class ConstraintSolver implements IConstraintSolver
 {
     private final ISymbolFactory symbolFactory;
     private final IOverloadResolver overloadResolver;
-    Deque<ConstraintSolverDto> workDeque = new ArrayDeque<>();
-    List<IBinding> solvedBindings = new ArrayList<>();
+    private Deque<ConstraintSolverDto> workDeque = new ArrayDeque<>();
+    private List<IBinding> solvedBindings = new ArrayList<>();
 
     public ConstraintSolver(
             ISymbolFactory theSymbolFactory,

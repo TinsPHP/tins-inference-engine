@@ -84,8 +84,8 @@ public class Binding implements IBinding
             String typeVariable = entry.getValue().getTypeVariable();
             sb.append(typeVariable)
                     .append("<")
-                    .append(collection.hasLowerBounds(typeVariable) ?
-                            collection.getLowerBoundConstraintIds(typeVariable).toString() : "[]")
+                    .append(collection.hasLowerBounds(typeVariable)
+                            ? collection.getLowerBoundConstraintIds(typeVariable).toString() : "[]")
                     .append(",")
                     .append(collection.hasUpperBounds(typeVariable)
                             ? collection.getUpperBoundConstraintIds(typeVariable).toString() : "[]")
