@@ -10,14 +10,12 @@ import ch.tsphp.tinsphp.common.inference.constraints.IBinding;
 
 import java.util.Deque;
 
-public class ConstraintSolverDto
+public class WorkListDto
 {
     public int pointer;
     public IBinding binding;
-    public Deque<IBinding> workList;
-    public Deque<IBinding> solvedBindings;
 
-    public ConstraintSolverDto(int thePointer, IBinding theBinding) {
+    public WorkListDto(int thePointer, IBinding theBinding) {
         pointer = thePointer;
         binding = theBinding;
     }

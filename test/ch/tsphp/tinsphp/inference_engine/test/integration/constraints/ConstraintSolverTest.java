@@ -302,35 +302,34 @@ public class ConstraintSolverTest
         )));
     }
 
-//    @Test
-//    public void solveConstraints_Division_HasTwoOverloads() {
-//        //corresponds to: function foo($x, $y){ return $x / $y; }
-//        IConstraintCollection collection = mock(IConstraintCollection.class);
-//        IVariable rtn = var("rtn");
-//        IVariable $x = var("$x");
-//        IVariable $y = var("$y");
-//        when(collection.getLowerBoundConstraints()).thenReturn(asList(
-//                intersect(rtn, asList($x, $y), core.getOperators().get(TokenTypes.Divide))
-//        ));
-//
-//
-//        IConstraintSolver solver = createConstraintSolver();
-//        List<IBinding> bindings = solver.solveConstraints(collection);
-//
-//
-//        assertThat(bindings, hasItem(withVariableBindings(
-//                vars("$x", "$y", "rtn"),
-//                typeVars("T2", "T3", "T1"),
-//                lowerConstraints(asList("bool"), asList("bool"), asList("{int V false}")),
-//                upperConstraints(asList("bool"), asList("bool"), asList("{int V false}"))
-//        )));
-//        assertThat(bindings, hasItem(withVariableBindings(
-//                vars("$x", "$y", "rtn"),
-//                typeVars("T2", "T2", "T1"),
-//                lowerConstraints(asList("float"), asList("float"), asList("@T2", "false")),
-//                upperConstraints(asList("num"), asList("num"), null)
-//        )));
-//    }
+    @Test
+    public void solveConstraints_Division_HasTwoOverloads() {
+        //corresponds to: function foo($x, $y){ return $x / $y; }
+        IConstraintCollection collection = mock(IConstraintCollection.class);
+        IVariable rtn = var("rtn");
+        IVariable $x = var("$x");
+        IVariable $y = var("$y");
+        when(collection.getLowerBoundConstraints()).thenReturn(asList(
+                intersect(rtn, asList($x, $y), core.getOperators().get(TokenTypes.Divide))
+        ));
+
+
+        IConstraintSolver solver = createConstraintSolver();
+        List<IBinding> bindings = solver.solveConstraints(collection);
+
+
+        assertThat(bindings, hasItem(withVariableBindings(
+                varBinding("$x", "T2", null, asList("bool")),
+                varBinding("$y", "T3", null, asList("bool")),
+                varBinding("rtn", "T1", asList("{int V false}"), null)
+        )));
+        assertThat(bindings, hasItem(withVariableBindings(
+                varBinding("$x", "T2", asList("float"), asList("num")),
+                varBinding("$y", "T2", asList("float"), asList("num")),
+                varBinding("rtn", "T1", asList("@T2", "false"), null)
+        )));
+        assertThat(bindings, hasSize(2));
+    }
 
     private IVariable var(String name) {
         IVariable mock = mock(IVariable.class);
