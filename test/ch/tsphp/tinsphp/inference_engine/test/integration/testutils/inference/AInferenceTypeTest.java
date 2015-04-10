@@ -14,7 +14,6 @@ import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.TypeVariableConstraint;
-import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.ScopeTestHelper;
 import ch.tsphp.tinsphp.symbols.constraints.TypeConstraint;
 import org.junit.Assert;
@@ -61,16 +60,11 @@ public class AInferenceTypeTest extends AInferenceTest
                             "wrong scope",
                     testStruct.astScope, ScopeTestHelper.getEnclosingScopeNames(definitionScope));
 
+            IConstraintCollection collectionScope = getConstraintCollection(definitionScope);
 
-            IConstraintCollection collectionScope;
-            if (definitionScope instanceof INamespaceScope) {
-                collectionScope = (IConstraintCollection) definitionScope.getEnclosingScope();
-            } else {
-                collectionScope = (IConstraintCollection) definitionScope;
-            }
             List<IBinding> bindings = collectionScope.getBindings();
             Assert.assertEquals(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
-                    "too many bindings", 1, bindings.size());
+                    "too many or not enough bindings", 1, bindings.size());
 
             IBinding binding = bindings.get(0);
             Map<String, TypeVariableConstraint> variable2TypeVariable = binding.getVariable2TypeVariable();
@@ -94,6 +88,14 @@ public class AInferenceTypeTest extends AInferenceTest
 
             ++counter;
         }
+    }
+
+    private IConstraintCollection getConstraintCollection(IScope definitionScope) {
+        IScope scope = definitionScope;
+        while (!(scope instanceof IConstraintCollection)) {
+            scope = scope.getEnclosingScope();
+        }
+        return (IConstraintCollection) scope;
     }
 
     private void getAbsoluteNames(

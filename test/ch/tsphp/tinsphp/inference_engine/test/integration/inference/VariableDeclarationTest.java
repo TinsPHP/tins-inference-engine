@@ -64,7 +64,7 @@ public class VariableDeclarationTest extends AInferenceTypeTest
                         testStruct("$b", "\\.\\.", asList("int", "float"), null, 1, 3, 0, 0),
                         testStruct("$b", "\\.\\.", asList("int", "float"), null, 1, 4, 0, 0),
                         testStruct("$a", "\\.\\.", asList("int", "float"), null, 1, 5, 0, 0)}
-                },
+                }
         });
     }
 }

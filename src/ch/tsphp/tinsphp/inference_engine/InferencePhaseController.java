@@ -55,6 +55,7 @@ public class InferencePhaseController implements IInferencePhaseController
     public void createTypeConstraint(ITSPHPAst literal) {
         ITypeVariableSymbol typeVariableSymbol = symbolFactory.createExpressionTypeVariableSymbol(literal);
         typeVariableSymbol.setType(literal.getEvalType());
+        typeVariableSymbol.setHasFixedType();
         literal.setSymbol(typeVariableSymbol);
     }
 
@@ -79,9 +80,11 @@ public class InferencePhaseController implements IInferencePhaseController
 
         IOverloadSymbol overloadSymbol = (IOverloadSymbol) operator.getSymbol();
         ITypeVariableSymbol expressionVariable = symbolFactory.createExpressionTypeVariableSymbol(operator);
+        expressionVariable.setDefinitionScope(operator.getScope());
         IIntersectionConstraint constraint = new IntersectionConstraint(
                 expressionVariable, typeVariables, overloadSymbol.getOverloads());
         collection.addLowerBoundConstraint(constraint);
+        operator.setSymbol(expressionVariable);
     }
 
     @Override

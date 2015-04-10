@@ -74,7 +74,16 @@ public class ExpressionWithConditionalScopeTest extends ADefinitionScopeTest
                 //see TINS-373 logic operators do not reset conditional scope
                 {prefix + " $a or $b; $c = 1;" + appendix, new ScopeTestStruct[]{
                         testStruct("$c", fullScopeName, accessToScope, stepIn, 1, 0, 0)
-                }}
+                }},
+                {prefix + " $a and $b; $c = 1;" + appendix, new ScopeTestStruct[]{
+                        testStruct("$c", fullScopeName, accessToScope, stepIn, 1, 0, 0)
+                }},
+                {prefix + " $a || $b; $c = 1;" + appendix, new ScopeTestStruct[]{
+                        testStruct("$c", fullScopeName, accessToScope, stepIn, 1, 0, 0)
+                }},
+                {prefix + " $a && $b; $c = 1;" + appendix, new ScopeTestStruct[]{
+                        testStruct("$c", fullScopeName, accessToScope, stepIn, 1, 0, 0)
+                }},
         }));
 
         ScopeTestStruct[] logicTestStruct = {

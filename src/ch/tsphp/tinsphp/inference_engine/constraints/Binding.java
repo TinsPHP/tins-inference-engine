@@ -39,8 +39,8 @@ public class Binding implements IBinding
                 constraint = mapping.get(constraintId);
             } else {
                 constraint = new TypeVariableConstraint(value.getTypeVariable());
-                if (!value.isNotConstant()) {
-                    constraint.setIsConstant();
+                if (value.hasFixedType()) {
+                    constraint.setHasFixedType();
                 }
                 mapping.put(constraintId, constraint);
             }
@@ -90,6 +90,9 @@ public class Binding implements IBinding
                     .append(collection.hasUpperBounds(typeVariable)
                             ? collection.getUpperBoundConstraintIds(typeVariable).toString() : "[]")
                     .append(">");
+            if (entry.getValue().hasFixedType()) {
+                sb.append("#");
+            }
         }
         sb.append("]");
         return sb.toString();

@@ -12,9 +12,11 @@
 
 package ch.tsphp.tinsphp.inference_engine.constraints;
 
+import ch.tsphp.tinsphp.common.inference.constraints.IBinding;
 import ch.tsphp.tinsphp.common.symbols.IFunctionTypeSymbol;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -22,21 +24,27 @@ import java.util.List;
  */
 public class OverloadRankingDto implements Serializable
 {
+    public IBinding binding;
 
     public IFunctionTypeSymbol overload;
 
     /**
-     * Count which tells how many parameters require up casts.
+     * Count which tells how many parameters require an up cast.
      * <p/>
      * An up cast is happening when for instance Exception is required and ErrorException provided (this corresponds
-     * to one promotion level)
+     * to one up cast level)
      */
-    public int parameterUpCastCount;
+    public int parameterWithUpCastCount;
 
     /**
-     * Summation of promotion levels.
+     * Summation of the up casts levels over all parameters.
      */
     public int upCastsTotal;
+
+    /**
+     * Count which tells how many parameters had at least one lower bound
+     */
+    public int parameterWithoutFixedTypeCount;
 
     /**
      * All the parameters which need an implicit conversion
@@ -48,18 +56,8 @@ public class OverloadRankingDto implements Serializable
      */
     public List<ConversionDto> parametersNeedExplicitConversion;
 
-    public boolean isPartialApplication;
-
-    public OverloadRankingDto(
-            IFunctionTypeSymbol theOverload,
-            int howManyParameterWerePromoted,
-            int thePromotionsInTotal,
-            List<ConversionDto> theseParametersNeedImplicitConversion,
-            boolean isItPartialApplication) {
-        overload = theOverload;
-        parameterUpCastCount = howManyParameterWerePromoted;
-        upCastsTotal = thePromotionsInTotal;
-        parametersNeedImplicitConversion = theseParametersNeedImplicitConversion;
-        isPartialApplication = isItPartialApplication;
+    public OverloadRankingDto() {
+        parametersNeedImplicitConversion = new ArrayList<>(5);
+        parametersNeedExplicitConversion = new ArrayList<>(5);
     }
 }
