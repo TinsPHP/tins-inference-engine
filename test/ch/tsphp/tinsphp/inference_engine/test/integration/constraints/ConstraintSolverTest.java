@@ -321,7 +321,7 @@ public class ConstraintSolverTest
         assertThat(bindings, hasItem(withVariableBindings(
                 varBinding("$x", "T2", null, asList("bool")),
                 varBinding("$y", "T3", null, asList("bool")),
-                varBinding("rtn", "T1", asList("{int V false}"), null)
+                varBinding("rtn", "T1", asList("{int | false}"), null)
         )));
         assertThat(bindings, hasItem(withVariableBindings(
                 varBinding("$x", "T2", asList("float"), asList("num")),
