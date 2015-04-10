@@ -217,7 +217,7 @@ expression
             currentScope = definer.defineConditionalScope(currentScope);
         } else {
             //reset scope after logic operator
-           // currentScope = currentScope.getEnclosingScope();
+            currentScope = currentScope.getEnclosingScope();
         }
     } else if(isTernary){
         int childIndex = $start.getChildIndex();
@@ -243,8 +243,13 @@ expression
             //self and parent are already covered above
         //|   ^(CLASS_STATIC_ACCESS identifier=(TYPE_NAME|'self'|'parent') .)
         
-        |   ^(CAST ^(TYPE . type=primitiveTypesWithoutResource) .) {$identifier=$type.start;}
+        |   ^(CAST ^(TYPE . type=primitiveTypesWithoutResource) .) 
+            {
+                $identifier=$type.start;
+                $start.setScope(currentScope);
+            }
         |   ^('instanceof' . (identifier=VariableId /* | TODO rstoll TINS-161 inference OOP identifier=TYPE_NAME*/))
+            {$start.setScope(currentScope);}
         //TODO rstoll TINS-161 inference OOP          
         //|   ^('new' identifier=TYPE_NAME .)
        //TODO rstoll TINS-161 inference OOP
@@ -284,8 +289,6 @@ expression
         |   '.='
         |   '<<='
         |   '>>='
-        
-        |   '?'
         
         |   '||'
         |   '&&'
@@ -327,6 +330,15 @@ expression
         |   ARRAY_ACCESS
         |   'exit'
         )
+        {$start.setScope(currentScope);}
+        
+    |   '?'
+        {
+            // do not rewrite scope of return type of a function or another unknown type
+            if($start.getParent().getType() != TYPE){
+                $start.setScope(currentScope);
+            }
+        }
     ;
 
 primitiveTypesWithoutResource
