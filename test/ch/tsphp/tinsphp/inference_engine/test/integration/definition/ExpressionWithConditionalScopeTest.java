@@ -56,10 +56,8 @@ public class ExpressionWithConditionalScopeTest extends ADefinitionScopeTest
         Integer[] stepIn = new Integer[]{};
 
         ScopeTestStruct[] scopeTestStructs = {
-                new ScopeTestStruct("$a", fullScopeName,
-                        ScopeTestHelper.getAstAccessOrder(accessToScope, stepIn, 0, 0, 0)),
-                new ScopeTestStruct("$b", fullScopeName + "cScope.",
-                        ScopeTestHelper.getAstAccessOrder(accessToScope, stepIn, 0, 0, 1))
+                testStruct("$a", fullScopeName, accessToScope, stepIn, 0, 0, 0),
+                testStruct("$b", fullScopeName + "cScope.", accessToScope, stepIn, 0, 0, 1)
         };
 
 
@@ -69,49 +67,41 @@ public class ExpressionWithConditionalScopeTest extends ADefinitionScopeTest
                 {prefix + " $a || $b;" + appendix, scopeTestStructs},
                 {prefix + " $a && $b;" + appendix, scopeTestStructs},
                 {prefix + " $x ? $a : $b;" + appendix, new ScopeTestStruct[]{
-                        new ScopeTestStruct("$x", fullScopeName,
-                                ScopeTestHelper.getAstAccessOrder(accessToScope, stepIn, 0, 0, 0)),
-                        new ScopeTestStruct("$a", fullScopeName + "cScope.",
-                                ScopeTestHelper.getAstAccessOrder(accessToScope, stepIn, 0, 0, 1)),
-                        new ScopeTestStruct("$b", fullScopeName + "cScope.",
-                                ScopeTestHelper.getAstAccessOrder(accessToScope, stepIn, 0, 0, 2)),
+                        testStruct("$x", fullScopeName, accessToScope, stepIn, 0, 0, 0),
+                        testStruct("$a", fullScopeName + "cScope.", accessToScope, stepIn, 0, 0, 1),
+                        testStruct("$b", fullScopeName + "cScope.", accessToScope, stepIn, 0, 0, 2),
                 }},
+                //see TINS-373 logic operators do not reset conditional scope
+                {prefix + " $a or $b; $c = 1;" + appendix, new ScopeTestStruct[]{
+                        testStruct("$c", fullScopeName, accessToScope, stepIn, 1, 0, 0)
+                }}
         }));
 
         ScopeTestStruct[] logicTestStruct = {
-                new ScopeTestStruct("$b", fullScopeName + "cScope.",
-                        ScopeTestHelper.getAstAccessOrder(accessToScope, stepIn, 0, 0, 1))
+                testStruct("$b", fullScopeName + "cScope.", accessToScope, stepIn, 0, 0, 1)
         };
 
         ScopeTestStruct[] binaryTestStruct = {
-                new ScopeTestStruct("$a", fullScopeName + "cScope.",
-                        ScopeTestHelper.getAstAccessOrder(accessToScope, stepIn, 0, 0, 1, 0)),
-                new ScopeTestStruct("$b", fullScopeName + "cScope.",
-                        ScopeTestHelper.getAstAccessOrder(accessToScope, stepIn, 0, 0, 1, 1)),
+                testStruct("$a", fullScopeName + "cScope.", accessToScope, stepIn, 0, 0, 1, 0),
+                testStruct("$b", fullScopeName + "cScope.", accessToScope, stepIn, 0, 0, 1, 1),
         };
 
         ScopeTestStruct[] unaryTestStruct = {
-                new ScopeTestStruct("$b", fullScopeName + "cScope.",
-                        ScopeTestHelper.getAstAccessOrder(accessToScope, stepIn, 0, 0, 1, 0))
+                testStruct("$b", fullScopeName + "cScope.", accessToScope, stepIn, 0, 0, 1, 0)
         };
 
         ScopeTestStruct[] ternaryTestStruct = new ScopeTestStruct[]{
-                new ScopeTestStruct("$x", fullScopeName + "cScope.",
-                        ScopeTestHelper.getAstAccessOrder(accessToScope, stepIn, 0, 0, 1)),
-                new ScopeTestStruct("$b", fullScopeName + "cScope.",
-                        ScopeTestHelper.getAstAccessOrder(accessToScope, stepIn, 0, 0, 2)),
+                testStruct("$x", fullScopeName + "cScope.", accessToScope, stepIn, 0, 0, 1),
+                testStruct("$b", fullScopeName + "cScope.", accessToScope, stepIn, 0, 0, 2),
         };
 
         ScopeTestStruct[] ternaryBinaryTestStruct = new ScopeTestStruct[]{
-                new ScopeTestStruct("$a", fullScopeName + "cScope.",
-                        ScopeTestHelper.getAstAccessOrder(accessToScope, stepIn, 0, 0, 2, 0)),
-                new ScopeTestStruct("$b", fullScopeName + "cScope.",
-                        ScopeTestHelper.getAstAccessOrder(accessToScope, stepIn, 0, 0, 2, 1)),
+                testStruct("$a", fullScopeName + "cScope.", accessToScope, stepIn, 0, 0, 2, 0),
+                testStruct("$b", fullScopeName + "cScope.", accessToScope, stepIn, 0, 0, 2, 1),
         };
 
         ScopeTestStruct[] ternaryUnaryTestStruct = {
-                new ScopeTestStruct("$b", fullScopeName + "cScope.",
-                        ScopeTestHelper.getAstAccessOrder(accessToScope, stepIn, 0, 0, 2, 0))
+                testStruct("$b", fullScopeName + "cScope.", accessToScope, stepIn, 0, 0, 2, 0)
         };
 
         Object[][] operators = new Object[][]{
@@ -165,5 +155,11 @@ public class ExpressionWithConditionalScopeTest extends ADefinitionScopeTest
         }
 
         return collection;
+    }
+
+    private static ScopeTestStruct testStruct(String astText, String fullScopeName, Integer[] accessToScope,
+            Integer[] stepIn, Integer... astAccessOrder) {
+        return new ScopeTestStruct(astText, fullScopeName,
+                ScopeTestHelper.getAstAccessOrder(accessToScope, stepIn, astAccessOrder));
     }
 }

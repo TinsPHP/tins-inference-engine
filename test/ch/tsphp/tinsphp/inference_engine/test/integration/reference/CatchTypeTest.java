@@ -21,7 +21,6 @@ import java.util.Collection;
 public class CatchTypeTest extends AReferenceEvalTypeScopeTest
 {
 
-
     public CatchTypeTest(String testString, TypeScopeTestStruct[] theTestStructs) {
         super(testString, theTestStructs);
     }
@@ -67,13 +66,5 @@ public class CatchTypeTest extends AReferenceEvalTypeScopeTest
                         typeStruct("\\ErrorException", "ErrorException", "", 1, 0, 4, 0, 1, 0)
                 },
         });
-    }
-
-    private static TypeScopeTestStruct[] typeStruct(
-            String astText, String typeText, String typeScope, Integer... astAccessOrder) {
-        return new TypeScopeTestStruct[]{
-                new TypeScopeTestStruct(astText, null, Arrays.asList(astAccessOrder), typeText, typeScope)
-        };
-
     }
 }

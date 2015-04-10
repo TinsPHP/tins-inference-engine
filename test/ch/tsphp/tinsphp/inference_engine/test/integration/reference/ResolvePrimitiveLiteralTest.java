@@ -45,12 +45,4 @@ public class ResolvePrimitiveLiteralTest extends AReferenceEvalTypeScopeTest
                 {"[1,2];", typeStruct("(array 1 2)", "array", "", 1, 0, 0)},
         });
     }
-
-    private static TypeScopeTestStruct[] typeStruct(
-            String astText, String typeText, String typeScope, Integer... astAccessOrder) {
-        return new TypeScopeTestStruct[]{
-                new TypeScopeTestStruct(astText, null, Arrays.asList(astAccessOrder), typeText, typeScope)
-        };
-
-    }
 }

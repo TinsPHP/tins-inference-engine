@@ -18,6 +18,8 @@ import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.ScopeTestHel
 import org.junit.Assert;
 import org.junit.Ignore;
 
+import java.util.Arrays;
+
 @Ignore
 public abstract class AReferenceEvalTypeScopeTest extends AReferenceTest
 {
@@ -61,5 +63,13 @@ public abstract class AReferenceEvalTypeScopeTest extends AReferenceTest
             }
             ++counter;
         }
+    }
+
+    protected static TypeScopeTestStruct[] typeStruct(
+            String astText, String typeText, String typeScope, Integer... astAccessOrder) {
+        return new TypeScopeTestStruct[]{
+                new TypeScopeTestStruct(astText, null, Arrays.asList(astAccessOrder), typeText, typeScope)
+        };
+
     }
 }
