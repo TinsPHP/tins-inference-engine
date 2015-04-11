@@ -13,7 +13,7 @@
 package ch.tsphp.tinsphp.inference_engine.constraints;
 
 import ch.tsphp.tinsphp.common.inference.constraints.IBinding;
-import ch.tsphp.tinsphp.common.symbols.IFunctionTypeSymbol;
+import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -26,7 +26,7 @@ public class OverloadRankingDto implements Serializable
 {
     public IBinding binding;
 
-    public IFunctionTypeSymbol overload;
+    public IFunctionType overload;
 
     /**
      * Count which tells how many parameters require an up cast.

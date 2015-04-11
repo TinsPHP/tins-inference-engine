@@ -33,9 +33,9 @@ import ch.tsphp.tinsphp.common.resolving.ISymbolResolverController;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
+import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMinimalVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
-import ch.tsphp.tinsphp.common.symbols.IOverloadSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousTypeSymbol;
@@ -62,7 +62,7 @@ public class ReferencePhaseController implements IReferencePhaseController
     private final IScopeHelper scopeHelper;
     private final IModifierHelper modifierHelper;
     private final Map<String, ITypeSymbol> primitiveTypes;
-    private final Map<Integer, IOverloadSymbol> operators;
+    private final Map<Integer, IMinimalMethodSymbol> operators;
     private final IGlobalNamespaceScope globalDefaultNamespace;
 
     public ReferencePhaseController(
@@ -157,8 +157,9 @@ public class ReferencePhaseController implements IReferencePhaseController
     }
 
     @Override
-    public IMethodSymbol resolveFunction(ITSPHPAst identifier) {
-        IMethodSymbol methodSymbol = (IMethodSymbol) symbolResolverController.resolveConstantLikeIdentifier(identifier);
+    public IMinimalMethodSymbol resolveFunction(ITSPHPAst identifier) {
+        IMinimalMethodSymbol methodSymbol =
+                (IMinimalMethodSymbol) symbolResolverController.resolveConstantLikeIdentifier(identifier);
         if (methodSymbol == null) {
             ReferenceException exception = inferenceErrorReporter.notDefined(identifier);
             methodSymbol = symbolFactory.createErroneousMethodSymbol(identifier, exception);
@@ -167,7 +168,7 @@ public class ReferencePhaseController implements IReferencePhaseController
     }
 
     @Override
-    public IOverloadSymbol resolveOperator(ITSPHPAst operator) {
+    public IMinimalMethodSymbol resolveOperator(ITSPHPAst operator) {
         return operators.get(operator.getType());
     }
 

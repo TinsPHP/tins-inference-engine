@@ -70,7 +70,6 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
 
         symbolFactory = new SymbolFactory(scopeHelper, modifierHelper, overloadResolver);
         constraintSolver = new ConstraintSolver(symbolFactory, overloadResolver);
-        symbolFactory.setConstraintSolver(constraintSolver);
         scopeFactory = new ScopeFactory(scopeHelper);
         inferenceErrorReporter = new InferenceIssueReporter(new HardCodedIssueMessageProvider());
 

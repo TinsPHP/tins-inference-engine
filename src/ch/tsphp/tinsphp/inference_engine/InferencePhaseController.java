@@ -12,15 +12,15 @@ import ch.tsphp.tinsphp.common.inference.IInferencePhaseController;
 import ch.tsphp.tinsphp.common.inference.constraints.IBinding;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
+import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
 import ch.tsphp.tinsphp.common.inference.constraints.IIntersectionConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
-import ch.tsphp.tinsphp.common.symbols.IFunctionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
-import ch.tsphp.tinsphp.common.symbols.IOverloadSymbol;
+import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
 import ch.tsphp.tinsphp.symbols.constraints.IntersectionConstraint;
@@ -37,7 +37,7 @@ public class InferencePhaseController implements IInferencePhaseController
     private final IConstraintSolver constraintSolver;
     private final List<IMethodSymbol> functionScopes = new ArrayList<>();
     private final IGlobalNamespaceScope globalDefaultNamespaceScope;
-    private final IFunctionTypeSymbol identityFunction;
+    private final IFunctionType identityFunction;
 
 
     public InferencePhaseController(
@@ -53,7 +53,7 @@ public class InferencePhaseController implements IInferencePhaseController
         ITypeVariableCollection collection = new TypeVariableCollection(theOverloadResolver);
         IVariable lhs = symbolFactory.createVariable("$lhs", "T");
         IVariable rtn = symbolFactory.createVariable("rtn", "T");
-        identityFunction = symbolFactory.createFunctionTypeSymbol("identity", collection, Arrays.asList(lhs), rtn);
+        identityFunction = symbolFactory.createFunctionType("identity", collection, Arrays.asList(lhs), rtn);
     }
 
     @Override
@@ -83,13 +83,39 @@ public class InferencePhaseController implements IInferencePhaseController
             typeVariables.add((IVariable) argument.getSymbol());
         }
 
-        IOverloadSymbol overloadSymbol = (IOverloadSymbol) operator.getSymbol();
-        ITypeVariableSymbol expressionVariable = symbolFactory.createExpressionTypeVariableSymbol(operator);
-        expressionVariable.setDefinitionScope(operator.getScope());
+        IMinimalMethodSymbol methodSymbol = (IMinimalMethodSymbol) operator.getSymbol();
+        createIntersectionConstraint(collection, operator, operator, typeVariables, methodSymbol);
+
+    }
+
+    private void createIntersectionConstraint(
+            IConstraintCollection collection,
+            ITSPHPAst parentAst,
+            ITSPHPAst identifierAst,
+            List<IVariable> typeVariables,
+            IMinimalMethodSymbol methodSymbol) {
+        ITypeVariableSymbol expressionVariable = symbolFactory.createExpressionTypeVariableSymbol(identifierAst);
+        expressionVariable.setDefinitionScope(identifierAst.getScope());
         IIntersectionConstraint constraint = new IntersectionConstraint(
-                expressionVariable, typeVariables, overloadSymbol.getOverloads());
+                expressionVariable, typeVariables, methodSymbol.getOverloads());
         collection.addLowerBoundConstraint(constraint);
-        operator.setSymbol(expressionVariable);
+        parentAst.setSymbol(expressionVariable);
+    }
+
+    @Override
+    public void createFunctionCallConstraint(
+            IConstraintCollection collection, ITSPHPAst functionCall, ITSPHPAst identifier, ITSPHPAst argumentList) {
+        IMinimalMethodSymbol methodSymbol = (IMinimalMethodSymbol) identifier.getSymbol();
+        if (methodSymbol.getOverloads() != null) {
+            List<ITSPHPAst> arguments = argumentList.getChildren();
+            List<IVariable> typeVariables = new ArrayList<>(arguments.size());
+            for (ITSPHPAst argument : arguments) {
+                typeVariables.add((IVariable) argument.getSymbol());
+            }
+            createIntersectionConstraint(collection, functionCall, identifier, typeVariables, methodSymbol);
+        } else {
+            //TODO
+        }
     }
 
     @Override

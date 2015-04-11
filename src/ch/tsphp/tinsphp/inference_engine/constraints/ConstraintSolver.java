@@ -11,13 +11,13 @@ import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.inference.constraints.IBinding;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
+import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
 import ch.tsphp.tinsphp.common.inference.constraints.IIntersectionConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
 import ch.tsphp.tinsphp.common.inference.constraints.IReadOnlyConstraintCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import ch.tsphp.tinsphp.common.inference.constraints.TypeVariableConstraint;
-import ch.tsphp.tinsphp.common.symbols.IFunctionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.symbols.constraints.BoundException;
 import ch.tsphp.tinsphp.symbols.constraints.TypeConstraint;
@@ -101,7 +101,7 @@ public class ConstraintSolver implements IConstraintSolver
     }
 
     private void addApplicableOverloadsToWorklist(WorklistDto worklistDto, IIntersectionConstraint constraint) {
-        for (IFunctionTypeSymbol overload : constraint.getOverloads()) {
+        for (IFunctionType overload : constraint.getOverloads()) {
             try {
                 IBinding binding = solveOverLoad(worklistDto, constraint, overload);
                 if (binding != null) {
@@ -116,7 +116,7 @@ public class ConstraintSolver implements IConstraintSolver
     private IBinding solveOverLoad(
             WorklistDto worklistDto,
             IIntersectionConstraint constraint,
-            IFunctionTypeSymbol overload) {
+            IFunctionType overload) {
 
         IBinding binding = null;
         if (constraint.getArguments().size() >= overload.getNumberOfNonOptionalParameters()) {
@@ -128,7 +128,7 @@ public class ConstraintSolver implements IConstraintSolver
 
     private void aggregateBinding(
             IIntersectionConstraint constraint,
-            IFunctionTypeSymbol overload,
+            IFunctionType overload,
             IBinding binding) {
 
         Map<String, TypeVariableConstraint> variable2TypeVariable = binding.getVariable2TypeVariable();
@@ -171,7 +171,7 @@ public class ConstraintSolver implements IConstraintSolver
 
     private boolean mergeTypeVariables(
             IBinding binding,
-            IFunctionTypeSymbol overload,
+            IFunctionType overload,
             Map<String, TypeVariableConstraint> mapping,
             IVariable bindingVariable,
             IVariable overloadVariable) throws BoundException {
@@ -265,7 +265,7 @@ public class ConstraintSolver implements IConstraintSolver
             WorklistDto worklistDto, IIntersectionConstraint constraint) {
 
         List<OverloadRankingDto> overloadRankingDtos = new ArrayList<>();
-        for (IFunctionTypeSymbol overload : constraint.getOverloads()) {
+        for (IFunctionType overload : constraint.getOverloads()) {
             try {
                 IBinding binding = solveOverLoad(worklistDto, constraint, overload);
                 OverloadRankingDto dto = calculateOverloadRankingDto(worklistDto, constraint, overload);
@@ -292,7 +292,7 @@ public class ConstraintSolver implements IConstraintSolver
     private OverloadRankingDto calculateOverloadRankingDto(
             WorklistDto worklistDto,
             IIntersectionConstraint constraint,
-            IFunctionTypeSymbol overload) {
+            IFunctionType overload) {
         ITypeVariableCollection overloadCollection = overload.getTypeVariables();
         ITypeVariableCollection worklistCollection = worklistDto.binding.getTypeVariables();
         Map<String, TypeVariableConstraint> variable2TypeVariable = worklistDto.binding.getVariable2TypeVariable();

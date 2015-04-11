@@ -79,7 +79,6 @@ public abstract class ADefinitionTest extends ATest
         overloadResolver = createOverloadResolver();
         symbolFactory = createTestSymbolFactory(scopeHelper, modifierHelper, overloadResolver);
         constraintSolver = createConstraintSolver(symbolFactory, overloadResolver);
-        symbolFactory.setConstraintSolver(constraintSolver);
 
         definitionPhaseController = createTestDefiner(symbolFactory, scopeFactory);
         core = createCore(symbolFactory, overloadResolver);

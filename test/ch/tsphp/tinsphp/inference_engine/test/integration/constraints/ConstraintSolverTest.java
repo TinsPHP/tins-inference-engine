@@ -16,7 +16,7 @@ import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.inference.constraints.IIntersectionConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
-import ch.tsphp.tinsphp.common.symbols.IOverloadSymbol;
+import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.core.Core;
 import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintSolver;
@@ -338,7 +338,7 @@ public class ConstraintSolverTest
     }
 
     private IIntersectionConstraint intersect(
-            IVariable returnVariable, List<IVariable> arguments, IOverloadSymbol overloads) {
+            IVariable returnVariable, List<IVariable> arguments, IMinimalMethodSymbol overloads) {
         return new IntersectionConstraint(returnVariable, arguments, overloads.getOverloads());
     }
 

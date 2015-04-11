@@ -517,12 +517,13 @@ breakContinue
 expression
     :   atom
     |   operator
-        //TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0
-    /*|   functionCall
+    |   functionCall
     //TODO rstoll TINS-161 inference OOP    
     //|   methodCall
     //|   methodCallStatic
     //|   classStaticAccess
+    //TODO rstoll TINS-358 inference procedural - collecting constraints
+    /*
     |   postFixExpression
     |   exit
     */
@@ -549,10 +550,9 @@ thisVariable
 */
 
 operator
-//TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0  
     :   ^(unaryOperator expression)
         {
-            controller.createIntersectionConstraint(currentScope, $start,$expression.start);
+            controller.createIntersectionConstraint(currentScope, $start, $expression.start);
         }
     |   ^(binaryOperator lhs=expression rhs=expression)
         {
@@ -640,20 +640,19 @@ binaryOperator
     |   '/'
     |   '%'
     ;
-
-//TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0
-/*    
+   
 functionCall
         // function call has no callee and is therefor not resolved in this phase.
         // resolving occurs in the inference phase where overloads are taken into account
     :   ^(FUNCTION_CALL identifier=TYPE_NAME actualParameters)
+    	{
+    	   controller.createFunctionCallConstraint(currentScope, $FUNCTION_CALL, $identifier, $actualParameters.start);
+    	}
     ;
     
 actualParameters
-    :   ^(ACTUAL_PARAMETERS expression+)
-    |   ACTUAL_PARAMETERS
+    :   ^(ACTUAL_PARAMETERS expression*)
     ; 
-*/
   
 //TODO TINS-161 inference OOP    
 /*
