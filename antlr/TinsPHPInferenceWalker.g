@@ -645,9 +645,9 @@ functionCall
         // function call has no callee and is therefor not resolved in this phase.
         // resolving occurs in the inference phase where overloads are taken into account
     :   ^(FUNCTION_CALL identifier=TYPE_NAME actualParameters)
-    	{
-    	   controller.createFunctionCallConstraint(currentScope, $FUNCTION_CALL, $identifier, $actualParameters.start);
-    	}
+        {
+           controller.createFunctionCallConstraint(currentScope, $FUNCTION_CALL, $identifier, $actualParameters.start);
+        }
     ;
     
 actualParameters
