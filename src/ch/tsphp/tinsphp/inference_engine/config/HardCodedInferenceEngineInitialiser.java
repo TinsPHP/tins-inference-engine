@@ -41,7 +41,6 @@ import ch.tsphp.tinsphp.inference_engine.utils.AstModificationHelper;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 import ch.tsphp.tinsphp.symbols.ModifierHelper;
 import ch.tsphp.tinsphp.symbols.SymbolFactory;
-import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
 import ch.tsphp.tinsphp.symbols.utils.OverloadResolver;
 
 import java.util.ArrayList;
@@ -62,11 +61,12 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
     private InferenceIssueReporter inferenceErrorReporter;
     private ICore core;
     private final List<ISymbolResolver> additionalSymbolResolvers;
+    private final IOverloadResolver overloadResolver;
 
     public HardCodedInferenceEngineInitialiser() {
         scopeHelper = new ScopeHelper();
         modifierHelper = new ModifierHelper();
-        IOverloadResolver overloadResolver = new OverloadResolver();
+        overloadResolver = new OverloadResolver();
 
         symbolFactory = new SymbolFactory(scopeHelper, modifierHelper, overloadResolver);
         constraintSolver = new ConstraintSolver(symbolFactory, overloadResolver);
@@ -119,10 +119,11 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
 
         inferencePhaseController = new InferencePhaseController(
                 symbolFactory,
+                overloadResolver,
                 inferenceErrorReporter,
                 constraintSolver,
-                definitionPhaseController.getGlobalDefaultNamespace(),
-                core.getOperators().get(TokenTypes.Assign).getOverloads().get(0));
+                definitionPhaseController.getGlobalDefaultNamespace()
+        );
     }
 
     @Override

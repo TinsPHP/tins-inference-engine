@@ -11,13 +11,11 @@ import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
-import ch.tsphp.tinsphp.common.symbols.IFunctionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.inference_engine.InferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPInferenceWalker;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.WriteExceptionToConsole;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference.AReferenceTest;
-import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 import org.junit.Assert;
@@ -45,8 +43,8 @@ public abstract class AInferenceTest extends AReferenceTest
                 symbolFactory,
                 inferenceErrorReporter,
                 constraintSolver,
-                definitionPhaseController.getGlobalDefaultNamespace(),
-                core.getOperators().get(TokenTypes.Assign).getOverloads().get(0));
+                definitionPhaseController.getGlobalDefaultNamespace()
+        );
     }
 
 
@@ -101,14 +99,13 @@ public abstract class AInferenceTest extends AReferenceTest
             ISymbolFactory theSymbolFactory,
             IInferenceIssueReporter theInferenceErrorReporter,
             IConstraintSolver theConstraintSolver,
-            IGlobalNamespaceScope theGlobalDefaultNamespaceScope,
-            IFunctionTypeSymbol theAssignFunction) {
+            IGlobalNamespaceScope theGlobalDefaultNamespaceScope) {
         return new InferencePhaseController(
                 theSymbolFactory,
-                theInferenceErrorReporter,
+                overloadResolver, theInferenceErrorReporter,
                 theConstraintSolver,
-                theGlobalDefaultNamespaceScope,
-                theAssignFunction);
+                theGlobalDefaultNamespaceScope
+        );
     }
 
     protected ErrorReportingTinsPHPInferenceWalker createInferenceWalker(

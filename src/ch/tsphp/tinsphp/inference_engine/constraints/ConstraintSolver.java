@@ -35,7 +35,6 @@ public class ConstraintSolver implements IConstraintSolver
     private final ISymbolFactory symbolFactory;
     private final IOverloadResolver overloadResolver;
     private Deque<WorklistDto> workDeque = new ArrayDeque<>();
-    private List<IBinding> solvedBindings = new ArrayList<>();
 
     public ConstraintSolver(
             ISymbolFactory theSymbolFactory,
@@ -45,10 +44,10 @@ public class ConstraintSolver implements IConstraintSolver
     }
 
     public List<IBinding> solveConstraints(IReadOnlyConstraintCollection collection) {
-
+        List<IIntersectionConstraint> lowerBoundConstraints = collection.getLowerBoundConstraints();
+        List<IBinding> solvedBindings = new ArrayList<>();
         IBinding binding = new Binding(overloadResolver);
         workDeque.add(new WorklistDto(0, binding));
-        List<IIntersectionConstraint> lowerBoundConstraints = collection.getLowerBoundConstraints();
 
         while (!workDeque.isEmpty()) {
             WorklistDto constraintSolver3Dto = workDeque.removeFirst();
@@ -143,12 +142,10 @@ public class ConstraintSolver implements IConstraintSolver
         int iterateCount = 0;
         boolean needToIterateOverload = true;
         while (needToIterateOverload) {
-            needToIterateOverload = false;
 
             IVariable leftHandSide = constraint.getLeftHandSide();
             IVariable rightHandSide = overload.getReturnVariable();
-            boolean needToIterateLhs = !mergeTypeVariables(binding, overload, mapping, leftHandSide, rightHandSide);
-            needToIterateOverload = needToIterateOverload || needToIterateLhs;
+            needToIterateOverload = !mergeTypeVariables(binding, overload, mapping, leftHandSide, rightHandSide);
 
             boolean argumentsAreAllFixed = true;
             for (int i = 0; i < count; ++i) {

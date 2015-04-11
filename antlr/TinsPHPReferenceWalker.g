@@ -467,7 +467,10 @@ instruction returns[boolean isReturning, boolean isBreaking]
     |   doWhileLoop                  {$isReturning = $doWhileLoop.isReturning;}
     |   tryCatch                     {$isReturning = $tryCatch.isReturning;}
     |   ^(EXPRESSION expression?)
-    |   ^('return' expression?)      {$isReturning = true; hasAtLeastOneReturnOrThrow = true; doesNotReachThisStatement = true;}
+    |   ^(Return expression?)      {$isReturning = true; hasAtLeastOneReturnOrThrow = true; doesNotReachThisStatement = true;}
+        {
+            $Return.setSymbol(controller.resolveReturn($Return));
+        }
     |   ^('throw' expression)        {$isReturning = true; hasAtLeastOneReturnOrThrow = true; doesNotReachThisStatement = true;}
     |   ^('echo' expression+)
     |   breakContinue                {$isBreaking = true; doesNotReachThisStatement = inSwitch;}

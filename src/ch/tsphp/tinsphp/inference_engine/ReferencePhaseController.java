@@ -33,6 +33,7 @@ import ch.tsphp.tinsphp.common.resolving.ISymbolResolverController;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
+import ch.tsphp.tinsphp.common.symbols.IMinimalVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.IOverloadSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
@@ -168,6 +169,16 @@ public class ReferencePhaseController implements IReferencePhaseController
     @Override
     public IOverloadSymbol resolveOperator(ITSPHPAst operator) {
         return operators.get(operator.getType());
+    }
+
+    @Override
+    public IMinimalVariableSymbol resolveReturn(ITSPHPAst returnAst) {
+        IScope scope = returnAst.getScope();
+        if (scope instanceof IMethodSymbol) {
+            IMethodSymbol methodSymbol = (IMethodSymbol) scope;
+            return methodSymbol.getReturnVariable();
+        }
+        return null;
     }
 
     @Override

@@ -84,10 +84,8 @@ definition
         //classDefinition
         // TINS-211 - reference phase - interface definitions
     //|   interfaceDefinition
-        //TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0
-/*        functionDefinition
-        
-    |*/   constDefinitionList
+        functionDefinition
+    |   constDefinitionList
     ;
 
     
@@ -322,21 +320,26 @@ accessModifier
     ;
 */
 
-//TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0
-/*    
 functionDefinition
-    :   ^(Function {currentScope = $Function.getScope();}
+@init{
+  IConstraintCollection tmp = currentScope;
+}
+    :   ^(Function
             returnType=.
             ^(TYPE rtMod=. type=.)
             Identifier 
+            {
+                IMethodSymbol methodSymbol = (IMethodSymbol) $Identifier.getSymbol();
+                currentScope = methodSymbol;
+                controller.addMethodSymbol(methodSymbol);
+            }
             parameterDeclarationList 
             block
         )
-        {
-            controller.addToSolveConstraints((IMethodSymbol)currentScope);
-            currentScope = currentScope.getEnclosingScope();
-        }
     ;
+finally{
+  currentScope = tmp;
+}
 
 parameterDeclarationList
     :   ^(PARAMETER_LIST parameterDeclaration*)
@@ -354,7 +357,6 @@ parameterDeclaration
 block
     :   ^(BLOCK instruction*)
     ;
-*/
     
 // TINS-211 - reference phase - interface definitions
 /*
@@ -402,9 +404,12 @@ instruction
     |   tryCatch
     */
     |   ^(EXPRESSION expression?)
-    //TODO  TINS-71 inference procedural - take into account control structures
+    |   ^(Return expression?)
+        {
+            controller.createRefConstraint(currentScope, $Return, $expression.start);
+        }
+        //TODO  TINS-71 inference procedural - take into account control structures
     /*
-    |   ^('return' expression?)
     |   ^('throw' expression)
     |   ^('echo' expression+)
     |   breakContinue
