@@ -159,11 +159,10 @@ constDeclaration
 
 unaryPrimitiveAtom
     :   primitiveAtomWithConstant
-    //TODO rstoll TINS-314 inference procedural - seeding & propagation v. 0.3.0  
-    /*
-    |   ^(UNARY_MINUS primitiveAtomWithConstant)
-    |   ^(UNARY_PLUS primitiveAtomWithConstant)
-    */
+    |   ^((UNARY_MINUS|UNARY_PLUS) expr=primitiveAtomWithConstant)
+        {
+            controller.createIntersectionConstraint(currentScope, $start, $expr.start);
+        }
     ; 
     
 primitiveAtomWithConstant

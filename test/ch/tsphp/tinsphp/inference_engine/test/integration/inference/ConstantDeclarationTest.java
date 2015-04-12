@@ -45,6 +45,15 @@ public class ConstantDeclarationTest extends AInferenceTypeTest
                         testStruct("(a# 1)", "\\.\\.", asList("int"), null, 1, 0, 1),
                         testStruct("(b# a#)", "\\.\\.", asList("int"), null, 1, 1, 1)}
                 },
+                {"const a = +true;", testStructs("(a# (uPlus true))", "\\.\\.", asList("int"), null, 1, 0, 1)},
+                {"const a = +false;", testStructs("(a# (uPlus false))", "\\.\\.", asList("int"), null, 1, 0, 1)},
+                {"const a = +1;", testStructs("(a# (uPlus 1))", "\\.\\.", asList("int"), null, 1, 0, 1)},
+                {"const a = +1.5;", testStructs("(a# (uPlus 1.5))", "\\.\\.", asList("float"), null, 1, 0, 1)},
+                {"const a = -true;", testStructs("(a# (uMinus true))", "\\.\\.", asList("int"), null, 1, 0, 1)},
+                {"const a = -false;", testStructs("(a# (uMinus false))", "\\.\\.", asList("int"), null, 1, 0, 1)},
+                {"const a = -1;", testStructs("(a# (uMinus 1))", "\\.\\.", asList("int"), null, 1, 0, 1)},
+                {"const a = -1.5;", testStructs("(a# (uMinus 1.5))", "\\.\\.", asList("float"), null, 1, 0, 1)},
+
                 //TODO rstoll TINS-344 seeding and constants
 //                {
 //                        "const a = 1, b = 'h';", new AbsoluteTypeNameTestStruct[]{

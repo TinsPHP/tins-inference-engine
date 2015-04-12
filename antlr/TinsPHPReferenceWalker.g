@@ -176,8 +176,11 @@ constDeclaration[ITypeSymbol type]
 
 unaryPrimitiveAtom
     :   primitiveAtomWithConstant
-    |   ^(UNARY_MINUS primitiveAtomWithConstant)
-    |   ^(UNARY_PLUS primitiveAtomWithConstant)
+    |   ^((UNARY_MINUS|UNARY_PLUS) primitiveAtomWithConstant)
+        {
+            ITSPHPAst operator = $start;
+            operator.setSymbol(controller.resolveOperator(operator));
+        }
     ; 
     
 primitiveAtomWithConstant
