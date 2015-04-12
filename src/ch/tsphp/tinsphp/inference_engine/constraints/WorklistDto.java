@@ -8,12 +8,16 @@ package ch.tsphp.tinsphp.inference_engine.constraints;
 
 import ch.tsphp.tinsphp.common.inference.constraints.IBinding;
 
+import java.util.Deque;
+
 public class WorklistDto
 {
+    public Deque<WorklistDto> workDeque;
     public int pointer;
     public IBinding binding;
 
-    public WorklistDto(int thePointer, IBinding theBinding) {
+    public WorklistDto(Deque<WorklistDto> theWorkDeque, int thePointer, IBinding theBinding) {
+        workDeque = theWorkDeque;
         pointer = thePointer;
         binding = theBinding;
     }

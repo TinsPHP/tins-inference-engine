@@ -10,15 +10,20 @@ package ch.tsphp.tinsphp.inference_engine.constraints;
 import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.inference.constraints.IBinding;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
+import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
 import ch.tsphp.tinsphp.common.inference.constraints.IIntersectionConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
-import ch.tsphp.tinsphp.common.inference.constraints.IReadOnlyConstraintCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import ch.tsphp.tinsphp.common.inference.constraints.TypeVariableConstraint;
+import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
+import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
+import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
+import ch.tsphp.tinsphp.common.utils.MapHelper;
+import ch.tsphp.tinsphp.common.utils.Pair;
 import ch.tsphp.tinsphp.symbols.constraints.BoundException;
 import ch.tsphp.tinsphp.symbols.constraints.TypeConstraint;
 
@@ -30,11 +35,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static ch.tsphp.tinsphp.common.utils.Pair.pair;
+
 public class ConstraintSolver implements IConstraintSolver
 {
     private final ISymbolFactory symbolFactory;
     private final IOverloadResolver overloadResolver;
-    private Deque<WorklistDto> workDeque = new ArrayDeque<>();
 
     public ConstraintSolver(
             ISymbolFactory theSymbolFactory,
@@ -43,26 +49,90 @@ public class ConstraintSolver implements IConstraintSolver
         overloadResolver = theOverloadResolver;
     }
 
-    public List<IBinding> solveConstraints(IReadOnlyConstraintCollection collection) {
-        List<IIntersectionConstraint> lowerBoundConstraints = collection.getLowerBoundConstraints();
-        List<IBinding> solvedBindings = new ArrayList<>();
-        IBinding binding = new Binding(overloadResolver);
-        workDeque.add(new WorklistDto(0, binding));
+    @Override
+    public void solveConstraints(List<IMethodSymbol> methodSymbols) {
+        Map<String, List<Pair<IMethodSymbol, Deque<WorklistDto>>>> dependencies = new HashMap<>();
+        for (IMethodSymbol methodSymbol : methodSymbols) {
+            Deque<WorklistDto> workDeque = createInitialWorklist();
+            solveMethodConstraints(dependencies, methodSymbol, workDeque);
+        }
 
+        if (!dependencies.isEmpty()) {
+            //TODO need to iterate
+        }
+    }
+
+    @Override
+    public void solveConstraints(IGlobalNamespaceScope globalDefaultNamespaceScope) {
+        if (!globalDefaultNamespaceScope.getLowerBoundConstraints().isEmpty()) {
+            Deque<WorklistDto> workDeque = createInitialWorklist();
+            List<IBinding> bindings = solveConstraints(globalDefaultNamespaceScope, workDeque);
+            globalDefaultNamespaceScope.setBindings(bindings);
+        }
+    }
+
+    private Deque<WorklistDto> createInitialWorklist() {
+        IBinding binding = new Binding(overloadResolver);
+        Deque<WorklistDto> workDeque = new ArrayDeque<>();
+        workDeque.add(new WorklistDto(workDeque, 0, binding));
+        return workDeque;
+    }
+
+    private void solveMethodConstraints(
+            Map<String, List<Pair<IMethodSymbol, Deque<WorklistDto>>>> dependencies,
+            IMethodSymbol methodSymbol,
+            Deque<WorklistDto> workDeque) {
+        try {
+            List<IBinding> bindings = solveConstraints(methodSymbol, workDeque);
+            String methodName = methodSymbol.getAbsoluteName();
+            methodSymbol.setBindings(bindings);
+
+            //TODO rstoll TINS-376 overload creation
+
+            if (dependencies.containsKey(methodName)) {
+                for (Pair<IMethodSymbol, Deque<WorklistDto>> pair : dependencies.remove(methodName)) {
+                    solveMethodConstraints(dependencies, pair.first, pair.second);
+                }
+            }
+        } catch (NoOverloadsException ex) {
+            MapHelper.addToListMap(dependencies, ex.getDependency(), pair(ex.getMethodSymbol(), ex.getWorklist()));
+            //register dependency
+        }
+    }
+
+    private List<IBinding> solveConstraints(IConstraintCollection constraintCollection, Deque<WorklistDto> workDeque) {
+        List<IBinding> solvedBindings = new ArrayList<>();
+
+        List<IIntersectionConstraint> lowerBoundConstraints = constraintCollection.getLowerBoundConstraints();
         while (!workDeque.isEmpty()) {
-            WorklistDto constraintSolver3Dto = workDeque.removeFirst();
-            if (constraintSolver3Dto.pointer < lowerBoundConstraints.size()) {
-                IIntersectionConstraint constraint = lowerBoundConstraints.get(constraintSolver3Dto.pointer);
-                solve(constraintSolver3Dto, constraint);
+            WorklistDto worklistDto = workDeque.removeFirst();
+            if (worklistDto.pointer < lowerBoundConstraints.size()) {
+                IIntersectionConstraint constraint = lowerBoundConstraints.get(worklistDto.pointer);
+                solveConstraint(constraintCollection, workDeque, worklistDto, constraint);
             } else {
-                solvedBindings.add(constraintSolver3Dto.binding);
+                solvedBindings.add(worklistDto.binding);
             }
         }
 
         if (solvedBindings.size() == 0) {
             //TODO error case if no overload could be found
         }
+
         return solvedBindings;
+    }
+
+    private void solveConstraint(IConstraintCollection constraintCollection, Deque<WorklistDto> workDeque,
+            WorklistDto worklistDto, IIntersectionConstraint constraint) {
+        IMinimalMethodSymbol refMethodSymbol = constraint.getMethodSymbol();
+        if (refMethodSymbol.getOverloads().size() != 0) {
+            solve(worklistDto, constraint);
+        } else {
+            workDeque.add(worklistDto);
+            //global default scope is solved after methods symbols have been solved, hence constraintCollection
+            //must be an IMethodSymbol
+            throw new NoOverloadsException(
+                    workDeque, (IMethodSymbol) constraintCollection, refMethodSymbol.getAbsoluteName());
+        }
     }
 
     private void solve(WorklistDto worklistDto, IIntersectionConstraint constraint) {
@@ -73,7 +143,7 @@ public class ConstraintSolver implements IConstraintSolver
             atLeastOneBindingCreated = atLeastOneBindingCreated || neededBinding;
         }
 
-        if (atLeastOneBindingCreated || constraint.getOverloads().size() == 1) {
+        if (atLeastOneBindingCreated || constraint.getMethodSymbol().getOverloads().size() == 1) {
             addApplicableOverloadsToWorklist(worklistDto, constraint);
         } else {
             addMostSpecificOverloadToWorklist(worklistDto, constraint);
@@ -101,11 +171,11 @@ public class ConstraintSolver implements IConstraintSolver
     }
 
     private void addApplicableOverloadsToWorklist(WorklistDto worklistDto, IIntersectionConstraint constraint) {
-        for (IFunctionType overload : constraint.getOverloads()) {
+        for (IFunctionType overload : constraint.getMethodSymbol().getOverloads()) {
             try {
                 IBinding binding = solveOverLoad(worklistDto, constraint, overload);
                 if (binding != null) {
-                    workDeque.add(new WorklistDto(worklistDto.pointer + 1, binding));
+                    worklistDto.workDeque.add(new WorklistDto(worklistDto.workDeque, worklistDto.pointer + 1, binding));
                 }
             } catch (BoundException ex) {
                 //That is ok, we will deal with it in solveConstraints
@@ -254,7 +324,8 @@ public class ConstraintSolver implements IConstraintSolver
             List<OverloadRankingDto> overloadRankingDtos = getMostSpecificApplicableOverload(applicableOverloads);
             if (overloadRankingDtos.size() == 1) {
                 OverloadRankingDto overloadRankingDto = overloadRankingDtos.get(0);
-                workDeque.add(new WorklistDto(worklistDto.pointer + 1, overloadRankingDto.binding));
+                worklistDto.workDeque.add(
+                        new WorklistDto(worklistDto.workDeque, worklistDto.pointer + 1, overloadRankingDto.binding));
             } else {
                 //TODO unify most specific
             }
@@ -265,7 +336,7 @@ public class ConstraintSolver implements IConstraintSolver
             WorklistDto worklistDto, IIntersectionConstraint constraint) {
 
         List<OverloadRankingDto> overloadRankingDtos = new ArrayList<>();
-        for (IFunctionType overload : constraint.getOverloads()) {
+        for (IFunctionType overload : constraint.getMethodSymbol().getOverloads()) {
             try {
                 IBinding binding = solveOverLoad(worklistDto, constraint, overload);
                 OverloadRankingDto dto = calculateOverloadRankingDto(worklistDto, constraint, overload);
@@ -405,4 +476,5 @@ public class ConstraintSolver implements IConstraintSolver
         }
         return diff;
     }
+
 }

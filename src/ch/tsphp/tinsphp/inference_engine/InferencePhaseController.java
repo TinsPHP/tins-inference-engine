@@ -9,7 +9,6 @@ package ch.tsphp.tinsphp.inference_engine;
 
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.tinsphp.common.inference.IInferencePhaseController;
-import ch.tsphp.tinsphp.common.inference.constraints.IBinding;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
@@ -37,7 +36,7 @@ public class InferencePhaseController implements IInferencePhaseController
     private final IConstraintSolver constraintSolver;
     private final List<IMethodSymbol> functionScopes = new ArrayList<>();
     private final IGlobalNamespaceScope globalDefaultNamespaceScope;
-    private final IFunctionType identityFunction;
+    private final IMinimalMethodSymbol identityFunction;
 
 
     public InferencePhaseController(
@@ -53,7 +52,10 @@ public class InferencePhaseController implements IInferencePhaseController
         ITypeVariableCollection collection = new TypeVariableCollection(theOverloadResolver);
         IVariable lhs = symbolFactory.createVariable("$lhs", "T");
         IVariable rtn = symbolFactory.createVariable("rtn", "T");
-        identityFunction = symbolFactory.createFunctionType("identity", collection, Arrays.asList(lhs), rtn);
+        IFunctionType identityOverload = symbolFactory.createFunctionType(
+                "identity", collection, Arrays.asList(lhs), rtn);
+        identityFunction = symbolFactory.createMinimalMethodSymbol("identity");
+        identityFunction.addOverload(identityOverload);
     }
 
     @Override
@@ -69,9 +71,7 @@ public class InferencePhaseController implements IInferencePhaseController
         IVariable variableSymbol = (IVariable) identifier.getSymbol();
 
         IIntersectionConstraint constraint = new IntersectionConstraint(
-                variableSymbol,
-                Arrays.asList((IVariable) rhs.getSymbol()),
-                Arrays.asList(identityFunction));
+                variableSymbol, Arrays.asList((IVariable) rhs.getSymbol()), identityFunction);
         collection.addLowerBoundConstraint(constraint);
     }
 
@@ -97,7 +97,7 @@ public class InferencePhaseController implements IInferencePhaseController
         ITypeVariableSymbol expressionVariable = symbolFactory.createExpressionTypeVariableSymbol(identifierAst);
         expressionVariable.setDefinitionScope(identifierAst.getScope());
         IIntersectionConstraint constraint = new IntersectionConstraint(
-                expressionVariable, typeVariables, methodSymbol.getOverloads());
+                expressionVariable, typeVariables, methodSymbol);
         collection.addLowerBoundConstraint(constraint);
         parentAst.setSymbol(expressionVariable);
     }
@@ -105,17 +105,14 @@ public class InferencePhaseController implements IInferencePhaseController
     @Override
     public void createFunctionCallConstraint(
             IConstraintCollection collection, ITSPHPAst functionCall, ITSPHPAst identifier, ITSPHPAst argumentList) {
-        IMinimalMethodSymbol methodSymbol = (IMinimalMethodSymbol) identifier.getSymbol();
-        if (methodSymbol.getOverloads() != null) {
-            List<ITSPHPAst> arguments = argumentList.getChildren();
-            List<IVariable> typeVariables = new ArrayList<>(arguments.size());
-            for (ITSPHPAst argument : arguments) {
-                typeVariables.add((IVariable) argument.getSymbol());
-            }
-            createIntersectionConstraint(collection, functionCall, identifier, typeVariables, methodSymbol);
-        } else {
-            //TODO
+        List<ITSPHPAst> arguments = argumentList.getChildren();
+        List<IVariable> typeVariables = new ArrayList<>(arguments.size());
+        for (ITSPHPAst argument : arguments) {
+            typeVariables.add((IVariable) argument.getSymbol());
         }
+
+        IMinimalMethodSymbol methodSymbol = (IMinimalMethodSymbol) identifier.getSymbol();
+        createIntersectionConstraint(collection, functionCall, identifier, typeVariables, methodSymbol);
     }
 
     @Override
@@ -125,14 +122,7 @@ public class InferencePhaseController implements IInferencePhaseController
 
     @Override
     public void solveAllConstraints() {
-        for (IMethodSymbol scope : functionScopes) {
-            List<IBinding> bindings = constraintSolver.solveConstraints(scope);
-            scope.setBindings(bindings);
-        }
-
-        if (!globalDefaultNamespaceScope.getLowerBoundConstraints().isEmpty()) {
-            List<IBinding> bindings = constraintSolver.solveConstraints(globalDefaultNamespaceScope);
-            globalDefaultNamespaceScope.setBindings(bindings);
-        }
+        constraintSolver.solveConstraints(functionScopes);
+        constraintSolver.solveConstraints(globalDefaultNamespaceScope);
     }
 }

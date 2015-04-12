@@ -11,11 +11,11 @@ import ch.tsphp.common.AstHelper;
 import ch.tsphp.common.TSPHPAstAdaptor;
 import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.inference.constraints.IBinding;
-import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.inference.constraints.IIntersectionConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
+import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.core.Core;
@@ -29,6 +29,7 @@ import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
 import ch.tsphp.tinsphp.symbols.utils.OverloadResolver;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.util.List;
 
@@ -39,8 +40,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@SuppressWarnings("unchecked")
 public class ConstraintSolverTest
 {
     private static IOverloadResolver overloadResolver;
@@ -57,19 +60,20 @@ public class ConstraintSolverTest
     @Test
     public void solveConstraints_Addition_HasThreeOverloads() {
         //corresponds to: function foo($x, $y){ return $x + $y; }
-        IConstraintCollection collection = mock(IConstraintCollection.class);
+        IMethodSymbol methodSymbol = mock(IMethodSymbol.class);
         IVariable rtn = var("rtn");
         IVariable $x = var("$x");
         IVariable $y = var("$y");
-        when(collection.getLowerBoundConstraints()).thenReturn(asList(
+        when(methodSymbol.getLowerBoundConstraints()).thenReturn(asList(
                 intersect(rtn, asList($x, $y), core.getOperators().get(TokenTypes.Plus))
         ));
 
-
         IConstraintSolver solver = createConstraintSolver();
-        List<IBinding> bindings = solver.solveConstraints(collection);
+        solver.solveConstraints(asList(methodSymbol));
 
-
+        ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+        verify(methodSymbol).setBindings(captor.capture());
+        List<IBinding> bindings = captor.getValue();
         assertThat(bindings, hasItem(withVariableBindings(
                 varBinding("$x", "T1", asList("@T1"), asList("num")),
                 varBinding("$y", "T1", asList("@T1"), asList("num")),
@@ -91,18 +95,21 @@ public class ConstraintSolverTest
     @Test
     public void solveConstraints_PartialAdditionWithInt_HasOneOverload() {
         //corresponds to: function foo($x){ return $x + 1; }
-        IConstraintCollection collection = mock(IConstraintCollection.class);
+        IMethodSymbol methodSymbol = mock(IMethodSymbol.class);
         IVariable rtn = var("rtn");
         IVariable $x = var("$x");
         IVariable e1 = var("e1");
         when(e1.getType()).thenReturn(core.getPrimitiveTypes().get(PrimitiveTypeNames.INT));
-        when(collection.getLowerBoundConstraints()).thenReturn(asList(
+        when(methodSymbol.getLowerBoundConstraints()).thenReturn(asList(
                 intersect(rtn, asList($x, e1), core.getOperators().get(TokenTypes.Plus))
         ));
 
         IConstraintSolver solver = createConstraintSolver();
-        List<IBinding> bindings = solver.solveConstraints(collection);
+        solver.solveConstraints(asList(methodSymbol));
 
+        ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+        verify(methodSymbol).setBindings(captor.capture());
+        List<IBinding> bindings = captor.getValue();
         assertThat(bindings, hasItem(withVariableBindings(
                 varBinding("$x", "T1", asList("int"), asList("num")),
                 varBinding("e1", "T1", asList("int"), asList("num")),
@@ -114,20 +121,22 @@ public class ConstraintSolverTest
     @Test
     public void solveConstraints_PartialAdditionWithFloat_HasOneOverload() {
         //corresponds to: function foo($x){ return $x + 1.4; }
-        IConstraintCollection collection = mock(IConstraintCollection.class);
+        IMethodSymbol methodSymbol = mock(IMethodSymbol.class);
         IVariable rtn = var("rtn");
         IVariable $x = var("$x");
         IVariable e1 = var("e1");
         when(e1.getType()).thenReturn(core.getPrimitiveTypes().get(PrimitiveTypeNames.FLOAT));
-        when(collection.getLowerBoundConstraints()).thenReturn(asList(
+        when(methodSymbol.getLowerBoundConstraints()).thenReturn(asList(
                 intersect(rtn, asList($x, e1), core.getOperators().get(TokenTypes.Plus))
         ));
 
 
         IConstraintSolver solver = createConstraintSolver();
-        List<IBinding> bindings = solver.solveConstraints(collection);
+        solver.solveConstraints(asList(methodSymbol));
 
-
+        ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+        verify(methodSymbol).setBindings(captor.capture());
+        List<IBinding> bindings = captor.getValue();
         assertThat(bindings, hasItem(withVariableBindings(
                 varBinding("$x", "T1", asList("float"), asList("num")),
                 varBinding("e1", "T1", asList("float"), asList("num")),
@@ -139,18 +148,21 @@ public class ConstraintSolverTest
     @Test
     public void solveConstraints_PartialAdditionWithNum_HasOneOverload() {
         //corresponds to: function foo($x){ return $x + 1.4 + 1; }
-        IConstraintCollection collection = mock(IConstraintCollection.class);
+        IMethodSymbol methodSymbol = mock(IMethodSymbol.class);
         IVariable rtn = var("rtn");
         IVariable $x = var("$x");
         IVariable e1 = var("e1");
         when(e1.getType()).thenReturn(core.getPrimitiveTypes().get(PrimitiveTypeNames.NUM));
-        when(collection.getLowerBoundConstraints()).thenReturn(asList(
+        when(methodSymbol.getLowerBoundConstraints()).thenReturn(asList(
                 intersect(rtn, asList($x, e1), core.getOperators().get(TokenTypes.Plus))
         ));
 
         IConstraintSolver solver = createConstraintSolver();
-        List<IBinding> bindings = solver.solveConstraints(collection);
+        solver.solveConstraints(asList(methodSymbol));
 
+        ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+        verify(methodSymbol).setBindings(captor.capture());
+        List<IBinding> bindings = captor.getValue();
         assertThat(bindings, hasItem(withVariableBindings(
                 varBinding("$x", "T1", asList("num"), asList("num")),
                 varBinding("e1", "T1", asList("num"), asList("num")),
@@ -162,18 +174,21 @@ public class ConstraintSolverTest
     @Test
     public void solveConstraints_PartialAdditionWithArray_HasOneOverload() {
         //corresponds to: function foo($x){ return $x + []; }
-        IConstraintCollection collection = mock(IConstraintCollection.class);
+        IMethodSymbol methodSymbol = mock(IMethodSymbol.class);
         IVariable rtn = var("rtn");
         IVariable $x = var("$x");
         IVariable e1 = var("e1");
         when(e1.getType()).thenReturn(core.getPrimitiveTypes().get(PrimitiveTypeNames.ARRAY));
-        when(collection.getLowerBoundConstraints()).thenReturn(asList(
+        when(methodSymbol.getLowerBoundConstraints()).thenReturn(asList(
                 intersect(rtn, asList($x, e1), core.getOperators().get(TokenTypes.Plus))
         ));
 
         IConstraintSolver solver = createConstraintSolver();
-        List<IBinding> bindings = solver.solveConstraints(collection);
+        solver.solveConstraints(asList(methodSymbol));
 
+        ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+        verify(methodSymbol).setBindings(captor.capture());
+        List<IBinding> bindings = captor.getValue();
         assertThat(bindings, hasItem(withVariableBindings(
                 varBinding("$x", "T2", null, asList("array")),
                 varBinding("e1", "T3", asList("array"), asList("array")),
@@ -185,18 +200,21 @@ public class ConstraintSolverTest
     @Test
     public void solveConstraints_PartialAdditionWithBool_HasOneOverload() {
         //corresponds to: function foo($x){ return $x + true; }
-        IConstraintCollection collection = mock(IConstraintCollection.class);
+        IMethodSymbol methodSymbol = mock(IMethodSymbol.class);
         IVariable rtn = var("rtn");
         IVariable $x = var("$x");
         IVariable e1 = var("e1");
         when(e1.getType()).thenReturn(core.getPrimitiveTypes().get(PrimitiveTypeNames.BOOL));
-        when(collection.getLowerBoundConstraints()).thenReturn(asList(
+        when(methodSymbol.getLowerBoundConstraints()).thenReturn(asList(
                 intersect(rtn, asList($x, e1), core.getOperators().get(TokenTypes.Plus))
         ));
 
         IConstraintSolver solver = createConstraintSolver();
-        List<IBinding> bindings = solver.solveConstraints(collection);
+        solver.solveConstraints(asList(methodSymbol));
 
+        ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+        verify(methodSymbol).setBindings(captor.capture());
+        List<IBinding> bindings = captor.getValue();
         assertThat(bindings, hasItem(withVariableBindings(
                 varBinding("$x", "T2", null, asList("bool")),
                 varBinding("e1", "T3", asList("bool"), asList("bool")),
@@ -208,22 +226,24 @@ public class ConstraintSolverTest
     @Test
     public void solveConstraints_ThreePlus_HasThreeOverloads() {
         //corresponds to: function foo($x, $y, $z){ return $x + $y + $z; }
-        IConstraintCollection collection = mock(IConstraintCollection.class);
+        IMethodSymbol methodSymbol = mock(IMethodSymbol.class);
         IVariable rtn = var("rtn"); //e1 + $z
         IVariable $x = var("$x");
         IVariable $y = var("$y");
         IVariable $z = var("$z");
         IVariable e1 = var("e1"); //$x + $y
-        when(collection.getLowerBoundConstraints()).thenReturn(asList(
+        when(methodSymbol.getLowerBoundConstraints()).thenReturn(asList(
                 intersect(rtn, asList(e1, $z), core.getOperators().get(TokenTypes.Plus)),
                 intersect(e1, asList($x, $y), core.getOperators().get(TokenTypes.Plus))
         ));
 
 
         IConstraintSolver solver = createConstraintSolver();
-        List<IBinding> bindings = solver.solveConstraints(collection);
+        solver.solveConstraints(asList(methodSymbol));
 
-
+        ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+        verify(methodSymbol).setBindings(captor.capture());
+        List<IBinding> bindings = captor.getValue();
         List<String> num = asList("num");
         List<String> t1 = asList("@T1");
         assertThat(bindings, hasItem(withVariableBindings(
@@ -255,7 +275,7 @@ public class ConstraintSolverTest
     @Test
     public void solveConstraints_MultiplePlusMinusAndMultiple_HasThreeOverloads() {
         //corresponds to: function foo($x, $y, $a, $b){ return $a * ($x + $y) - $a * $b; }
-        IConstraintCollection collection = mock(IConstraintCollection.class);
+        IMethodSymbol methodSymbol = mock(IMethodSymbol.class);
         IVariable rtn = var("rtn"); //e3 - e2
         IVariable $x = var("$x");
         IVariable $y = var("$y");
@@ -264,7 +284,7 @@ public class ConstraintSolverTest
         IVariable e1 = var("e1"); //$x + $y
         IVariable e2 = var("e2"); //$a * $b
         IVariable e3 = var("e3"); //$a * e1
-        when(collection.getLowerBoundConstraints()).thenReturn(asList(
+        when(methodSymbol.getLowerBoundConstraints()).thenReturn(asList(
                 intersect(rtn, asList(e3, e2), core.getOperators().get(TokenTypes.Minus)),
                 intersect(e3, asList($a, e1), core.getOperators().get(TokenTypes.Multiply)),
                 intersect(e1, asList($x, $y), core.getOperators().get(TokenTypes.Plus)),
@@ -273,9 +293,11 @@ public class ConstraintSolverTest
 
 
         IConstraintSolver solver = createConstraintSolver();
-        List<IBinding> bindings = solver.solveConstraints(collection);
+        solver.solveConstraints(asList(methodSymbol));
 
-
+        ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+        verify(methodSymbol).setBindings(captor.capture());
+        List<IBinding> bindings = captor.getValue();
         List<String> num = asList("num");
         List<String> t1 = asList("@T1");
         assertThat(bindings, hasItem(withVariableBindings(
@@ -305,19 +327,21 @@ public class ConstraintSolverTest
     @Test
     public void solveConstraints_Division_HasTwoOverloads() {
         //corresponds to: function foo($x, $y){ return $x / $y; }
-        IConstraintCollection collection = mock(IConstraintCollection.class);
+        IMethodSymbol methodSymbol = mock(IMethodSymbol.class);
         IVariable rtn = var("rtn");
         IVariable $x = var("$x");
         IVariable $y = var("$y");
-        when(collection.getLowerBoundConstraints()).thenReturn(asList(
+        when(methodSymbol.getLowerBoundConstraints()).thenReturn(asList(
                 intersect(rtn, asList($x, $y), core.getOperators().get(TokenTypes.Divide))
         ));
 
 
         IConstraintSolver solver = createConstraintSolver();
-        List<IBinding> bindings = solver.solveConstraints(collection);
+        solver.solveConstraints(asList(methodSymbol));
 
-
+        ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+        verify(methodSymbol).setBindings(captor.capture());
+        List<IBinding> bindings = captor.getValue();
         assertThat(bindings, hasItem(withVariableBindings(
                 varBinding("$x", "T2", null, asList("bool")),
                 varBinding("$y", "T3", null, asList("bool")),
@@ -339,7 +363,7 @@ public class ConstraintSolverTest
 
     private IIntersectionConstraint intersect(
             IVariable returnVariable, List<IVariable> arguments, IMinimalMethodSymbol overloads) {
-        return new IntersectionConstraint(returnVariable, arguments, overloads.getOverloads());
+        return new IntersectionConstraint(returnVariable, arguments, overloads);
     }
 
     private IConstraintSolver createConstraintSolver() {

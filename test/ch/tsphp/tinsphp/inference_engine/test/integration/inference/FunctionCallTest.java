@@ -48,6 +48,13 @@ public class FunctionCallTest extends AInferenceTypeTest
     public static Collection<Object[]> testStrings() {
         return asList(new Object[][]{
                 {"$a = strpos('hello','h');", testStructs("$a", "\\.\\.", asList("(int | false)"), null, 1, 1, 0, 0)},
+                //TODO rstoll TINS-376overload creation
+//                {
+//                        "function foo($x, $y){return bar($x, $y);}" +
+//                                "function bar($x, $y){return $x + $y;}" +
+//                                "$a = foo(1, 2);",
+//                        testStructs("$a", "\\.\\.", asList("int"), null, 1, 3, 0, 0)
+//                },
         });
     }
 }
