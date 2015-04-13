@@ -21,7 +21,9 @@ import ch.tsphp.tinsphp.common.checking.DoubleDefinitionCheckResultDto;
 import ch.tsphp.tinsphp.common.checking.ForwardReferenceCheckResultDto;
 import ch.tsphp.tinsphp.common.checking.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.checking.VariableInitialisedResultDto;
+import ch.tsphp.tinsphp.common.inference.IConstraintCreator;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
+import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.resolving.ISymbolResolverController;
@@ -1892,6 +1894,8 @@ public class ReferencePhaseControllerTest
                 mock(IVariableDeclarationCreator.class),
                 scopeHelper,
                 mock(IModifierHelper.class),
+                mock(IConstraintCreator.class),
+                mock(IConstraintSolver.class),
                 core,
                 mock(IGlobalNamespaceScope.class)
         );
@@ -1911,6 +1915,8 @@ public class ReferencePhaseControllerTest
                 mock(IVariableDeclarationCreator.class),
                 mock(IScopeHelper.class),
                 mock(IModifierHelper.class),
+                mock(IConstraintCreator.class),
+                mock(IConstraintSolver.class),
                 core,
                 mock(IGlobalNamespaceScope.class)
         );
@@ -1973,6 +1979,8 @@ public class ReferencePhaseControllerTest
                 mock(IVariableDeclarationCreator.class),
                 mock(IScopeHelper.class),
                 modifierHelper,
+                mock(IConstraintCreator.class),
+                mock(IConstraintSolver.class),
                 core,
                 mock(IGlobalNamespaceScope.class)
         );
@@ -1991,6 +1999,8 @@ public class ReferencePhaseControllerTest
                 mock(IVariableDeclarationCreator.class),
                 mock(IScopeHelper.class),
                 mock(IModifierHelper.class),
+                mock(IConstraintCreator.class),
+                mock(IConstraintSolver.class),
                 core,
                 globalNamespaceScope
         );
@@ -2014,6 +2024,8 @@ public class ReferencePhaseControllerTest
                 variableDeclarationCreator,
                 mock(IScopeHelper.class),
                 mock(IModifierHelper.class),
+                mock(IConstraintCreator.class),
+                mock(IConstraintSolver.class),
                 core,
                 mock(IGlobalNamespaceScope.class)
         );
@@ -2028,6 +2040,8 @@ public class ReferencePhaseControllerTest
             IVariableDeclarationCreator theVariableDeclarationCreator,
             IScopeHelper scopeHelper,
             IModifierHelper modifierHelper,
+            IConstraintCreator constraintCreator,
+            IConstraintSolver constraintSolver,
             ICore theCore,
             IGlobalNamespaceScope globalDefaultNamespace) {
         return new ReferencePhaseController(
@@ -2039,6 +2053,8 @@ public class ReferencePhaseControllerTest
                 theVariableDeclarationCreator,
                 scopeHelper,
                 modifierHelper,
+                constraintCreator,
+                constraintSolver,
                 theCore,
                 globalDefaultNamespace
         );

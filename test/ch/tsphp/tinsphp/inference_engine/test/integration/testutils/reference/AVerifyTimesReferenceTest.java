@@ -15,7 +15,9 @@ package ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference;
 import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.common.checking.ISymbolCheckController;
+import ch.tsphp.tinsphp.common.inference.IConstraintCreator;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
+import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.resolving.ISymbolResolverController;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
@@ -60,6 +62,8 @@ public abstract class AVerifyTimesReferenceTest extends AReferenceTest
             IVariableDeclarationCreator theVariableDeclarationCreator,
             IScopeHelper theScopeHelper,
             IModifierHelper theModifierHelper,
+            IConstraintCreator theConstraintCreator,
+            IConstraintSolver theConstraintSolver,
             ICore theCore,
             IGlobalNamespaceScope theGlobalDefaultNamespace) {
         return spy(super.createReferencePhaseController(
@@ -71,6 +75,8 @@ public abstract class AVerifyTimesReferenceTest extends AReferenceTest
                 theVariableDeclarationCreator,
                 theScopeHelper,
                 theModifierHelper,
+                theConstraintCreator,
+                theConstraintSolver,
                 theCore,
                 theGlobalDefaultNamespace
         ));

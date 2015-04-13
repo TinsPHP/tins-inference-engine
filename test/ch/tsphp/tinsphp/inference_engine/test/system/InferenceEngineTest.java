@@ -40,7 +40,8 @@ public class InferenceEngineTest
         InferenceEngine inferenceEngine = createInferenceEngine();
         inferenceEngine.enrichWithDefinitions(parserUnitDto.compilationUnit, commonTreeNodeStream);
         inferenceEngine.enrichWithReferences(parserUnitDto.compilationUnit, commonTreeNodeStream);
-        inferenceEngine.enrichtWithTypes(parserUnitDto.compilationUnit, commonTreeNodeStream);
+        inferenceEngine.solveMethodSymbolConstraints();
+        inferenceEngine.solveGlobalDefaultNamespaceConstraints();
 
         assertThat(inferenceEngine.hasFound(EnumSet.allOf(EIssueSeverity.class)), is(false));
     }
@@ -56,7 +57,8 @@ public class InferenceEngineTest
         InferenceEngine inferenceEngine = createInferenceEngine();
         inferenceEngine.enrichWithDefinitions(parserUnitDto.compilationUnit, commonTreeNodeStream);
         inferenceEngine.enrichWithReferences(parserUnitDto.compilationUnit, commonTreeNodeStream);
-        inferenceEngine.enrichtWithTypes(parserUnitDto.compilationUnit, commonTreeNodeStream);
+        inferenceEngine.solveMethodSymbolConstraints();
+        inferenceEngine.solveGlobalDefaultNamespaceConstraints();
 
         assertThat(inferenceEngine.hasFound(EnumSet.allOf(EIssueSeverity.class)), is(false));
 
@@ -68,7 +70,8 @@ public class InferenceEngineTest
         inferenceEngine.reset();
         inferenceEngine.enrichWithDefinitions(parserUnitDto.compilationUnit, commonTreeNodeStream);
         inferenceEngine.enrichWithReferences(parserUnitDto.compilationUnit, commonTreeNodeStream);
-        inferenceEngine.enrichtWithTypes(parserUnitDto.compilationUnit, commonTreeNodeStream);
+        inferenceEngine.solveMethodSymbolConstraints();
+        inferenceEngine.solveGlobalDefaultNamespaceConstraints();
 
         assertThat(inferenceEngine.hasFound(EnumSet.allOf(EIssueSeverity.class)), is(false));
     }
@@ -84,7 +87,8 @@ public class InferenceEngineTest
         InferenceEngine inferenceEngine = createInferenceEngine();
         inferenceEngine.enrichWithDefinitions(parserUnitDto.compilationUnit, commonTreeNodeStream);
         inferenceEngine.enrichWithReferences(parserUnitDto.compilationUnit, commonTreeNodeStream);
-        inferenceEngine.enrichtWithTypes(parserUnitDto.compilationUnit, commonTreeNodeStream);
+        inferenceEngine.solveMethodSymbolConstraints();
+        inferenceEngine.solveGlobalDefaultNamespaceConstraints();
 
         assertThat(inferenceEngine.hasFound(EnumSet.allOf(EIssueSeverity.class)), is(true));
     }
@@ -104,7 +108,8 @@ public class InferenceEngineTest
         inferenceEngine.registerIssueLogger(logger2);
         inferenceEngine.enrichWithDefinitions(parserUnitDto.compilationUnit, commonTreeNodeStream);
         inferenceEngine.enrichWithReferences(parserUnitDto.compilationUnit, commonTreeNodeStream);
-        //inferenceEngine.enrichtWithTypes(parserUnitDto.compilationUnit, commonTreeNodeStream);
+        inferenceEngine.solveMethodSymbolConstraints();
+        inferenceEngine.solveGlobalDefaultNamespaceConstraints();
 
         verify(logger1).log(any(TSPHPException.class), any(EIssueSeverity.class));
         verify(logger2).log(any(TSPHPException.class), any(EIssueSeverity.class));

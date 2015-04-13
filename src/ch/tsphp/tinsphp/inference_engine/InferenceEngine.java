@@ -11,12 +11,12 @@ import ch.tsphp.common.ITSPHPAstAdaptor;
 import ch.tsphp.common.exceptions.TSPHPException;
 import ch.tsphp.tinsphp.common.IInferenceEngine;
 import ch.tsphp.tinsphp.common.inference.IInferenceEngineInitialiser;
+import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
 import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.issues.IIssueLogger;
 import ch.tsphp.tinsphp.common.issues.IssueReporterHelper;
 import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPDefinitionWalker;
-import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPInferenceWalker;
 import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPReferenceWalker;
 import ch.tsphp.tinsphp.inference_engine.config.HardCodedInferenceEngineInitialiser;
 import org.antlr.runtime.RecognitionException;
@@ -59,7 +59,10 @@ public class InferenceEngine implements IInferenceEngine, IIssueLogger
     public void enrichWithReferences(ITSPHPAst ast, TreeNodeStream treeNodeStream) {
         treeNodeStream.reset();
         ErrorReportingTinsPHPReferenceWalker referenceWalker = new ErrorReportingTinsPHPReferenceWalker(
-                treeNodeStream, inferenceEngineInitialiser.getReferencePhaseController(), astAdaptor);
+                treeNodeStream,
+                inferenceEngineInitialiser.getReferencePhaseController(),
+                astAdaptor,
+                inferenceEngineInitialiser.getDefinitionPhaseController().getGlobalDefaultNamespace());
 
         for (IIssueLogger logger : issueLoggers) {
             referenceWalker.registerIssueLogger(logger);
@@ -78,27 +81,15 @@ public class InferenceEngine implements IInferenceEngine, IIssueLogger
     }
 
     @Override
-    public void enrichtWithTypes(ITSPHPAst ast, TreeNodeStream treeNodeStream) {
-        treeNodeStream.reset();
-        ErrorReportingTinsPHPInferenceWalker inferenceWalker = new ErrorReportingTinsPHPInferenceWalker(
-                treeNodeStream,
-                inferenceEngineInitialiser.getInferencePhaseController(),
-                inferenceEngineInitialiser.getDefinitionPhaseController().getGlobalDefaultNamespace());
+    public void solveMethodSymbolConstraints() {
+        IReferencePhaseController referencePhaseController = inferenceEngineInitialiser.getReferencePhaseController();
+        referencePhaseController.solveMethodSymbolConstraints();
+    }
 
-        for (IIssueLogger logger : issueLoggers) {
-            inferenceWalker.registerIssueLogger(logger);
-        }
-        inferenceWalker.registerIssueLogger(this);
-        try {
-            inferenceWalker.compilationUnit();
-        } catch (RecognitionException ex) {
-            // should never happen, ErrorReportingTSPHPReferenceWalker should catch it already.
-            // but just in case and to be complete
-            log(new TSPHPException(ex), EIssueSeverity.FatalError);
-            for (IIssueLogger logger : issueLoggers) {
-                logger.log(new TSPHPException(ex), EIssueSeverity.FatalError);
-            }
-        }
+    @Override
+    public void solveGlobalDefaultNamespaceConstraints() {
+        IReferencePhaseController referencePhaseController = inferenceEngineInitialiser.getReferencePhaseController();
+        referencePhaseController.solveGlobalDefaultNamespaceConstraints();
     }
 
     @Override

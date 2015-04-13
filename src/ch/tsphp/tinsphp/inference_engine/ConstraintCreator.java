@@ -8,17 +8,14 @@ package ch.tsphp.tinsphp.inference_engine;
 
 
 import ch.tsphp.common.ITSPHPAst;
-import ch.tsphp.tinsphp.common.inference.IInferencePhaseController;
+import ch.tsphp.tinsphp.common.inference.IConstraintCreator;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
-import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
 import ch.tsphp.tinsphp.common.inference.constraints.IIntersectionConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
-import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
-import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
@@ -29,26 +26,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class InferencePhaseController implements IInferencePhaseController
+public class ConstraintCreator implements IConstraintCreator
 {
     private final ISymbolFactory symbolFactory;
     private final IInferenceIssueReporter inferenceIssueReporter;
-    private final IConstraintSolver constraintSolver;
-    private final List<IMethodSymbol> functionScopes = new ArrayList<>();
-    private final IGlobalNamespaceScope globalDefaultNamespaceScope;
     private final IMinimalMethodSymbol identityFunction;
 
 
-    public InferencePhaseController(
+    public ConstraintCreator(
             ISymbolFactory theSymbolFactory,
             IOverloadResolver theOverloadResolver,
-            IInferenceIssueReporter theInferenceErrorReporter,
-            IConstraintSolver theConstraintSolver,
-            IGlobalNamespaceScope theGlobalDefaultNamespaceScope) {
+            IInferenceIssueReporter theInferenceErrorReporter) {
         symbolFactory = theSymbolFactory;
         inferenceIssueReporter = theInferenceErrorReporter;
-        constraintSolver = theConstraintSolver;
-        globalDefaultNamespaceScope = theGlobalDefaultNamespaceScope;
         ITypeVariableCollection collection = new TypeVariableCollection(theOverloadResolver);
         IVariable lhs = symbolFactory.createVariable("$lhs", "T");
         IVariable rtn = symbolFactory.createVariable("rtn", "T");
@@ -105,24 +95,15 @@ public class InferencePhaseController implements IInferencePhaseController
     @Override
     public void createFunctionCallConstraint(
             IConstraintCollection collection, ITSPHPAst functionCall, ITSPHPAst identifier, ITSPHPAst argumentList) {
-        List<ITSPHPAst> arguments = argumentList.getChildren();
-        List<IVariable> typeVariables = new ArrayList<>(arguments.size());
-        for (ITSPHPAst argument : arguments) {
-            typeVariables.add((IVariable) argument.getSymbol());
+        int size = argumentList.getChildCount();
+        List<IVariable> typeVariables = new ArrayList<>(size);
+        if (size > 0) {
+            for (ITSPHPAst argument : argumentList.getChildren()) {
+                typeVariables.add((IVariable) argument.getSymbol());
+            }
         }
 
         IMinimalMethodSymbol methodSymbol = (IMinimalMethodSymbol) identifier.getSymbol();
         createIntersectionConstraint(collection, functionCall, identifier, typeVariables, methodSymbol);
-    }
-
-    @Override
-    public void addMethodSymbol(IMethodSymbol scope) {
-        functionScopes.add(scope);
-    }
-
-    @Override
-    public void solveAllConstraints() {
-        constraintSolver.solveConstraints(functionScopes);
-        constraintSolver.solveConstraints(globalDefaultNamespaceScope);
     }
 }

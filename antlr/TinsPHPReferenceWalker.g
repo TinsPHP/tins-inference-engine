@@ -30,8 +30,10 @@ import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.ITSPHPAstAdaptor;
 import ch.tsphp.common.ITSPHPErrorAst;
+import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.common.symbols.ITypeSymbol;
-import ch.tsphp.tinsphp.common.scopes.ICaseInsensitiveScope;
+import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
+import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
@@ -43,11 +45,17 @@ private ITSPHPAstAdaptor adaptor;
 private boolean hasAtLeastOneReturnOrThrow;
 private boolean doesNotReachThisStatement;
 private boolean inSwitch;
+private IConstraintCollection currentScope;
 
-public TinsPHPReferenceWalker(TreeNodeStream input, IReferencePhaseController theController, ITSPHPAstAdaptor theAdaptor) {
+public TinsPHPReferenceWalker(
+        TreeNodeStream input,
+        IReferencePhaseController theController,
+        ITSPHPAstAdaptor theAdaptor,
+        IGlobalNamespaceScope globalDefaultNamespaceScope) {
     this(input);
     controller = theController;
     adaptor = theAdaptor;
+    currentScope = globalDefaultNamespaceScope;
 }
 }
 
@@ -171,15 +179,17 @@ constDeclaration[ITypeSymbol type]
             if(!controller.checkIsNotDoubleDefinition($identifier)){
               //TODO flag double definitions in order that output component can decide how to proceed
             }
+            controller.createRefConstraint(currentScope, $Identifier, $unaryPrimitiveAtom.start);
         }
     ;
 
 unaryPrimitiveAtom
     :   primitiveAtomWithConstant
-    |   ^((UNARY_MINUS|UNARY_PLUS) primitiveAtomWithConstant)
+    |   ^((UNARY_MINUS|UNARY_PLUS) expr=primitiveAtomWithConstant)
         {
             ITSPHPAst operator = $start;
             operator.setSymbol(controller.resolveOperator(operator));
+            controller.createIntersectionConstraint(currentScope, operator, $expr.start);
         }
     ; 
     
@@ -187,19 +197,20 @@ primitiveAtomWithConstant
 @init{
     ITypeSymbol typeSymbol = null;
 }
-@after{
-     $start.setEvalType(typeSymbol);
-}
-    :   (   type=Null
-        |   type=False
-        |   type=True
-        |   type=Int
-        |   type=Float
-        |   type=String
-        |   array {$type=$array.start;}
+    :   (   (   Null
+            |   False
+            |   True
+            |   Int
+            |   Float
+            |   String
+            )
+        |   array
         )
         {
-           typeSymbol = controller.resolvePrimitiveLiteral($type);
+           ITSPHPAst literal = $start;
+           typeSymbol = controller.resolvePrimitiveLiteral(literal);
+           literal.setEvalType(typeSymbol);
+           controller.createTypeConstraint(literal);
         }
 
     |   cnst=CONSTANT
@@ -209,10 +220,11 @@ primitiveAtomWithConstant
             if(controller.checkIsNotForwardReference($cnst)){
                 typeSymbol = variableSymbol.getType();
             }else{
-                String constName = $CONSTANT.text;
-                ITSPHPAst ast = (ITSPHPAst) adaptor.create(this.String, $CONSTANT.getToken(), constName.substring(0,constName.length()-1));
+                String constName = $cnst.text;
+                ITSPHPAst ast = (ITSPHPAst) adaptor.create(this.String, $cnst.getToken(), constName.substring(0,constName.length()-1));
                 typeSymbol = controller.resolvePrimitiveLiteral(ast);
             }
+            $cnst.setEvalType(typeSymbol);
         }
     
     //TODO TINS-217 reference phase - class constant access
@@ -359,18 +371,25 @@ accessModifier
 
     
 functionDefinition
-
 //Warning! start duplicated code as in methodDefinition
-    @init{
-        boolean tmpDoesNotReachThisStatement = doesNotReachThisStatement;
-        //defined above as field
-        hasAtLeastOneReturnOrThrow = false;
-    }
+@init{
+    boolean tmpDoesNotReachThisStatement = doesNotReachThisStatement;
+    //defined above as field
+    hasAtLeastOneReturnOrThrow = false;
+    IConstraintCollection tmp = currentScope;
+}
 //Warning! start duplicated code as in methodDefinition
     :   ^('function'
             .
             ^(TYPE rtMod=. returnTypesOrUnknown[$rtMod])  
-            identifier=Identifier parameterDeclarationList block
+            identifier=Identifier 
+            {
+                IMethodSymbol methodSymbol = (IMethodSymbol) $identifier.getSymbol();
+                currentScope = methodSymbol;
+                controller.addMethodSymbol(methodSymbol);
+            }
+            parameterDeclarationList 
+            block
         )
         {
         //Warning! start duplicated code as in functionDeclaration
@@ -378,11 +397,12 @@ functionDefinition
             controller.checkIsNotDoubleDefinitionCaseInsensitive($identifier);
         //Warning! end duplicated code as in functionDeclaration
             controller.addImplicitReturnStatementIfRequired(
-            $block.isReturning, hasAtLeastOneReturnOrThrow, $identifier, $block.start);
+                $block.isReturning, hasAtLeastOneReturnOrThrow, $identifier, $block.start);
         }
     ;
 finally{
     doesNotReachThisStatement = tmpDoesNotReachThisStatement;
+    currentScope = tmp;    
 }
 
 parameterDeclarationList
@@ -470,9 +490,19 @@ instruction returns[boolean isReturning, boolean isBreaking]
     |   doWhileLoop                  {$isReturning = $doWhileLoop.isReturning;}
     |   tryCatch                     {$isReturning = $tryCatch.isReturning;}
     |   ^(EXPRESSION expression?)
-    |   ^(Return expression?)      {$isReturning = true; hasAtLeastOneReturnOrThrow = true; doesNotReachThisStatement = true;}
+    |   ^(rtn=Return expression?)    {$isReturning = true; hasAtLeastOneReturnOrThrow = true; doesNotReachThisStatement = true;}
         {
-            $Return.setSymbol(controller.resolveReturn($Return));
+            ISymbol symbol = controller.resolveReturn(rtn);
+            if(symbol != null){
+                rtn.setSymbol(symbol);
+                ITSPHPAst expr = $expression.start;
+                if (expr != null){
+                    controller.createRefConstraint(currentScope, rtn, expr);
+                } else {
+                    ITSPHPAst ast = (ITSPHPAst) adaptor.create(this.Null, rtn.getToken(), "null");
+                    symbol.setType(controller.resolvePrimitiveLiteral(ast));
+                }
+            }
         }
     |   ^('throw' expression)        {$isReturning = true; hasAtLeastOneReturnOrThrow = true; doesNotReachThisStatement = true;}
     |   ^('echo' expression+)
@@ -686,10 +716,6 @@ breakContinue
 expression
     :   atom
     |   operator
-        {
-            ITSPHPAst operator = $operator.start;
-            operator.setSymbol(controller.resolveOperator(operator));
-        }
     |   functionCall
     //TODO rstoll TINS-161 inference OOP    
     //|   methodCall
@@ -725,29 +751,65 @@ thisVariable
 */
 
 operator
+@init{
+    ITSPHPAst operator = $start;
+    operator.setSymbol(controller.resolveOperator(operator));
+    ITSPHPAst type;
+}
     :   ^(unaryOperator expression)
-    |   ^(binaryOperatorExcludingAssign expression expression)
-    |   ^(assignOperator varId=expression expression)
         {
-            ITSPHPAst variableId = $varId.start;
+            controller.createIntersectionConstraint(currentScope, operator, $expression.start);
+        }
+    |   ^(binaryOperatorExcludingAssign lhs=expression rhs=expression)
+        {
+            controller.createIntersectionConstraint(currentScope, operator, $lhs.start, $rhs.start);
+        }
+    |   ^('=' lhs=expression rhs=expression)
+        {
+            ITSPHPAst variableId = $lhs.start;
             if(!doesNotReachThisStatement && variableId.getType()==VariableId){
                 variableId.getScope().addToInitialisedSymbols(variableId.getSymbol(), true);
             }
+            controller.createIntersectionConstraint(currentScope, operator, variableId, $rhs.start);
         }
-    |   ^('?' expression expression expression)
+    |   ^('?' cond=expression ifExpr=expression elseExpr=expression)
+        {
+            controller.createIntersectionConstraint(currentScope, operator, $cond.start, $ifExpr.start, $elseExpr.start);
+        }
     |   ^(CAST 
             ^(TYPE tMod=. scalarTypesOrArrayType[$tMod])
-                {$scalarTypesOrArrayType.start.setEvalType($scalarTypesOrArrayType.type);}
+                {
+                    type = $scalarTypesOrArrayType.start;
+                    type.setEvalType($scalarTypesOrArrayType.type);
+                }
             expression
         )
+        {
+            controller.createTypeConstraint(type);
+            controller.createIntersectionConstraint(currentScope, operator, type, $expression.start);
+        }
     |   ^(Instanceof 
-            expression 
-            (   variable
-            |   classInterfaceType[null] {$classInterfaceType.start.setEvalType($classInterfaceType.type);}
+            lhs=expression 
+            (   varId=variable
+                {
+                    controller.createIntersectionConstraint(currentScope, operator, $lhs.start, $varId.start);
+                }
+            |   classInterfaceType[null] 
+                {
+                    type = $classInterfaceType.start;
+                    type.setEvalType($classInterfaceType.type);
+                    controller.createTypeConstraint(operator);
+                    controller.createIntersectionConstraint(currentScope, operator, $lhs.start, type);
+                }
             )
         )
+       
+        
     //|   ^('new' classInterfaceType[null] actualParameters)
     |   ^('clone' expression)
+        {
+            controller.createIntersectionConstraint(currentScope, operator, $expression.start);
+        }
     ;
         
 unaryOperator
@@ -768,6 +830,18 @@ binaryOperatorExcludingAssign
     :   'or'
     |   'xor'
     |   'and'
+    
+    |   '+='
+    |   '-='
+    |   '*='
+    |   '/='
+    |   '&='
+    |   '|='
+    |   '^='
+    |   '%='
+    |   '.='
+    |   '<<='
+    |   '>>='
     
     |   '||'
     |   '&&'
@@ -797,27 +871,11 @@ binaryOperatorExcludingAssign
     |   '%'
     ;
     
-assignOperator
-// operators can be overloaded and thus type information is needed to resolve them
-// they are resolved during the inference phase
-    :   '='
-    |   '+='
-    |   '-='
-    |   '*='
-    |   '/='
-    |   '&='
-    |   '|='
-    |   '^='
-    |   '%='
-    |   '.='
-    |   '<<='
-    |   '>>='
-    ;
-    
 functionCall
     :   ^(FUNCTION_CALL identifier=TYPE_NAME actualParameters)
        {
-            $identifier.setSymbol(controller.resolveFunction($identifier));
+           $identifier.setSymbol(controller.resolveFunction($identifier));
+           controller.createFunctionCallConstraint(currentScope, $FUNCTION_CALL, $identifier, $actualParameters.start);
        }
     ;
     

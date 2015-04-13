@@ -27,7 +27,10 @@ import ch.tsphp.tinsphp.common.checking.DoubleDefinitionCheckResultDto;
 import ch.tsphp.tinsphp.common.checking.ForwardReferenceCheckResultDto;
 import ch.tsphp.tinsphp.common.checking.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.checking.VariableInitialisedResultDto;
+import ch.tsphp.tinsphp.common.inference.IConstraintCreator;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
+import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
+import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.resolving.ISymbolResolverController;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
@@ -61,9 +64,13 @@ public class ReferencePhaseController implements IReferencePhaseController
     private final IVariableDeclarationCreator variableDeclarationCreator;
     private final IScopeHelper scopeHelper;
     private final IModifierHelper modifierHelper;
+    private final IConstraintCreator constraintCreator;
+    private final IConstraintSolver constraintSolver;
     private final Map<String, ITypeSymbol> primitiveTypes;
     private final Map<Integer, IMinimalMethodSymbol> operators;
     private final IGlobalNamespaceScope globalDefaultNamespace;
+    private final List<IMethodSymbol> methodSymbols = new ArrayList<>();
+
 
     public ReferencePhaseController(
             ISymbolFactory theSymbolFactory,
@@ -74,6 +81,8 @@ public class ReferencePhaseController implements IReferencePhaseController
             IVariableDeclarationCreator theVariableDeclarationCreator,
             IScopeHelper theScopeHelper,
             IModifierHelper theModifierHelper,
+            IConstraintCreator theConstraintCreator,
+            IConstraintSolver theConstraintSolver,
             ICore theCore,
             IGlobalNamespaceScope theGlobalDefaultNamespace) {
         symbolFactory = theSymbolFactory;
@@ -84,6 +93,8 @@ public class ReferencePhaseController implements IReferencePhaseController
         variableDeclarationCreator = theVariableDeclarationCreator;
         scopeHelper = theScopeHelper;
         modifierHelper = theModifierHelper;
+        constraintCreator = theConstraintCreator;
+        constraintSolver = theConstraintSolver;
         operators = theCore.getOperators();
         globalDefaultNamespace = theGlobalDefaultNamespace;
 
@@ -535,6 +546,43 @@ public class ReferencePhaseController implements IReferencePhaseController
                 inferenceErrorReporter.noReturnFromFunction(identifier);
             }
         }
+    }
+
+    @Override
+    public void createTypeConstraint(ITSPHPAst literal) {
+        constraintCreator.createTypeConstraint(literal);
+    }
+
+    @Override
+    public void createRefConstraint(IConstraintCollection collection, ITSPHPAst identifier, ITSPHPAst rhs) {
+        constraintCreator.createRefConstraint(collection, identifier, rhs);
+    }
+
+    @Override
+    public void createIntersectionConstraint(
+            IConstraintCollection collection, ITSPHPAst operator, ITSPHPAst... arguments) {
+        constraintCreator.createIntersectionConstraint(collection, operator, arguments);
+    }
+
+    @Override
+    public void createFunctionCallConstraint(
+            IConstraintCollection collection, ITSPHPAst functionCall, ITSPHPAst identifier, ITSPHPAst argumentList) {
+        constraintCreator.createFunctionCallConstraint(collection, functionCall, identifier, argumentList);
+    }
+
+    @Override
+    public void addMethodSymbol(IMethodSymbol scope) {
+        methodSymbols.add(scope);
+    }
+
+    @Override
+    public void solveMethodSymbolConstraints() {
+        constraintSolver.solveConstraints(methodSymbols);
+    }
+
+    @Override
+    public void solveGlobalDefaultNamespaceConstraints() {
+        constraintSolver.solveConstraints(globalDefaultNamespace);
     }
 
     private void addReturnNullAtTheEndOfScope(ITSPHPAst block) {

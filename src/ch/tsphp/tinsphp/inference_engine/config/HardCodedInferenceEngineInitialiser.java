@@ -11,9 +11,9 @@ import ch.tsphp.common.IAstHelper;
 import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.common.checking.ISymbolCheckController;
+import ch.tsphp.tinsphp.common.inference.IConstraintCreator;
 import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.common.inference.IInferenceEngineInitialiser;
-import ch.tsphp.tinsphp.common.inference.IInferencePhaseController;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
@@ -25,8 +25,8 @@ import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.core.Core;
+import ch.tsphp.tinsphp.inference_engine.ConstraintCreator;
 import ch.tsphp.tinsphp.inference_engine.DefinitionPhaseController;
-import ch.tsphp.tinsphp.inference_engine.InferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.ReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.issues.HardCodedIssueMessageProvider;
@@ -53,11 +53,13 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
     private final ISymbolFactory symbolFactory;
     private final IScopeFactory scopeFactory;
     private final IAstModificationHelper astModificationHelper;
+    private final IConstraintCreator constraintCreator;
     private final IConstraintSolver constraintSolver;
+
 
     private IDefinitionPhaseController definitionPhaseController;
     private IReferencePhaseController referencePhaseController;
-    private IInferencePhaseController inferencePhaseController;
+    private IConstraintCreator inferencePhaseController;
     private InferenceIssueReporter inferenceErrorReporter;
     private ICore core;
     private final List<ISymbolResolver> additionalSymbolResolvers;
@@ -69,9 +71,10 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
         overloadResolver = new OverloadResolver();
 
         symbolFactory = new SymbolFactory(scopeHelper, modifierHelper, overloadResolver);
-        constraintSolver = new ConstraintSolver(symbolFactory, overloadResolver);
         scopeFactory = new ScopeFactory(scopeHelper);
+        constraintSolver = new ConstraintSolver(symbolFactory, overloadResolver);
         inferenceErrorReporter = new InferenceIssueReporter(new HardCodedIssueMessageProvider());
+        constraintCreator = new ConstraintCreator(symbolFactory, overloadResolver, inferenceErrorReporter);
 
         IAstHelper astHelper = AstHelperRegistry.get();
         astModificationHelper = new AstModificationHelper(astHelper);
@@ -112,16 +115,16 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
                 variableDeclarationCreator,
                 scopeHelper,
                 modifierHelper,
+                constraintCreator,
+                constraintSolver,
                 core,
                 definitionPhaseController.getGlobalDefaultNamespace()
         );
 
-        inferencePhaseController = new InferencePhaseController(
+        inferencePhaseController = new ConstraintCreator(
                 symbolFactory,
                 overloadResolver,
-                inferenceErrorReporter,
-                constraintSolver,
-                definitionPhaseController.getGlobalDefaultNamespace()
+                inferenceErrorReporter
         );
     }
 
@@ -133,11 +136,6 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
     @Override
     public IReferencePhaseController getReferencePhaseController() {
         return referencePhaseController;
-    }
-
-    @Override
-    public IInferencePhaseController getInferencePhaseController() {
-        return inferencePhaseController;
     }
 
     @Override

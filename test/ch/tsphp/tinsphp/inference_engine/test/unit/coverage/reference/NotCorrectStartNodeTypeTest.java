@@ -68,7 +68,6 @@ public class NotCorrectStartNodeTypeTest extends AReferenceWalkerTest
                 //{"allTypesOrUnknown", Else},
                 {"array", Else},
                 {"arrayKeyValue", Else},
-                {"assignOperator", Else},
                 {"atom", Else},
                 {"binaryOperatorExcludingAssign", Else},
                 {"block", Else},

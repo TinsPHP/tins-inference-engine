@@ -20,8 +20,11 @@ import ch.tsphp.common.TSPHPAstAdaptor;
 import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.common.checking.ISymbolCheckController;
+import ch.tsphp.tinsphp.common.inference.IConstraintCreator;
 import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
+import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
+import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
 import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.resolving.ISymbolResolver;
@@ -30,8 +33,10 @@ import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
+import ch.tsphp.tinsphp.inference_engine.ConstraintCreator;
 import ch.tsphp.tinsphp.inference_engine.ReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPReferenceWalker;
+import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.resolver.SymbolCheckController;
 import ch.tsphp.tinsphp.inference_engine.resolver.SymbolResolverController;
 import ch.tsphp.tinsphp.inference_engine.resolver.UserSymbolResolver;
@@ -62,6 +67,8 @@ public abstract class AReferenceTest extends ADefinitionTest
     protected ISymbolResolverController symbolResolverController;
     protected ISymbolCheckController symbolCheckController;
     protected IVariableDeclarationCreator variableDeclarationCreator;
+    protected IConstraintCreator constraintCreator;
+    protected IConstraintSolver constraintSolver;
 
     protected IAstHelper astHelper;
 
@@ -101,6 +108,10 @@ public abstract class AReferenceTest extends ADefinitionTest
         variableDeclarationCreator = createVariableDeclarationCreator(symbolFactory, astModificationHelper,
                 definitionPhaseController);
 
+        constraintSolver = createConstraintSolver(symbolFactory, overloadResolver);
+
+        constraintCreator = createConstraintCreator(symbolFactory, overloadResolver, inferenceErrorReporter);
+
         referencePhaseController = createReferencePhaseController(
                 symbolFactory,
                 inferenceErrorReporter,
@@ -110,11 +121,12 @@ public abstract class AReferenceTest extends ADefinitionTest
                 variableDeclarationCreator,
                 scopeHelper,
                 modifierHelper,
+                constraintCreator,
+                constraintSolver,
                 core,
                 definitionPhaseController.getGlobalDefaultNamespace()
         );
     }
-
 
     protected abstract void assertsInReferencePhase();
 
@@ -126,7 +138,12 @@ public abstract class AReferenceTest extends ADefinitionTest
 
     protected void afterVerifyDefinitions() {
         commonTreeNodeStream.reset();
-        reference = createReferenceWalker(commonTreeNodeStream, referencePhaseController, astAdaptor);
+        reference = createReferenceWalker(
+                commonTreeNodeStream,
+                referencePhaseController,
+                astAdaptor,
+                definitionPhaseController.getGlobalDefaultNamespace());
+
         registerReferenceErrorLogger();
 
         try {
@@ -218,6 +235,19 @@ public abstract class AReferenceTest extends ADefinitionTest
                 theSymbolFactory, theAstModificationHelper, theDefinitionPhaseController);
     }
 
+    protected IConstraintCreator createConstraintCreator(
+            ISymbolFactory theSymbolFactory,
+            IOverloadResolver theOverloadResolver,
+            IInferenceIssueReporter theInferenceErrorReporter) {
+        return new ConstraintCreator(theSymbolFactory, theOverloadResolver, theInferenceErrorReporter);
+    }
+
+    protected IConstraintSolver createConstraintSolver(
+            ISymbolFactory theSymbolFactory, IOverloadResolver theOverloadResolver) {
+        return new ConstraintSolver(theSymbolFactory, theOverloadResolver);
+    }
+
+
     protected IReferencePhaseController createReferencePhaseController(
             ISymbolFactory theSymbolFactory,
             IInferenceIssueReporter theInferenceErrorReporter,
@@ -227,6 +257,8 @@ public abstract class AReferenceTest extends ADefinitionTest
             IVariableDeclarationCreator theVariableDeclarationCreator,
             IScopeHelper theScopeHelper,
             IModifierHelper theModifierHelper,
+            IConstraintCreator theConstraintCreator,
+            IConstraintSolver theConstraintSolver,
             ICore theCore,
             IGlobalNamespaceScope theGlobalDefaultNamespace) {
         return new ReferencePhaseController(
@@ -238,6 +270,8 @@ public abstract class AReferenceTest extends ADefinitionTest
                 theVariableDeclarationCreator,
                 theScopeHelper,
                 theModifierHelper,
+                theConstraintCreator,
+                theConstraintSolver,
                 theCore, theGlobalDefaultNamespace
         );
     }
@@ -245,7 +279,9 @@ public abstract class AReferenceTest extends ADefinitionTest
     protected ErrorReportingTinsPHPReferenceWalker createReferenceWalker(
             CommonTreeNodeStream theCommonTreeNodeStream,
             IReferencePhaseController theController,
-            ITSPHPAstAdaptor theAstAdaptor) {
-        return new ErrorReportingTinsPHPReferenceWalker(theCommonTreeNodeStream, theController, theAstAdaptor);
+            ITSPHPAstAdaptor theAstAdaptor,
+            IGlobalNamespaceScope theGlobalDefaultNamespace) {
+        return new ErrorReportingTinsPHPReferenceWalker(
+                theCommonTreeNodeStream, theController, theAstAdaptor, theGlobalDefaultNamespace);
     }
 }
