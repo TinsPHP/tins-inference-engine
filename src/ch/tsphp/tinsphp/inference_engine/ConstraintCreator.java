@@ -17,8 +17,8 @@ import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
+import ch.tsphp.tinsphp.common.symbols.IMinimalVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
-import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
 import ch.tsphp.tinsphp.symbols.constraints.IntersectionConstraint;
 import ch.tsphp.tinsphp.symbols.constraints.TypeVariableCollection;
 
@@ -50,7 +50,7 @@ public class ConstraintCreator implements IConstraintCreator
 
     @Override
     public void createTypeConstraint(ITSPHPAst literal) {
-        ITypeVariableSymbol typeVariableSymbol = symbolFactory.createExpressionTypeVariableSymbol(literal);
+        IMinimalVariableSymbol typeVariableSymbol = symbolFactory.createExpressionTypeVariableSymbol(literal);
         typeVariableSymbol.setType(literal.getEvalType());
         typeVariableSymbol.setHasFixedType();
         literal.setSymbol(typeVariableSymbol);
@@ -84,7 +84,7 @@ public class ConstraintCreator implements IConstraintCreator
             ITSPHPAst identifierAst,
             List<IVariable> typeVariables,
             IMinimalMethodSymbol methodSymbol) {
-        ITypeVariableSymbol expressionVariable = symbolFactory.createExpressionTypeVariableSymbol(identifierAst);
+        IMinimalVariableSymbol expressionVariable = symbolFactory.createExpressionTypeVariableSymbol(identifierAst);
         expressionVariable.setDefinitionScope(identifierAst.getScope());
         IIntersectionConstraint constraint = new IntersectionConstraint(
                 expressionVariable, typeVariables, methodSymbol);

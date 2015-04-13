@@ -10,7 +10,7 @@ import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.tinsphp.common.inference.constraints.IBinding;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
-import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.BindingMatcher;
+import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.BindingMatcherDto;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.ScopeTestHelper;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -21,7 +21,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static ch.tsphp.tinsphp.inference_engine.test.integration.testutils.BindingMatcher.withVariableBindings;
+import static ch.tsphp.tinsphp.inference_engine.test.integration.testutils.BindingsMatcher.withVariableBindings;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
 
@@ -78,20 +78,20 @@ public class AInferenceBindingTest extends AInferenceTest
         }
     }
 
-    protected static List<BindingMatcher.BindingMatcherDto[]> matcherDtos(BindingMatcher.BindingMatcherDto[]... dtos) {
-        List<BindingMatcher.BindingMatcherDto[]> list = new ArrayList<>(dtos.length);
+    protected static List<BindingMatcherDto[]> matcherDtos(BindingMatcherDto[]... dtos) {
+        List<BindingMatcherDto[]> list = new ArrayList<>(dtos.length);
         Collections.addAll(list, dtos);
         return list;
     }
 
-    protected static BindingMatcher.BindingMatcherDto[] matcherDto(BindingMatcher.BindingMatcherDto... dtos) {
+    protected static BindingMatcherDto[] matcherDto(BindingMatcherDto... dtos) {
         return dtos;
     }
 
     protected static BindingTestStruct testStruct(
             String astText,
             String definitionScope,
-            List<BindingMatcher.BindingMatcherDto[]> matcherDtos,
+            List<BindingMatcherDto[]> matcherDtos,
             Integer... astAccessOrder) {
         return new BindingTestStruct(
                 astText, definitionScope, Arrays.asList(astAccessOrder), matcherDtos);
@@ -100,7 +100,7 @@ public class AInferenceBindingTest extends AInferenceTest
     protected static BindingTestStruct[] testStructs(
             String astText,
             String definitionScope,
-            List<BindingMatcher.BindingMatcherDto[]> matcherDtos,
+            List<BindingMatcherDto[]> matcherDtos,
             Integer... astAccessOrder) {
         return new BindingTestStruct[]{
                 testStruct(astText, definitionScope, matcherDtos, astAccessOrder)

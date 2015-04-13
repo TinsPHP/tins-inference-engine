@@ -6,9 +6,11 @@
 
 package ch.tsphp.tinsphp.inference_engine.constraints;
 
+import ch.tsphp.tinsphp.common.inference.constraints.FixedTypeVariableConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IBinding;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
+import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.TypeVariableConstraint;
 import ch.tsphp.tinsphp.symbols.constraints.TypeVariableCollection;
 
@@ -17,9 +19,8 @@ import java.util.Map;
 
 public class Binding implements IBinding
 {
-    public static final char TYPE_VARIABLE_PREFIX = 'T';
     private int count = 1;
-    private Map<String, TypeVariableConstraint> bindings;
+    private Map<String, ITypeVariableConstraint> bindings;
     private TypeVariableCollection collection;
 
     public Binding(IOverloadResolver overloadResolver) {
@@ -30,27 +31,39 @@ public class Binding implements IBinding
     public Binding(IOverloadResolver overloadResolver, Binding binding) {
         count = binding.getTypeVariableCounter();
         bindings = new HashMap<>();
-        Map<String, TypeVariableConstraint> mapping = new HashMap<>();
-        for (Map.Entry<String, TypeVariableConstraint> entry : binding.getVariable2TypeVariable().entrySet()) {
-            TypeVariableConstraint value = entry.getValue();
-            TypeVariableConstraint constraint;
-            String constraintId = value.getId();
-            if (mapping.containsKey(constraintId)) {
-                constraint = mapping.get(constraintId);
-            } else {
-                constraint = new TypeVariableConstraint(value.getTypeVariable());
-                if (value.hasFixedType()) {
-                    constraint.setHasFixedType();
-                }
-                mapping.put(constraintId, constraint);
-            }
+        Map<String, ITypeVariableConstraint> mapping = new HashMap<>();
+        for (Map.Entry<String, ITypeVariableConstraint> entry : binding.getVariable2TypeVariable().entrySet()) {
+            ITypeVariableConstraint constraint = createOrGetConstraint(mapping, entry);
             bindings.put(entry.getKey(), constraint);
         }
         collection = new TypeVariableCollection(overloadResolver, binding.collection, mapping);
     }
 
+    private ITypeVariableConstraint createOrGetConstraint(
+            Map<String, ITypeVariableConstraint> mapping,
+            Map.Entry<String, ITypeVariableConstraint> entry) {
+        ITypeVariableConstraint value = entry.getValue();
+        ITypeVariableConstraint constraint;
+        String constraintId = value.getId();
+        boolean containsKey = mapping.containsKey(constraintId);
+        if (containsKey) {
+            constraint = mapping.get(constraintId);
+        } else {
+            constraint = new TypeVariableConstraint(value.getTypeVariable());
+        }
+
+        if (value.hasFixedType() && !constraint.hasFixedType()) {
+            constraint = new FixedTypeVariableConstraint((TypeVariableConstraint) constraint);
+        }
+
+        if (!containsKey) {
+            mapping.put(constraintId, constraint);
+        }
+        return constraint;
+    }
+
     @Override
-    public Map<String, TypeVariableConstraint> getVariable2TypeVariable() {
+    public Map<String, ITypeVariableConstraint> getVariable2TypeVariable() {
         return bindings;
     }
 
@@ -66,7 +79,7 @@ public class Binding implements IBinding
 
     @Override
     public TypeVariableConstraint getNextTypeVariable() {
-        return new TypeVariableConstraint(String.valueOf(TYPE_VARIABLE_PREFIX) + count++);
+        return new TypeVariableConstraint("T" + count++);
     }
 
     @Override
@@ -74,7 +87,7 @@ public class Binding implements IBinding
         StringBuilder sb = new StringBuilder();
         sb.append("[");
         boolean isNotFirst = false;
-        for (Map.Entry<String, TypeVariableConstraint> entry : bindings.entrySet()) {
+        for (Map.Entry<String, ITypeVariableConstraint> entry : bindings.entrySet()) {
             if (isNotFirst) {
                 sb.append(", ");
             } else {

@@ -33,8 +33,8 @@ import org.mockito.ArgumentCaptor;
 
 import java.util.List;
 
-import static ch.tsphp.tinsphp.inference_engine.test.integration.testutils.BindingMatcher.varBinding;
-import static ch.tsphp.tinsphp.inference_engine.test.integration.testutils.BindingMatcher.withVariableBindings;
+import static ch.tsphp.tinsphp.inference_engine.test.integration.testutils.BindingsMatcher.varBinding;
+import static ch.tsphp.tinsphp.inference_engine.test.integration.testutils.BindingsMatcher.withVariableBindings;
 import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -75,19 +75,19 @@ public class ConstraintSolverTest
         verify(methodSymbol).setBindings(captor.capture());
         List<IBinding> bindings = captor.getValue();
         assertThat(bindings, hasItem(withVariableBindings(
-                varBinding("$x", "T1", asList("@T1"), asList("num")),
-                varBinding("$y", "T1", asList("@T1"), asList("num")),
-                varBinding("rtn", "T1", asList("@T1"), asList("num"))
+                varBinding("$x", "T1", asList("@T1"), asList("num"), false),
+                varBinding("$y", "T1", asList("@T1"), asList("num"), false),
+                varBinding("rtn", "T1", asList("@T1"), asList("num"), false)
         )));
         assertThat(bindings, hasItem(withVariableBindings(
-                varBinding("$x", "T2", null, asList("bool")),
-                varBinding("$y", "T3", null, asList("bool")),
-                varBinding("rtn", "T1", asList("int"), null)
+                varBinding("$x", "T2", null, asList("bool"), false),
+                varBinding("$y", "T3", null, asList("bool"), false),
+                varBinding("rtn", "T1", asList("int"), null, true)
         )));
         assertThat(bindings, hasItem(withVariableBindings(
-                varBinding("$x", "T2", null, asList("array")),
-                varBinding("$y", "T3", null, asList("array")),
-                varBinding("rtn", "T1", asList("array"), null)
+                varBinding("$x", "T2", null, asList("array"), false),
+                varBinding("$y", "T3", null, asList("array"), false),
+                varBinding("rtn", "T1", asList("array"), null, true)
         )));
         assertThat(bindings, hasSize(3));
     }
@@ -98,7 +98,7 @@ public class ConstraintSolverTest
         IMethodSymbol methodSymbol = mock(IMethodSymbol.class);
         IVariable rtn = var("rtn");
         IVariable $x = var("$x");
-        IVariable e1 = var("e1");
+        IVariable e1 = var("1@1|0");
         when(e1.getType()).thenReturn(core.getPrimitiveTypes().get(PrimitiveTypeNames.INT));
         when(methodSymbol.getLowerBoundConstraints()).thenReturn(asList(
                 intersect(rtn, asList($x, e1), core.getOperators().get(TokenTypes.Plus))
@@ -111,9 +111,9 @@ public class ConstraintSolverTest
         verify(methodSymbol).setBindings(captor.capture());
         List<IBinding> bindings = captor.getValue();
         assertThat(bindings, hasItem(withVariableBindings(
-                varBinding("$x", "T1", asList("int"), asList("num")),
-                varBinding("e1", "T1", asList("int"), asList("num")),
-                varBinding("rtn", "T1", asList("int"), asList("num"))
+                varBinding("$x", "T1", asList("int"), asList("num"), false),
+                varBinding("1@1|0", "T1", asList("int"), asList("num"), true),
+                varBinding("rtn", "T1", asList("int"), asList("num"), false)
         )));
         assertThat(bindings, hasSize(1));
     }
@@ -124,7 +124,7 @@ public class ConstraintSolverTest
         IMethodSymbol methodSymbol = mock(IMethodSymbol.class);
         IVariable rtn = var("rtn");
         IVariable $x = var("$x");
-        IVariable e1 = var("e1");
+        IVariable e1 = var("1.4@1|0");
         when(e1.getType()).thenReturn(core.getPrimitiveTypes().get(PrimitiveTypeNames.FLOAT));
         when(methodSymbol.getLowerBoundConstraints()).thenReturn(asList(
                 intersect(rtn, asList($x, e1), core.getOperators().get(TokenTypes.Plus))
@@ -138,9 +138,9 @@ public class ConstraintSolverTest
         verify(methodSymbol).setBindings(captor.capture());
         List<IBinding> bindings = captor.getValue();
         assertThat(bindings, hasItem(withVariableBindings(
-                varBinding("$x", "T1", asList("float"), asList("num")),
-                varBinding("e1", "T1", asList("float"), asList("num")),
-                varBinding("rtn", "T1", asList("float"), asList("num"))
+                varBinding("$x", "T1", asList("float"), asList("num"), false),
+                varBinding("1.4@1|0", "T1", asList("float"), asList("num"), true),
+                varBinding("rtn", "T1", asList("float"), asList("num"), false)
         )));
         assertThat(bindings, hasSize(1));
     }
@@ -164,9 +164,9 @@ public class ConstraintSolverTest
         verify(methodSymbol).setBindings(captor.capture());
         List<IBinding> bindings = captor.getValue();
         assertThat(bindings, hasItem(withVariableBindings(
-                varBinding("$x", "T1", asList("num"), asList("num")),
-                varBinding("e1", "T1", asList("num"), asList("num")),
-                varBinding("rtn", "T1", asList("num"), asList("num"))
+                varBinding("$x", "T1", asList("num"), asList("num"), false),
+                varBinding("e1", "T1", asList("num"), asList("num"), true),
+                varBinding("rtn", "T1", asList("num"), asList("num"), false)
         )));
         assertThat(bindings, hasSize(1));
     }
@@ -177,7 +177,7 @@ public class ConstraintSolverTest
         IMethodSymbol methodSymbol = mock(IMethodSymbol.class);
         IVariable rtn = var("rtn");
         IVariable $x = var("$x");
-        IVariable e1 = var("e1");
+        IVariable e1 = var("[]@1|0");
         when(e1.getType()).thenReturn(core.getPrimitiveTypes().get(PrimitiveTypeNames.ARRAY));
         when(methodSymbol.getLowerBoundConstraints()).thenReturn(asList(
                 intersect(rtn, asList($x, e1), core.getOperators().get(TokenTypes.Plus))
@@ -190,9 +190,9 @@ public class ConstraintSolverTest
         verify(methodSymbol).setBindings(captor.capture());
         List<IBinding> bindings = captor.getValue();
         assertThat(bindings, hasItem(withVariableBindings(
-                varBinding("$x", "T2", null, asList("array")),
-                varBinding("e1", "T3", asList("array"), asList("array")),
-                varBinding("rtn", "T1", asList("array"), null)
+                varBinding("$x", "T2", null, asList("array"), false),
+                varBinding("[]@1|0", "T3", asList("array"), asList("array"), true),
+                varBinding("rtn", "T1", asList("array"), null, true)
         )));
         assertThat(bindings, hasSize(1));
     }
@@ -203,7 +203,7 @@ public class ConstraintSolverTest
         IMethodSymbol methodSymbol = mock(IMethodSymbol.class);
         IVariable rtn = var("rtn");
         IVariable $x = var("$x");
-        IVariable e1 = var("e1");
+        IVariable e1 = var("true@1|0");
         when(e1.getType()).thenReturn(core.getPrimitiveTypes().get(PrimitiveTypeNames.BOOL));
         when(methodSymbol.getLowerBoundConstraints()).thenReturn(asList(
                 intersect(rtn, asList($x, e1), core.getOperators().get(TokenTypes.Plus))
@@ -216,9 +216,9 @@ public class ConstraintSolverTest
         verify(methodSymbol).setBindings(captor.capture());
         List<IBinding> bindings = captor.getValue();
         assertThat(bindings, hasItem(withVariableBindings(
-                varBinding("$x", "T2", null, asList("bool")),
-                varBinding("e1", "T3", asList("bool"), asList("bool")),
-                varBinding("rtn", "T1", asList("int"), null)
+                varBinding("$x", "T2", null, asList("bool"), false),
+                varBinding("true@1|0", "T3", asList("bool"), asList("bool"), true),
+                varBinding("rtn", "T1", asList("int"), null, true)
         )));
         assertThat(bindings, hasSize(1));
     }
@@ -241,34 +241,35 @@ public class ConstraintSolverTest
         IConstraintSolver solver = createConstraintSolver();
         solver.solveConstraints(asList(methodSymbol));
 
+
         ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
         verify(methodSymbol).setBindings(captor.capture());
         List<IBinding> bindings = captor.getValue();
         List<String> num = asList("num");
         List<String> t1 = asList("@T1");
         assertThat(bindings, hasItem(withVariableBindings(
-                varBinding("$x", "T1", t1, num),
-                varBinding("$y", "T1", t1, num),
-                varBinding("$z", "T1", t1, num),
-                varBinding("e1", "T1", t1, num),
-                varBinding("rtn", "T1", t1, num)
+                varBinding("$x", "T1", t1, num, false),
+                varBinding("$y", "T1", t1, num, false),
+                varBinding("$z", "T1", t1, num, false),
+                varBinding("e1", "T1", t1, num, false),
+                varBinding("rtn", "T1", t1, num, false)
         )));
         List<String> intAndT1 = asList("int", "@T1");
         List<String> bool = asList("bool");
         assertThat(bindings, hasItem(withVariableBindings(
-                varBinding("$x", "T4", null, bool),
-                varBinding("$y", "T5", null, bool),
-                varBinding("$z", "T1", intAndT1, num),
-                varBinding("e1", "T1", intAndT1, num),
-                varBinding("rtn", "T1", intAndT1, num)
+                varBinding("$x", "T4", null, bool, false),
+                varBinding("$y", "T5", null, bool, false),
+                varBinding("$z", "T1", intAndT1, num, false),
+                varBinding("e1", "T1", intAndT1, num, true),
+                varBinding("rtn", "T1", intAndT1, num, false)
         )));
         List<String> array = asList("array");
         assertThat(bindings, hasItem(withVariableBindings(
-                varBinding("$x", "T4", null, array),
-                varBinding("$y", "T5", null, array),
-                varBinding("$z", "T3", null, array),
-                varBinding("e1", "T2", array, array),
-                varBinding("rtn", "T1", array, null)
+                varBinding("$x", "T4", null, array, false),
+                varBinding("$y", "T5", null, array, false),
+                varBinding("$z", "T3", null, array, false),
+                varBinding("e1", "T2", array, array, true),
+                varBinding("rtn", "T1", array, null, true)
         )));
     }
 
@@ -295,32 +296,33 @@ public class ConstraintSolverTest
         IConstraintSolver solver = createConstraintSolver();
         solver.solveConstraints(asList(methodSymbol));
 
+
         ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
         verify(methodSymbol).setBindings(captor.capture());
         List<IBinding> bindings = captor.getValue();
         List<String> num = asList("num");
         List<String> t1 = asList("@T1");
         assertThat(bindings, hasItem(withVariableBindings(
-                varBinding("$x", "T1", t1, num),
-                varBinding("$y", "T1", t1, num),
-                varBinding("$a", "T1", t1, num),
-                varBinding("$b", "T1", t1, num),
-                varBinding("e1", "T1", t1, num),
-                varBinding("e2", "T1", t1, num),
-                varBinding("e3", "T1", t1, num),
-                varBinding("rtn", "T1", t1, num)
+                varBinding("$x", "T1", t1, num, false),
+                varBinding("$y", "T1", t1, num, false),
+                varBinding("$a", "T1", t1, num, false),
+                varBinding("$b", "T1", t1, num, false),
+                varBinding("e1", "T1", t1, num, false),
+                varBinding("e2", "T1", t1, num, false),
+                varBinding("e3", "T1", t1, num, false),
+                varBinding("rtn", "T1", t1, num, false)
         )));
         List<String> intAndT1 = asList("int", "@T1");
         List<String> bool = asList("bool");
         assertThat(bindings, hasItem(withVariableBindings(
-                varBinding("$x", "T6", null, bool),
-                varBinding("$y", "T7", null, bool),
-                varBinding("$a", "T1", intAndT1, num),
-                varBinding("$b", "T1", intAndT1, num),
-                varBinding("e1", "T1", intAndT1, num),
-                varBinding("e2", "T1", intAndT1, num),
-                varBinding("e3", "T1", intAndT1, num),
-                varBinding("rtn", "T1", intAndT1, num)
+                varBinding("$x", "T6", null, bool, false),
+                varBinding("$y", "T7", null, bool, false),
+                varBinding("$a", "T1", intAndT1, num, false),
+                varBinding("$b", "T1", intAndT1, num, false),
+                varBinding("e1", "T1", intAndT1, num, true),
+                varBinding("e2", "T1", intAndT1, num, false),
+                varBinding("e3", "T1", intAndT1, num, false),
+                varBinding("rtn", "T1", intAndT1, num, false)
         )));
     }
 
@@ -339,18 +341,19 @@ public class ConstraintSolverTest
         IConstraintSolver solver = createConstraintSolver();
         solver.solveConstraints(asList(methodSymbol));
 
+
         ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
         verify(methodSymbol).setBindings(captor.capture());
         List<IBinding> bindings = captor.getValue();
         assertThat(bindings, hasItem(withVariableBindings(
-                varBinding("$x", "T2", null, asList("bool")),
-                varBinding("$y", "T3", null, asList("bool")),
-                varBinding("rtn", "T1", asList("(int | false)"), null)
+                varBinding("$x", "T2", null, asList("bool"), false),
+                varBinding("$y", "T3", null, asList("bool"), false),
+                varBinding("rtn", "T1", asList("(int | false)"), null, true)
         )));
         assertThat(bindings, hasItem(withVariableBindings(
-                varBinding("$x", "T2", asList("float"), asList("num")),
-                varBinding("$y", "T2", asList("float"), asList("num")),
-                varBinding("rtn", "T1", asList("@T2", "false"), null)
+                varBinding("$x", "T2", asList("float"), asList("num"), false),
+                varBinding("$y", "T2", asList("float"), asList("num"), false),
+                varBinding("rtn", "T1", asList("@T2", "false"), null, false)
         )));
         assertThat(bindings, hasSize(2));
     }

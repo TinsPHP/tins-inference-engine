@@ -13,6 +13,7 @@ import ch.tsphp.tinsphp.common.inference.constraints.IBinding;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
+import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.TypeVariableConstraint;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.ScopeTestHelper;
 import ch.tsphp.tinsphp.symbols.constraints.TypeConstraint;
@@ -67,7 +68,7 @@ public class AInferenceTypeTest extends AInferenceTest
                     "too many or not enough bindings", 1, bindings.size());
 
             IBinding binding = bindings.get(0);
-            Map<String, TypeVariableConstraint> variable2TypeVariable = binding.getVariable2TypeVariable();
+            Map<String, ITypeVariableConstraint> variable2TypeVariable = binding.getVariable2TypeVariable();
             Assert.assertTrue(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
                             "no type variableName defined for " + symbol.getAbsoluteName(),
                     variable2TypeVariable.containsKey(symbol.getAbsoluteName()));

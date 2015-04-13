@@ -10,9 +10,9 @@ import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
+import ch.tsphp.tinsphp.common.symbols.IMinimalVariableSymbol;
+import ch.tsphp.tinsphp.common.symbols.IMinimalVariableSymbolWithRef;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
-import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbol;
-import ch.tsphp.tinsphp.common.symbols.ITypeVariableSymbolWithRef;
 import ch.tsphp.tinsphp.inference_engine.scopes.ScopeHelper;
 import ch.tsphp.tinsphp.symbols.ModifierHelper;
 import ch.tsphp.tinsphp.symbols.SymbolFactory;
@@ -116,8 +116,8 @@ public abstract class AConstraintSolverTest
         return new HashSet<>(asList(symbols));
     }
 
-    protected ITypeVariableSymbolWithRef typeVarWithRef(String id, ITypeSymbol... types) {
-        ITypeVariableSymbolWithRef typeVariableSymbol = mock(ITypeVariableSymbolWithRef.class);
+    protected IMinimalVariableSymbolWithRef typeVarWithRef(String id, ITypeSymbol... types) {
+        IMinimalVariableSymbolWithRef typeVariableSymbol = mock(IMinimalVariableSymbolWithRef.class);
         when(typeVariableSymbol.getAbsoluteName()).thenReturn(id);
         IUnionTypeSymbol unionTypeSymbol = new UnionTypeSymbol(overloadResolver);
         for (ITypeSymbol type : types) {
@@ -129,8 +129,8 @@ public abstract class AConstraintSolverTest
     }
 
 
-    protected ITypeVariableSymbol typeVar(String id, ITypeSymbol... types) {
-        ITypeVariableSymbol typeVariableSymbol = mock(ITypeVariableSymbol.class);
+    protected IMinimalVariableSymbol typeVar(String id, ITypeSymbol... types) {
+        IMinimalVariableSymbol typeVariableSymbol = mock(IMinimalVariableSymbol.class);
         when(typeVariableSymbol.getAbsoluteName()).thenReturn(id);
         IUnionTypeSymbol unionTypeSymbol = new UnionTypeSymbol(overloadResolver);
         for (ITypeSymbol type : types) {

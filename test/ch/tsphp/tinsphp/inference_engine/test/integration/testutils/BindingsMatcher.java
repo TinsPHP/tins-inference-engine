@@ -8,7 +8,7 @@ package ch.tsphp.tinsphp.inference_engine.test.integration.testutils;
 
 import ch.tsphp.tinsphp.common.inference.constraints.IBinding;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
-import ch.tsphp.tinsphp.common.inference.constraints.TypeVariableConstraint;
+import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableConstraint;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -16,29 +16,39 @@ import org.hamcrest.Matcher;
 import java.util.List;
 import java.util.Map;
 
-public class BindingMatcher extends BaseMatcher<IBinding>
+public class BindingsMatcher extends BaseMatcher<IBinding>
 {
     final BindingMatcherDto[] dtos;
 
     public static Matcher<? super IBinding> withVariableBindings(BindingMatcherDto... dtos) {
-        return new BindingMatcher(dtos);
+        return new BindingsMatcher(dtos);
     }
 
     public static BindingMatcherDto varBinding(
-            String theVariable, String theTypeVariable, List<String> theLowerBounds, List<String> theUpperBounds) {
-        return new BindingMatcherDto(theVariable, theTypeVariable, theLowerBounds, theUpperBounds);
+            String theVariable,
+            String theTypeVariable,
+            List<String> theLowerBounds,
+            List<String> theUpperBounds,
+            boolean hasFixedType) {
+        return new BindingMatcherDto(theVariable, theTypeVariable, theLowerBounds, theUpperBounds, hasFixedType);
     }
 
-    public BindingMatcher(BindingMatcherDto[] bindingDtos) {
+    public BindingsMatcher(BindingMatcherDto[] bindingDtos) {
         dtos = bindingDtos;
     }
 
     @Override
     public boolean matches(Object o) {
         IBinding binding = (IBinding) o;
-        Map<String, TypeVariableConstraint> variable2TypeVariable = binding.getVariable2TypeVariable();
+        Map<String, ITypeVariableConstraint> variable2TypeVariable = binding.getVariable2TypeVariable();
         ITypeVariableCollection typeVariables = binding.getTypeVariables();
 
+        return matches(variable2TypeVariable, typeVariables);
+    }
+
+    public boolean matches(
+            Map<String, ITypeVariableConstraint> variable2TypeVariable,
+            ITypeVariableCollection typeVariables) {
         int size = variable2TypeVariable.size();
         boolean ok = size == dtos.length;
         if (ok) {
@@ -46,7 +56,9 @@ public class BindingMatcher extends BaseMatcher<IBinding>
                 BindingMatcherDto dto = dtos[i];
                 ok = variable2TypeVariable.containsKey(dto.variableName);
                 if (ok) {
-                    ok = variable2TypeVariable.get(dto.variableName).getTypeVariable().equals(dto.typeVariable);
+                    ITypeVariableConstraint typeVariableConstraint = variable2TypeVariable.get(dto.variableName);
+                    ok = typeVariableConstraint.getTypeVariable().equals(dto.typeVariable)
+                            && typeVariableConstraint.hasFixedType() == dto.hasFixedType;
                 }
                 if (ok) {
                     ok = dto.lowerBounds == null && !typeVariables.hasLowerBounds(dto.typeVariable)
@@ -85,27 +97,4 @@ public class BindingMatcher extends BaseMatcher<IBinding>
         description.appendText("]");
     }
 
-    public static class BindingMatcherDto
-    {
-        public String variableName;
-        public String typeVariable;
-        public List<String> lowerBounds;
-        public List<String> upperBounds;
-
-        private BindingMatcherDto(
-                String theVariable, String theTypeVariable, List<String> theLowerBounds, List<String> theUpperBounds) {
-            variableName = theVariable;
-            typeVariable = theTypeVariable;
-            lowerBounds = theLowerBounds;
-            upperBounds = theUpperBounds;
-        }
-
-        @Override
-        public String toString() {
-            return variableName + ":" + typeVariable
-                    + "<" + (lowerBounds != null ? lowerBounds.toString() : "[]") + ","
-                    + (upperBounds != null ? upperBounds.toString() : "[]")
-                    + ">";
-        }
-    }
 }

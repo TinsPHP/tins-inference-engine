@@ -6,17 +6,17 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.testutils.inference;
 
-import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.BindingMatcher;
+import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.BindingMatcherDto;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.ScopeTestStruct;
 
 import java.util.List;
 
 public class BindingTestStruct extends ScopeTestStruct
 {
-    public List<BindingMatcher.BindingMatcherDto[]> dtos;
+    public List<BindingMatcherDto[]> dtos;
 
     public BindingTestStruct(String theAstText, String theAstScope, List<Integer> theAstAccessOrder,
-            List<BindingMatcher.BindingMatcherDto[]> theDtos) {
+            List<BindingMatcherDto[]> theDtos) {
         super(theAstText, theAstScope, theAstAccessOrder);
         dtos = theDtos;
     }
