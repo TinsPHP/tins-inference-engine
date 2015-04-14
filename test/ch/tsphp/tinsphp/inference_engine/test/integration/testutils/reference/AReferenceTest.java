@@ -108,7 +108,7 @@ public abstract class AReferenceTest extends ADefinitionTest
         variableDeclarationCreator = createVariableDeclarationCreator(symbolFactory, astModificationHelper,
                 definitionPhaseController);
 
-        constraintSolver = createConstraintSolver(symbolFactory, overloadResolver);
+        constraintSolver = createConstraintSolver(overloadResolver);
 
         constraintCreator = createConstraintCreator(symbolFactory, overloadResolver, inferenceErrorReporter);
 
@@ -242,9 +242,8 @@ public abstract class AReferenceTest extends ADefinitionTest
         return new ConstraintCreator(theSymbolFactory, theOverloadResolver, theInferenceErrorReporter);
     }
 
-    protected IConstraintSolver createConstraintSolver(
-            ISymbolFactory theSymbolFactory, IOverloadResolver theOverloadResolver) {
-        return new ConstraintSolver(theSymbolFactory, theOverloadResolver);
+    protected IConstraintSolver createConstraintSolver(IOverloadResolver theOverloadResolver) {
+        return new ConstraintSolver(theOverloadResolver);
     }
 
 

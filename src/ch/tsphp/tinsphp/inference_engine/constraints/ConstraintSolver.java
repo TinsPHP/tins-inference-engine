@@ -23,7 +23,6 @@ import ch.tsphp.tinsphp.common.inference.constraints.TypeVariableConstraint;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
-import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.utils.MapHelper;
 import ch.tsphp.tinsphp.common.utils.Pair;
 import ch.tsphp.tinsphp.symbols.constraints.BoundException;
@@ -41,13 +40,10 @@ import static ch.tsphp.tinsphp.common.utils.Pair.pair;
 
 public class ConstraintSolver implements IConstraintSolver
 {
-    private final ISymbolFactory symbolFactory;
     private final IOverloadResolver overloadResolver;
 
     public ConstraintSolver(
-            ISymbolFactory theSymbolFactory,
             IOverloadResolver theOverloadResolver) {
-        symbolFactory = theSymbolFactory;
         overloadResolver = theOverloadResolver;
     }
 

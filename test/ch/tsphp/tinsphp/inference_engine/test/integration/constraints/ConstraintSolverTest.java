@@ -47,13 +47,12 @@ import static org.mockito.Mockito.when;
 public class ConstraintSolverTest
 {
     private static IOverloadResolver overloadResolver;
-    private static ISymbolFactory symbolFactory;
     private static ICore core;
 
     @BeforeClass
     public static void init() {
         overloadResolver = new OverloadResolver();
-        symbolFactory = new SymbolFactory(new ScopeHelper(), new ModifierHelper(), overloadResolver);
+        ISymbolFactory symbolFactory = new SymbolFactory(new ScopeHelper(), new ModifierHelper(), overloadResolver);
         core = new Core(symbolFactory, overloadResolver, new AstHelper(new TSPHPAstAdaptor()));
     }
 
@@ -370,12 +369,11 @@ public class ConstraintSolverTest
     }
 
     private IConstraintSolver createConstraintSolver() {
-        return createConstraintSolver(symbolFactory, overloadResolver);
+        return createConstraintSolver(overloadResolver);
     }
 
-    private IConstraintSolver createConstraintSolver(
-            ISymbolFactory theSymbolFactory, IOverloadResolver theOverloadResolver) {
-        return new ConstraintSolver(theSymbolFactory, theOverloadResolver);
+    private IConstraintSolver createConstraintSolver(IOverloadResolver theOverloadResolver) {
+        return new ConstraintSolver(theOverloadResolver);
     }
 }
 
