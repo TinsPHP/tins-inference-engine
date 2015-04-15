@@ -9,10 +9,9 @@ package ch.tsphp.tinsphp.inference_engine.test.integration.testutils.inference;
 import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ISymbol;
-import ch.tsphp.tinsphp.common.inference.constraints.IBinding;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
-import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
+import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.TypeVariableConstraint;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.ScopeTestHelper;
@@ -63,25 +62,24 @@ public class AInferenceTypeTest extends AInferenceTest
 
             IConstraintCollection collectionScope = getConstraintCollection(definitionScope);
 
-            List<IBinding> bindings = collectionScope.getBindings();
+            List<IOverloadBindings> overloadBindingsList = collectionScope.getBindings();
             Assert.assertEquals(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
-                    "too many or not enough bindings", 1, bindings.size());
+                    "too many or not enough overloadBindings", 1, overloadBindingsList.size());
 
-            IBinding binding = bindings.get(0);
-            Map<String, ITypeVariableConstraint> variable2TypeVariable = binding.getVariable2TypeVariable();
+            IOverloadBindings overloadBindings = overloadBindingsList.get(0);
+            Map<String, ITypeVariableConstraint> variable2TypeVariable = overloadBindings.getVariable2TypeVariable();
             Assert.assertTrue(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
                             "no type variableName defined for " + symbol.getAbsoluteName(),
                     variable2TypeVariable.containsKey(symbol.getAbsoluteName()));
 
             String typeVariable = variable2TypeVariable.get(symbol.getAbsoluteName()).getTypeVariable();
-            ITypeVariableCollection typeVariables = binding.getTypeVariables();
 
             Assert.assertTrue(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
                             "no lower bound defined",
-                    typeVariables.hasLowerBounds(typeVariable));
+                    overloadBindings.hasLowerBounds(typeVariable));
 
             Set<String> typeAbsoluteNames = new HashSet<>();
-            getAbsoluteNames(typeAbsoluteNames, typeVariables, typeVariable, typeVariable);
+            getAbsoluteNames(typeAbsoluteNames, overloadBindings, typeVariable, typeVariable);
 
             assertThat(typeAbsoluteNames, describedAs(testString + " -- " + testStruct.astText + " failed " +
                             "(testStruct Nr " + counter + "). wrong lower types. \nExpected: " + testStruct.lowerTypes,
@@ -100,7 +98,7 @@ public class AInferenceTypeTest extends AInferenceTest
     }
 
     private void getAbsoluteNames(
-            Set<String> typeAbsoluteNames, ITypeVariableCollection typeVariables, String originalVariable,
+            Set<String> typeAbsoluteNames, IOverloadBindings typeVariables, String originalVariable,
             String typeVariable) {
         for (IConstraint constraint : typeVariables.getLowerBounds(typeVariable)) {
             if (constraint instanceof TypeVariableConstraint) {

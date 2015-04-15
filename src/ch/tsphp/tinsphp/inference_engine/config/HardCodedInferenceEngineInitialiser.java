@@ -11,10 +11,10 @@ import ch.tsphp.common.IAstHelper;
 import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.common.checking.ISymbolCheckController;
-import ch.tsphp.tinsphp.common.inference.IConstraintCreator;
 import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.common.inference.IInferenceEngineInitialiser;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
+import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCreator;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
@@ -25,9 +25,9 @@ import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.core.Core;
-import ch.tsphp.tinsphp.inference_engine.ConstraintCreator;
 import ch.tsphp.tinsphp.inference_engine.DefinitionPhaseController;
 import ch.tsphp.tinsphp.inference_engine.ReferencePhaseController;
+import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintCreator;
 import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.issues.HardCodedIssueMessageProvider;
 import ch.tsphp.tinsphp.inference_engine.issues.InferenceIssueReporter;
@@ -40,6 +40,7 @@ import ch.tsphp.tinsphp.inference_engine.scopes.ScopeHelper;
 import ch.tsphp.tinsphp.inference_engine.utils.AstModificationHelper;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 import ch.tsphp.tinsphp.symbols.ModifierHelper;
+import ch.tsphp.tinsphp.symbols.PrimitiveTypeNames;
 import ch.tsphp.tinsphp.symbols.SymbolFactory;
 import ch.tsphp.tinsphp.symbols.utils.OverloadResolver;
 
@@ -50,20 +51,19 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
 {
     private final IScopeHelper scopeHelper;
     private final IModifierHelper modifierHelper;
+    private final IOverloadResolver overloadResolver;
     private final ISymbolFactory symbolFactory;
     private final IScopeFactory scopeFactory;
     private final IAstModificationHelper astModificationHelper;
     private final IConstraintCreator constraintCreator;
-    private final IConstraintSolver constraintSolver;
 
 
     private IDefinitionPhaseController definitionPhaseController;
     private IReferencePhaseController referencePhaseController;
-    private IConstraintCreator inferencePhaseController;
     private InferenceIssueReporter inferenceErrorReporter;
     private ICore core;
+    private final IConstraintSolver constraintSolver;
     private final List<ISymbolResolver> additionalSymbolResolvers;
-    private final IOverloadResolver overloadResolver;
 
     public HardCodedInferenceEngineInitialiser() {
         scopeHelper = new ScopeHelper();
@@ -72,7 +72,7 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
 
         symbolFactory = new SymbolFactory(scopeHelper, modifierHelper, overloadResolver);
         scopeFactory = new ScopeFactory(scopeHelper);
-        constraintSolver = new ConstraintSolver(overloadResolver);
+
         inferenceErrorReporter = new InferenceIssueReporter(new HardCodedIssueMessageProvider());
         constraintCreator = new ConstraintCreator(symbolFactory, overloadResolver, inferenceErrorReporter);
 
@@ -81,8 +81,12 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
         additionalSymbolResolvers = new ArrayList<>();
 
         core = new Core(symbolFactory, overloadResolver, astHelper);
-        additionalSymbolResolvers.add(core.getCoreSymbolResolver());
 
+        additionalSymbolResolvers.add(core.getCoreSymbolResolver());
+        constraintSolver = new ConstraintSolver(
+                symbolFactory,
+                overloadResolver,
+                core.getPrimitiveTypes().get(PrimitiveTypeNames.MIXED));
         init();
     }
 
@@ -119,12 +123,6 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
                 constraintSolver,
                 core,
                 definitionPhaseController.getGlobalDefaultNamespace()
-        );
-
-        inferencePhaseController = new ConstraintCreator(
-                symbolFactory,
-                overloadResolver,
-                inferenceErrorReporter
         );
     }
 

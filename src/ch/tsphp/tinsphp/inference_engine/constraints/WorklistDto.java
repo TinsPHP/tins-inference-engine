@@ -6,7 +6,7 @@
 
 package ch.tsphp.tinsphp.inference_engine.constraints;
 
-import ch.tsphp.tinsphp.common.inference.constraints.IBinding;
+import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 
 import java.util.Deque;
 
@@ -14,11 +14,11 @@ public class WorklistDto
 {
     public Deque<WorklistDto> workDeque;
     public int pointer;
-    public IBinding binding;
+    public IOverloadBindings overloadBindings;
 
-    public WorklistDto(Deque<WorklistDto> theWorkDeque, int thePointer, IBinding theBinding) {
+    public WorklistDto(Deque<WorklistDto> theWorkDeque, int thePointer, IOverloadBindings theOverloadBindings) {
         workDeque = theWorkDeque;
         pointer = thePointer;
-        binding = theBinding;
+        overloadBindings = theOverloadBindings;
     }
 }

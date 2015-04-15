@@ -17,12 +17,13 @@ import ch.tsphp.common.IAstHelper;
 import ch.tsphp.common.ILowerCaseStringMap;
 import ch.tsphp.common.ITSPHPAstAdaptor;
 import ch.tsphp.common.TSPHPAstAdaptor;
+import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.common.checking.ISymbolCheckController;
-import ch.tsphp.tinsphp.common.inference.IConstraintCreator;
 import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
+import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCreator;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
 import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
@@ -33,9 +34,9 @@ import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
-import ch.tsphp.tinsphp.inference_engine.ConstraintCreator;
 import ch.tsphp.tinsphp.inference_engine.ReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPReferenceWalker;
+import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintCreator;
 import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.resolver.SymbolCheckController;
 import ch.tsphp.tinsphp.inference_engine.resolver.SymbolResolverController;
@@ -44,6 +45,7 @@ import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.WriteExcepti
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.definition.ADefinitionTest;
 import ch.tsphp.tinsphp.inference_engine.utils.AstModificationHelper;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
+import ch.tsphp.tinsphp.symbols.PrimitiveTypeNames;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 import org.junit.Assert;
@@ -108,7 +110,8 @@ public abstract class AReferenceTest extends ADefinitionTest
         variableDeclarationCreator = createVariableDeclarationCreator(symbolFactory, astModificationHelper,
                 definitionPhaseController);
 
-        constraintSolver = createConstraintSolver(overloadResolver);
+        constraintSolver = createConstraintSolver(
+                symbolFactory, overloadResolver, core.getPrimitiveTypes().get(PrimitiveTypeNames.MIXED));
 
         constraintCreator = createConstraintCreator(symbolFactory, overloadResolver, inferenceErrorReporter);
 
@@ -242,8 +245,9 @@ public abstract class AReferenceTest extends ADefinitionTest
         return new ConstraintCreator(theSymbolFactory, theOverloadResolver, theInferenceErrorReporter);
     }
 
-    protected IConstraintSolver createConstraintSolver(IOverloadResolver theOverloadResolver) {
-        return new ConstraintSolver(theOverloadResolver);
+    protected IConstraintSolver createConstraintSolver(
+            ISymbolFactory theSymbolFactory, IOverloadResolver theOverloadResolver, ITypeSymbol theMixedTypeSymbol) {
+        return new ConstraintSolver(theSymbolFactory, theOverloadResolver, theMixedTypeSymbol);
     }
 
 

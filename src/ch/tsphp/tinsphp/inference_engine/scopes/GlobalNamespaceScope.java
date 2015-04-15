@@ -16,8 +16,8 @@ import ch.tsphp.common.ILowerCaseStringMap;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.LowerCaseStringMap;
 import ch.tsphp.common.symbols.ISymbol;
-import ch.tsphp.tinsphp.common.inference.constraints.IBinding;
 import ch.tsphp.tinsphp.common.inference.constraints.IIntersectionConstraint;
+import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.utils.MapHelper;
@@ -33,7 +33,7 @@ public class GlobalNamespaceScope extends AScope implements IGlobalNamespaceScop
     //Warning! start code duplication - same as in MethodSymbol
     private final List<IIntersectionConstraint> lowerBoundConstraints = new ArrayList<>();
     private final List<IIntersectionConstraint> upperBoundConstraints = new ArrayList<>();
-    private List<IBinding> bindings;
+    private List<IOverloadBindings> bindings;
     //Warning! end code duplication - same as in MethodSymbol
 
     public GlobalNamespaceScope(IScopeHelper scopeHelper, String scopeName) {
@@ -120,12 +120,12 @@ public class GlobalNamespaceScope extends AScope implements IGlobalNamespaceScop
 
     //Warning! start code duplication - same as in MethodSymbol
     @Override
-    public List<IBinding> getBindings() {
+    public List<IOverloadBindings> getBindings() {
         return bindings;
     }
 
     @Override
-    public void setBindings(List<IBinding> theBindings) {
+    public void setBindings(List<IOverloadBindings> theBindings) {
         bindings = theBindings;
     }
     //Warning! end code duplication - same as in MethodSymbol

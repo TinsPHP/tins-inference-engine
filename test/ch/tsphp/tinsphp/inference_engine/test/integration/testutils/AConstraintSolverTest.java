@@ -184,7 +184,7 @@ public abstract class AConstraintSolverTest
 //            deque.addLast(typeVariableSymbol);
 //        }
 //        ITypeVariableCollection scope = mock(ITypeVariableCollection.class);
-//        when(scope.getTypeVariables()).thenReturn(deque);
+//        when(scope.getBindings()).thenReturn(deque);
 //        return scope;
 //    }
 //

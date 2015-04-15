@@ -9,28 +9,31 @@ package ch.tsphp.tinsphp.inference_engine.test.integration.testutils.inference;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
-import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
+import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
+import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.BindingMatcherDto;
+import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.FunctionMatcherDto;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.ScopeTestHelper;
 import org.junit.Assert;
 import org.junit.Ignore;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static ch.tsphp.tinsphp.inference_engine.test.integration.testutils.OverloadBindingsMatcher.withVariableBindings;
+import static ch.tsphp.tinsphp.inference_engine.test.integration.testutils.FunctionTypeMatcher.isFunctionType;
+import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
 
 @Ignore
-public class AInferenceBindingTest extends AInferenceTest
+public class AInferenceOverloadTest extends AInferenceTest
 {
 
-    protected BindingTestStruct[] testStructs;
+    protected OverloadTestStruct[] testStructs;
 
-    public AInferenceBindingTest(String testString, BindingTestStruct[] theTestStructs) {
+    public AInferenceOverloadTest(String testString, OverloadTestStruct[] theTestStructs) {
         super(testString);
         testStructs = theTestStructs;
     }
@@ -38,7 +41,7 @@ public class AInferenceBindingTest extends AInferenceTest
     @Override
     protected void assertsInInferencePhase() {
         int counter = 0;
-        for (BindingTestStruct testStruct : testStructs) {
+        for (OverloadTestStruct testStruct : testStructs) {
             ITSPHPAst testCandidate = ScopeTestHelper.getAst(ast, testString, testStruct);
 
             Assert.assertNotNull(testString + " failed. testCandidate is null. should be " + testStruct.astText,
@@ -53,55 +56,61 @@ public class AInferenceBindingTest extends AInferenceTest
             Assert.assertTrue(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + ")." +
                     "symbol is not a constraint collection", symbol instanceof IConstraintCollection);
 
-            IConstraintCollection collection = (IConstraintCollection) symbol;
-            List<IOverloadBindings> bindings = collection.getBindings();
+            IMethodSymbol methodSymbol = (IMethodSymbol) symbol;
+            List<IFunctionType> overloads = methodSymbol.getOverloads();
             int size = testStruct.dtos.size();
 
             for (int i = 0; i < size; ++i) {
                 try {
-                    assertThat(bindings, hasItem(withVariableBindings(
-                            testStruct.dtos.get(i)
-                    )));
+                    assertThat(overloads, hasItem(isFunctionType(testStruct.dtos.get(i))));
+                    assertThat(overloads.get(i).getParameters().size() + 1, is(testStruct.dtos.get(i).bindings.length));
                 } catch (AssertionError ex) {
-                    System.out.println(testString + " -- " + testStruct.astText
-                            + " failed (testStruct Nr " + counter + "). Binding error for overloadBindings " + i);
+                    System.out.println(testString + " \n-- " + testStruct.astText
+                            + " failed (testStruct Nr " + counter + "). Error for functionType " + i);
                     throw ex;
                 }
             }
-
-            Assert.assertEquals(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
-                    "too many or not enough overloadBindings", size, bindings.size());
-
 
             ++counter;
         }
     }
 
-    protected static List<BindingMatcherDto[]> matcherDtos(BindingMatcherDto[]... dtos) {
-        List<BindingMatcherDto[]> list = new ArrayList<>(dtos.length);
+
+    protected static List<FunctionMatcherDto> functionDtos(FunctionMatcherDto... dtos) {
+        List<FunctionMatcherDto> list = new ArrayList<>(dtos.length);
         Collections.addAll(list, dtos);
         return list;
     }
 
-    protected static BindingMatcherDto[] matcherDto(BindingMatcherDto... dtos) {
+    protected static List<FunctionMatcherDto> functionDtos(
+            String name, int numberOfNonOptionalParameter, BindingMatcherDto... dtos) {
+        return asList(functionDto(name, numberOfNonOptionalParameter, dtos));
+    }
+
+    protected static FunctionMatcherDto functionDto(
+            String name, int numberOfNonOptionalParameter, BindingMatcherDto... dtos) {
+        return new FunctionMatcherDto(name, numberOfNonOptionalParameter, dtos);
+    }
+
+    protected static BindingMatcherDto[] bindingDtos(BindingMatcherDto... dtos) {
         return dtos;
     }
 
-    protected static BindingTestStruct testStruct(
+    protected static OverloadTestStruct testStruct(
             String astText,
             String definitionScope,
-            List<BindingMatcherDto[]> matcherDtos,
+            List<FunctionMatcherDto> matcherDtos,
             Integer... astAccessOrder) {
-        return new BindingTestStruct(
-                astText, definitionScope, Arrays.asList(astAccessOrder), matcherDtos);
+        return new OverloadTestStruct(
+                astText, definitionScope, asList(astAccessOrder), matcherDtos);
     }
 
-    protected static BindingTestStruct[] testStructs(
+    protected static OverloadTestStruct[] testStructs(
             String astText,
             String definitionScope,
-            List<BindingMatcherDto[]> matcherDtos,
+            List<FunctionMatcherDto> matcherDtos,
             Integer... astAccessOrder) {
-        return new BindingTestStruct[]{
+        return new OverloadTestStruct[]{
                 testStruct(astText, definitionScope, matcherDtos, astAccessOrder)
         };
 

@@ -4,23 +4,25 @@
  * root folder or visit the project's website http://tsphp.ch/wiki/display/TINS/License
  */
 
-package ch.tsphp.tinsphp.inference_engine;
+package ch.tsphp.tinsphp.inference_engine.constraints;
 
 
 import ch.tsphp.common.ITSPHPAst;
-import ch.tsphp.tinsphp.common.inference.IConstraintCreator;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
+import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCreator;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
 import ch.tsphp.tinsphp.common.inference.constraints.IIntersectionConstraint;
+import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
-import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
+import ch.tsphp.tinsphp.common.inference.constraints.TypeVariableConstraint;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMinimalVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
+import ch.tsphp.tinsphp.symbols.TypeVariableNames;
 import ch.tsphp.tinsphp.symbols.constraints.IntersectionConstraint;
-import ch.tsphp.tinsphp.symbols.constraints.TypeVariableCollection;
+import ch.tsphp.tinsphp.symbols.constraints.OverloadBindings;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,11 +41,12 @@ public class ConstraintCreator implements IConstraintCreator
             IInferenceIssueReporter theInferenceErrorReporter) {
         symbolFactory = theSymbolFactory;
         inferenceIssueReporter = theInferenceErrorReporter;
-        ITypeVariableCollection collection = new TypeVariableCollection(theOverloadResolver);
-        IVariable lhs = symbolFactory.createVariable("$lhs", "T");
-        IVariable rtn = symbolFactory.createVariable("rtn", "T");
+        IVariable expr = symbolFactory.createVariable("$expr", "T");
+        IVariable rtn = symbolFactory.createVariable(TypeVariableNames.RETURN_VARIABLE_NAME, "T");
+        IOverloadBindings overloadBindings = new OverloadBindings(theOverloadResolver);
+        overloadBindings.addLowerBound("T", new TypeVariableConstraint("T"));
         IFunctionType identityOverload = symbolFactory.createFunctionType(
-                "identity", collection, Arrays.asList(lhs), rtn);
+                "identity", overloadBindings, Arrays.asList(expr), rtn);
         identityFunction = symbolFactory.createMinimalMethodSymbol("identity");
         identityFunction.addOverload(identityOverload);
     }

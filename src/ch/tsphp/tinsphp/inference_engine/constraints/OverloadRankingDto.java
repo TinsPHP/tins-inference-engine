@@ -12,8 +12,8 @@
 
 package ch.tsphp.tinsphp.inference_engine.constraints;
 
-import ch.tsphp.tinsphp.common.inference.constraints.IBinding;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
+import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -24,7 +24,7 @@ import java.util.List;
  */
 public class OverloadRankingDto implements Serializable
 {
-    public IBinding binding;
+    public IOverloadBindings binding;
 
     public IFunctionType overload;
 
