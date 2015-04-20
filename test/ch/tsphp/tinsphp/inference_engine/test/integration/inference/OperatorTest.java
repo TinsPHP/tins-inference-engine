@@ -233,6 +233,11 @@ public class OperatorTest extends AInferenceTypeTest
                         "$x = 1; 1 instanceof $x;",
                         testStructs("(instanceof 1 $x)", "\\.\\.", asList("bool"), null, 1, 2, 0)
                 },
+                //TODO rstoll TINS-389 scope of type in instanceof not set
+//                {
+//                        "$x = 1; 1 instanceof Exception;",
+//                        testStructs("(instanceof 1 Exception)", "\\.\\.", asList("Exception"), null, 1, 2, 0)
+//                },
                 // casting
                 {"(bool) 1;", testStructs("(casting (type tMod bool) 1)", "\\.\\.", asList("bool"), null, 1, 0, 0)},
                 {"(int) 1;", testStructs("(casting (type tMod int) 1)", "\\.\\.", asList("int"), null, 1, 0, 0)},
@@ -314,6 +319,30 @@ public class OperatorTest extends AInferenceTypeTest
                 {"+true;", testStructs("(uPlus true)", "\\.\\.", asList("int"), null, 1, 0, 0)},
                 {"+1;", testStructs("(uPlus 1)", "\\.\\.", asList("int"), null, 1, 0, 0)},
                 {"+1.5;", testStructs("(uPlus 1.5)", "\\.\\.", asList("float"), null, 1, 0, 0)},
+                //if
+                {"$x = true; if($x){}", testStructs("$x", "\\.\\.", asList("true"), asList("bool"), 1, 2, 0)},
+                //while
+                {"$x = true; while($x){}", testStructs("$x", "\\.\\.", asList("true"), asList("bool"), 1, 2, 0)},
+                //do
+                {"$x = true; do{}while($x);", testStructs("$x", "\\.\\.", asList("true"), asList("bool"), 1, 2, 1)},
+                //for
+                {"$x = true; for(;$x;){}", testStructs("$x", "\\.\\.", asList("true"), asList("bool"), 1, 2, 1, 0)},
+                {"$x = true; for(;1,$x;){}", testStructs("$x", "\\.\\.", asList("true"), asList("bool"), 1, 2, 1, 1)},
+                {"$x = true; for(;1,2,$x;){}", testStructs("$x", "\\.\\.", asList("true"), asList("bool"), 1, 2, 1, 2)},
+                //foreach
+                {
+                        "$x = []; foreach($x as $k => $v){}", new AbsoluteTypeNameTestStruct[]{
+                        testStruct("$x", "\\.\\.", asList("array"), asList("array"), 1, 4, 0),
+                        testStruct("$k", "\\.\\.", asList("int", "string"), asList("int", "string"), 1, 4, 1),
+                        testStruct("$v", "\\.\\.", asList("mixed"), asList("mixed"), 1, 4, 2)}
+                },
+                //switch
+                {"$x = true; switch($x){}", testStructs("$x", "\\.\\.", asList("true"), asList("scalar"), 1, 2, 0)},
+                //try/catch
+                {
+                        "$x = null; try{}catch(Exception $x){}",
+                        testStructs("$x", "\\.\\.", asList("null", "Exception"), null, 1, 2, 1, 1)
+                },
         });
     }
 }

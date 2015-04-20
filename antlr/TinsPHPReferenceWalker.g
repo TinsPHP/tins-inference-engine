@@ -510,7 +510,7 @@ instruction returns[boolean isReturning, boolean isBreaking]
     ;
     
 ifCondition returns[boolean isReturning]
-    :   ^('if'
+    :   ^(op=If
             expression 
             ifBlock=blockConditional
             (elseBlock=blockConditional)?
@@ -521,12 +521,15 @@ ifCondition returns[boolean isReturning]
                 doesNotReachThisStatement = true;
             }
             controller.sendUpInitialisedSymbolsAfterIf($ifBlock.ast, $elseBlock.ast);
+
+            op.setSymbol(controller.resolveOperator(op));
+            controller.createIntersectionConstraint(currentScope, op, $expression.start);
         }
     ;
 
 blockConditional returns[boolean isReturning, ITSPHPAst ast]
 @init{
-    boolean tmpdoesNotReachThisStatement = doesNotReachThisStatement;
+    boolean tmpDoesNotReachThisStatement = doesNotReachThisStatement;
 }
     :   ^(BLOCK_CONDITIONAL instructions)
         {
@@ -541,7 +544,7 @@ blockConditional returns[boolean isReturning, ITSPHPAst ast]
         }
     ;
 finally{
-    doesNotReachThisStatement = tmpdoesNotReachThisStatement;
+    doesNotReachThisStatement = tmpDoesNotReachThisStatement;
 }
     
 switchCondition returns[boolean isReturning]
@@ -591,13 +594,22 @@ forLoop
     boolean tmpInSwitch = inSwitch;
     inSwitch = false;
 }
-    :   ^('for'
+    :   ^(op=For
             expressionList
-            expressionList 
+            condition=expressionList 
             expressionList
             blockConditional
         )
-        {controller.sendUpInitialisedSymbols($blockConditional.ast);}
+        {
+            controller.sendUpInitialisedSymbols($blockConditional.ast);
+            ITSPHPAst conditionList = $condition.start;
+            int childCount = conditionList.getChildCount();
+            if(childCount > 0){
+                ITSPHPAst expression = conditionList.getChild(childCount - 1);
+                op.setSymbol(controller.resolveOperator(op));
+                controller.createIntersectionConstraint(currentScope, op, expression);
+            }
+        }
     ;
 finally{
     inSwitch = tmpInSwitch;
@@ -613,7 +625,7 @@ foreachLoop
     inSwitch = false;
 }
     :
-        ^(foreach='foreach' 
+        ^(op=Foreach
             expression 
             varId1=VariableId
             // Corresponding to the parser the first VariableId (the key) should be optional.
@@ -624,7 +636,7 @@ foreachLoop
                 $varId1.setSymbol(variableSymbol);
                 IScope scope = varId1.getScope();
                 scope.addToInitialisedSymbols(variableSymbol, true);
-                if($varId2!=null){
+                if($varId2 != null){
                     variableSymbol = controller.resolveVariable($varId2);
                     $varId2.setSymbol(variableSymbol);
                     scope.addToInitialisedSymbols(variableSymbol, true);
@@ -634,7 +646,21 @@ foreachLoop
         )
         {
             controller.sendUpInitialisedSymbols($blockConditional.ast);
-            controller.sendUpInitialisedSymbols($foreach);
+            controller.sendUpInitialisedSymbols(op);
+           
+            op.setSymbol(controller.resolveOperator(op));
+            
+            //TODO rstoll TINS-393 - change key and value in foreach
+            //needs to adopted: switch varId2 and varId1 for the else case
+            if ($varId2 == null){
+                ITSPHPAst one = (ITSPHPAst) adaptor.create(this.Int, $varId1.getToken(), "1");
+                ITypeSymbol typeSymbol = controller.resolvePrimitiveLiteral(one);
+                one.setEvalType(typeSymbol);
+                controller.createTypeConstraint(one);
+                controller.createIntersectionConstraint(currentScope, op, $expression.start, varId1, one);
+            } else {
+                controller.createIntersectionConstraint(currentScope, op, $expression.start, varId2, varId1);
+            }
         }
     ;
 finally{
@@ -646,8 +672,13 @@ whileLoop
     boolean tmpInSwitch = inSwitch;
     inSwitch = false;
 }
-    :   ^('while' expression blockConditional)
-        {controller.sendUpInitialisedSymbols($blockConditional.ast);}
+    :   ^(op=While expression blockConditional)
+        {
+            controller.sendUpInitialisedSymbols($blockConditional.ast);
+            
+            op.setSymbol(controller.resolveOperator(op));
+            controller.createIntersectionConstraint(currentScope, op, $expression.start);
+        }
     ;
 finally{
     inSwitch = tmpInSwitch;
@@ -658,8 +689,13 @@ doWhileLoop returns[boolean isReturning]
     boolean tmpInSwitch = inSwitch;
     inSwitch = false;
 }
-    :   ^('do' block expression)
-        {$isReturning = $block.isReturning;}
+    :   ^(op=Do block expression)
+        {
+            $isReturning = $block.isReturning;
+            
+            op.setSymbol(controller.resolveOperator(op));
+            controller.createIntersectionConstraint(currentScope, op, $expression.start);
+        }
     ;
 finally{
     inSwitch = tmpInSwitch;
@@ -684,7 +720,7 @@ catchBlocks returns[boolean isReturning, List<ITSPHPAst> asts]
     $asts = new ArrayList<>();
 }
 //Warning! end duplicated code as in switchContents
-    :   (   ^(Catch 
+    :   (   ^(op=Catch 
                 classInterfaceType[null] 
                 variableId=VariableId 
                 {
@@ -695,13 +731,18 @@ catchBlocks returns[boolean isReturning, List<ITSPHPAst> asts]
                 blockConditional
             )
             {
-                $classInterfaceType.start.setEvalType($classInterfaceType.type);
+                ITSPHPAst type = $classInterfaceType.start;
+                type.setEvalType($classInterfaceType.type);
             
                 $isReturning = $blockConditional.isReturning && ($isReturning || isFirst);
                 isFirst = false;
 
                 controller.sendUpInitialisedSymbols($blockConditional.ast);
-                $asts.add($Catch);
+                $asts.add(op);
+
+                controller.createTypeConstraint(type);
+                op.setSymbol(controller.resolveOperator(op));
+                controller.createIntersectionConstraint(currentScope, op, type, $variableId);
             }
         )+ 
     ;
