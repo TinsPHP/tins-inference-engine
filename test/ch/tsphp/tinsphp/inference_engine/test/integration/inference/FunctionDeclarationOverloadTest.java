@@ -156,20 +156,20 @@ public class FunctionDeclarationOverloadTest extends AInferenceOverloadTest
                                 varBinding("foo()$x", "T1", asList("null"), null, false),
                                 varBinding(RETURN_VARIABLE_NAME, "T1", asList("null"), null, false))), 1, 0, 2)
                 },
-                //TODO rstoll TINS-386 - function with constant return via indirection
-//                //constant function but with indirection
-//                {
-//                        "function foo(){ $a = null; return \n$a;}",
-//                        testStructs("foo()", "\\.\\.", functionDtos("foo()", 0, bindingDtos(
-//                                varBinding(RETURN_VARIABLE_NAME, "T4", asList("null"), null, true))), 1, 0, 2)
-//                },
-//                //same as before but with unused parameter
-//                {
-//                        "function foo($x){ $a = null; return \n$a;}",
-//                        testStructs("foo()", "\\.\\.", functionDtos("foo()", 0, bindingDtos(
-//                                varBinding("foo()$x", "T5", null, asList("mixed"), true),
-//                                varBinding(RETURN_VARIABLE_NAME, "T4", asList("null"), null, true))), 1, 0, 2)
-//                },
+                //constant function but with indirection
+                //see also TINS-386 - function with constant return via indirection
+                {
+                        "function foo(){ $a = null; return \n$a;}",
+                        testStructs("foo()", "\\.\\.", functionDtos("foo()", 0, bindingDtos(
+                                varBinding(RETURN_VARIABLE_NAME, "T4", asList("null"), null, true))), 1, 0, 2)
+                },
+                //same as before but with unused parameter
+                {
+                        "function foo($x){ $a = null; return \n$a;}",
+                        testStructs("foo()", "\\.\\.", functionDtos("foo()", 1, bindingDtos(
+                                varBinding("foo()$x", "T5", null, asList("mixed"), true),
+                                varBinding(RETURN_VARIABLE_NAME, "T4", asList("null"), null, true))), 1, 0, 2)
+                },
                 //$x with useless statement. Second one is constant but $x has no lower bound
                 //see also TINS-384 most specific overload and variable parameter
                 {
