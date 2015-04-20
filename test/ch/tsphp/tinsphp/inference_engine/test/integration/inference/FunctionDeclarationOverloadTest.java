@@ -170,14 +170,14 @@ public class FunctionDeclarationOverloadTest extends AInferenceOverloadTest
 //                                varBinding("foo()$x", "T5", null, asList("mixed"), true),
 //                                varBinding(RETURN_VARIABLE_NAME, "T4", asList("null"), null, true))), 1, 0, 2)
 //                },
-                //TODO rstoll TINS-384 most specific overload and variable parameter
-//                //$x with useless statement. Second one is constant but $x has no lower bound
-//                {
-//                        "function foo($x){ $x + true; $x + true; return \n1;}",
-//                        testStructs("foo()", "\\.\\.", functionDtos("foo()", 0, bindingDtos(
-//                                varBinding("foo()$x", "T5", null, asList("mixed"), false),
-//                                varBinding(RETURN_VARIABLE_NAME, "T4", asList("null"), null, true))), 1, 0, 2)
-//                }
+                //$x with useless statement. Second one is constant but $x has no lower bound
+                //see also TINS-384 most specific overload and variable parameter
+                {
+                        "function foo($x){ $x + true; $x + true; return \n1;}",
+                        testStructs("foo()", "\\.\\.", functionDtos("foo()", 1, bindingDtos(
+                                varBinding("foo()$x", "T2", null, asList("bool"), true),
+                                varBinding(RETURN_VARIABLE_NAME, "T6", asList("int"), null, true))), 1, 0, 2)
+                }
         });
     }
 }
