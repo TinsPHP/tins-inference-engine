@@ -343,6 +343,14 @@ public class OperatorTest extends AInferenceTypeTest
                         "$x = null; try{}catch(Exception $x){}",
                         testStructs("$x", "\\.\\.", asList("null", "Exception"), null, 1, 2, 1, 1)
                 },
+                //echo
+                {"$x = 'h'; echo $x;", testStructs("$x", "\\.\\.", asList("string"), asList("string"), 1, 2, 0)},
+                //exit
+                {"$x = 1; exit($x);", testStructs("$x", "\\.\\.", asList("int"), asList("int"), 1, 2, 0, 0)},
+                {"$x = 'h'; exit($x);", testStructs("$x", "\\.\\.", asList("string"), asList("string"), 1, 2, 0, 0)},
+                //throw
+                //TODO rstoll TINS-395 add new operator
+//                {"$x = 1; throw $x;", testStructs("$x", "\\.\\.", asList("int"), asList("int"), 1, 2, 0)}
         });
     }
 }

@@ -504,8 +504,16 @@ instruction returns[boolean isReturning, boolean isBreaking]
                 }
             }
         }
-    |   ^('throw' expression)        {$isReturning = true; hasAtLeastOneReturnOrThrow = true; doesNotReachThisStatement = true;}
-    |   ^('echo' expression+)
+    |   ^(op='throw' expression)        {$isReturning = true; hasAtLeastOneReturnOrThrow = true; doesNotReachThisStatement = true;}
+        {
+            op.setSymbol(controller.resolveOperator(op));
+            controller.createIntersectionConstraint(currentScope, op, $expression.start);
+        }
+    |   ^(op='echo' expression+)
+        {
+            op.setSymbol(controller.resolveOperator(op));
+            controller.createIntersectionConstraint(currentScope, op, $expression.start);
+        }
     |   breakContinue                {$isBreaking = true; doesNotReachThisStatement = inSwitch;}
     ;
     
@@ -963,7 +971,11 @@ postFixExpression
     ;
 
 exit
-    :   ^('exit' expression)
+    :   ^(op='exit' expression)
+        {
+            op.setSymbol(controller.resolveOperator(op));
+            controller.createIntersectionConstraint(currentScope, op, $expression.start);
+        }
     |   'exit'
     ;
 
