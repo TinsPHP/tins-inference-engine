@@ -74,24 +74,23 @@ public class FunctionDeclarationMultipleOverloadTest extends AInferenceOverloadT
 //                                    varBinding(RETURN_VARIABLE_NAME, "T6", asList("array"), null, true)))
 //                    ), 1, 0, 2)
 //            },
-                // TODO rstoll TINS-388 typeVariable2Variable is not copied correctly
-//                {
-//                        "function foo($x, $y, $a, $b){return $a * ($x + $y) - $a * $b;}",
-//                        testStructs("foo()", "\\.\\.", functionDtos(
-//                                functionDto("foo()", 4, bindingDtos(
-//                                        varBinding("foo()$x", "T8", null, asList("num"), false),
-//                                        varBinding("foo()$y", "T8", null, asList("num"), false),
-//                                        varBinding("foo()$a", "T8", null, asList("num"), false),
-//                                        varBinding("foo()$b", "T8", null, asList("num"), false),
-//                                        varBinding(RETURN_VARIABLE_NAME, "T8", null, asList("num"), false))),
-//                                functionDto("foo()", 4, bindingDtos(
-//                                        varBinding("foo()$x", "T2", null, asList("bool"), true),
-//                                        varBinding("foo()$y", "T3", null, asList("bool"), true),
-//                                        varBinding("foo()$a", "T8", asList("int"), asList("num"), false),
-//                                        varBinding("foo()$b", "T8", asList("int"), asList("num"), false),
-//                                        varBinding(RETURN_VARIABLE_NAME, "T8", asList("int"), asList("num"), false)))
-//                        ), 1, 0, 2)
-//                },
+                {
+                        "function foo($x, $y, $a, $b){return $a * ($x + $y) - $a * $b;}",
+                        testStructs("foo()", "\\.\\.", functionDtos(
+                                functionDto("foo()", 4, bindingDtos(
+                                        varBinding("foo()$x", "T8", null, asList("num"), false),
+                                        varBinding("foo()$y", "T8", null, asList("num"), false),
+                                        varBinding("foo()$a", "T8", null, asList("num"), false),
+                                        varBinding("foo()$b", "T8", null, asList("num"), false),
+                                        varBinding(RETURN_VARIABLE_NAME, "T8", null, asList("num"), false))),
+                                functionDto("foo()", 4, bindingDtos(
+                                        varBinding("foo()$x", "T2", null, asList("bool"), true),
+                                        varBinding("foo()$y", "T3", null, asList("bool"), true),
+                                        varBinding("foo()$a", "T8", asList("int"), asList("num"), false),
+                                        varBinding("foo()$b", "T8", asList("int"), asList("num"), false),
+                                        varBinding(RETURN_VARIABLE_NAME, "T8", asList("int"), asList("num"), false)))
+                        ), 1, 0, 2)
+                },
                 {
                         "function foo($x, $y){return $x / $y;}",
                         testStructs("foo()", "\\.\\.", functionDtos(
