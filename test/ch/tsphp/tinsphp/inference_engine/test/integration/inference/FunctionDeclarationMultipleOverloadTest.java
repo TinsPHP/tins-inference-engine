@@ -53,27 +53,26 @@ public class FunctionDeclarationMultipleOverloadTest extends AInferenceOverloadT
                                         varBinding(RETURN_VARIABLE_NAME, "T4", asList("array"), null, true)))
                         ), 1, 0, 2)
                 },
-                //TODO TINS-385 propagate lower bounds to dependencies - should not be constant
-//            {
-//                    "function foo($x, $y, $z){return $x + $y + $z;}",
-//                    testStructs("foo()", "\\.\\.", functionDtos(
-//                            functionDto("foo()", 3, bindingDtos(
-//                                    varBinding("foo()$x", "T6", asList("@T6"), asList("num"), false),
-//                                    varBinding("foo()$y", "T6", asList("@T6"), asList("num"), false),
-//                                    varBinding("foo()$z", "T6", asList("@T6"), asList("num"), false),
-//                                    varBinding(RETURN_VARIABLE_NAME, "T6", asList("@T6"), asList("num"), false))),
-//                            functionDto("foo()", 3, bindingDtos(
-//                                    varBinding("foo()$x", "T2", null, asList("bool"), true),
-//                                    varBinding("foo()$y", "T3", null, asList("bool"), true),
-//                                    varBinding("foo()$z", "T6", asList("T6","int"), asList("num"), true),
-//                                    varBinding(RETURN_VARIABLE_NAME, "T6", asList("T6","int"), asList("num"), true))),
-//                            functionDto("foo()", 3, bindingDtos(
-//                                    varBinding("foo()$x", "T2", null, asList("array"), true),
-//                                    varBinding("foo()$y", "T3", null, asList("array"), true),
-//                                    varBinding("foo()$z", "T5", null, asList("array"), true),
-//                                    varBinding(RETURN_VARIABLE_NAME, "T6", asList("array"), null, true)))
-//                    ), 1, 0, 2)
-//            },
+                {
+                        "function foo($x, $y, $z){return $x + $y + $z;}",
+                        testStructs("foo()", "\\.\\.", functionDtos(
+                                functionDto("foo()", 3, bindingDtos(
+                                        varBinding("foo()$x", "T4", null, asList("num"), false),
+                                        varBinding("foo()$y", "T4", null, asList("num"), false),
+                                        varBinding("foo()$z", "T4", null, asList("num"), false),
+                                        varBinding(RETURN_VARIABLE_NAME, "T4", null, asList("num"), false))),
+                                functionDto("foo()", 3, bindingDtos(
+                                        varBinding("foo()$x", "T2", null, asList("bool"), true),
+                                        varBinding("foo()$y", "T3", null, asList("bool"), true),
+                                        varBinding("foo()$z", "T4", asList("int"), asList("num"), false),
+                                        varBinding(RETURN_VARIABLE_NAME, "T4", asList("int"), asList("num"), false))),
+                                functionDto("foo()", 3, bindingDtos(
+                                        varBinding("foo()$x", "T2", null, asList("array"), true),
+                                        varBinding("foo()$y", "T3", null, asList("array"), true),
+                                        varBinding("foo()$z", "T5", null, asList("array"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "T6", asList("array"), null, true)))
+                        ), 1, 0, 2)
+                },
                 {
                         "function foo($x, $y, $a, $b){return $a * ($x + $y) - $a * $b;}",
                         testStructs("foo()", "\\.\\.", functionDtos(

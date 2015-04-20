@@ -50,15 +50,13 @@ public class FunctionDeclarationOverloadTest extends AInferenceOverloadTest
                                 varBinding(RETURN_VARIABLE_NAME, "T1", asList("float"), asList("num"), false)))
                                 , 1, 0, 2)
                 },
-                //TODO TINS-385 propagate lower bounds to dependencies - should not be constant
-//                {
-//                        "function foo($x){return $x + (1 + 1.5);}",
-//                        testStructs("foo()", "\\.\\.", functionDtos("foo()", 1, bindingDtos(
-//                                varBinding("foo()$x", "T4", asList("@T4", "int", "float"), asList("num"), false),
-//                                varBinding(RETURN_VARIABLE_NAME,
-//                                        "T4", asList("@T4", "int", "float"), asList("num"), false)))
-//                                , 1, 0, 2)
-//                },
+                {
+                        "function foo($x){return $x + (1 + 1.5);}",
+                        testStructs("foo()", "\\.\\.", functionDtos("foo()", 1, bindingDtos(
+                                varBinding("foo()$x", "T4", asList("int", "float"), asList("num"), false),
+                                varBinding(RETURN_VARIABLE_NAME, "T4", asList("int", "float"), asList("num"), false)))
+                                , 1, 0, 2)
+                },
                 {
                         "function foo($x){return $x + [];}",
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 1, bindingDtos(
@@ -124,25 +122,15 @@ public class FunctionDeclarationOverloadTest extends AInferenceOverloadTest
                                 varBinding("foo()$y", "T3", null, null, true),
                                 varBinding(RETURN_VARIABLE_NAME, "T8", asList("int"), null, true))), 1, 0, 2)
                 },
-                //TODO rstoll TINS-385 propagate lower bounds to dependencies
-//                //return is variable again but $x has additionally an upper bound
-//                {
-//                        "function foo($x, $y){ $x + 1; $a = $y; $x = $a; $b = $x; return $x;}",
-//                        testStructs("foo()", "\\.\\.", functionDtos("foo()", 2, bindingDtos(
-//                                varBinding("foo()$x", "T10", asList("@T10", "@T6", "int"), asList("num"), false),
-//                                varBinding("foo()$y", "T6", null, asList("num"), false),
-//                                varBinding(RETURN_VARIABLE_NAME, "T1", asList("@T10", "@T6", "int"), null, false)))
-//                                , 1, 0, 2)
-//                },
-//                //$y has an additional upper type bound which stays in conflict with $x
-//                {
-//                        "function foo($x, $y){ $x + 1; $a = $y; $x = $a; $b = $x; $y + true; return $x;}",
-//                        testStructs("foo()", "\\.\\.", functionDtos("foo()", 2, bindingDtos(
-//                                varBinding("foo()$x", "T10", asList("@T10", "@T6", "int"), asList("num"), false),
-//                                varBinding("foo()$y", "T6", null, asList("num"), false),
-//                                varBinding(RETURN_VARIABLE_NAME, "T1", asList("@T10", "@T6", "int"), null, false)))
-//                                , 1, 0, 2)
-//                },
+                //return is variable again but $x has additionally an upper bound
+                {
+                        "function foo($x, $y){ $x + 1; $a = $y; $x = $a; $b = $x; return $x;}",
+                        testStructs("foo()", "\\.\\.", functionDtos("foo()", 2, bindingDtos(
+                                varBinding("foo()$x", "T7", asList("@T6", "int"), asList("num"), false),
+                                varBinding("foo()$y", "T6", null, asList("num"), false),
+                                varBinding(RETURN_VARIABLE_NAME, "T7", asList("@T6", "int"), asList("num"), false)))
+                                , 1, 0, 2)
+                },
                 //$x has no upper bound anymore but $a has an additional lower type bound
                 {
                         "function foo($x, $y){ $a = 1; $a = $y; $x = $a; $b = $x; return $x;}",
