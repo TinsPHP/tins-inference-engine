@@ -10,7 +10,7 @@ import java.util.List;
 
 public class BindingMatcherDto
 {
-    public String variableName;
+    public String variableId;
     public String typeVariable;
     public List<String> lowerBounds;
     public List<String> upperBounds;
@@ -22,17 +22,18 @@ public class BindingMatcherDto
             List<String> theLowerBounds,
             List<String> theUpperBounds,
             boolean hasItAFixedType) {
-        variableName = theVariable;
+        variableId = theVariable;
         typeVariable = theTypeVariable;
         lowerBounds = theLowerBounds;
         upperBounds = theUpperBounds;
         hasFixedType = hasItAFixedType;
     }
 
+    //Warning! start code duplication - same as in tins-symbols
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(variableName).append(":").append(typeVariable)
+        sb.append(variableId).append(":").append(typeVariable)
                 .append("<")
                 .append(lowerBounds != null ? lowerBounds.toString() : "[]")
                 .append(",")
@@ -43,4 +44,5 @@ public class BindingMatcherDto
         }
         return sb.toString();
     }
+    //Warning! end code duplication - same as in tins-symbols
 }

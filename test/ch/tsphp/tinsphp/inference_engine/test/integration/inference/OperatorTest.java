@@ -100,7 +100,7 @@ public class OperatorTest extends AInferenceTypeTest
                 //TODO rstoll TINS-347 create overloads for conversion constraints
 //                {
 //                        "$x = true; $x /= false;",
-//                        testStructs("(/= $x false)", "\\.\\.", asList("(int | false)"), null, 1, 2, 0)
+//                        testStructs("(/= $x false)", "\\.\\.", asList("int","false"), null, 1, 2, 0)
 //                },
                 {
                         "$x = 1.3; $x /= 1.3;",
@@ -112,7 +112,7 @@ public class OperatorTest extends AInferenceTypeTest
 //                        testStructs("(/= $x $x)", "\\.\\.", asList("num", "false"), null, 1, 2, 0)
 //                },
                 // %=
-                {"$x = 1; $x %= 1;", testStructs("(%= $x 1)", "\\.\\.", asList("(int | false)"), null, 1, 2, 0)},
+                {"$x = 1; $x %= 1;", testStructs("(%= $x 1)", "\\.\\.", asList("int", "false"), null, 1, 2, 0)},
                 // |=
                 {"$x = 1; $x |= 1;", testStructs("(|= $x 1)", "\\.\\.", asList("int"), null, 1, 2, 0)},
                 {"$x = 'a'; $x |= 'b';", testStructs("(|= $x 'b')", "\\.\\.", asList("string"), null, 1, 2, 0)},
@@ -220,14 +220,14 @@ public class OperatorTest extends AInferenceTypeTest
                         testStructs("(* $x $x)", "\\.\\.", asList("int", "float"), null, 1, 2, 0)
                 },
                 // /
-                {"true / false;", testStructs("(/ true false)", "\\.\\.", asList("(int | false)"), null, 1, 0, 0)},
+                {"true / false;", testStructs("(/ true false)", "\\.\\.", asList("int", "false"), null, 1, 0, 0)},
                 {"2.1 / 1.5;", testStructs("(/ 2.1 1.5)", "\\.\\.", asList("false", "float"), null, 1, 0, 0)},
                 {
                         "$x = (bool) 1 ? 1 : 1.5; $x / $x;",
                         testStructs("(/ $x $x)", "\\.\\.", asList("int", "float", "false"), null, 1, 2, 0)
                 },
                 // %
-                {"2 % 1;", testStructs("(% 2 1)", "\\.\\.", asList("(int | false)"), null, 1, 0, 0)},
+                {"2 % 1;", testStructs("(% 2 1)", "\\.\\.", asList("int", "false"), null, 1, 0, 0)},
                 //instanceof
                 {
                         "$x = 1; 1 instanceof $x;",

@@ -47,7 +47,7 @@ public class FunctionCallTest extends AInferenceTypeTest
     @Parameterized.Parameters
     public static Collection<Object[]> testStrings() {
         return asList(new Object[][]{
-                {"$a = strpos('hello','h');", testStructs("$a", "\\.\\.", asList("(int | false)"), null, 1, 1, 0, 0)},
+                {"$a = strpos('hello','h');", testStructs("$a", "\\.\\.", asList("int", "false"), null, 1, 1, 0, 0)},
                 //TODO rstoll TINS-376overload creation
 //                {
 //                        "function foo($x, $y){return bar($x, $y);}" +

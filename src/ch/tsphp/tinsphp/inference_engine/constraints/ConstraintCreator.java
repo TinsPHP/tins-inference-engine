@@ -13,13 +13,13 @@ import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCreator;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
 import ch.tsphp.tinsphp.common.inference.constraints.IIntersectionConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
-import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import ch.tsphp.tinsphp.common.inference.constraints.TypeVariableConstraint;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMinimalVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
+import ch.tsphp.tinsphp.common.utils.IOverloadResolver;
 import ch.tsphp.tinsphp.symbols.TypeVariableNames;
 import ch.tsphp.tinsphp.symbols.constraints.IntersectionConstraint;
 import ch.tsphp.tinsphp.symbols.constraints.OverloadBindings;
@@ -32,7 +32,7 @@ public class ConstraintCreator implements IConstraintCreator
 {
     private final ISymbolFactory symbolFactory;
     private final IInferenceIssueReporter inferenceIssueReporter;
-    private final IMinimalMethodSymbol identityFunction;
+    private final IMinimalMethodSymbol assignFunction;
 
 
     public ConstraintCreator(
@@ -41,14 +41,22 @@ public class ConstraintCreator implements IConstraintCreator
             IInferenceIssueReporter theInferenceErrorReporter) {
         symbolFactory = theSymbolFactory;
         inferenceIssueReporter = theInferenceErrorReporter;
-        IVariable expr = symbolFactory.createVariable("$expr", "T");
-        IVariable rtn = symbolFactory.createVariable(TypeVariableNames.RETURN_VARIABLE_NAME, "T");
-        IOverloadBindings overloadBindings = new OverloadBindings(theOverloadResolver);
-        overloadBindings.addLowerBound("T", new TypeVariableConstraint("T"));
+
+        //Tlhs x Trhs -> Tlhs \ Tlhs > Trhs
+        String tLhs = "Tlhs";
+        String tRhs = "Trhs";
+        IVariable lhs = symbolFactory.createVariable("$lhs", tLhs);
+        IVariable rhs = symbolFactory.createVariable("$rhs", tRhs);
+        IVariable rtn = symbolFactory.createVariable(TypeVariableNames.RETURN_VARIABLE_NAME, tLhs);
+        IOverloadBindings overloadBindings = new OverloadBindings(theSymbolFactory, theOverloadResolver);
+        overloadBindings.addVariable("$lhs", new TypeVariableConstraint(tLhs));
+        overloadBindings.addVariable("$rhs", new TypeVariableConstraint(tRhs));
+        overloadBindings.addVariable(TypeVariableNames.RETURN_VARIABLE_NAME, new TypeVariableConstraint(tLhs));
+        overloadBindings.addLowerRefBound(tLhs, new TypeVariableConstraint(tRhs));
         IFunctionType identityOverload = symbolFactory.createFunctionType(
-                "identity", overloadBindings, Arrays.asList(expr), rtn);
-        identityFunction = symbolFactory.createMinimalMethodSymbol("identity");
-        identityFunction.addOverload(identityOverload);
+                "=", overloadBindings, Arrays.asList(lhs, rhs), rtn);
+        assignFunction = symbolFactory.createMinimalMethodSymbol("=");
+        assignFunction.addOverload(identityOverload);
     }
 
     @Override
@@ -64,7 +72,7 @@ public class ConstraintCreator implements IConstraintCreator
         IVariable variableSymbol = (IVariable) identifier.getSymbol();
 
         IIntersectionConstraint constraint = new IntersectionConstraint(
-                variableSymbol, Arrays.asList((IVariable) rhs.getSymbol()), identityFunction);
+                variableSymbol, Arrays.asList(variableSymbol, (IVariable) rhs.getSymbol()), assignFunction);
         collection.addLowerBoundConstraint(constraint);
     }
 

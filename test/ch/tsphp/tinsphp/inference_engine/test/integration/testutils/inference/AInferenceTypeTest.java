@@ -9,20 +9,15 @@ package ch.tsphp.tinsphp.inference_engine.test.integration.testutils.inference;
 import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ISymbol;
-import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
-import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableConstraint;
-import ch.tsphp.tinsphp.common.inference.constraints.TypeVariableConstraint;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.ScopeTestHelper;
-import ch.tsphp.tinsphp.symbols.constraints.TypeConstraint;
 import org.junit.Assert;
 import org.junit.Ignore;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -67,12 +62,13 @@ public class AInferenceTypeTest extends AInferenceTest
                     "too many or not enough overloadBindings", 1, overloadBindingsList.size());
 
             IOverloadBindings overloadBindings = overloadBindingsList.get(0);
-            Map<String, ITypeVariableConstraint> variable2TypeVariable = overloadBindings.getVariable2TypeVariable();
-            Assert.assertTrue(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
-                            "no type variableName defined for " + symbol.getAbsoluteName(),
-                    variable2TypeVariable.containsKey(symbol.getAbsoluteName()));
 
-            String typeVariable = variable2TypeVariable.get(symbol.getAbsoluteName()).getTypeVariable();
+            Assert.assertTrue(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
+                            "no type variableId defined for " + symbol.getAbsoluteName(),
+                    overloadBindings.containsVariable(symbol.getAbsoluteName()));
+
+            String typeVariable = overloadBindings.getTypeVariableConstraint(
+                    symbol.getAbsoluteName()).getTypeVariable();
 
             Assert.assertTrue(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
                             "no lower bound defined",
@@ -98,18 +94,22 @@ public class AInferenceTypeTest extends AInferenceTest
     }
 
     private void getAbsoluteNames(
-            Set<String> typeAbsoluteNames, IOverloadBindings typeVariables, String originalVariable,
+            Set<String> typeAbsoluteNames,
+            IOverloadBindings overloadBindings,
+            String originalVariable,
             String typeVariable) {
-        for (IConstraint constraint : typeVariables.getLowerBounds(typeVariable)) {
-            if (constraint instanceof TypeVariableConstraint) {
-                String refTypeVariable = ((TypeVariableConstraint) constraint).getTypeVariable();
-                if (!typeVariable.equals(refTypeVariable) && !originalVariable.equals(refTypeVariable)) {
-                    getAbsoluteNames(typeAbsoluteNames, typeVariables, typeVariable, refTypeVariable);
-                }
-            } else {
-                typeAbsoluteNames.add(((TypeConstraint) constraint).getTypeSymbol().getAbsoluteName());
-            }
-        }
+        typeAbsoluteNames.addAll(overloadBindings.getLowerTypeBounds(typeVariable).getTypeSymbols().keySet());
+
+//        for (IConstraint constraint : overloadBindings.getLowerBounds(typeVariable)) {
+//            if (constraint instanceof TypeVariableConstraint) {
+//                String refTypeVariable = ((TypeVariableConstraint) constraint).getTypeVariable();
+//                if (!typeVariable.equals(refTypeVariable) && !originalVariable.equals(refTypeVariable)) {
+//                    getAbsoluteNames(typeAbsoluteNames, overloadBindings, typeVariable, refTypeVariable);
+//                }
+//            } else {
+//                typeAbsoluteNames.add(((TypeConstraint) constraint).getTypeSymbol().getAbsoluteName());
+//            }
+//        }
     }
 
     protected static AbsoluteTypeNameTestStruct testStruct(

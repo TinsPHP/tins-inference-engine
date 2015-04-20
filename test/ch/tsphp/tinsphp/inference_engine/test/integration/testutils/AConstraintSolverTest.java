@@ -7,17 +7,16 @@
 package ch.tsphp.tinsphp.inference_engine.test.integration.testutils;
 
 import ch.tsphp.common.symbols.ITypeSymbol;
-import ch.tsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
-import ch.tsphp.tinsphp.common.inference.constraints.IOverloadResolver;
 import ch.tsphp.tinsphp.common.symbols.IMinimalVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMinimalVariableSymbolWithRef;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
+import ch.tsphp.tinsphp.common.symbols.IUnionTypeSymbol;
+import ch.tsphp.tinsphp.common.utils.IOverloadResolver;
 import ch.tsphp.tinsphp.inference_engine.scopes.ScopeHelper;
 import ch.tsphp.tinsphp.symbols.ModifierHelper;
 import ch.tsphp.tinsphp.symbols.SymbolFactory;
 import ch.tsphp.tinsphp.symbols.UnionTypeSymbol;
-import ch.tsphp.tinsphp.symbols.constraints.TypeConstraint;
 import ch.tsphp.tinsphp.symbols.utils.OverloadResolver;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -123,7 +122,6 @@ public abstract class AConstraintSolverTest
         for (ITypeSymbol type : types) {
             unionTypeSymbol.addTypeSymbol(type);
         }
-        unionTypeSymbol.seal();
         when(typeVariableSymbol.getType()).thenReturn(unionTypeSymbol);
         return typeVariableSymbol;
     }
@@ -136,7 +134,6 @@ public abstract class AConstraintSolverTest
         for (ITypeSymbol type : types) {
             unionTypeSymbol.addTypeSymbol(type);
         }
-        unionTypeSymbol.seal();
         when(typeVariableSymbol.getType()).thenReturn(unionTypeSymbol);
         return typeVariableSymbol;
     }
@@ -173,11 +170,6 @@ public abstract class AConstraintSolverTest
 //    protected RefConstraint ref(String refTypeVariableId, ITypeVariableSymbol refTypeVariableId) {
 //        return new RefConstraint(refTypeVariableId, refTypeVariableId);
 //    }
-
-    protected IConstraint type(ITypeSymbol typeSymbol) {
-        return new TypeConstraint(typeSymbol);
-    }
-
 //    protected ITypeVariableCollection createTypeVariableCollection(ITypeVariableSymbol... typeVariables) {
 //        Deque<ITypeVariableSymbol> deque = new ArrayDeque<>();
 //        for (ITypeVariableSymbol typeVariableSymbol : typeVariables) {

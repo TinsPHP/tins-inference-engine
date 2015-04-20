@@ -7,9 +7,14 @@
 package ch.tsphp.tinsphp.inference_engine.test.integration.testutils;
 
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
+import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class FunctionTypeMatcher extends BaseMatcher<IFunctionType>
 {
@@ -39,14 +44,38 @@ public class FunctionTypeMatcher extends BaseMatcher<IFunctionType>
 
     @Override
     public void describeMismatch(Object item, Description description) {
-        description.appendText(item.toString());
+        IFunctionType functionType = (IFunctionType) item;
+        List<IVariable> parameters = functionType.getParameters();
+        if (parameters.size() + 1 != dto.bindings.length) {
+            description.appendText("Not all parameters or the return variable was not specified. Missing were:\n");
+            Set<String> variableIds = new HashSet<>();
+            for (BindingMatcherDto binding : dto.bindings) {
+                variableIds.add(binding.variableId);
+            }
+            boolean isNotFirst = false;
+            for (IVariable variable : parameters) {
+                if (!variableIds.contains(variable.getAbsoluteName())) {
+                    if (isNotFirst) {
+                        description.appendText(", ");
+                    } else {
+                        isNotFirst = true;
+                    }
+                    description.appendText(variable.getAbsoluteName());
+                }
+            }
+        } else {
+            description.appendText("\n").appendText(functionType.getName()).appendText("{")
+                    .appendText(String.valueOf(functionType.getNumberOfNonOptionalParameters()))
+                    .appendText("}");
+            overloadBindingsMatcher.describeMismatch(functionType.getBindings(), description, false, false);
+        }
     }
 
     @Override
     public void describeTo(Description description) {
-        description.appendText(dto.name).appendText("{")
+        description.appendText("\n").appendText(dto.name).appendText("{")
                 .appendText(String.valueOf(dto.numberOfNonOptionalParameters))
                 .appendText("}");
-        overloadBindingsMatcher.describeTo(description);
+        overloadBindingsMatcher.describeTo(description, false);
     }
 }

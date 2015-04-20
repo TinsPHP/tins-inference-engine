@@ -18,7 +18,6 @@ import ch.tsphp.common.ITSPHPErrorAst;
 import ch.tsphp.common.exceptions.ReferenceException;
 import ch.tsphp.common.exceptions.TSPHPException;
 import ch.tsphp.common.symbols.ITypeSymbol;
-import ch.tsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.common.symbols.modifiers.IModifierSet;
 import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.IVariableDeclarationCreator;
@@ -40,6 +39,7 @@ import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMinimalVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
+import ch.tsphp.tinsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousTypeSymbol;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
@@ -264,18 +264,13 @@ public class ReferencePhaseController implements IReferencePhaseController
         boolean needsFalseTypeSymbol = modifiers.isFalseable() && currentType != falseTypeSymbol;
         if (needsNullTypeSymbol || needsFalseTypeSymbol) {
             IUnionTypeSymbol unionTypeSymbol = symbolFactory.createUnionTypeSymbol();
-            if (currentType instanceof IUnionTypeSymbol) {
-                unionTypeSymbol.merge((IUnionTypeSymbol) currentType);
-            } else {
-                unionTypeSymbol.addTypeSymbol(currentType);
-            }
+            unionTypeSymbol.addTypeSymbol(currentType);
             if (needsNullTypeSymbol) {
                 unionTypeSymbol.addTypeSymbol(nullTypeSymbol);
             }
             if (needsFalseTypeSymbol) {
                 unionTypeSymbol.addTypeSymbol(falseTypeSymbol);
             }
-            unionTypeSymbol.seal();
             typeSymbol = unionTypeSymbol;
         }
         return typeSymbol;
