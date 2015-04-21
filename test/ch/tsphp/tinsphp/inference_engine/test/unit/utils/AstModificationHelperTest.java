@@ -23,17 +23,30 @@ public class AstModificationHelperTest
 {
 
     @Test
-    public void getNullReturnStatement_Standard_DelegatesToAstHelper() {
+    public void createNullLiteral_Standard_DelegatesToAstHelper() {
+        IAstHelper astHelper = mock(IAstHelper.class);
+        ITSPHPAst nullLiteral = mock(ITSPHPAst.class);
+        when(astHelper.createAst(TokenTypes.Null, "null")).thenReturn(nullLiteral);
+
+        IAstModificationHelper astModificationHelper = createAstModificationHelper(astHelper);
+
+        ITSPHPAst result = astModificationHelper.createNullLiteral();
+
+        assertThat(result, is(nullLiteral));
+    }
+
+    @Test
+    public void createReturnStatement_Standard_DelegatesToAstHelperAndFirstChildIsPassedException() {
         IAstHelper astHelper = mock(IAstHelper.class);
         ITSPHPAst returnAst = mock(ITSPHPAst.class);
         when(astHelper.createAst(TokenTypes.Return, "return")).thenReturn(returnAst);
-        ITSPHPAst nullAst = mock(ITSPHPAst.class);
-        when(astHelper.createAst(TokenTypes.Null, "null")).thenReturn(nullAst);
+        ITSPHPAst expr = mock(ITSPHPAst.class);
 
         IAstModificationHelper astModificationHelper = createAstModificationHelper(astHelper);
-        ITSPHPAst result = astModificationHelper.getNullReturnStatement();
 
-        verify(returnAst).addChild(nullAst);
+        ITSPHPAst result = astModificationHelper.createReturnStatement(expr);
+
+        verify(returnAst).addChild(expr);
         assertThat(result, is(returnAst));
     }
 

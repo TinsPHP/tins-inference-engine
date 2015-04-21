@@ -31,8 +31,8 @@ public class InferenceIssueReporter implements IInferenceIssueReporter
     private EnumSet<EIssueSeverity> foundIssues = EnumSet.noneOf(EIssueSeverity.class);
 
 
-    public InferenceIssueReporter(IIssueMessageProvider theMessageProvier) {
-        messageProvider = theMessageProvier;
+    public InferenceIssueReporter(IIssueMessageProvider theMessageProvider) {
+        messageProvider = theMessageProvider;
     }
 
     @Override

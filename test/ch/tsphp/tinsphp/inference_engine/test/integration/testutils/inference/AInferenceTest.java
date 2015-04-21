@@ -47,6 +47,6 @@ public abstract class AInferenceTest extends AReferenceTest
         referencePhaseController.solveMethodSymbolConstraints();
         referencePhaseController.solveGlobalDefaultNamespaceConstraints();
 
-        checkNoErrorsInReferencePhase();
+        checkNoIssueInInferencePhase();
     }
 }

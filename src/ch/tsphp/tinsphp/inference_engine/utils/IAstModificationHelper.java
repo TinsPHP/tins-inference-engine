@@ -10,7 +10,9 @@ import ch.tsphp.common.ITSPHPAst;
 
 public interface IAstModificationHelper
 {
-    ITSPHPAst getNullReturnStatement();
+    ITSPHPAst createNullLiteral();
+
+    ITSPHPAst createReturnStatement(ITSPHPAst expression);
 
     ITSPHPAst getVariableDeclaration(String variableId);
 

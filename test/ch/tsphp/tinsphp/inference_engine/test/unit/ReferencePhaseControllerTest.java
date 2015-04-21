@@ -29,6 +29,7 @@ import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IAliasSymbol;
 import ch.tsphp.tinsphp.common.symbols.IAliasTypeSymbol;
+import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.IScalarTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
@@ -1762,11 +1763,14 @@ public class ReferencePhaseControllerTest
     public void
     addImplicitReturnStatementIfRequired_IsNotReturningAndHasAtLeastOneReturnOrThrow_ReturnAddedAndPartiallyCalled() {
         ITSPHPAst identifier = mock(ITSPHPAst.class);
+        IMethodSymbol methodSymbol = mock(IMethodSymbol.class);
+        when(identifier.getSymbol()).thenReturn(methodSymbol);
         ITSPHPAst block = mock(ITSPHPAst.class);
         IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
         IAstModificationHelper astModificationHelper = mock(IAstModificationHelper.class);
         ITSPHPAst returnAst = mock(ITSPHPAst.class);
-        when(astModificationHelper.getNullReturnStatement()).thenReturn(returnAst);
+        when(astModificationHelper.createNullLiteral()).thenReturn(mock(ITSPHPAst.class));
+        when(astModificationHelper.createReturnStatement(any(ITSPHPAst.class))).thenReturn(returnAst);
 
         IReferencePhaseController controller = createController(issueReporter, astModificationHelper);
         controller.addImplicitReturnStatementIfRequired(false, true, identifier, block);
@@ -1781,11 +1785,14 @@ public class ReferencePhaseControllerTest
     @Test
     public void addImplicitReturnStatementIfRequired_IsNotReturningHasNoReturnOThrow_ReturnAddedAndNoReturnCalled() {
         ITSPHPAst identifier = mock(ITSPHPAst.class);
+        IMethodSymbol methodSymbol = mock(IMethodSymbol.class);
+        when(identifier.getSymbol()).thenReturn(methodSymbol);
         ITSPHPAst block = mock(ITSPHPAst.class);
         IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
         IAstModificationHelper astModificationHelper = mock(IAstModificationHelper.class);
         ITSPHPAst returnAst = mock(ITSPHPAst.class);
-        when(astModificationHelper.getNullReturnStatement()).thenReturn(returnAst);
+        when(astModificationHelper.createNullLiteral()).thenReturn(mock(ITSPHPAst.class));
+        when(astModificationHelper.createReturnStatement(any(ITSPHPAst.class))).thenReturn(returnAst);
 
         IReferencePhaseController controller = createController(issueReporter, astModificationHelper);
         controller.addImplicitReturnStatementIfRequired(false, false, identifier, block);
@@ -1799,22 +1806,24 @@ public class ReferencePhaseControllerTest
      */
     @Test
     public void
-    addImplicitReturnStatementIfRequired_IsNotReturningAndHasAtLeastOneReturnOrThrow_ReturnStatementHasScopeAndEvalType() {
+    addImplicitReturnStatementIfRequired_IsNotReturningAndHasAtLeastOneReturnOrThrow_ReturnStatementHasScopeAndConstraintCreated() {
         ITSPHPAst identifier = mock(ITSPHPAst.class);
+        IMethodSymbol methodSymbol = mock(IMethodSymbol.class);
+        when(identifier.getSymbol()).thenReturn(methodSymbol);
         ITSPHPAst block = mock(ITSPHPAst.class);
-        IScope scope = mock(IScope.class);
-        when(block.getScope()).thenReturn(scope);
         IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
         IAstModificationHelper astModificationHelper = mock(IAstModificationHelper.class);
         ITSPHPAst returnAst = mock(ITSPHPAst.class);
-        when(astModificationHelper.getNullReturnStatement()).thenReturn(returnAst);
+        ITSPHPAst nullLiteral = mock(ITSPHPAst.class);
+        when(astModificationHelper.createNullLiteral()).thenReturn(nullLiteral);
+        when(astModificationHelper.createReturnStatement(any(ITSPHPAst.class))).thenReturn(returnAst);
+        IConstraintCreator constraintCreator = mock(IConstraintCreator.class);
 
-
-        IReferencePhaseController controller = createController(issueReporter, astModificationHelper);
+        IReferencePhaseController controller = createController(issueReporter, astModificationHelper, constraintCreator);
         controller.addImplicitReturnStatementIfRequired(false, true, identifier, block);
 
-        verify(returnAst).setScope(scope);
-        verify(returnAst).setEvalType(any(ITypeSymbol.class));
+        verify(returnAst).setScope(methodSymbol);
+        verify(constraintCreator).createRefConstraint(methodSymbol, returnAst, nullLiteral);
     }
 
     /**
@@ -1822,22 +1831,24 @@ public class ReferencePhaseControllerTest
      */
     @Test
     public void
-    addImplicitReturnStatementIfRequired_IsNotReturningAndHasNoReturnOrThrow_ReturnStatementHasScopeAndEvalType() {
+    addImplicitReturnStatementIfRequired_IsNotReturningAndHasNoReturnOrThrow_ReturnStatementHasScopeAndConstraintCreated() {
         ITSPHPAst identifier = mock(ITSPHPAst.class);
+        IMethodSymbol methodSymbol = mock(IMethodSymbol.class);
+        when(identifier.getSymbol()).thenReturn(methodSymbol);
         ITSPHPAst block = mock(ITSPHPAst.class);
-        IScope scope = mock(IScope.class);
-        when(block.getScope()).thenReturn(scope);
         IInferenceIssueReporter issueReporter = mock(IInferenceIssueReporter.class);
         IAstModificationHelper astModificationHelper = mock(IAstModificationHelper.class);
         ITSPHPAst returnAst = mock(ITSPHPAst.class);
-        when(astModificationHelper.getNullReturnStatement()).thenReturn(returnAst);
+        ITSPHPAst nullLiteral = mock(ITSPHPAst.class);
+        when(astModificationHelper.createNullLiteral()).thenReturn(nullLiteral);
+        when(astModificationHelper.createReturnStatement(any(ITSPHPAst.class))).thenReturn(returnAst);
+        IConstraintCreator constraintCreator = mock(IConstraintCreator.class);
 
-
-        IReferencePhaseController controller = createController(issueReporter, astModificationHelper);
+        IReferencePhaseController controller = createController(issueReporter, astModificationHelper, constraintCreator);
         controller.addImplicitReturnStatementIfRequired(false, false, identifier, block);
 
-        verify(returnAst).setScope(scope);
-        verify(returnAst).setEvalType(any(ITypeSymbol.class));
+        verify(returnAst).setScope(methodSymbol);
+        verify(constraintCreator).createRefConstraint(methodSymbol, returnAst, nullLiteral);
     }
 
     private ITSPHPAst createAst(String name) {
@@ -1877,6 +1888,29 @@ public class ReferencePhaseControllerTest
             IInferenceIssueReporter issueReporter, IAstModificationHelper astModificationHelper) {
         return createController(
                 issueReporter, astModificationHelper, mock(IScopeHelper.class));
+    }
+
+    private IReferencePhaseController createController(
+            IInferenceIssueReporter issueReporter,
+            IAstModificationHelper astModificationHelper,
+            IConstraintCreator constraintCreator) {
+        ICore core = mock(ICore.class);
+        when(core.getPrimitiveTypes()).thenReturn(new HashMap<String, ITypeSymbol>());
+        return createController(
+                createSymbolFactoryMock(),
+                issueReporter,
+                astModificationHelper,
+                mock(ISymbolResolverController.class),
+                mock(ISymbolCheckController.class),
+                mock(IVariableDeclarationCreator.class),
+                mock(IScopeHelper.class),
+                mock(IModifierHelper.class),
+                constraintCreator,
+                mock(IConstraintSolver.class),
+                core,
+                mock(IGlobalNamespaceScope.class)
+        );
+
     }
 
     private IReferencePhaseController createController(

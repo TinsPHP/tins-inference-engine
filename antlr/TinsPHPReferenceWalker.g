@@ -496,12 +496,10 @@ instruction returns[boolean isReturning, boolean isBreaking]
             if(symbol != null){
                 rtn.setSymbol(symbol);
                 ITSPHPAst expr = $expression.start;
-                if (expr != null){
-                    controller.createRefConstraint(currentScope, rtn, expr);
-                } else {
-                    ITSPHPAst ast = (ITSPHPAst) adaptor.create(this.Null, rtn.getToken(), "null");
-                    symbol.setType(controller.resolvePrimitiveLiteral(ast));
+                if (expr == null){
+                    expr = controller.createNullLiteral();
                 }
+                controller.createRefConstraint(currentScope, rtn, expr);
             }
         }
     |   ^(op='throw' expression)        {$isReturning = true; hasAtLeastOneReturnOrThrow = true; doesNotReachThisStatement = true;}

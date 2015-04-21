@@ -537,13 +537,32 @@ public class ReferencePhaseController implements IReferencePhaseController
             ITSPHPAst identifier,
             ITSPHPAst block) {
         if (!isReturning) {
-            addReturnNullAtTheEndOfScope(block);
+            addReturnNullAtTheEndOfScope(identifier, block);
             if (hasAtLeastOneReturnOrThrow) {
                 inferenceErrorReporter.partialReturnFromFunction(identifier);
             } else {
                 inferenceErrorReporter.noReturnFromFunction(identifier);
             }
         }
+    }
+
+    private void addReturnNullAtTheEndOfScope(ITSPHPAst identifier, ITSPHPAst block) {
+        ITSPHPAst nullLiteral = createNullLiteral();
+        ITSPHPAst returnAst = astModificationHelper.createReturnStatement(nullLiteral);
+        IMethodSymbol methodSymbol = (IMethodSymbol) identifier.getSymbol();
+        returnAst.setScope(methodSymbol);
+        returnAst.setSymbol(methodSymbol.getReturnVariable());
+        createRefConstraint(methodSymbol, returnAst, nullLiteral);
+        block.addChild(returnAst);
+    }
+
+
+    @Override
+    public ITSPHPAst createNullLiteral() {
+        ITSPHPAst nullLiteral = astModificationHelper.createNullLiteral();
+        nullLiteral.setEvalType(primitiveTypes.get(PrimitiveTypeNames.NULL));
+        createTypeConstraint(nullLiteral);
+        return nullLiteral;
     }
 
     @Override
@@ -583,26 +602,6 @@ public class ReferencePhaseController implements IReferencePhaseController
         constraintSolver.solveConstraints(globalDefaultNamespace);
     }
 
-    private void addReturnNullAtTheEndOfScope(ITSPHPAst block) {
-        ITSPHPAst returnAst = astModificationHelper.getNullReturnStatement();
-        IScope scope = block.getScope();
-        returnAst.setScope(scope);
-        returnAst.setEvalType(primitiveTypes.get(PrimitiveTypeNames.NULL));
-        block.addChild(returnAst);
-
-//        ISymbol symbol = resolveReturn(returnAst);
-//        if(symbol != null){
-//            returnAst.setSymbol(symbol);
-//            ITSPHPAst expr = returnAst.getChild(0);
-//            if (expr != null){
-//                createRefConstraint(currentScope, rtn, expr);
-//            } else {
-//                ITSPHPAst ast = (ITSPHPAst) adaptor.create(this.Null, rtn.getToken(), "null");
-//                symbol.setType(controller.resolvePrimitiveLiteral(ast));
-//            }
-//        }
-//        createRefConstraint(scope, );
-    }
 
     //TODO rstoll TINS-228 - reference phase - evaluate if methods return
 //    @SuppressWarnings("ThrowableResultOfMethodCallIgnored")

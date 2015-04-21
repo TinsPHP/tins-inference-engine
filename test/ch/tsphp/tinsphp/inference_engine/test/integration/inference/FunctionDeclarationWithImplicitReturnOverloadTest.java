@@ -37,11 +37,13 @@ public class FunctionDeclarationWithImplicitReturnOverloadTest extends AInferenc
         runTest();
     }
 
+    @Override
     protected void checkNoErrorsInReferencePhase() {
         assertTrue(testString + " failed. no return / partial return from function expected but not reported",
                 inferenceErrorReporter.hasFound(EnumSet.allOf(EIssueSeverity.class)));
         assertFalse(testString + " failed. reference walker exceptions occurred.",
                 reference.hasFound(EnumSet.allOf(EIssueSeverity.class)));
+        inferenceErrorReporter.reset();
     }
 
     @Parameterized.Parameters
@@ -55,7 +57,7 @@ public class FunctionDeclarationWithImplicitReturnOverloadTest extends AInferenc
                 {
                         "function foo($x){}",
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 1, bindingDtos(
-                                varBinding("foo()$x", "T2", null, null, false),
+                                varBinding("foo()$x", "T3", null, asList("mixed"), true),
                                 varBinding(RETURN_VARIABLE_NAME, "T1", asList("null"), null, true))), 1, 0, 2)
                 },
                 //partial return
@@ -63,7 +65,7 @@ public class FunctionDeclarationWithImplicitReturnOverloadTest extends AInferenc
                         "function foo($x){if($x) return 1;}",
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 1, bindingDtos(
                                 varBinding("foo()$x", "T2", null, asList("bool"), true),
-                                varBinding(RETURN_VARIABLE_NAME, "T1", asList("null"), null, true))), 1, 0, 2)
+                                varBinding(RETURN_VARIABLE_NAME, "T3", asList("null"), null, true))), 1, 0, 2)
                 },
         });
     }

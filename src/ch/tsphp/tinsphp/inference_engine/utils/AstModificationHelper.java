@@ -19,9 +19,14 @@ public class AstModificationHelper implements IAstModificationHelper
     }
 
     @Override
-    public ITSPHPAst getNullReturnStatement() {
+    public ITSPHPAst createNullLiteral() {
+        return astHelper.createAst(TokenTypes.Null, "null");
+    }
+
+    @Override
+    public ITSPHPAst createReturnStatement(ITSPHPAst expression) {
         ITSPHPAst returnAst = astHelper.createAst(TokenTypes.Return, "return");
-        returnAst.addChild(astHelper.createAst(TokenTypes.Null, "null"));
+        returnAst.addChild(expression);
         return returnAst;
     }
 
