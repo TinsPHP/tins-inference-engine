@@ -248,7 +248,7 @@ expression
                 $identifier=$type.start;
                 $start.setScope(currentScope);
             }
-        |   ^('instanceof' . (identifier=VariableId /* | TODO rstoll TINS-161 inference OOP identifier=TYPE_NAME*/))
+        |   ^('instanceof' . (identifier=VariableId | identifier=TYPE_NAME))
             {$start.setScope(currentScope);}
         //TODO rstoll TINS-161 inference OOP          
         //|   ^('new' identifier=TYPE_NAME .)

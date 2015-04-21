@@ -236,7 +236,7 @@ public class OperatorTest extends AInferenceTypeTest
                 {
                         //see TINS-389 scope of type in instanceof not set
                         "$x = 1; $x instanceof Exception;",
-                        testStructs("(instanceof $x Exception)", "\\.\\.", asList("Exception"), null, 1, 2, 0)
+                        testStructs("(instanceof $x Exception)", "\\.\\.", asList("bool"), null, 1, 2, 0)
                 },
                 // casting
                 {"(bool) 1;", testStructs("(casting (type tMod bool) 1)", "\\.\\.", asList("bool"), null, 1, 0, 0)},

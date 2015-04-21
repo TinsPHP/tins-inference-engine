@@ -847,7 +847,7 @@ operator
                 {
                     type = $classInterfaceType.start;
                     type.setEvalType($classInterfaceType.type);
-                    controller.createTypeConstraint(operator);
+                    controller.createTypeConstraint(type);
                     controller.createIntersectionConstraint(currentScope, operator, $lhs.start, type);
                 }
             )
