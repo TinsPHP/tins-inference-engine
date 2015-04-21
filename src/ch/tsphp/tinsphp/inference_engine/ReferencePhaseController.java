@@ -532,7 +532,10 @@ public class ReferencePhaseController implements IReferencePhaseController
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     @Override
     public void addImplicitReturnStatementIfRequired(
-            boolean isReturning, boolean hasAtLeastOneReturnOrThrow, ITSPHPAst identifier, ITSPHPAst block) {
+            boolean isReturning,
+            boolean hasAtLeastOneReturnOrThrow,
+            ITSPHPAst identifier,
+            ITSPHPAst block) {
         if (!isReturning) {
             addReturnNullAtTheEndOfScope(block);
             if (hasAtLeastOneReturnOrThrow) {
@@ -582,9 +585,23 @@ public class ReferencePhaseController implements IReferencePhaseController
 
     private void addReturnNullAtTheEndOfScope(ITSPHPAst block) {
         ITSPHPAst returnAst = astModificationHelper.getNullReturnStatement();
-        returnAst.setScope(block.getScope());
+        IScope scope = block.getScope();
+        returnAst.setScope(scope);
         returnAst.setEvalType(primitiveTypes.get(PrimitiveTypeNames.NULL));
         block.addChild(returnAst);
+
+//        ISymbol symbol = resolveReturn(returnAst);
+//        if(symbol != null){
+//            returnAst.setSymbol(symbol);
+//            ITSPHPAst expr = returnAst.getChild(0);
+//            if (expr != null){
+//                createRefConstraint(currentScope, rtn, expr);
+//            } else {
+//                ITSPHPAst ast = (ITSPHPAst) adaptor.create(this.Null, rtn.getToken(), "null");
+//                symbol.setType(controller.resolvePrimitiveLiteral(ast));
+//            }
+//        }
+//        createRefConstraint(scope, );
     }
 
     //TODO rstoll TINS-228 - reference phase - evaluate if methods return
