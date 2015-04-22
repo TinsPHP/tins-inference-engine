@@ -16,7 +16,7 @@ import ch.tsphp.common.ILowerCaseStringMap;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.LowerCaseStringMap;
 import ch.tsphp.common.symbols.ISymbol;
-import ch.tsphp.tinsphp.common.inference.constraints.IIntersectionConstraint;
+import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
@@ -31,10 +31,10 @@ public class GlobalNamespaceScope extends AScope implements IGlobalNamespaceScop
 
     private final ILowerCaseStringMap<List<ISymbol>> symbolsCaseInsensitive = new LowerCaseStringMap<>();
     //Warning! start code duplication - same as in MethodSymbol
-    private final List<IIntersectionConstraint> lowerBoundConstraints = new ArrayList<>();
-    private final List<IIntersectionConstraint> upperBoundConstraints = new ArrayList<>();
+    private final List<IConstraint> lowerBoundConstraints = new ArrayList<>();
     private List<IOverloadBindings> bindings;
     //Warning! end code duplication - same as in MethodSymbol
+
 
     public GlobalNamespaceScope(IScopeHelper scopeHelper, String scopeName) {
         super(scopeHelper, scopeName, null);
@@ -97,28 +97,15 @@ public class GlobalNamespaceScope extends AScope implements IGlobalNamespaceScop
 
     //Warning! start code duplication - same as in MethodSymbol
     @Override
-    public List<IIntersectionConstraint> getLowerBoundConstraints() {
+    public List<IConstraint> getConstraints() {
         return lowerBoundConstraints;
     }
 
     @Override
-    public List<IIntersectionConstraint> getUpperBoundConstraints() {
-        return upperBoundConstraints;
-    }
-
-    @Override
-    public void addLowerBoundConstraint(IIntersectionConstraint constraint) {
+    public void addConstraint(IConstraint constraint) {
         lowerBoundConstraints.add(constraint);
     }
 
-    @Override
-    public void addUpperBoundConstraint(IIntersectionConstraint constraint) {
-        upperBoundConstraints.add(constraint);
-    }
-    //Warning! end code duplication - same as in MethodSymbol
-
-
-    //Warning! start code duplication - same as in MethodSymbol
     @Override
     public List<IOverloadBindings> getBindings() {
         return bindings;

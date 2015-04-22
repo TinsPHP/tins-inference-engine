@@ -189,7 +189,7 @@ unaryPrimitiveAtom
         {
             ITSPHPAst operator = $start;
             operator.setSymbol(controller.resolveOperator(operator));
-            controller.createIntersectionConstraint(currentScope, operator, $expr.start);
+            controller.createOperatorConstraint(currentScope, operator, $expr.start);
         }
     ; 
     
@@ -505,12 +505,12 @@ instruction returns[boolean isReturning, boolean isBreaking]
     |   ^(op='throw' expression)        {$isReturning = true; hasAtLeastOneReturnOrThrow = true; doesNotReachThisStatement = true;}
         {
             op.setSymbol(controller.resolveOperator(op));
-            controller.createIntersectionConstraint(currentScope, op, $expression.start);
+            controller.createOperatorConstraint(currentScope, op, $expression.start);
         }
     |   ^(op='echo' expression+)
         {
             op.setSymbol(controller.resolveOperator(op));
-            controller.createIntersectionConstraint(currentScope, op, $expression.start);
+            controller.createOperatorConstraint(currentScope, op, $expression.start);
         }
     |   breakContinue                {$isBreaking = true; doesNotReachThisStatement = inSwitch;}
     ;
@@ -529,7 +529,7 @@ ifCondition returns[boolean isReturning]
             controller.sendUpInitialisedSymbolsAfterIf($ifBlock.ast, $elseBlock.ast);
 
             op.setSymbol(controller.resolveOperator(op));
-            controller.createIntersectionConstraint(currentScope, op, $expression.start);
+            controller.createOperatorConstraint(currentScope, op, $expression.start);
         }
     ;
 
@@ -613,7 +613,7 @@ forLoop
             if(childCount > 0){
                 ITSPHPAst expression = conditionList.getChild(childCount - 1);
                 op.setSymbol(controller.resolveOperator(op));
-                controller.createIntersectionConstraint(currentScope, op, expression);
+                controller.createOperatorConstraint(currentScope, op, expression);
             }
         }
     ;
@@ -663,9 +663,9 @@ foreachLoop
                 ITypeSymbol typeSymbol = controller.resolvePrimitiveLiteral(one);
                 one.setEvalType(typeSymbol);
                 controller.createTypeConstraint(one);
-                controller.createIntersectionConstraint(currentScope, op, $expression.start, varId1, one);
+                controller.createOperatorConstraint(currentScope, op, $expression.start, varId1, one);
             } else {
-                controller.createIntersectionConstraint(currentScope, op, $expression.start, varId2, varId1);
+                controller.createOperatorConstraint(currentScope, op, $expression.start, varId2, varId1);
             }
         }
     ;
@@ -683,7 +683,7 @@ whileLoop
             controller.sendUpInitialisedSymbols($blockConditional.ast);
             
             op.setSymbol(controller.resolveOperator(op));
-            controller.createIntersectionConstraint(currentScope, op, $expression.start);
+            controller.createOperatorConstraint(currentScope, op, $expression.start);
         }
     ;
 finally{
@@ -700,7 +700,7 @@ doWhileLoop returns[boolean isReturning]
             $isReturning = $block.isReturning;
             
             op.setSymbol(controller.resolveOperator(op));
-            controller.createIntersectionConstraint(currentScope, op, $expression.start);
+            controller.createOperatorConstraint(currentScope, op, $expression.start);
         }
     ;
 finally{
@@ -748,7 +748,7 @@ catchBlocks returns[boolean isReturning, List<ITSPHPAst> asts]
 
                 controller.createTypeConstraint(type);
                 op.setSymbol(controller.resolveOperator(op));
-                controller.createIntersectionConstraint(currentScope, op, type, $variableId);
+                controller.createOperatorConstraint(currentScope, op, type, $variableId);
             }
         )+ 
     ;
@@ -805,11 +805,11 @@ operator
 }
     :   ^(unaryOperator expression)
         {
-            controller.createIntersectionConstraint(currentScope, operator, $expression.start);
+            controller.createOperatorConstraint(currentScope, operator, $expression.start);
         }
     |   ^(binaryOperatorExcludingAssign lhs=expression rhs=expression)
         {
-            controller.createIntersectionConstraint(currentScope, operator, $lhs.start, $rhs.start);
+            controller.createOperatorConstraint(currentScope, operator, $lhs.start, $rhs.start);
         }
     |   ^('=' lhs=expression rhs=expression)
         {
@@ -817,11 +817,11 @@ operator
             if(!doesNotReachThisStatement && variableId.getType()==VariableId){
                 variableId.getScope().addToInitialisedSymbols(variableId.getSymbol(), true);
             }
-            controller.createIntersectionConstraint(currentScope, operator, variableId, $rhs.start);
+            controller.createOperatorConstraint(currentScope, operator, variableId, $rhs.start);
         }
     |   ^('?' cond=expression ifExpr=expression elseExpr=expression)
         {
-            controller.createIntersectionConstraint(currentScope, operator, $cond.start, $ifExpr.start, $elseExpr.start);
+            controller.createOperatorConstraint(currentScope, operator, $cond.start, $ifExpr.start, $elseExpr.start);
         }
     |   ^(CAST 
             ^(TYPE tMod=. scalarTypesOrArrayType[$tMod])
@@ -833,20 +833,20 @@ operator
         )
         {
             controller.createTypeConstraint(type);
-            controller.createIntersectionConstraint(currentScope, operator, type, $expression.start);
+            controller.createOperatorConstraint(currentScope, operator, type, $expression.start);
         }
     |   ^(Instanceof 
             lhs=expression 
             (   varId=variable
                 {
-                    controller.createIntersectionConstraint(currentScope, operator, $lhs.start, $varId.start);
+                    controller.createOperatorConstraint(currentScope, operator, $lhs.start, $varId.start);
                 }
             |   classInterfaceType[null] 
                 {
                     type = $classInterfaceType.start;
                     type.setEvalType($classInterfaceType.type);
                     controller.createTypeConstraint(type);
-                    controller.createIntersectionConstraint(currentScope, operator, $lhs.start, type);
+                    controller.createOperatorConstraint(currentScope, operator, $lhs.start, type);
                 }
             )
         )
@@ -855,7 +855,7 @@ operator
     //|   ^('new' classInterfaceType[null] actualParameters)
     |   ^('clone' expression)
         {
-            controller.createIntersectionConstraint(currentScope, operator, $expression.start);
+            controller.createOperatorConstraint(currentScope, operator, $expression.start);
         }
     ;
         
@@ -972,7 +972,7 @@ exit
     :   ^(op='exit' expression)
         {
             op.setSymbol(controller.resolveOperator(op));
-            controller.createIntersectionConstraint(currentScope, op, $expression.start);
+            controller.createOperatorConstraint(currentScope, op, $expression.start);
         }
     |   'exit'
     ;

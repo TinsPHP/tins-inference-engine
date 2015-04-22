@@ -8,15 +8,15 @@ package ch.tsphp.tinsphp.inference_engine.constraints;
 
 
 import ch.tsphp.common.symbols.ITypeSymbol;
-import ch.tsphp.tinsphp.common.inference.constraints.FixedTypeVariableConstraint;
+import ch.tsphp.tinsphp.common.inference.constraints.FixedTypeVariableReference;
+import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
-import ch.tsphp.tinsphp.common.inference.constraints.IIntersectionConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
-import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableConstraint;
+import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableReference;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
-import ch.tsphp.tinsphp.common.inference.constraints.TypeVariableConstraint;
+import ch.tsphp.tinsphp.common.inference.constraints.TypeVariableReference;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.symbols.IIntersectionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
@@ -72,7 +72,7 @@ public class ConstraintSolver implements IConstraintSolver
 
     @Override
     public void solveConstraints(IGlobalNamespaceScope globalDefaultNamespaceScope) {
-        if (!globalDefaultNamespaceScope.getLowerBoundConstraints().isEmpty()) {
+        if (!globalDefaultNamespaceScope.getConstraints().isEmpty()) {
             Deque<WorklistDto> workDeque = createInitialWorklist();
             List<IOverloadBindings> bindings = solveConstraints(globalDefaultNamespaceScope, workDeque);
             globalDefaultNamespaceScope.setBindings(bindings);
@@ -111,11 +111,11 @@ public class ConstraintSolver implements IConstraintSolver
             Deque<WorklistDto> workDeque) {
         List<IOverloadBindings> solvedBindings = new ArrayList<>();
 
-        List<IIntersectionConstraint> lowerBoundConstraints = constraintCollection.getLowerBoundConstraints();
+        List<IConstraint> constraints = constraintCollection.getConstraints();
         while (!workDeque.isEmpty()) {
             WorklistDto worklistDto = workDeque.removeFirst();
-            if (worklistDto.pointer < lowerBoundConstraints.size()) {
-                IIntersectionConstraint constraint = lowerBoundConstraints.get(worklistDto.pointer);
+            if (worklistDto.pointer < constraints.size()) {
+                IConstraint constraint = constraints.get(worklistDto.pointer);
                 solveConstraint(constraintCollection, workDeque, worklistDto, constraint);
             } else {
                 solvedBindings.add(worklistDto.overloadBindings);
@@ -130,7 +130,7 @@ public class ConstraintSolver implements IConstraintSolver
     }
 
     private void solveConstraint(IConstraintCollection constraintCollection, Deque<WorklistDto> workDeque,
-            WorklistDto worklistDto, IIntersectionConstraint constraint) {
+            WorklistDto worklistDto, IConstraint constraint) {
         IMinimalMethodSymbol refMethodSymbol = constraint.getMethodSymbol();
         if (refMethodSymbol.getOverloads().size() != 0) {
             solve(worklistDto, constraint);
@@ -143,7 +143,7 @@ public class ConstraintSolver implements IConstraintSolver
         }
     }
 
-    private void solve(WorklistDto worklistDto, IIntersectionConstraint constraint) {
+    private void solve(WorklistDto worklistDto, IConstraint constraint) {
         createBindingIfNecessary(worklistDto.overloadBindings, constraint.getLeftHandSide());
         boolean atLeastOneBindingCreated = false;
         for (IVariable argument : constraint.getArguments()) {
@@ -162,23 +162,23 @@ public class ConstraintSolver implements IConstraintSolver
         String absoluteName = variable.getAbsoluteName();
         boolean bindingDoesNotExist = !bindings.containsVariable(absoluteName);
         if (bindingDoesNotExist) {
-            TypeVariableConstraint typeVariableConstraint = bindings.getNextTypeVariable();
-            ITypeVariableConstraint constraint = typeVariableConstraint;
+            TypeVariableReference reference = bindings.getNextTypeVariable();
+            ITypeVariableReference typeVariableReference = reference;
             //if it is a literal then we know already the lower bound and it is a fix typed type variable
             ITypeSymbol typeSymbol = variable.getType();
             if (typeSymbol != null) {
-                constraint = new FixedTypeVariableConstraint(typeVariableConstraint);
+                typeVariableReference = new FixedTypeVariableReference(reference);
             }
-            bindings.addVariable(absoluteName, constraint);
+            bindings.addVariable(absoluteName, typeVariableReference);
             if (typeSymbol != null) {
-                bindings.addLowerTypeBound(constraint.getTypeVariable(), typeSymbol);
+                bindings.addLowerTypeBound(typeVariableReference.getTypeVariable(), typeSymbol);
                 bindingDoesNotExist = false;
             }
         }
         return bindingDoesNotExist;
     }
 
-    private void addApplicableOverloadsToWorklist(WorklistDto worklistDto, IIntersectionConstraint constraint) {
+    private void addApplicableOverloadsToWorklist(WorklistDto worklistDto, IConstraint constraint) {
         for (IFunctionType overload : constraint.getMethodSymbol().getOverloads()) {
             try {
                 IOverloadBindings bindings = solveOverLoad(worklistDto, constraint, overload);
@@ -194,7 +194,7 @@ public class ConstraintSolver implements IConstraintSolver
 
     private IOverloadBindings solveOverLoad(
             WorklistDto worklistDto,
-            IIntersectionConstraint constraint,
+            IConstraint constraint,
             IFunctionType overload) {
 
         IOverloadBindings bindings = null;
@@ -206,14 +206,14 @@ public class ConstraintSolver implements IConstraintSolver
     }
 
     private void aggregateBinding(
-            IIntersectionConstraint constraint,
+            IConstraint constraint,
             IFunctionType overload,
             IOverloadBindings bindings) {
 
         List<IVariable> arguments = constraint.getArguments();
         List<IVariable> parameters = overload.getParameters();
         int numberOfParameters = parameters.size();
-        Map<String, ITypeVariableConstraint> mapping = new HashMap<>(numberOfParameters + 1);
+        Map<String, ITypeVariableReference> mapping = new HashMap<>(numberOfParameters + 1);
         int numberOfArguments = arguments.size();
         int count = numberOfParameters <= numberOfArguments ? numberOfParameters : numberOfArguments;
 
@@ -232,13 +232,13 @@ public class ConstraintSolver implements IConstraintSolver
                 boolean needToIterateParameter = !mergeTypeVariables(bindings, overload, mapping, argument, parameter);
                 needToIterateOverload = needToIterateOverload || needToIterateParameter;
                 argumentsAreAllFixed = argumentsAreAllFixed
-                        && bindings.getTypeVariableConstraint(argument.getAbsoluteName()).hasFixedType();
+                        && bindings.getTypeVariableReference(argument.getAbsoluteName()).hasFixedType();
             }
 
             if (!needToIterateOverload) {
                 String lhsAbsoluteName = leftHandSide.getAbsoluteName();
-                ITypeVariableConstraint typeVariableConstraint = bindings.getTypeVariableConstraint(lhsAbsoluteName);
-                if (!typeVariableConstraint.hasFixedType() && (rightHandSide.hasFixedType() || argumentsAreAllFixed)) {
+                ITypeVariableReference reference = bindings.getTypeVariableReference(lhsAbsoluteName);
+                if (!reference.hasFixedType() && (rightHandSide.hasFixedType() || argumentsAreAllFixed)) {
                     bindings.fixType(lhsAbsoluteName);
                 }
             }
@@ -254,21 +254,21 @@ public class ConstraintSolver implements IConstraintSolver
     private boolean mergeTypeVariables(
             IOverloadBindings bindings,
             IFunctionType overload,
-            Map<String, ITypeVariableConstraint> mapping,
+            Map<String, ITypeVariableReference> mapping,
             IVariable bindingVariable,
             IVariable overloadVariable) throws BoundException {
         String bindingVariableName = bindingVariable.getAbsoluteName();
-        ITypeVariableConstraint bindingTypeVariableConstraint = bindings.getTypeVariableConstraint(bindingVariableName);
+        ITypeVariableReference bindingTypeVariableReference = bindings.getTypeVariableReference(bindingVariableName);
         String overloadTypeVariable = overloadVariable.getTypeVariable();
 
         String lhsTypeVariable;
         if (mapping.containsKey(overloadTypeVariable)) {
             lhsTypeVariable = mapping.get(overloadTypeVariable).getTypeVariable();
-            String rhsTypeVariable = bindingTypeVariableConstraint.getTypeVariable();
+            String rhsTypeVariable = bindingTypeVariableReference.getTypeVariable();
             bindings.renameTypeVariable(rhsTypeVariable, lhsTypeVariable);
         } else {
-            lhsTypeVariable = bindingTypeVariableConstraint.getTypeVariable();
-            mapping.put(overloadTypeVariable, bindingTypeVariableConstraint);
+            lhsTypeVariable = bindingTypeVariableReference.getTypeVariable();
+            mapping.put(overloadTypeVariable, bindingTypeVariableReference);
         }
 
         IOverloadBindings overloadTypeVariables = overload.getBindings();
@@ -277,7 +277,7 @@ public class ConstraintSolver implements IConstraintSolver
     }
 
     private boolean applyRightToLeft(
-            Map<String, ITypeVariableConstraint> mapping,
+            Map<String, ITypeVariableReference> mapping,
             IOverloadBindings leftBindings, String left,
             IOverloadBindings rightBindings, String right) throws BoundException {
 
@@ -304,7 +304,7 @@ public class ConstraintSolver implements IConstraintSolver
         return couldAddLower;
     }
 
-    private void addMostSpecificOverloadToWorklist(WorklistDto worklistDto, IIntersectionConstraint constraint) {
+    private void addMostSpecificOverloadToWorklist(WorklistDto worklistDto, IConstraint constraint) {
         List<OverloadRankingDto> applicableOverloads = getApplicableOverloads(worklistDto, constraint);
 
         int numberOfApplicableOverloads = applicableOverloads.size();
@@ -329,8 +329,7 @@ public class ConstraintSolver implements IConstraintSolver
         }
     }
 
-    private List<OverloadRankingDto> getApplicableOverloads(
-            WorklistDto worklistDto, IIntersectionConstraint constraint) {
+    private List<OverloadRankingDto> getApplicableOverloads(WorklistDto worklistDto, IConstraint constraint) {
 
         List<OverloadRankingDto> overloadBindingsList = new ArrayList<>();
 
@@ -453,19 +452,19 @@ public class ConstraintSolver implements IConstraintSolver
         List<IVariable> parameters = new ArrayList<>();
         for (IVariableSymbol parameter : methodSymbol.getParameters()) {
             String parameterId = parameter.getAbsoluteName();
-            ITypeVariableConstraint parameterTypeVariableConstraint = bindings.getTypeVariableConstraint(parameterId);
-            String typeVariable = parameterTypeVariableConstraint.getTypeVariable();
+            ITypeVariableReference parameterTypeVariableReference = bindings.getTypeVariableReference(parameterId);
+            String typeVariable = parameterTypeVariableReference.getTypeVariable();
             IVariable parameterVariable = symbolFactory.createVariable(parameterId, typeVariable);
-            if (parameterTypeVariableConstraint.hasFixedType()) {
+            if (parameterTypeVariableReference.hasFixedType()) {
                 parameterVariable.setHasFixedType();
             }
             parameters.add(parameterVariable);
         }
 
-        ITypeVariableConstraint returnTypeVariableConstraint = bindings.getTypeVariableConstraint(RETURN_VARIABLE_NAME);
-        String returnTypeVariable = returnTypeVariableConstraint.getTypeVariable();
+        ITypeVariableReference returnTypeVariableReference = bindings.getTypeVariableReference(RETURN_VARIABLE_NAME);
+        String returnTypeVariable = returnTypeVariableReference.getTypeVariable();
         IVariable returnVariable = symbolFactory.createVariable(RETURN_VARIABLE_NAME, returnTypeVariable);
-        if (returnTypeVariableConstraint.hasFixedType()) {
+        if (returnTypeVariableReference.hasFixedType()) {
             returnVariable.setHasFixedType();
         }
 
@@ -480,12 +479,12 @@ public class ConstraintSolver implements IConstraintSolver
         for (IVariableSymbol parameter : methodSymbol.getParameters()) {
             String parameterId = parameter.getAbsoluteName();
             if (bindings.containsVariable(parameterId)) {
-                parameterTypeVariables.add(bindings.getTypeVariableConstraint(parameterId).getTypeVariable());
+                parameterTypeVariables.add(bindings.getTypeVariableReference(parameterId).getTypeVariable());
             } else {
                 //the parameter is not used at all, hence it can be mixed
-                ITypeVariableConstraint constraint = new FixedTypeVariableConstraint(bindings.getNextTypeVariable());
-                bindings.addVariable(parameterId, constraint);
-                bindings.addUpperTypeBound(constraint.getTypeVariable(), mixedTypeSymbol);
+                ITypeVariableReference reference = new FixedTypeVariableReference(bindings.getNextTypeVariable());
+                bindings.addVariable(parameterId, reference);
+                bindings.addUpperTypeBound(reference.getTypeVariable(), mixedTypeSymbol);
                 //TODO could generate a warning
             }
         }

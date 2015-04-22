@@ -67,7 +67,7 @@ public class AInferenceTypeTest extends AInferenceTest
                             "no type variableId defined for " + symbol.getAbsoluteName(),
                     overloadBindings.containsVariable(symbol.getAbsoluteName()));
 
-            String typeVariable = overloadBindings.getTypeVariableConstraint(
+            String typeVariable = overloadBindings.getTypeVariableReference(
                     symbol.getAbsoluteName()).getTypeVariable();
 
             Assert.assertTrue(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +

@@ -576,9 +576,9 @@ public class ReferencePhaseController implements IReferencePhaseController
     }
 
     @Override
-    public void createIntersectionConstraint(
+    public void createOperatorConstraint(
             IConstraintCollection collection, ITSPHPAst operator, ITSPHPAst... arguments) {
-        constraintCreator.createIntersectionConstraint(collection, operator, arguments);
+        constraintCreator.createOperatorConstraint(collection, operator, arguments);
     }
 
     @Override

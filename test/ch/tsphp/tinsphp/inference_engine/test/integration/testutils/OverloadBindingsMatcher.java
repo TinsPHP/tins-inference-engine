@@ -7,7 +7,7 @@
 package ch.tsphp.tinsphp.inference_engine.test.integration.testutils;
 
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
-import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableConstraint;
+import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableReference;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -58,7 +58,7 @@ public class OverloadBindingsMatcher extends BaseMatcher<IOverloadBindings>
         for (BindingMatcherDto dto : dtos) {
             ok = variableIds.contains(dto.variableId);
             if (ok) {
-                ITypeVariableConstraint typeVariableConstraint = bindings.getTypeVariableConstraint(dto.variableId);
+                ITypeVariableReference typeVariableConstraint = bindings.getTypeVariableReference(dto.variableId);
                 ok = typeVariableConstraint.getTypeVariable().equals(dto.typeVariable)
                         && typeVariableConstraint.hasFixedType() == dto.hasFixedType;
             }
@@ -168,7 +168,7 @@ public class OverloadBindingsMatcher extends BaseMatcher<IOverloadBindings>
         if (notFirst) {
             description.appendText(", ");
         }
-        ITypeVariableConstraint typeVariableConstraint = bindings.getTypeVariableConstraint(variableId);
+        ITypeVariableReference typeVariableConstraint = bindings.getTypeVariableReference(variableId);
         String typeVariable = typeVariableConstraint.getTypeVariable();
         description.appendText(variableId).appendText(":").appendText(typeVariable)
                 .appendText("<")
