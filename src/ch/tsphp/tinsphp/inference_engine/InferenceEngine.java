@@ -10,7 +10,7 @@ import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.ITSPHPAstAdaptor;
 import ch.tsphp.common.exceptions.TSPHPException;
 import ch.tsphp.tinsphp.common.IInferenceEngine;
-import ch.tsphp.tinsphp.common.inference.IInferenceEngineInitialiser;
+import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
 import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
@@ -18,7 +18,6 @@ import ch.tsphp.tinsphp.common.issues.IIssueLogger;
 import ch.tsphp.tinsphp.common.issues.IssueReporterHelper;
 import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPDefinitionWalker;
 import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPReferenceWalker;
-import ch.tsphp.tinsphp.inference_engine.config.HardCodedInferenceEngineInitialiser;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.TreeNodeStream;
 
@@ -28,25 +27,38 @@ import java.util.EnumSet;
 
 public class InferenceEngine implements IInferenceEngine, IIssueLogger
 {
-    protected IInferenceEngineInitialiser inferenceEngineInitialiser;
-
     private final ITSPHPAstAdaptor astAdaptor;
     private final IInferenceIssueReporter inferenceIssueReporter;
-    private final Collection<IIssueLogger> issueLoggers = new ArrayDeque<>();
+    private IDefinitionPhaseController definitionPhaseController;
+    private IReferencePhaseController referencePhaseController;
 
+    private final Collection<IIssueLogger> issueLoggers = new ArrayDeque<>();
     private EnumSet<EIssueSeverity> foundIssues = EnumSet.noneOf(EIssueSeverity.class);
 
-    public InferenceEngine(ITSPHPAstAdaptor theAstAdaptor) {
+    public InferenceEngine(
+            ITSPHPAstAdaptor theAstAdaptor,
+            IInferenceIssueReporter theInferenceIssueReporter,
+            IDefinitionPhaseController theDefinitionPhaseController,
+            IReferencePhaseController theReferencePhaseController) {
         astAdaptor = theAstAdaptor;
-        inferenceEngineInitialiser = new HardCodedInferenceEngineInitialiser();
-        inferenceIssueReporter = inferenceEngineInitialiser.getInferenceErrorReporter();
+        inferenceIssueReporter = theInferenceIssueReporter;
+        definitionPhaseController = theDefinitionPhaseController;
+        referencePhaseController = theReferencePhaseController;
+    }
+
+    public void setDefinitionPhaseController(IDefinitionPhaseController theDefinitionPhaseController) {
+        definitionPhaseController = theDefinitionPhaseController;
+    }
+
+    public void setReferencePhaseController(IReferencePhaseController theReferencePhaseController) {
+        referencePhaseController = theReferencePhaseController;
     }
 
     @Override
     public void enrichWithDefinitions(ITSPHPAst ast, TreeNodeStream treeNodeStream) {
         treeNodeStream.reset();
         ErrorReportingTinsPHPDefinitionWalker definitionWalker = new ErrorReportingTinsPHPDefinitionWalker(
-                treeNodeStream, inferenceEngineInitialiser.getDefinitionPhaseController());
+                treeNodeStream, definitionPhaseController);
 
         for (IIssueLogger logger : issueLoggers) {
             definitionWalker.registerIssueLogger(logger);
@@ -60,9 +72,9 @@ public class InferenceEngine implements IInferenceEngine, IIssueLogger
         treeNodeStream.reset();
         ErrorReportingTinsPHPReferenceWalker referenceWalker = new ErrorReportingTinsPHPReferenceWalker(
                 treeNodeStream,
-                inferenceEngineInitialiser.getReferencePhaseController(),
+                referencePhaseController,
                 astAdaptor,
-                inferenceEngineInitialiser.getDefinitionPhaseController().getGlobalDefaultNamespace());
+                definitionPhaseController.getGlobalDefaultNamespace());
 
         for (IIssueLogger logger : issueLoggers) {
             referenceWalker.registerIssueLogger(logger);
@@ -82,13 +94,11 @@ public class InferenceEngine implements IInferenceEngine, IIssueLogger
 
     @Override
     public void solveMethodSymbolConstraints() {
-        IReferencePhaseController referencePhaseController = inferenceEngineInitialiser.getReferencePhaseController();
         referencePhaseController.solveMethodSymbolConstraints();
     }
 
     @Override
     public void solveGlobalDefaultNamespaceConstraints() {
-        IReferencePhaseController referencePhaseController = inferenceEngineInitialiser.getReferencePhaseController();
         referencePhaseController.solveGlobalDefaultNamespaceConstraints();
     }
 
@@ -107,7 +117,6 @@ public class InferenceEngine implements IInferenceEngine, IIssueLogger
     @Override
     public void reset() {
         foundIssues = EnumSet.noneOf(EIssueSeverity.class);
-        inferenceEngineInitialiser.reset();
     }
 
     @Override

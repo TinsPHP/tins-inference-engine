@@ -6,26 +6,30 @@
 
 package ch.tsphp.tinsphp.inference_engine.config;
 
-import ch.tsphp.common.AstHelperRegistry;
 import ch.tsphp.common.IAstHelper;
+import ch.tsphp.common.ITSPHPAstAdaptor;
 import ch.tsphp.tinsphp.common.ICore;
+import ch.tsphp.tinsphp.common.IInferenceEngine;
 import ch.tsphp.tinsphp.common.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.common.checking.ISymbolCheckController;
+import ch.tsphp.tinsphp.common.config.ICoreInitialiser;
+import ch.tsphp.tinsphp.common.config.IInferenceEngineInitialiser;
+import ch.tsphp.tinsphp.common.config.ISymbolsInitialiser;
 import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
-import ch.tsphp.tinsphp.common.inference.IInferenceEngineInitialiser;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCreator;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.resolving.ISymbolResolver;
 import ch.tsphp.tinsphp.common.resolving.ISymbolResolverController;
+import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeFactory;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.utils.IOverloadResolver;
-import ch.tsphp.tinsphp.core.Core;
 import ch.tsphp.tinsphp.inference_engine.DefinitionPhaseController;
+import ch.tsphp.tinsphp.inference_engine.InferenceEngine;
 import ch.tsphp.tinsphp.inference_engine.ReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintCreator;
 import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintSolver;
@@ -35,59 +39,58 @@ import ch.tsphp.tinsphp.inference_engine.resolver.PutAtTopVariableDeclarationCre
 import ch.tsphp.tinsphp.inference_engine.resolver.SymbolCheckController;
 import ch.tsphp.tinsphp.inference_engine.resolver.SymbolResolverController;
 import ch.tsphp.tinsphp.inference_engine.resolver.UserSymbolResolver;
-import ch.tsphp.tinsphp.inference_engine.scopes.ScopeFactory;
-import ch.tsphp.tinsphp.inference_engine.scopes.ScopeHelper;
 import ch.tsphp.tinsphp.inference_engine.utils.AstModificationHelper;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
-import ch.tsphp.tinsphp.symbols.ModifierHelper;
-import ch.tsphp.tinsphp.symbols.PrimitiveTypeNames;
-import ch.tsphp.tinsphp.symbols.SymbolFactory;
-import ch.tsphp.tinsphp.symbols.utils.OverloadResolver;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInitialiser
 {
+    private final ITSPHPAstAdaptor astAdaptor;
     private final IScopeHelper scopeHelper;
     private final IModifierHelper modifierHelper;
-    private final IOverloadResolver overloadResolver;
     private final ISymbolFactory symbolFactory;
     private final IScopeFactory scopeFactory;
-    private final IAstModificationHelper astModificationHelper;
+    private final IInferenceIssueReporter inferenceErrorReporter;
     private final IConstraintCreator constraintCreator;
-
-
-    private IDefinitionPhaseController definitionPhaseController;
-    private IReferencePhaseController referencePhaseController;
-    private InferenceIssueReporter inferenceErrorReporter;
-    private ICore core;
+    private final IAstModificationHelper astModificationHelper;
+    private final ICore core;
     private final IConstraintSolver constraintSolver;
     private final List<ISymbolResolver> additionalSymbolResolvers;
 
-    public HardCodedInferenceEngineInitialiser() {
-        scopeHelper = new ScopeHelper();
-        modifierHelper = new ModifierHelper();
-        overloadResolver = new OverloadResolver();
+    private InferenceEngine engine;
+    private IDefinitionPhaseController definitionPhaseController;
+    private IReferencePhaseController referencePhaseController;
 
-        symbolFactory = new SymbolFactory(scopeHelper, modifierHelper, overloadResolver);
-        scopeFactory = new ScopeFactory(scopeHelper);
+    public HardCodedInferenceEngineInitialiser(
+            ITSPHPAstAdaptor theAstAdaptor,
+            IAstHelper astHelper,
+            ISymbolsInitialiser symbolsInitialiser,
+            ICoreInitialiser coreInitialiser) {
+        astAdaptor = theAstAdaptor;
+        scopeHelper = symbolsInitialiser.getScopeHelper();
+        modifierHelper = symbolsInitialiser.getModifierHelper();
+        IOverloadResolver overloadResolver = symbolsInitialiser.getOverloadResolver();
+        core = coreInitialiser.getCore();
+
+        symbolFactory = symbolsInitialiser.getSymbolFactory();
+        scopeFactory = symbolsInitialiser.getScopeFactory();
 
         inferenceErrorReporter = new InferenceIssueReporter(new HardCodedIssueMessageProvider());
         constraintCreator = new ConstraintCreator(symbolFactory, overloadResolver, inferenceErrorReporter);
 
-        IAstHelper astHelper = AstHelperRegistry.get();
         astModificationHelper = new AstModificationHelper(astHelper);
+
         additionalSymbolResolvers = new ArrayList<>();
+        additionalSymbolResolvers.add(coreInitialiser.getCoreSymbolResolver());
 
-        core = new Core(symbolFactory, overloadResolver, astHelper);
+        constraintSolver = new ConstraintSolver(symbolFactory, overloadResolver);
 
-        additionalSymbolResolvers.add(core.getCoreSymbolResolver());
-        constraintSolver = new ConstraintSolver(
-                symbolFactory,
-                overloadResolver,
-                core.getPrimitiveTypes().get(PrimitiveTypeNames.MIXED));
         init();
+
+        engine = new InferenceEngine(
+                astAdaptor, inferenceErrorReporter, definitionPhaseController, referencePhaseController);
     }
 
     private void init() {
@@ -127,23 +130,20 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
     }
 
     @Override
-    public IDefinitionPhaseController getDefinitionPhaseController() {
-        return definitionPhaseController;
-    }
-
-    @Override
-    public IReferencePhaseController getReferencePhaseController() {
-        return referencePhaseController;
-    }
-
-    @Override
-    public IInferenceIssueReporter getInferenceErrorReporter() {
-        return inferenceErrorReporter;
-    }
-
-    @Override
     public void reset() {
         inferenceErrorReporter.reset();
         init();
+        engine.setDefinitionPhaseController(definitionPhaseController);
+        engine.setReferencePhaseController(referencePhaseController);
+    }
+
+    @Override
+    public IInferenceEngine getEngine() {
+        return engine;
+    }
+
+    @Override
+    public IGlobalNamespaceScope getGlobalDefaultNamespace() {
+        return definitionPhaseController.getGlobalDefaultNamespace();
     }
 }

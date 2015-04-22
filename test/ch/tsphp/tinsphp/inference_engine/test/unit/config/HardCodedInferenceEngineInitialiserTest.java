@@ -6,83 +6,74 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.unit.config;
 
-import ch.tsphp.common.ITSPHPAst;
-import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
-import ch.tsphp.tinsphp.common.inference.IInferenceEngineInitialiser;
-import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
-import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
-import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
+import ch.tsphp.common.AstHelper;
+import ch.tsphp.common.IAstHelper;
+import ch.tsphp.common.ITSPHPAstAdaptor;
+import ch.tsphp.common.TSPHPAstAdaptor;
+import ch.tsphp.tinsphp.common.IInferenceEngine;
+import ch.tsphp.tinsphp.common.config.ICoreInitialiser;
+import ch.tsphp.tinsphp.common.config.IInferenceEngineInitialiser;
+import ch.tsphp.tinsphp.common.config.ISymbolsInitialiser;
+import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
+import ch.tsphp.tinsphp.core.config.HardCodedCoreInitialiser;
 import ch.tsphp.tinsphp.inference_engine.config.HardCodedInferenceEngineInitialiser;
+import ch.tsphp.tinsphp.symbols.config.HardCodedSymbolsInitialiser;
 import org.junit.Test;
 
-import java.util.EnumSet;
-
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.IsNot.not;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class HardCodedInferenceEngineInitialiserTest
 {
     @Test
-    public void getDefinitionPhaseController_CallTwice_IsTheSame() {
-        //no arrange necessary
+    public void getEngine_SecondCall_ReturnsSameInstanceAsFirstCall() {
+        IInferenceEngineInitialiser initialiser = createInitialiser();
+        IInferenceEngine firstCall = initialiser.getEngine();
 
-        IInferenceEngineInitialiser initialiser = createInferenceEngineInitialiser();
-        IDefinitionPhaseController result1 = initialiser.getDefinitionPhaseController();
-        IDefinitionPhaseController result2 = initialiser.getDefinitionPhaseController();
+        IInferenceEngine result = initialiser.getEngine();
 
-        assertThat(result1, is(result2));
+        assertThat(result, is(firstCall));
     }
 
     @Test
-    public void getReferencePhaseController_CallTwice_IsTheSame() {
-        //no arrange necessary
-
-        IInferenceEngineInitialiser initialiser = createInferenceEngineInitialiser();
-        IReferencePhaseController result1 = initialiser.getReferencePhaseController();
-        IReferencePhaseController result2 = initialiser.getReferencePhaseController();
-
-        assertThat(result1, is(result2));
-    }
-
-    @Test
-    public void reset_Standard_DefinitionAndReferencePhaseControllerIsNewAndErrorReporterIsTheSame() {
-        //no arrange necessary
-
-        IInferenceEngineInitialiser initialiser = createInferenceEngineInitialiser();
-        IDefinitionPhaseController definitionPhaseController1 = initialiser.getDefinitionPhaseController();
-        IReferencePhaseController referencePhaseController1 = initialiser.getReferencePhaseController();
-        IInferenceIssueReporter inferenceErrorReporter1 = initialiser.getInferenceErrorReporter();
-        initialiser.reset();
-        IDefinitionPhaseController definitionPhaseController2 = initialiser.getDefinitionPhaseController();
-        IReferencePhaseController referencePhaseController2 = initialiser.getReferencePhaseController();
-        IInferenceIssueReporter inferenceErrorReporter2 = initialiser.getInferenceErrorReporter();
-
-        assertThat(definitionPhaseController1, is(not(definitionPhaseController2)));
-        assertThat(referencePhaseController1, is(not(referencePhaseController2)));
-        assertThat(inferenceErrorReporter1, is(inferenceErrorReporter2));
-    }
-
-    @Test
-    public void reset_Standard_InferenceEngineGetsResetAsWell() {
-        ITSPHPAst ast = mock(ITSPHPAst.class);
-        when(ast.getText()).thenReturn("dummy");
-        when(ast.getLine()).thenReturn(1);
-        when(ast.getCharPositionInLine()).thenReturn(34);
-
-        IInferenceEngineInitialiser initialiser = createInferenceEngineInitialiser();
-        IInferenceIssueReporter inferenceErrorReporter = initialiser.getInferenceErrorReporter();
-        assertThat(inferenceErrorReporter.hasFound(EnumSet.allOf(EIssueSeverity.class)), is(false));
-        inferenceErrorReporter.noReturnFromFunction(ast);
-        assertThat(inferenceErrorReporter.hasFound(EnumSet.allOf(EIssueSeverity.class)), is(true));
+    public void getEngine_SecondCallAfterReset_ReturnsSameInstanceAsFirstCallBeforeReset() {
+        IInferenceEngineInitialiser initialiser = createInitialiser();
+        IInferenceEngine firstCall = initialiser.getEngine();
         initialiser.reset();
 
-        assertThat(inferenceErrorReporter.hasFound(EnumSet.allOf(EIssueSeverity.class)), is(false));
+        IInferenceEngine result = initialiser.getEngine();
+
+        assertThat(result, is(firstCall));
     }
 
-    protected IInferenceEngineInitialiser createInferenceEngineInitialiser() {
-        return new HardCodedInferenceEngineInitialiser();
+    @Test
+    public void getGlobalDefaultNamespace_SecondCall_ReturnsSameInstanceAsFirstCall() {
+        IInferenceEngineInitialiser initialiser = createInitialiser();
+        IGlobalNamespaceScope firstCall = initialiser.getGlobalDefaultNamespace();
+
+        IGlobalNamespaceScope result = initialiser.getGlobalDefaultNamespace();
+
+        assertThat(result, is(firstCall));
     }
+
+    @Test
+    public void getGlobalDefaultNamespace_SecondCallAfterReset_ReturnsADifferentInstance() {
+        IInferenceEngineInitialiser initialiser = createInitialiser();
+        IGlobalNamespaceScope firstCall = initialiser.getGlobalDefaultNamespace();
+        initialiser.reset();
+
+        IGlobalNamespaceScope result = initialiser.getGlobalDefaultNamespace();
+
+        assertThat(result, is(not(firstCall)));
+    }
+
+    private IInferenceEngineInitialiser createInitialiser() {
+        ITSPHPAstAdaptor astAdaptor = new TSPHPAstAdaptor();
+        IAstHelper astHelper = new AstHelper(astAdaptor);
+        ISymbolsInitialiser symbolsInitialiser = new HardCodedSymbolsInitialiser();
+        ICoreInitialiser coreInitialiser = new HardCodedCoreInitialiser(astHelper, symbolsInitialiser);
+        return new HardCodedInferenceEngineInitialiser(astAdaptor, astHelper, symbolsInitialiser, coreInitialiser);
+    }
+
 }

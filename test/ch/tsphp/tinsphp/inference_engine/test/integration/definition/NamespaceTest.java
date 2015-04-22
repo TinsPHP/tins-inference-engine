@@ -14,6 +14,7 @@ package ch.tsphp.tinsphp.inference_engine.test.integration.definition;
 
 import ch.tsphp.common.IScope;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.ScopeTestHelper;
+import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.TestNamespaceScopeFactory;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.definition.ADefinitionTest;
 import org.antlr.runtime.RecognitionException;
 import org.junit.Assert;
@@ -67,6 +68,7 @@ public class NamespaceTest extends ADefinitionTest
     private String getNamespacesAsString() {
         StringBuilder stringBuilder = new StringBuilder();
         boolean isNotFirst = false;
+        TestNamespaceScopeFactory scopeFactory = (TestNamespaceScopeFactory) symbolsInitialiser.getScopeFactory();
         for (IScope scope : scopeFactory.scopes) {
             if (isNotFirst) {
                 stringBuilder.append(" ");

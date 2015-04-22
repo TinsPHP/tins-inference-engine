@@ -50,11 +50,10 @@ public class ConstraintSolver implements IConstraintSolver
 
     public ConstraintSolver(
             ISymbolFactory theSymbolFactory,
-            IOverloadResolver theOverloadResolver,
-            ITypeSymbol theMixedTypeSymbol) {
+            IOverloadResolver theOverloadResolver) {
         symbolFactory = theSymbolFactory;
         overloadResolver = theOverloadResolver;
-        mixedTypeSymbol = theMixedTypeSymbol;
+        mixedTypeSymbol = symbolFactory.getMixedTypeSymbol();
     }
 
     @Override

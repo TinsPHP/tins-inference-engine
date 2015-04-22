@@ -12,26 +12,23 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.testutils.definition;
 
-import ch.tsphp.common.AstHelperRegistry;
+import ch.tsphp.common.AstHelper;
+import ch.tsphp.common.IAstHelper;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.ITSPHPAstAdaptor;
 import ch.tsphp.common.ParserUnitDto;
 import ch.tsphp.common.TSPHPAstAdaptor;
-import ch.tsphp.tinsphp.common.ICore;
+import ch.tsphp.tinsphp.common.config.ICoreInitialiser;
+import ch.tsphp.tinsphp.common.config.ISymbolsInitialiser;
 import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
-import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
-import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
-import ch.tsphp.tinsphp.common.utils.IOverloadResolver;
-import ch.tsphp.tinsphp.core.Core;
+import ch.tsphp.tinsphp.core.config.HardCodedCoreInitialiser;
 import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPDefinitionWalker;
-import ch.tsphp.tinsphp.inference_engine.scopes.ScopeHelper;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.ATest;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.TestDefinitionPhaseController;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.TestNamespaceScopeFactory;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.TestSymbolFactory;
+import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.TestSymbolsInitialiser;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.WriteExceptionToConsole;
-import ch.tsphp.tinsphp.symbols.ModifierHelper;
-import ch.tsphp.tinsphp.symbols.utils.OverloadResolver;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -46,18 +43,17 @@ public abstract class ADefinitionTest extends ATest
 
     protected String testString;
     protected String errorMessagePrefix;
+    protected ITSPHPAstAdaptor astAdaptor;
+    protected IAstHelper astHelper;
+
     protected TestDefinitionPhaseController definitionPhaseController;
-    protected TestNamespaceScopeFactory scopeFactory;
     protected ITSPHPAst ast;
     protected CommonTreeNodeStream commonTreeNodeStream;
-    protected ITSPHPAstAdaptor astAdaptor;
+
 
     protected ErrorReportingTinsPHPDefinitionWalker definition;
-    protected TestSymbolFactory symbolFactory;
-    protected IScopeHelper scopeHelper;
-    protected IModifierHelper modifierHelper;
-    protected IOverloadResolver overloadResolver;
-    protected ICore core;
+    protected ISymbolsInitialiser symbolsInitialiser;
+    protected ICoreInitialiser coreInitialiser;
 
     public ADefinitionTest(String theTestString) {
         super();
@@ -68,17 +64,16 @@ public abstract class ADefinitionTest extends ATest
 
     private void init() {
         astAdaptor = createAstAdaptor();
+        astHelper = createAstHelper(astAdaptor);
 
-        scopeHelper = createScopeHelper();
-        scopeFactory = createTestScopeFactory(scopeHelper);
-        modifierHelper = createModifierHelper();
-        overloadResolver = createOverloadResolver();
-        symbolFactory = createTestSymbolFactory(scopeHelper, modifierHelper, overloadResolver);
+        symbolsInitialiser = createSymbolsInitialiser();
+        coreInitialiser = createCoreInitialiser(astHelper, symbolsInitialiser);
 
-
-        definitionPhaseController = createTestDefiner(symbolFactory, scopeFactory);
-        core = createCore(symbolFactory, overloadResolver);
+        definitionPhaseController = createTestDefinitionPhaseController(
+                (TestSymbolFactory) symbolsInitialiser.getSymbolFactory(),
+                (TestNamespaceScopeFactory) symbolsInitialiser.getScopeFactory());
     }
+
 
     public void runTest() {
         ParserUnitDto parserUnit = parser.parse("<?php" + testString + "?>");
@@ -112,40 +107,29 @@ public abstract class ADefinitionTest extends ATest
                 definition.hasFound(EnumSet.allOf(EIssueSeverity.class)));
     }
 
-    protected ErrorReportingTinsPHPDefinitionWalker createDefinitionWalker() {
-        return new ErrorReportingTinsPHPDefinitionWalker(commonTreeNodeStream, definitionPhaseController);
-    }
-
-    protected IScopeHelper createScopeHelper() {
-        return new ScopeHelper();
-    }
-
     protected ITSPHPAstAdaptor createAstAdaptor() {
         return new TSPHPAstAdaptor();
     }
 
-    protected TestNamespaceScopeFactory createTestScopeFactory(IScopeHelper theScopeHelper) {
-        return new TestNamespaceScopeFactory(theScopeHelper);
+    protected IAstHelper createAstHelper(ITSPHPAstAdaptor theAstAdaptor) {
+        return new AstHelper(theAstAdaptor);
     }
 
-    protected IModifierHelper createModifierHelper() {
-        return new ModifierHelper();
+    protected ISymbolsInitialiser createSymbolsInitialiser() {
+        return new TestSymbolsInitialiser();
     }
 
-    protected IOverloadResolver createOverloadResolver() {
-        return new OverloadResolver();
+    protected ICoreInitialiser createCoreInitialiser(
+            IAstHelper theAstHelper, ISymbolsInitialiser theSymbolsInitialiser) {
+        return new HardCodedCoreInitialiser(theAstHelper, theSymbolsInitialiser);
     }
 
-    protected TestSymbolFactory createTestSymbolFactory(
-            IScopeHelper theScopeHelper, IModifierHelper theModifierHelper, IOverloadResolver theOverloadResolver) {
-        return new TestSymbolFactory(theScopeHelper, theModifierHelper, theOverloadResolver);
+
+    protected ErrorReportingTinsPHPDefinitionWalker createDefinitionWalker() {
+        return new ErrorReportingTinsPHPDefinitionWalker(commonTreeNodeStream, definitionPhaseController);
     }
 
-    protected ICore createCore(TestSymbolFactory symbolFactory, IOverloadResolver overloadResolver) {
-        return new Core(symbolFactory, overloadResolver, AstHelperRegistry.get());
-    }
-
-    protected TestDefinitionPhaseController createTestDefiner(TestSymbolFactory theSymbolFactory,
+    protected TestDefinitionPhaseController createTestDefinitionPhaseController(TestSymbolFactory theSymbolFactory,
             TestNamespaceScopeFactory theScopeFactory) {
         return new TestDefinitionPhaseController(theSymbolFactory, theScopeFactory);
     }

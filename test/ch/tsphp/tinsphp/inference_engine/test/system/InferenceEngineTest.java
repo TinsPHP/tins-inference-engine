@@ -6,16 +6,24 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.system;
 
+import ch.tsphp.common.AstHelper;
+import ch.tsphp.common.IAstHelper;
+import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.ITSPHPAstAdaptor;
 import ch.tsphp.common.ParserUnitDto;
 import ch.tsphp.common.TSPHPAstAdaptor;
 import ch.tsphp.common.exceptions.TSPHPException;
+import ch.tsphp.tinsphp.common.IInferenceEngine;
 import ch.tsphp.tinsphp.common.IParser;
+import ch.tsphp.tinsphp.common.config.IInferenceEngineInitialiser;
 import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
 import ch.tsphp.tinsphp.common.issues.IIssueLogger;
-import ch.tsphp.tinsphp.inference_engine.InferenceEngine;
+import ch.tsphp.tinsphp.core.config.HardCodedCoreInitialiser;
+import ch.tsphp.tinsphp.inference_engine.config.HardCodedInferenceEngineInitialiser;
 import ch.tsphp.tinsphp.parser.ParserFacade;
+import ch.tsphp.tinsphp.symbols.config.HardCodedSymbolsInitialiser;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.EnumSet;
@@ -23,6 +31,7 @@ import java.util.EnumSet;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -37,7 +46,8 @@ public class InferenceEngineTest
                 new CommonTreeNodeStream(new TSPHPAstAdaptor(), parserUnitDto.compilationUnit);
         commonTreeNodeStream.setTokenStream(parserUnitDto.tokenStream);
 
-        InferenceEngine inferenceEngine = createInferenceEngine();
+        IInferenceEngineInitialiser initialiser = createInitialiser();
+        IInferenceEngine inferenceEngine = initialiser.getEngine();
         inferenceEngine.enrichWithDefinitions(parserUnitDto.compilationUnit, commonTreeNodeStream);
         inferenceEngine.enrichWithReferences(parserUnitDto.compilationUnit, commonTreeNodeStream);
         inferenceEngine.solveMethodSymbolConstraints();
@@ -54,7 +64,8 @@ public class InferenceEngineTest
                 new CommonTreeNodeStream(new TSPHPAstAdaptor(), parserUnitDto.compilationUnit);
         commonTreeNodeStream.setTokenStream(parserUnitDto.tokenStream);
 
-        InferenceEngine inferenceEngine = createInferenceEngine();
+        IInferenceEngineInitialiser initialiser = createInitialiser();
+        IInferenceEngine inferenceEngine = initialiser.getEngine();
         inferenceEngine.enrichWithDefinitions(parserUnitDto.compilationUnit, commonTreeNodeStream);
         inferenceEngine.enrichWithReferences(parserUnitDto.compilationUnit, commonTreeNodeStream);
         inferenceEngine.solveMethodSymbolConstraints();
@@ -84,7 +95,8 @@ public class InferenceEngineTest
                 new CommonTreeNodeStream(new TSPHPAstAdaptor(), parserUnitDto.compilationUnit);
         commonTreeNodeStream.setTokenStream(parserUnitDto.tokenStream);
 
-        InferenceEngine inferenceEngine = createInferenceEngine();
+        IInferenceEngineInitialiser initialiser = createInitialiser();
+        IInferenceEngine inferenceEngine = initialiser.getEngine();
         inferenceEngine.enrichWithDefinitions(parserUnitDto.compilationUnit, commonTreeNodeStream);
         inferenceEngine.enrichWithReferences(parserUnitDto.compilationUnit, commonTreeNodeStream);
         inferenceEngine.solveMethodSymbolConstraints();
@@ -103,7 +115,8 @@ public class InferenceEngineTest
         IIssueLogger logger1 = mock(IIssueLogger.class);
         IIssueLogger logger2 = mock(IIssueLogger.class);
 
-        InferenceEngine inferenceEngine = createInferenceEngine();
+        IInferenceEngineInitialiser initialiser = createInitialiser();
+        IInferenceEngine inferenceEngine = initialiser.getEngine();
         inferenceEngine.registerIssueLogger(logger1);
         inferenceEngine.registerIssueLogger(logger2);
         inferenceEngine.enrichWithDefinitions(parserUnitDto.compilationUnit, commonTreeNodeStream);
@@ -115,11 +128,69 @@ public class InferenceEngineTest
         verify(logger2).log(any(TSPHPException.class), any(EIssueSeverity.class));
     }
 
-    private InferenceEngine createInferenceEngine() {
-        return createInferenceEngine(new TSPHPAstAdaptor());
+    @Test
+    public void registerIssueLogger_Standard_InformsLoggerWhenErrorOccurs() {
+        //should cause an issue with severity fatal error due to a double definition
+        IParser parser = new ParserFacade();
+        ParserUnitDto parserUnit = parser.parse("<?php function foo(){return;} function foo(){return;}");
+        ITSPHPAst ast = parserUnit.compilationUnit;
+
+        CommonTreeNodeStream commonTreeNodeStream = new CommonTreeNodeStream(new TSPHPAstAdaptor(), ast);
+        commonTreeNodeStream.setTokenStream(parserUnit.tokenStream);
+
+        IIssueLogger logger1 = mock(IIssueLogger.class);
+        IIssueLogger logger2 = mock(IIssueLogger.class);
+
+        //act
+        IInferenceEngineInitialiser initialiser = createInitialiser();
+        IInferenceEngine inferenceEngine = initialiser.getEngine();
+        inferenceEngine.registerIssueLogger(logger1);
+        inferenceEngine.registerIssueLogger(logger2);
+        inferenceEngine.enrichWithDefinitions(ast, commonTreeNodeStream);
+        inferenceEngine.enrichWithReferences(ast, commonTreeNodeStream);
+
+        //verify
+        verify(logger1).log(any(TSPHPException.class), eq(EIssueSeverity.FatalError));
+        verify(logger2).log(any(TSPHPException.class), eq(EIssueSeverity.FatalError));
+        Assert.assertThat(inferenceEngine.hasFound(EnumSet.of(EIssueSeverity.FatalError)), is(true));
     }
 
-    protected InferenceEngine createInferenceEngine(ITSPHPAstAdaptor astAdaptor) {
-        return new InferenceEngine(astAdaptor);
+    @Test
+    public void reset_RegisteredErrorLoggers_AreStillInformedWhenErrorOccurs() {
+        //should cause an issue due to a double definition
+        IParser parser = new ParserFacade();
+        ParserUnitDto parserUnit = parser.parse("<?php function foo(){return;} function foo(){return;}");
+        ITSPHPAst ast = parserUnit.compilationUnit;
+
+        CommonTreeNodeStream commonTreeNodeStream = new CommonTreeNodeStream(new TSPHPAstAdaptor(), ast);
+        commonTreeNodeStream.setTokenStream(parserUnit.tokenStream);
+
+        IIssueLogger logger1 = mock(IIssueLogger.class);
+        IIssueLogger logger2 = mock(IIssueLogger.class);
+
+        //act
+        IInferenceEngineInitialiser initialiser = createInitialiser();
+        IInferenceEngine inferenceEngine = initialiser.getEngine();
+        inferenceEngine.registerIssueLogger(logger1);
+        inferenceEngine.registerIssueLogger(logger2);
+        inferenceEngine.reset();
+        inferenceEngine.enrichWithDefinitions(ast, commonTreeNodeStream);
+        inferenceEngine.enrichWithReferences(ast, commonTreeNodeStream);
+
+        //verify
+        verify(logger1).log(any(TSPHPException.class), eq(EIssueSeverity.FatalError));
+        verify(logger2).log(any(TSPHPException.class), eq(EIssueSeverity.FatalError));
+        Assert.assertThat(inferenceEngine.hasFound(EnumSet.of(EIssueSeverity.FatalError)), is(true));
     }
+
+
+    protected IInferenceEngineInitialiser createInitialiser() {
+        ITSPHPAstAdaptor astAdaptor = new TSPHPAstAdaptor();
+        IAstHelper astHelper = new AstHelper(astAdaptor);
+        HardCodedSymbolsInitialiser symbolsInitialiser = new HardCodedSymbolsInitialiser();
+        HardCodedCoreInitialiser coreInitialiser = new HardCodedCoreInitialiser(astHelper, symbolsInitialiser);
+
+        return new HardCodedInferenceEngineInitialiser(astAdaptor, astHelper, symbolsInitialiser, coreInitialiser);
+    }
+
 }

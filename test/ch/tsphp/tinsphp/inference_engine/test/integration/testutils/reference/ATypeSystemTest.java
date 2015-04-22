@@ -12,13 +12,17 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference;
 
+import ch.tsphp.tinsphp.common.ICore;
 import org.junit.Ignore;
 
 @Ignore
 public abstract class ATypeSystemTest extends AReferenceTest
 {
+    protected ICore core;
+
     public ATypeSystemTest() {
         super("");
+        core = coreInitialiser.getCore();
     }
 
     @Override

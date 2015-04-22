@@ -13,10 +13,11 @@
 package ch.tsphp.tinsphp.inference_engine.test.integration.definition;
 
 import ch.tsphp.common.IScope;
-import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
+import ch.tsphp.tinsphp.common.config.ISymbolsInitialiser;
+import ch.tsphp.tinsphp.common.scopes.IScopeFactory;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.ScopeTestHelper;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.TestConditionalScopeFactory;
-import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.TestNamespaceScopeFactory;
+import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.TestSymbolsInitialiser;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.definition.ADefinitionTest;
 import org.antlr.runtime.RecognitionException;
 import org.junit.Assert;
@@ -38,8 +39,8 @@ public class ConditionalTest extends ADefinitionTest
     }
 
     @Override
-    public TestNamespaceScopeFactory createTestScopeFactory(IScopeHelper theScopeHelper) {
-        return new TestConditionalScopeFactory(theScopeHelper);
+    protected ISymbolsInitialiser createSymbolsInitialiser() {
+        return new ConditionalSymbolsInitialiser();
     }
 
     @Test
@@ -161,6 +162,7 @@ public class ConditionalTest extends ADefinitionTest
     private String getNamespacesAsString() {
         StringBuilder stringBuilder = new StringBuilder();
         boolean isNotFirst = false;
+        TestConditionalScopeFactory scopeFactory = (TestConditionalScopeFactory) symbolsInitialiser.getScopeFactory();
         for (IScope scope : scopeFactory.scopes) {
             if (isNotFirst) {
                 stringBuilder.append(" ");
@@ -170,5 +172,19 @@ public class ConditionalTest extends ADefinitionTest
 
         }
         return stringBuilder.toString();
+    }
+
+    private class ConditionalSymbolsInitialiser extends TestSymbolsInitialiser
+    {
+        private TestConditionalScopeFactory factory;
+
+        public ConditionalSymbolsInitialiser() {
+            factory = new TestConditionalScopeFactory(getScopeHelper());
+        }
+
+        @Override
+        public IScopeFactory getScopeFactory() {
+            return factory;
+        }
     }
 }

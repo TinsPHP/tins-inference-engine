@@ -16,7 +16,7 @@ import ch.tsphp.common.IScope;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
-import ch.tsphp.tinsphp.inference_engine.scopes.ScopeFactory;
+import ch.tsphp.tinsphp.symbols.scopes.ScopeFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +35,5 @@ public class TestNamespaceScopeFactory extends ScopeFactory
         INamespaceScope scope = super.createNamespaceScope(name, currentScope);
         scopes.add(scope);
         return scope;
-
     }
 }

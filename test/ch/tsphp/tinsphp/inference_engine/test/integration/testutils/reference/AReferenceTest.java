@@ -12,12 +12,9 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.testutils.reference;
 
-import ch.tsphp.common.AstHelper;
 import ch.tsphp.common.IAstHelper;
 import ch.tsphp.common.ILowerCaseStringMap;
 import ch.tsphp.common.ITSPHPAstAdaptor;
-import ch.tsphp.common.TSPHPAstAdaptor;
-import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.common.checking.ISymbolCheckController;
@@ -45,7 +42,6 @@ import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.WriteExcepti
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.definition.ADefinitionTest;
 import ch.tsphp.tinsphp.inference_engine.utils.AstModificationHelper;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
-import ch.tsphp.tinsphp.symbols.PrimitiveTypeNames;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 import org.junit.Assert;
@@ -65,14 +61,12 @@ public abstract class AReferenceTest extends ADefinitionTest
     protected IReferencePhaseController referencePhaseController;
     protected IAstModificationHelper astModificationHelper;
     protected ISymbolResolver userSymbolResolver;
-    protected ISymbolResolver coreSymbolResolver;
     protected ISymbolResolverController symbolResolverController;
     protected ISymbolCheckController symbolCheckController;
     protected IVariableDeclarationCreator variableDeclarationCreator;
     protected IConstraintCreator constraintCreator;
     protected IConstraintSolver constraintSolver;
 
-    protected IAstHelper astHelper;
 
     public AReferenceTest(String testString) {
         super(testString);
@@ -81,8 +75,10 @@ public abstract class AReferenceTest extends ADefinitionTest
     }
 
     private void init() {
+        IScopeHelper scopeHelper = symbolsInitialiser.getScopeHelper();
+        ISymbolFactory symbolFactory = symbolsInitialiser.getSymbolFactory();
+        IOverloadResolver overloadResolver = symbolsInitialiser.getOverloadResolver();
 
-        astHelper = createAstHelper(astAdaptor);
         astModificationHelper = createAstModificationHelper(astHelper);
 
         userSymbolResolver = createUserSymbolResolver(
@@ -91,9 +87,8 @@ public abstract class AReferenceTest extends ADefinitionTest
                 definitionPhaseController.getGlobalDefaultNamespace()
         );
 
-        coreSymbolResolver = core.getCoreSymbolResolver();
         ArrayList<ISymbolResolver> resolvers = new ArrayList<>();
-        resolvers.add(coreSymbolResolver);
+        resolvers.add(coreInitialiser.getCoreSymbolResolver());
 
         symbolResolverController = createSymbolResolverController(
                 userSymbolResolver,
@@ -103,15 +98,12 @@ public abstract class AReferenceTest extends ADefinitionTest
                 inferenceErrorReporter
         );
 
-        ArrayList<ISymbolResolver> symbolResolvers = new ArrayList<>();
-        symbolResolvers.add(core.getCoreSymbolResolver());
-        symbolCheckController = createSymbolCheckController(userSymbolResolver, symbolResolvers);
+        symbolCheckController = createSymbolCheckController(userSymbolResolver, resolvers);
 
-        variableDeclarationCreator = createVariableDeclarationCreator(symbolFactory, astModificationHelper,
-                definitionPhaseController);
+        variableDeclarationCreator = createVariableDeclarationCreator(
+                symbolFactory, astModificationHelper, definitionPhaseController);
 
-        constraintSolver = createConstraintSolver(
-                symbolFactory, overloadResolver, core.getPrimitiveTypes().get(PrimitiveTypeNames.MIXED));
+        constraintSolver = createConstraintSolver(symbolFactory, overloadResolver);
 
         constraintCreator = createConstraintCreator(symbolFactory, overloadResolver, inferenceErrorReporter);
 
@@ -123,10 +115,10 @@ public abstract class AReferenceTest extends ADefinitionTest
                 symbolCheckController,
                 variableDeclarationCreator,
                 scopeHelper,
-                modifierHelper,
+                symbolsInitialiser.getModifierHelper(),
                 constraintCreator,
                 constraintSolver,
-                core,
+                coreInitialiser.getCore(),
                 definitionPhaseController.getGlobalDefaultNamespace()
         );
     }
@@ -178,26 +170,6 @@ public abstract class AReferenceTest extends ADefinitionTest
         reference.registerIssueLogger(new WriteExceptionToConsole());
     }
 
-    protected static String getAliasFullType(String type) {
-        return type.substring(0, 1).equals("\\") ? type : "\\" + type;
-    }
-
-    protected static String getFullName(String namespace, String type) {
-        String fullType = type;
-        if (!type.substring(0, 1).equals("\\")) {
-            fullType = namespace + type;
-        }
-        return fullType;
-    }
-
-    protected ITSPHPAstAdaptor createAstAdaptor() {
-        return new TSPHPAstAdaptor();
-    }
-
-    protected IAstHelper createAstHelper(ITSPHPAstAdaptor theAstAdaptor) {
-        return new AstHelper(theAstAdaptor);
-    }
-
     protected IAstModificationHelper createAstModificationHelper(IAstHelper theAstHelper) {
         return new AstModificationHelper(theAstHelper);
     }
@@ -246,8 +218,8 @@ public abstract class AReferenceTest extends ADefinitionTest
     }
 
     protected IConstraintSolver createConstraintSolver(
-            ISymbolFactory theSymbolFactory, IOverloadResolver theOverloadResolver, ITypeSymbol theMixedTypeSymbol) {
-        return new ConstraintSolver(theSymbolFactory, theOverloadResolver, theMixedTypeSymbol);
+            ISymbolFactory theSymbolFactory, IOverloadResolver theOverloadResolver) {
+        return new ConstraintSolver(theSymbolFactory, theOverloadResolver);
     }
 
 
