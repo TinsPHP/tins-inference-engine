@@ -11,14 +11,14 @@ import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
+import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableReference;
+import ch.tsphp.tinsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.ScopeTestHelper;
 import org.junit.Assert;
 import org.junit.Ignore;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -67,17 +67,20 @@ public class AInferenceTypeTest extends AInferenceTest
                             "no type variableId defined for " + symbol.getAbsoluteName(),
                     overloadBindings.containsVariable(symbol.getAbsoluteName()));
 
-            String typeVariable = overloadBindings.getTypeVariableReference(
-                    symbol.getAbsoluteName()).getTypeVariable();
+            ITypeVariableReference reference = overloadBindings.getTypeVariableReference(symbol.getAbsoluteName());
 
             Assert.assertTrue(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
-                            "no lower bound defined",
-                    overloadBindings.hasLowerBounds(typeVariable));
+                    " type was not fixed.", reference.hasFixedType());
 
-            Set<String> typeAbsoluteNames = new HashSet<>();
-            getAbsoluteNames(typeAbsoluteNames, overloadBindings, typeVariable, typeVariable);
+            String typeVariable = reference.getTypeVariable();
 
-            assertThat(typeAbsoluteNames, describedAs(testString + " -- " + testStruct.astText + " failed " +
+            Assert.assertTrue(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
+                            "no lower type bound defined",
+                    overloadBindings.hasLowerTypeBounds(typeVariable));
+
+            IUnionTypeSymbol lowerTypeBounds = overloadBindings.getLowerTypeBounds(typeVariable);
+            assertThat(lowerTypeBounds.getTypeSymbols().keySet(), describedAs(testString + " -- " + testStruct
+                            .astText + " failed " +
                             "(testStruct Nr " + counter + "). wrong lower types. \nExpected: " + testStruct.lowerTypes,
                     containsInAnyOrder(testStruct.lowerTypes.toArray())));
 
@@ -91,25 +94,6 @@ public class AInferenceTypeTest extends AInferenceTest
             scope = scope.getEnclosingScope();
         }
         return (IConstraintCollection) scope;
-    }
-
-    private void getAbsoluteNames(
-            Set<String> typeAbsoluteNames,
-            IOverloadBindings overloadBindings,
-            String originalVariable,
-            String typeVariable) {
-        typeAbsoluteNames.addAll(overloadBindings.getLowerTypeBounds(typeVariable).getTypeSymbols().keySet());
-
-//        for (IConstraint constraint : overloadBindings.getLowerBounds(typeVariable)) {
-//            if (constraint instanceof TypeVariableConstraint) {
-//                String refTypeVariable = ((TypeVariableConstraint) constraint).getTypeVariable();
-//                if (!typeVariable.equals(refTypeVariable) && !originalVariable.equals(refTypeVariable)) {
-//                    getAbsoluteNames(typeAbsoluteNames, overloadBindings, typeVariable, refTypeVariable);
-//                }
-//            } else {
-//                typeAbsoluteNames.add(((TypeConstraint) constraint).getTypeSymbol().getAbsoluteName());
-//            }
-//        }
     }
 
     protected static AbsoluteTypeNameTestStruct testStruct(

@@ -21,6 +21,7 @@ import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.symbols.IIntersectionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
+import ch.tsphp.tinsphp.common.symbols.IMinimalVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
@@ -74,7 +75,15 @@ public class ConstraintSolver implements IConstraintSolver
         if (!globalDefaultNamespaceScope.getConstraints().isEmpty()) {
             Deque<WorklistDto> workDeque = createInitialWorklist();
             List<IOverloadBindings> bindings = solveConstraints(globalDefaultNamespaceScope, workDeque);
-            globalDefaultNamespaceScope.setBindings(bindings);
+            if (bindings.isEmpty()) {
+                //TODO rstoll TINS-306 inference - runtime check insertion
+            } else {
+                globalDefaultNamespaceScope.setBindings(bindings);
+                IOverloadBindings overloadBindings = bindings.get(0);
+                for (String variableId : overloadBindings.getVariableIds()) {
+                    overloadBindings.fixType(variableId);
+                }
+            }
         }
     }
 
@@ -453,7 +462,9 @@ public class ConstraintSolver implements IConstraintSolver
             String parameterId = parameter.getAbsoluteName();
             ITypeVariableReference parameterTypeVariableReference = bindings.getTypeVariableReference(parameterId);
             String typeVariable = parameterTypeVariableReference.getTypeVariable();
-            IVariable parameterVariable = symbolFactory.createVariable(parameterId, typeVariable);
+            IMinimalVariableSymbol parameterVariable = symbolFactory.createMinimalVariableSymbol(
+                    parameter.getDefinitionAst(), parameter.getName(), typeVariable);
+            parameterVariable.setDefinitionScope(parameter.getDefinitionScope());
             if (parameterTypeVariableReference.hasFixedType()) {
                 parameterVariable.setHasFixedType();
             }
