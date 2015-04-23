@@ -86,7 +86,7 @@ public class NotCorrectStartNodeTypeForRulesWithParams extends AReferenceWalkerT
         ITSPHPAst ast = createAst(Else);
 
         TestTinsPHPReferenceWalker walker = spy(createWalker(ast));
-        walker.constDeclaration(mock(ITypeSymbol.class));
+        walker.constantDefinition(mock(ITypeSymbol.class));
 
         verify(walker).reportError(any(NoViableAltException.class));
     }

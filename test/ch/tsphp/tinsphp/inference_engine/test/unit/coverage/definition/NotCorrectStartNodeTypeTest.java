@@ -84,7 +84,7 @@ public class NotCorrectStartNodeTypeTest extends ADefinitionWalkerTest
                 //TODO rstoll TINS-161 inference OOP
 //                {"classDefinition", Try},
                 //requires parameters - see NotCorrectStartNodeTypeForRulesWithParamsTest
-//                {"constantDeclaration", Try},
+                //{"constantDefinition", Try},
                 {"constantDefinitionList", Try},
                 //TODO rstoll TINS-161 inference OOP
 //                {"constructDefinition", Try},
@@ -102,10 +102,10 @@ public class NotCorrectStartNodeTypeTest extends ADefinitionWalkerTest
                 {"returnBreakContinue", Try},
                 {"topdown", Try},
                 {"useDeclaration", Try},
-                {"useDefinitionList", Try},
+                {"useDeclarationList", Try},
                 //requires parameters - see NotCorrectStartNodeTypeForRulesWithParamsTest
-//                {"variableDeclaration", Try},
-                {"variableDeclarationList", Try},
+//                {"variableDefinition", Try},
+                {"variableDefinitionList", Try},
         });
     }
 }

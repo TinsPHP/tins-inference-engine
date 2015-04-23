@@ -50,7 +50,7 @@ public TinsPHPDefinitionWalker(TreeNodeStream input, IDefinitionPhaseController 
 topdown
         //scoped symbols
     :   namespaceDefinition   
-    |   useDefinitionList
+    |   useDeclarationList
     //TODO rstoll TINS-161 inference OOP
     //|   interfaceDefinition
     //|   classDefinition
@@ -63,7 +63,7 @@ topdown
     
         //symbols
     |   constantDefinitionList
-    |   variableDeclarationList
+    |   variableDefinitionList
     |   parameterDeclarationList
     |   returnBreakContinue
     ;
@@ -106,7 +106,7 @@ namespaceDefinition
         }
     ;
 
-useDefinitionList
+useDeclarationList
     :   ^('use' useDeclaration+)
     ;
     
@@ -171,10 +171,10 @@ catchBlock
     ;
 
 constantDefinitionList
-    :   ^(CONSTANT_DECLARATION_LIST ^(TYPE tMod=. type=.) constantDeclaration[$tMod, $type]+)
+    :   ^(CONSTANT_DECLARATION_LIST ^(TYPE tMod=. type=.) constantDefinition[$tMod, $type]+)
     ;
 
-constantDeclaration[ITSPHPAst tMod, ITSPHPAst type]
+constantDefinition[ITSPHPAst tMod, ITSPHPAst type]
     :   ^(identifier=Identifier .)
         { definer.defineConstant(currentScope,$tMod, $type, $identifier); }
     ;
@@ -185,18 +185,18 @@ parameterDeclarationList
 
 parameterDeclaration
     :   ^(PARAMETER_DECLARATION
-            ^(TYPE tMod=. type=.) variableDeclaration[$tMod, $type]
+            ^(TYPE tMod=. type=.) variableDefinition[$tMod, $type]
         )
     ;
 
-variableDeclarationList 
+variableDefinitionList 
     :   ^(VARIABLE_DECLARATION_LIST
             ^(TYPE tMod=. type=.)
-                variableDeclaration[$tMod,$type]+
+                variableDefinition[$tMod,$type]+
             )
     ;
         
-variableDeclaration[ITSPHPAst tMod, ITSPHPAst type]
+variableDefinition[ITSPHPAst tMod, ITSPHPAst type]
     :   (   ^(variableId=VariableId .)
         |   variableId=VariableId
         )

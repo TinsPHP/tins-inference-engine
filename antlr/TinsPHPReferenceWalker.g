@@ -82,12 +82,12 @@ namespaceBody
     ;
 
 statement
-    :   useDefinitionList
+    :   useDeclarationList
     |   definition
     |   instruction
     ;
 
-useDefinitionList
+useDeclarationList
     :   ^(Use useDeclaration+)
     ;
     
@@ -108,7 +108,7 @@ definition
         // TINS-211 - reference phase - interface definitions
     //|   interfaceDefinition
         functionDefinition
-    |   constDefinitionList
+    |   constantDefinitionList
     ;
     
 //TODO TINS-210 - reference phase - class definitions
@@ -165,14 +165,14 @@ classBodyDefinition
     ;
 */
 
-constDefinitionList
+constantDefinitionList
     :   ^(CONSTANT_DECLARATION_LIST 
             ^(TYPE tMod=. scalarTypesOrUnknown[tMod]) 
-            constDeclaration[$scalarTypesOrUnknown.type]+
+            constantDefinition[$scalarTypesOrUnknown.type]+
         )
     ;
 
-constDeclaration[ITypeSymbol type]
+constantDefinition[ITypeSymbol type]
     :   ^(identifier=Identifier unaryPrimitiveAtom)
         {
             $identifier.getSymbol().setType(type);

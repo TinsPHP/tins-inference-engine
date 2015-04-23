@@ -21,10 +21,10 @@ import static java.util.Arrays.asList;
 
 
 @RunWith(Parameterized.class)
-public class FunctionDeclarationBindingTest extends AInferenceBindingTest
+public class FunctionDefinitionBindingTest extends AInferenceBindingTest
 {
 
-    public FunctionDeclarationBindingTest(String testString, BindingTestStruct[] theTestStructs) {
+    public FunctionDefinitionBindingTest(String testString, BindingTestStruct[] theTestStructs) {
         super(testString, theTestStructs);
     }
 

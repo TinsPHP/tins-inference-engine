@@ -21,10 +21,10 @@ import static java.util.Arrays.asList;
 
 
 @RunWith(Parameterized.class)
-public class FunctionDeclarationOverloadTest extends AInferenceOverloadTest
+public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
 {
 
-    public FunctionDeclarationOverloadTest(String testString, OverloadTestStruct[] theTestStructs) {
+    public FunctionDefinitionOverloadTest(String testString, OverloadTestStruct[] theTestStructs) {
         super(testString, theTestStructs);
     }
 

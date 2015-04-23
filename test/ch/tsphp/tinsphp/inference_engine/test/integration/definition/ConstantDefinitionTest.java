@@ -24,10 +24,10 @@ import java.util.Collection;
 import java.util.List;
 
 @RunWith(Parameterized.class)
-public class ConstantDeclarationTest extends ADefinitionSymbolTest
+public class ConstantDefinitionTest extends ADefinitionSymbolTest
 {
 
-    public ConstantDeclarationTest(String testString, String expectedResult) {
+    public ConstantDefinitionTest(String testString, String expectedResult) {
         super(testString, expectedResult);
     }
 

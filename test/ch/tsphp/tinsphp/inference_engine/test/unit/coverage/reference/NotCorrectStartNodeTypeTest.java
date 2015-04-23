@@ -84,8 +84,8 @@ public class NotCorrectStartNodeTypeTest extends AReferenceWalkerTest
 //                {"classStaticAccess", Else},
                 {"compilationUnit", Else},
                 //requires parameters - see NotCorrectStartNodeTypeForRulesWithParamsTest
-//                {"constDeclaration", Else},
-                {"constDefinitionList", Else},
+                //{"constantDefinition", Else},
+                {"constantDefinitionList", Else},
                 //TODO TINS-221 - reference phase - double definition check methods
 //                {"constructDefinition", Else},
                 {"definition", Else},
@@ -131,7 +131,7 @@ public class NotCorrectStartNodeTypeTest extends AReferenceWalkerTest
                 {"unaryOperator", Else},
                 {"unaryPrimitiveAtom", Else},
                 {"useDeclaration", Else},
-                {"useDefinitionList", Else},
+                {"useDeclarationList", Else},
 
                 {"variable", Else},
                 {"whileLoop", Else},

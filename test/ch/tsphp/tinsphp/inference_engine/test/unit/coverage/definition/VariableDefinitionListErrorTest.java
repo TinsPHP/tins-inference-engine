@@ -38,7 +38,7 @@ public class VariableDefinitionListErrorTest extends ADefinitionWalkerTest
 
         TestTinsPHPDefinitionWalker walker = spy(createWalker(ast));
         walker.setBacktrackingLevel(1);
-        walker.variableDeclarationList();
+        walker.variableDefinitionList();
 
         assertThat(walker.getState().failed, is(true));
         assertThat(treeNodeStream.LA(1), is(EOF));
@@ -52,7 +52,7 @@ public class VariableDefinitionListErrorTest extends ADefinitionWalkerTest
 
         TestTinsPHPDefinitionWalker walker = spy(createWalker(ast));
         walker.setBacktrackingLevel(1);
-        walker.variableDeclarationList();
+        walker.variableDefinitionList();
 
         assertThat(walker.getState().failed, is(true));
         assertThat(treeNodeStream.LA(1), is(VARIABLE_DECLARATION));
@@ -67,7 +67,7 @@ public class VariableDefinitionListErrorTest extends ADefinitionWalkerTest
 
         TestTinsPHPDefinitionWalker walker = spy(createWalker(ast));
         walker.setBacktrackingLevel(1);
-        walker.variableDeclarationList();
+        walker.variableDefinitionList();
 
         assertThat(walker.getState().failed, is(true));
         assertThat(treeNodeStream.LA(1), is(UP));
@@ -82,7 +82,7 @@ public class VariableDefinitionListErrorTest extends ADefinitionWalkerTest
         ast.addChild(type);
 
         TestTinsPHPDefinitionWalker walker = spy(createWalker(ast));
-        walker.variableDeclarationList();
+        walker.variableDefinitionList();
 
         ArgumentCaptor<EarlyExitException> captor = ArgumentCaptor.forClass(EarlyExitException.class);
         verify(walker).reportError(captor.capture());
@@ -99,7 +99,7 @@ public class VariableDefinitionListErrorTest extends ADefinitionWalkerTest
 
         TestTinsPHPDefinitionWalker walker = spy(createWalker(ast));
         walker.setBacktrackingLevel(1);
-        walker.variableDeclarationList();
+        walker.variableDefinitionList();
 
         assertThat(walker.getState().failed, is(true));
         assertThat(treeNodeStream.LA(1), is(UP));
@@ -118,11 +118,10 @@ public class VariableDefinitionListErrorTest extends ADefinitionWalkerTest
 
         TestTinsPHPDefinitionWalker walker = spy(createWalker(ast));
         walker.setBacktrackingLevel(1);
-        walker.variableDeclarationList();
+        walker.variableDefinitionList();
 
         assertThat(walker.getState().failed, is(true));
         //EOF due to matchAny
         assertThat(treeNodeStream.LA(1), is(Try));
     }
 }
-

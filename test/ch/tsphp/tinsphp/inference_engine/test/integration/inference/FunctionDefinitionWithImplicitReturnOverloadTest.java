@@ -25,10 +25,10 @@ import static org.junit.Assert.assertTrue;
 
 
 @RunWith(Parameterized.class)
-public class FunctionDeclarationWithImplicitReturnOverloadTest extends AInferenceOverloadTest
+public class FunctionDefinitionWithImplicitReturnOverloadTest extends AInferenceOverloadTest
 {
 
-    public FunctionDeclarationWithImplicitReturnOverloadTest(String testString, OverloadTestStruct[] theTestStructs) {
+    public FunctionDefinitionWithImplicitReturnOverloadTest(String testString, OverloadTestStruct[] theTestStructs) {
         super(testString, theTestStructs);
     }
 

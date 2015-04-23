@@ -19,10 +19,10 @@ import static java.util.Arrays.asList;
 
 
 @RunWith(Parameterized.class)
-public class ConstantDeclarationTest extends AInferenceTypeTest
+public class ConstantDefinitionTest extends AInferenceTypeTest
 {
 
-    public ConstantDeclarationTest(String testString, AbsoluteTypeNameTestStruct[] theTestStructs) {
+    public ConstantDefinitionTest(String testString, AbsoluteTypeNameTestStruct[] theTestStructs) {
         super(testString, theTestStructs);
     }
 

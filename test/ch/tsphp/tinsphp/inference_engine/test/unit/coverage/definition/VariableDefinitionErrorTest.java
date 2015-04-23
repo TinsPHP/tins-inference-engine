@@ -24,7 +24,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
-public class VariableDeclarationErrorTest extends ADefinitionWalkerTest
+public class VariableDefinitionErrorTest extends ADefinitionWalkerTest
 {
     @Test
     public void EOFAfterVariableId_WithoutBacktracking_ReportNoViableAltException()
@@ -32,7 +32,7 @@ public class VariableDeclarationErrorTest extends ADefinitionWalkerTest
         ITSPHPAst ast = createVariable();
 
         TestTinsPHPDefinitionWalker walker = spy(createWalker(ast));
-        walker.variableDeclaration(mock(ITSPHPAst.class), mock(ITSPHPAst.class));
+        walker.variableDefinition(mock(ITSPHPAst.class), mock(ITSPHPAst.class));
 
         ArgumentCaptor<NoViableAltException> captor = ArgumentCaptor.forClass(NoViableAltException.class);
         verify(walker).reportError(captor.capture());
@@ -46,7 +46,7 @@ public class VariableDeclarationErrorTest extends ADefinitionWalkerTest
 
         TestTinsPHPDefinitionWalker walker = spy(createWalker(ast));
         walker.setBacktrackingLevel(1);
-        walker.variableDeclaration(mock(ITSPHPAst.class), mock(ITSPHPAst.class));
+        walker.variableDefinition(mock(ITSPHPAst.class), mock(ITSPHPAst.class));
 
         assertThat(walker.getState().failed, is(true));
         assertThat(treeNodeStream.LA(1), is(VariableId));
