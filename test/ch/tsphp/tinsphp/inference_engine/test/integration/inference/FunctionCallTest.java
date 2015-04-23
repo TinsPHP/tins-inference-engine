@@ -10,7 +10,7 @@ import ch.tsphp.tinsphp.common.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.inference_engine.resolver.PutAtTopVariableDeclarationCreator;
-import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.inference.AInferenceTypeTest;
+import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.inference.AInferenceNamespaceTypeTest;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.inference.AbsoluteTypeNameTestStruct;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 import org.antlr.runtime.RecognitionException;
@@ -24,7 +24,7 @@ import static java.util.Arrays.asList;
 
 
 @RunWith(Parameterized.class)
-public class FunctionCallTest extends AInferenceTypeTest
+public class FunctionCallTest extends AInferenceNamespaceTypeTest
 {
 
     public FunctionCallTest(String testString, AbsoluteTypeNameTestStruct[] theTestStructs) {
@@ -47,8 +47,8 @@ public class FunctionCallTest extends AInferenceTypeTest
     @Parameterized.Parameters
     public static Collection<Object[]> testStrings() {
         return asList(new Object[][]{
-                {"$a = strpos('hello','h');", testStructs("$a", "\\.\\.", asList("int", "false"), null, 1, 1, 0, 0)},
-                //TODO rstoll TINS-376overload creation
+                {"$a = strpos('hello','h');", testStructs("$a", "\\.\\.", asList("int", "false"), 1, 1, 0, 0)},
+                //TODO rstoll TINS-37 6overload creation
 //                {
 //                        "function foo($x, $y){return bar($x, $y);}" +
 //                                "function bar($x, $y){return $x + $y;}" +

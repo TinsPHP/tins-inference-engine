@@ -6,7 +6,7 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.inference;
 
-import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.inference.AInferenceTypeTest;
+import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.inference.AInferenceNamespaceTypeTest;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.inference.AbsoluteTypeNameTestStruct;
 import org.antlr.runtime.RecognitionException;
 import org.junit.Test;
@@ -19,7 +19,7 @@ import static java.util.Arrays.asList;
 
 
 @RunWith(Parameterized.class)
-public class ConstantDefinitionTest extends AInferenceTypeTest
+public class ConstantDefinitionTest extends AInferenceNamespaceTypeTest
 {
 
     public ConstantDefinitionTest(String testString, AbsoluteTypeNameTestStruct[] theTestStructs) {
@@ -34,25 +34,25 @@ public class ConstantDefinitionTest extends AInferenceTypeTest
     @Parameterized.Parameters
     public static Collection<Object[]> testStrings() {
         return asList(new Object[][]{
-                {"const a = null;", testStructs("(a# null)", "\\.\\.", asList("null"), null, 1, 0, 1)},
-                {"const a = false;", testStructs("(a# false)", "\\.\\.", asList("false"), null, 1, 0, 1)},
-                {"const a = true;", testStructs("(a# true)", "\\.\\.", asList("true"), null, 1, 0, 1)},
-                {"const a = 1;", testStructs("(a# 1)", "\\.\\.", asList("int"), null, 1, 0, 1)},
-                {"const a = 1.4;", testStructs("(a# 1.4)", "\\.\\.", asList("float"), null, 1, 0, 1)},
-                {"const a = 'h';", testStructs("(a# 'h')", "\\.\\.", asList("string"), null, 1, 0, 1)},
+                {"const a = null;", testStructs("(a# null)", "\\.\\.", asList("null"), 1, 0, 1)},
+                {"const a = false;", testStructs("(a# false)", "\\.\\.", asList("false"), 1, 0, 1)},
+                {"const a = true;", testStructs("(a# true)", "\\.\\.", asList("true"), 1, 0, 1)},
+                {"const a = 1;", testStructs("(a# 1)", "\\.\\.", asList("int"), 1, 0, 1)},
+                {"const a = 1.4;", testStructs("(a# 1.4)", "\\.\\.", asList("float"), 1, 0, 1)},
+                {"const a = 'h';", testStructs("(a# 'h')", "\\.\\.", asList("string"), 1, 0, 1)},
                 {
                         "const a = 1; const b = a;", new AbsoluteTypeNameTestStruct[]{
-                        testStruct("(a# 1)", "\\.\\.", asList("int"), null, 1, 0, 1),
-                        testStruct("(b# a#)", "\\.\\.", asList("int"), null, 1, 1, 1)}
+                        testStruct("(a# 1)", "\\.\\.", asList("int"), 1, 0, 1),
+                        testStruct("(b# a#)", "\\.\\.", asList("int"), 1, 1, 1)}
                 },
-                {"const a = +true;", testStructs("(a# (uPlus true))", "\\.\\.", asList("int"), null, 1, 0, 1)},
-                {"const a = +false;", testStructs("(a# (uPlus false))", "\\.\\.", asList("int"), null, 1, 0, 1)},
-                {"const a = +1;", testStructs("(a# (uPlus 1))", "\\.\\.", asList("int"), null, 1, 0, 1)},
-                {"const a = +1.5;", testStructs("(a# (uPlus 1.5))", "\\.\\.", asList("float"), null, 1, 0, 1)},
-                {"const a = -true;", testStructs("(a# (uMinus true))", "\\.\\.", asList("int"), null, 1, 0, 1)},
-                {"const a = -false;", testStructs("(a# (uMinus false))", "\\.\\.", asList("int"), null, 1, 0, 1)},
-                {"const a = -1;", testStructs("(a# (uMinus 1))", "\\.\\.", asList("int"), null, 1, 0, 1)},
-                {"const a = -1.5;", testStructs("(a# (uMinus 1.5))", "\\.\\.", asList("float"), null, 1, 0, 1)},
+                {"const a = +true;", testStructs("(a# (uPlus true))", "\\.\\.", asList("int"), 1, 0, 1)},
+                {"const a = +false;", testStructs("(a# (uPlus false))", "\\.\\.", asList("int"), 1, 0, 1)},
+                {"const a = +1;", testStructs("(a# (uPlus 1))", "\\.\\.", asList("int"), 1, 0, 1)},
+                {"const a = +1.5;", testStructs("(a# (uPlus 1.5))", "\\.\\.", asList("float"), 1, 0, 1)},
+                {"const a = -true;", testStructs("(a# (uMinus true))", "\\.\\.", asList("int"), 1, 0, 1)},
+                {"const a = -false;", testStructs("(a# (uMinus false))", "\\.\\.", asList("int"), 1, 0, 1)},
+                {"const a = -1;", testStructs("(a# (uMinus 1))", "\\.\\.", asList("int"), 1, 0, 1)},
+                {"const a = -1.5;", testStructs("(a# (uMinus 1.5))", "\\.\\.", asList("float"), 1, 0, 1)},
 
                 //TODO rstoll TINS-344 seeding and constants
 //                {

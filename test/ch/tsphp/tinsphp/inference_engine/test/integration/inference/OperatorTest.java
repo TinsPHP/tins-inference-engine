@@ -10,7 +10,7 @@ import ch.tsphp.tinsphp.common.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.inference_engine.resolver.PutAtTopVariableDeclarationCreator;
-import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.inference.AInferenceTypeTest;
+import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.inference.AInferenceNamespaceTypeTest;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.inference.AbsoluteTypeNameTestStruct;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 import org.antlr.runtime.RecognitionException;
@@ -23,7 +23,7 @@ import java.util.Collection;
 import static java.util.Arrays.asList;
 
 @RunWith(Parameterized.class)
-public class OperatorTest extends AInferenceTypeTest
+public class OperatorTest extends AInferenceNamespaceTypeTest
 {
 
     public OperatorTest(String testString, AbsoluteTypeNameTestStruct[] theTestStructs) {
@@ -47,54 +47,54 @@ public class OperatorTest extends AInferenceTypeTest
     public static Collection<Object[]> testStrings() {
         return asList(new Object[][]{
                 // or
-                {"false or false;", testStructs("(or false false)", "\\.\\.", asList("false"), null, 1, 0, 0)},
-                {"$x = (bool) true; true or $x;", testStructs("(or true $x)", "\\.\\.", asList("true"), null, 1, 2, 0)},
-                {"$x = (bool) true; $x or true;", testStructs("(or $x true)", "\\.\\.", asList("true"), null, 1, 2, 0)},
-                {"$x = (bool) true; $x or $x;", testStructs("(or $x $x)", "\\.\\.", asList("bool"), null, 1, 2, 0)},
+                {"false or false;", testStructs("(or false false)", "\\.\\.", asList("false"), 1, 0, 0)},
+                {"$x = (bool) true; true or $x;", testStructs("(or true $x)", "\\.\\.", asList("true"), 1, 2, 0)},
+                {"$x = (bool) true; $x or true;", testStructs("(or $x true)", "\\.\\.", asList("true"), 1, 2, 0)},
+                {"$x = (bool) true; $x or $x;", testStructs("(or $x $x)", "\\.\\.", asList("bool"), 1, 2, 0)},
                 // xor
-                {"false xor true;", testStructs("(xor false true)", "\\.\\.", asList("true"), null, 1, 0, 0)},
-                {"true xor false;", testStructs("(xor true false)", "\\.\\.", asList("true"), null, 1, 0, 0)},
-                {"false xor false;", testStructs("(xor false false)", "\\.\\.", asList("false"), null, 1, 0, 0)},
-                {"true xor true;", testStructs("(xor true true)", "\\.\\.", asList("false"), null, 1, 0, 0)},
-                {"$x = (bool) true; $x xor $x;", testStructs("(xor $x $x)", "\\.\\.", asList("bool"), null, 1, 2, 0)},
+                {"false xor true;", testStructs("(xor false true)", "\\.\\.", asList("true"), 1, 0, 0)},
+                {"true xor false;", testStructs("(xor true false)", "\\.\\.", asList("true"), 1, 0, 0)},
+                {"false xor false;", testStructs("(xor false false)", "\\.\\.", asList("false"), 1, 0, 0)},
+                {"true xor true;", testStructs("(xor true true)", "\\.\\.", asList("false"), 1, 0, 0)},
+                {"$x = (bool) true; $x xor $x;", testStructs("(xor $x $x)", "\\.\\.", asList("bool"), 1, 2, 0)},
                 // and
                 {
                         "$x = (bool) true; false and $x;",
-                        testStructs("(and false $x)", "\\.\\.", asList("false"), null, 1, 2, 0)
+                        testStructs("(and false $x)", "\\.\\.", asList("false"), 1, 2, 0)
                 },
                 {
                         "$x = (bool) true; $x and false;",
-                        testStructs("(and $x false)", "\\.\\.", asList("false"), null, 1, 2, 0)
+                        testStructs("(and $x false)", "\\.\\.", asList("false"), 1, 2, 0)
                 },
-                {"true and true;", testStructs("(and true true)", "\\.\\.", asList("true"), null, 1, 0, 0)},
-                {"$x = (bool) true; $x and $x;", testStructs("(and $x $x)", "\\.\\.", asList("bool"), null, 1, 2, 0)},
+                {"true and true;", testStructs("(and true true)", "\\.\\.", asList("true"), 1, 0, 0)},
+                {"$x = (bool) true; $x and $x;", testStructs("(and $x $x)", "\\.\\.", asList("bool"), 1, 2, 0)},
                 // +=
                 //TODO rstoll TINS-347 create overloads for conversion constraints
 //                {"$x = true; $x += false;", testStructs("(+= $x false)", "\\.\\.", asList("int"), null, 1, 2, 0)},
-                {"$x = 1; $x += 1;", testStructs("(+= $x 1)", "\\.\\.", asList("int"), null, 1, 2, 0)},
-                {"$x = 1.3; $x += 1.3;", testStructs("(+= $x 1.3)", "\\.\\.", asList("float"), null, 1, 2, 0)},
+                {"$x = 1; $x += 1;", testStructs("(+= $x 1)", "\\.\\.", asList("int"), 1, 2, 0)},
+                {"$x = 1.3; $x += 1.3;", testStructs("(+= $x 1.3)", "\\.\\.", asList("float"), 1, 2, 0)},
                 {
                         "$x = (bool) 1 ? 1 : 1.5; $x += $x;",
-                        testStructs("(+= $x $x)", "\\.\\.", asList("int", "float"), null, 1, 2, 0)
+                        testStructs("(+= $x $x)", "\\.\\.", asList("int", "float"), 1, 2, 0)
                 },
-                {"$x = []; $x += [1];", testStructs("(+= $x (array 1))", "\\.\\.", asList("array"), null, 1, 2, 0)},
+                {"$x = []; $x += [1];", testStructs("(+= $x (array 1))", "\\.\\.", asList("array"), 1, 2, 0)},
                 // -=
                 //TODO rstoll TINS-347 create overloads for conversion constraints
 //                {"$x = true; $x -= false;", testStructs("(-= $x false)", "\\.\\.", asList("int"), null, 1, 2, 0)},
-                {"$x = 1; $x -= 1;", testStructs("(-= $x 1)", "\\.\\.", asList("int"), null, 1, 2, 0)},
-                {"$x = 1.3; $x -= 1.3;", testStructs("(-= $x 1.3)", "\\.\\.", asList("float"), null, 1, 2, 0)},
+                {"$x = 1; $x -= 1;", testStructs("(-= $x 1)", "\\.\\.", asList("int"), 1, 2, 0)},
+                {"$x = 1.3; $x -= 1.3;", testStructs("(-= $x 1.3)", "\\.\\.", asList("float"), 1, 2, 0)},
                 {
                         "$x = (bool) 1 ? 1 : 1.5; $x -= $x;",
-                        testStructs("(-= $x $x)", "\\.\\.", asList("int", "float"), null, 1, 2, 0)
+                        testStructs("(-= $x $x)", "\\.\\.", asList("int", "float"), 1, 2, 0)
                 },
                 // *=
                 //TODO rstoll TINS-347 create overloads for conversion constraints
 //                {"$x = true; $x *= false;", testStructs("(*= $x false)", "\\.\\.", asList("int"), null, 1, 2, 0)},
-                {"$x = 1; $x *= 1;", testStructs("(*= $x 1)", "\\.\\.", asList("int"), null, 1, 2, 0)},
-                {"$x = 1.3; $x *= 1.3;", testStructs("(*= $x 1.3)", "\\.\\.", asList("float"), null, 1, 2, 0)},
+                {"$x = 1; $x *= 1;", testStructs("(*= $x 1)", "\\.\\.", asList("int"), 1, 2, 0)},
+                {"$x = 1.3; $x *= 1.3;", testStructs("(*= $x 1.3)", "\\.\\.", asList("float"), 1, 2, 0)},
                 {
                         "$x = (bool) 1 ? 1 : 1.5; $x *= $x;",
-                        testStructs("(*= $x $x)", "\\.\\.", asList("int", "float"), null, 1, 2, 0)
+                        testStructs("(*= $x $x)", "\\.\\.", asList("int", "float"), 1, 2, 0)
                 },
                 // /=
                 //TODO rstoll TINS-347 create overloads for conversion constraints
@@ -104,7 +104,7 @@ public class OperatorTest extends AInferenceTypeTest
 //                },
                 {
                         "$x = 1.3; $x /= 1.3;",
-                        testStructs("(/= $x 1.3)", "\\.\\.", asList("false", "float"), null, 1, 2, 0)
+                        testStructs("(/= $x 1.3)", "\\.\\.", asList("false", "float"), 1, 2, 0)
                 },
                 //TODO rstoll TINS-347 create overloads for conversion constraints
 //                {
@@ -112,242 +112,242 @@ public class OperatorTest extends AInferenceTypeTest
 //                        testStructs("(/= $x $x)", "\\.\\.", asList("num", "false"), null, 1, 2, 0)
 //                },
                 // %=
-                {"$x = 1; $x %= 1;", testStructs("(%= $x 1)", "\\.\\.", asList("int", "false"), null, 1, 2, 0)},
+                {"$x = 1; $x %= 1;", testStructs("(%= $x 1)", "\\.\\.", asList("int", "false"), 1, 2, 0)},
                 // |=
-                {"$x = 1; $x |= 1;", testStructs("(|= $x 1)", "\\.\\.", asList("int"), null, 1, 2, 0)},
-                {"$x = 'a'; $x |= 'b';", testStructs("(|= $x 'b')", "\\.\\.", asList("string"), null, 1, 2, 0)},
+                {"$x = 1; $x |= 1;", testStructs("(|= $x 1)", "\\.\\.", asList("int"), 1, 2, 0)},
+                {"$x = 'a'; $x |= 'b';", testStructs("(|= $x 'b')", "\\.\\.", asList("string"), 1, 2, 0)},
                 // &=
-                {"$x = 1; $x &= 1;", testStructs("(&= $x 1)", "\\.\\.", asList("int"), null, 1, 2, 0)},
-                {"$x = 'a'; $x &= 'b';", testStructs("(&= $x 'b')", "\\.\\.", asList("string"), null, 1, 2, 0)},
+                {"$x = 1; $x &= 1;", testStructs("(&= $x 1)", "\\.\\.", asList("int"), 1, 2, 0)},
+                {"$x = 'a'; $x &= 'b';", testStructs("(&= $x 'b')", "\\.\\.", asList("string"), 1, 2, 0)},
                 // ^=
-                {"$x = 1; $x ^= 1;", testStructs("(^= $x 1)", "\\.\\.", asList("int"), null, 1, 2, 0)},
-                {"$x = 'a'; $x ^= 'b';", testStructs("(^= $x 'b')", "\\.\\.", asList("string"), null, 1, 2, 0)},
+                {"$x = 1; $x ^= 1;", testStructs("(^= $x 1)", "\\.\\.", asList("int"), 1, 2, 0)},
+                {"$x = 'a'; $x ^= 'b';", testStructs("(^= $x 'b')", "\\.\\.", asList("string"), 1, 2, 0)},
                 // <<=
-                {"$x = 1; $x <<= 1;", testStructs("(<<= $x 1)", "\\.\\.", asList("int"), null, 1, 2, 0)},
+                {"$x = 1; $x <<= 1;", testStructs("(<<= $x 1)", "\\.\\.", asList("int"), 1, 2, 0)},
                 // >>=
-                {"$x = 1; $x >>= 1;", testStructs("(>>= $x 1)", "\\.\\.", asList("int"), null, 1, 2, 0)},
+                {"$x = 1; $x >>= 1;", testStructs("(>>= $x 1)", "\\.\\.", asList("int"), 1, 2, 0)},
                 // .=
-                {"$x = 'a'; $x .= 'b';", testStructs("(.= $x 'b')", "\\.\\.", asList("string"), null, 1, 2, 0)},
+                {"$x = 'a'; $x .= 'b';", testStructs("(.= $x 'b')", "\\.\\.", asList("string"), 1, 2, 0)},
                 // ?
-                {"true ? 1 : 1.3;", testStructs("(? true 1 1.3)", "\\.\\.", asList("int"), null, 1, 0, 0)},
-                {"false ? 1 : 1.3;", testStructs("(? false 1 1.3)", "\\.\\.", asList("float"), null, 1, 0, 0)},
+                {"true ? 1 : 1.3;", testStructs("(? true 1 1.3)", "\\.\\.", asList("int"), 1, 0, 0)},
+                {"false ? 1 : 1.3;", testStructs("(? false 1 1.3)", "\\.\\.", asList("float"), 1, 0, 0)},
                 {
                         "$x = (bool) 1; $x ? 1 : 1.3;",
-                        testStructs("(? $x 1 1.3)", "\\.\\.", asList("int", "float"), null, 1, 2, 0)
+                        testStructs("(? $x 1 1.3)", "\\.\\.", asList("int", "float"), 1, 2, 0)
                 },
                 {
                         "$x = (bool) 1; $x ? [1] : 1.3;",
-                        testStructs("(? $x (array 1) 1.3)", "\\.\\.", asList("float", "array"), null, 1, 2, 0)
+                        testStructs("(? $x (array 1) 1.3)", "\\.\\.", asList("float", "array"), 1, 2, 0)
                 },
                 // ||
-                {"false || false;", testStructs("(|| false false)", "\\.\\.", asList("false"), null, 1, 0, 0)},
-                {"$x = (bool) true; true || $x;", testStructs("(|| true $x)", "\\.\\.", asList("true"), null, 1, 2, 0)},
-                {"$x = (bool) true; $x || true;", testStructs("(|| $x true)", "\\.\\.", asList("true"), null, 1, 2, 0)},
-                {"$x = (bool) true; $x || $x;", testStructs("(|| $x $x)", "\\.\\.", asList("bool"), null, 1, 2, 0)},
+                {"false || false;", testStructs("(|| false false)", "\\.\\.", asList("false"), 1, 0, 0)},
+                {"$x = (bool) true; true || $x;", testStructs("(|| true $x)", "\\.\\.", asList("true"), 1, 2, 0)},
+                {"$x = (bool) true; $x || true;", testStructs("(|| $x true)", "\\.\\.", asList("true"), 1, 2, 0)},
+                {"$x = (bool) true; $x || $x;", testStructs("(|| $x $x)", "\\.\\.", asList("bool"), 1, 2, 0)},
                 // &&
                 {
                         "$x = (bool) true; false && $x;",
-                        testStructs("(&& false $x)", "\\.\\.", asList("false"), null, 1, 2, 0)
+                        testStructs("(&& false $x)", "\\.\\.", asList("false"), 1, 2, 0)
                 },
                 {
                         "$x = (bool) true; $x && false;",
-                        testStructs("(&& $x false)", "\\.\\.", asList("false"), null, 1, 2, 0)
+                        testStructs("(&& $x false)", "\\.\\.", asList("false"), 1, 2, 0)
                 },
-                {"true && true;", testStructs("(&& true true)", "\\.\\.", asList("true"), null, 1, 0, 0)},
-                {"$x = (bool) true; $x && $x;", testStructs("(&& $x $x)", "\\.\\.", asList("bool"), null, 1, 2, 0)},
+                {"true && true;", testStructs("(&& true true)", "\\.\\.", asList("true"), 1, 0, 0)},
+                {"$x = (bool) true; $x && $x;", testStructs("(&& $x $x)", "\\.\\.", asList("bool"), 1, 2, 0)},
                 // |
-                {"2 | 1;", testStructs("(| 2 1)", "\\.\\.", asList("int"), null, 1, 0, 0)},
-                {"'a' | 'b';", testStructs("(| 'a' 'b')", "\\.\\.", asList("string"), null, 1, 0, 0)},
+                {"2 | 1;", testStructs("(| 2 1)", "\\.\\.", asList("int"), 1, 0, 0)},
+                {"'a' | 'b';", testStructs("(| 'a' 'b')", "\\.\\.", asList("string"), 1, 0, 0)},
                 // &
-                {"2 & 1;", testStructs("(& 2 1)", "\\.\\.", asList("int"), null, 1, 0, 0)},
-                {"'a' & 'b';", testStructs("(& 'a' 'b')", "\\.\\.", asList("string"), null, 1, 0, 0)},
+                {"2 & 1;", testStructs("(& 2 1)", "\\.\\.", asList("int"), 1, 0, 0)},
+                {"'a' & 'b';", testStructs("(& 'a' 'b')", "\\.\\.", asList("string"), 1, 0, 0)},
                 // ^
-                {"2 ^ 1;", testStructs("(^ 2 1)", "\\.\\.", asList("int"), null, 1, 0, 0)},
-                {"'a' ^ 'b';", testStructs("(^ 'a' 'b')", "\\.\\.", asList("string"), null, 1, 0, 0)},
+                {"2 ^ 1;", testStructs("(^ 2 1)", "\\.\\.", asList("int"), 1, 0, 0)},
+                {"'a' ^ 'b';", testStructs("(^ 'a' 'b')", "\\.\\.", asList("string"), 1, 0, 0)},
                 // ==
-                {"false == 1;", testStructs("(== false 1)", "\\.\\.", asList("bool"), null, 1, 0, 0)},
-                {"1.2 == [];", testStructs("(== 1.2 array)", "\\.\\.", asList("bool"), null, 1, 0, 0)},
+                {"false == 1;", testStructs("(== false 1)", "\\.\\.", asList("bool"), 1, 0, 0)},
+                {"1.2 == [];", testStructs("(== 1.2 array)", "\\.\\.", asList("bool"), 1, 0, 0)},
                 // ===
-                {"false === 1;", testStructs("(=== false 1)", "\\.\\.", asList("bool"), null, 1, 0, 0)},
-                {"1.2 === [];", testStructs("(=== 1.2 array)", "\\.\\.", asList("bool"), null, 1, 0, 0)},
+                {"false === 1;", testStructs("(=== false 1)", "\\.\\.", asList("bool"), 1, 0, 0)},
+                {"1.2 === [];", testStructs("(=== 1.2 array)", "\\.\\.", asList("bool"), 1, 0, 0)},
                 // !=
-                {"false != 1;", testStructs("(!= false 1)", "\\.\\.", asList("bool"), null, 1, 0, 0)},
-                {"1.2 != [];", testStructs("(!= 1.2 array)", "\\.\\.", asList("bool"), null, 1, 0, 0)},
+                {"false != 1;", testStructs("(!= false 1)", "\\.\\.", asList("bool"), 1, 0, 0)},
+                {"1.2 != [];", testStructs("(!= 1.2 array)", "\\.\\.", asList("bool"), 1, 0, 0)},
                 // !==
-                {"false !== 1;", testStructs("(!== false 1)", "\\.\\.", asList("bool"), null, 1, 0, 0)},
-                {"1.2 !== [];", testStructs("(!== 1.2 array)", "\\.\\.", asList("bool"), null, 1, 0, 0)},
+                {"false !== 1;", testStructs("(!== false 1)", "\\.\\.", asList("bool"), 1, 0, 0)},
+                {"1.2 !== [];", testStructs("(!== 1.2 array)", "\\.\\.", asList("bool"), 1, 0, 0)},
                 // <
-                {"false < 1;", testStructs("(< false 1)", "\\.\\.", asList("bool"), null, 1, 0, 0)},
-                {"1.2 < [];", testStructs("(< 1.2 array)", "\\.\\.", asList("bool"), null, 1, 0, 0)},
+                {"false < 1;", testStructs("(< false 1)", "\\.\\.", asList("bool"), 1, 0, 0)},
+                {"1.2 < [];", testStructs("(< 1.2 array)", "\\.\\.", asList("bool"), 1, 0, 0)},
                 // <=
-                {"false <= 1;", testStructs("(<= false 1)", "\\.\\.", asList("bool"), null, 1, 0, 0)},
-                {"1.2 <= [];", testStructs("(<= 1.2 array)", "\\.\\.", asList("bool"), null, 1, 0, 0)},
+                {"false <= 1;", testStructs("(<= false 1)", "\\.\\.", asList("bool"), 1, 0, 0)},
+                {"1.2 <= [];", testStructs("(<= 1.2 array)", "\\.\\.", asList("bool"), 1, 0, 0)},
                 // >
-                {"false > 1;", testStructs("(> false 1)", "\\.\\.", asList("bool"), null, 1, 0, 0)},
-                {"1.2 > [];", testStructs("(> 1.2 array)", "\\.\\.", asList("bool"), null, 1, 0, 0)},
+                {"false > 1;", testStructs("(> false 1)", "\\.\\.", asList("bool"), 1, 0, 0)},
+                {"1.2 > [];", testStructs("(> 1.2 array)", "\\.\\.", asList("bool"), 1, 0, 0)},
                 // >=
-                {"false >= 1;", testStructs("(>= false 1)", "\\.\\.", asList("bool"), null, 1, 0, 0)},
-                {"1.2 >= [];", testStructs("(>= 1.2 array)", "\\.\\.", asList("bool"), null, 1, 0, 0)},
+                {"false >= 1;", testStructs("(>= false 1)", "\\.\\.", asList("bool"), 1, 0, 0)},
+                {"1.2 >= [];", testStructs("(>= 1.2 array)", "\\.\\.", asList("bool"), 1, 0, 0)},
                 // >>
-                {"2 >> 1;", testStructs("(>> 2 1)", "\\.\\.", asList("int"), null, 1, 0, 0)},
+                {"2 >> 1;", testStructs("(>> 2 1)", "\\.\\.", asList("int"), 1, 0, 0)},
                 // <<
-                {"2 << 1;", testStructs("(<< 2 1)", "\\.\\.", asList("int"), null, 1, 0, 0)},
+                {"2 << 1;", testStructs("(<< 2 1)", "\\.\\.", asList("int"), 1, 0, 0)},
                 // +
-                {"true + false;", testStructs("(+ true false)", "\\.\\.", asList("int"), null, 1, 0, 0)},
-                {"2 + 1;", testStructs("(+ 2 1)", "\\.\\.", asList("int"), null, 1, 0, 0)},
-                {"2.1 + 1.5;", testStructs("(+ 2.1 1.5)", "\\.\\.", asList("float"), null, 1, 0, 0)},
+                {"true + false;", testStructs("(+ true false)", "\\.\\.", asList("int"), 1, 0, 0)},
+                {"2 + 1;", testStructs("(+ 2 1)", "\\.\\.", asList("int"), 1, 0, 0)},
+                {"2.1 + 1.5;", testStructs("(+ 2.1 1.5)", "\\.\\.", asList("float"), 1, 0, 0)},
                 {
                         "$x = (bool) 1 ? 1 : 1.5; $x + $x;",
-                        testStructs("(+ $x $x)", "\\.\\.", asList("int", "float"), null, 1, 2, 0)
+                        testStructs("(+ $x $x)", "\\.\\.", asList("int", "float"), 1, 2, 0)
                 },
-                {"[] + [1,2];", testStructs("(+ array (array 1 2))", "\\.\\.", asList("array"), null, 1, 0, 0)},
+                {"[] + [1,2];", testStructs("(+ array (array 1 2))", "\\.\\.", asList("array"), 1, 0, 0)},
                 // -
-                {"true - false;", testStructs("(- true false)", "\\.\\.", asList("int"), null, 1, 0, 0)},
-                {"2 - 1;", testStructs("(- 2 1)", "\\.\\.", asList("int"), null, 1, 0, 0)},
-                {"2.1 - 1.5;", testStructs("(- 2.1 1.5)", "\\.\\.", asList("float"), null, 1, 0, 0)},
+                {"true - false;", testStructs("(- true false)", "\\.\\.", asList("int"), 1, 0, 0)},
+                {"2 - 1;", testStructs("(- 2 1)", "\\.\\.", asList("int"), 1, 0, 0)},
+                {"2.1 - 1.5;", testStructs("(- 2.1 1.5)", "\\.\\.", asList("float"), 1, 0, 0)},
                 {
                         "$x = (bool) 1 ? 1 : 1.5; $x - $x;",
-                        testStructs("(- $x $x)", "\\.\\.", asList("int", "float"), null, 1, 2, 0)
+                        testStructs("(- $x $x)", "\\.\\.", asList("int", "float"), 1, 2, 0)
                 },
                 // .
-                {"'a'.'b';", testStructs("(. 'a' 'b')", "\\.\\.", asList("string"), null, 1, 0, 0)},
+                {"'a'.'b';", testStructs("(. 'a' 'b')", "\\.\\.", asList("string"), 1, 0, 0)},
                 // *
-                {"true * false;", testStructs("(* true false)", "\\.\\.", asList("int"), null, 1, 0, 0)},
-                {"2 * 1;", testStructs("(* 2 1)", "\\.\\.", asList("int"), null, 1, 0, 0)},
-                {"2.1 * 1.5;", testStructs("(* 2.1 1.5)", "\\.\\.", asList("float"), null, 1, 0, 0)},
+                {"true * false;", testStructs("(* true false)", "\\.\\.", asList("int"), 1, 0, 0)},
+                {"2 * 1;", testStructs("(* 2 1)", "\\.\\.", asList("int"), 1, 0, 0)},
+                {"2.1 * 1.5;", testStructs("(* 2.1 1.5)", "\\.\\.", asList("float"), 1, 0, 0)},
                 {
                         "$x = (bool) 1 ? 1 : 1.5; $x * $x;",
-                        testStructs("(* $x $x)", "\\.\\.", asList("int", "float"), null, 1, 2, 0)
+                        testStructs("(* $x $x)", "\\.\\.", asList("int", "float"), 1, 2, 0)
                 },
                 // /
-                {"true / false;", testStructs("(/ true false)", "\\.\\.", asList("int", "false"), null, 1, 0, 0)},
-                {"2.1 / 1.5;", testStructs("(/ 2.1 1.5)", "\\.\\.", asList("false", "float"), null, 1, 0, 0)},
+                {"true / false;", testStructs("(/ true false)", "\\.\\.", asList("int", "false"), 1, 0, 0)},
+                {"2.1 / 1.5;", testStructs("(/ 2.1 1.5)", "\\.\\.", asList("false", "float"), 1, 0, 0)},
                 {
                         "$x = (bool) 1 ? 1 : 1.5; $x / $x;",
-                        testStructs("(/ $x $x)", "\\.\\.", asList("int", "float", "false"), null, 1, 2, 0)
+                        testStructs("(/ $x $x)", "\\.\\.", asList("int", "float", "false"), 1, 2, 0)
                 },
                 // %
-                {"2 % 1;", testStructs("(% 2 1)", "\\.\\.", asList("int", "false"), null, 1, 0, 0)},
+                {"2 % 1;", testStructs("(% 2 1)", "\\.\\.", asList("int", "false"), 1, 0, 0)},
                 //instanceof
                 {
                         "$x = 1; 1 instanceof $x;",
-                        testStructs("(instanceof 1 $x)", "\\.\\.", asList("bool"), null, 1, 2, 0)
+                        testStructs("(instanceof 1 $x)", "\\.\\.", asList("bool"), 1, 2, 0)
                 },
                 {
                         //see TINS-389 scope of type in instanceof not set
                         "$x = 1; $x instanceof Exception;",
-                        testStructs("(instanceof $x Exception)", "\\.\\.", asList("bool"), null, 1, 2, 0)
+                        testStructs("(instanceof $x Exception)", "\\.\\.", asList("bool"), 1, 2, 0)
                 },
                 // casting
-                {"(bool) 1;", testStructs("(casting (type tMod bool) 1)", "\\.\\.", asList("bool"), null, 1, 0, 0)},
-                {"(int) 1;", testStructs("(casting (type tMod int) 1)", "\\.\\.", asList("int"), null, 1, 0, 0)},
-                {"(float) 1;", testStructs("(casting (type tMod float) 1)", "\\.\\.", asList("float"), null, 1, 0, 0)},
+                {"(bool) 1;", testStructs("(casting (type tMod bool) 1)", "\\.\\.", asList("bool"), 1, 0, 0)},
+                {"(int) 1;", testStructs("(casting (type tMod int) 1)", "\\.\\.", asList("int"), 1, 0, 0)},
+                {"(float) 1;", testStructs("(casting (type tMod float) 1)", "\\.\\.", asList("float"), 1, 0, 0)},
                 {
                         "(string) 1;",
-                        testStructs("(casting (type tMod string) 1)", "\\.\\.", asList("string"), null, 1, 0, 0)
+                        testStructs("(casting (type tMod string) 1)", "\\.\\.", asList("string"), 1, 0, 0)
                 },
-                {"(array) 1;", testStructs("(casting (type tMod array) 1)", "\\.\\.", asList("array"), null, 1, 0, 0)},
+                {"(array) 1;", testStructs("(casting (type tMod array) 1)", "\\.\\.", asList("array"), 1, 0, 0)},
                 // preIncr
-                {"$x = false; ++$x;", testStructs("(preIncr $x)", "\\.\\.", asList("false"), null, 1, 2, 0)},
-                {"$x = true; ++$x;", testStructs("(preIncr $x)", "\\.\\.", asList("true"), null, 1, 2, 0)},
+                {"$x = false; ++$x;", testStructs("(preIncr $x)", "\\.\\.", asList("false"), 1, 2, 0)},
+                {"$x = true; ++$x;", testStructs("(preIncr $x)", "\\.\\.", asList("true"), 1, 2, 0)},
                 {
                         "$x = (bool) 1 ? false : true; ++$x;",
-                        testStructs("(preIncr $x)", "\\.\\.", asList("false", "true"), null, 1, 2, 0)
+                        testStructs("(preIncr $x)", "\\.\\.", asList("false", "true"), 1, 2, 0)
                 },
-                {"$x = 1; ++$x;", testStructs("(preIncr $x)", "\\.\\.", asList("int"), null, 1, 2, 0)},
-                {"$x = 1.5; ++$x;", testStructs("(preIncr $x)", "\\.\\.", asList("float"), null, 1, 2, 0)},
+                {"$x = 1; ++$x;", testStructs("(preIncr $x)", "\\.\\.", asList("int"), 1, 2, 0)},
+                {"$x = 1.5; ++$x;", testStructs("(preIncr $x)", "\\.\\.", asList("float"), 1, 2, 0)},
                 {
                         "$x = (bool) 1 ? 1 : 1.5; ++$x;",
-                        testStructs("(preIncr $x)", "\\.\\.", asList("int", "float"), null, 1, 2, 0)
+                        testStructs("(preIncr $x)", "\\.\\.", asList("int", "float"), 1, 2, 0)
                 },
                 //preDecr
-                {"$x = false; --$x;", testStructs("(preDecr $x)", "\\.\\.", asList("false"), null, 1, 2, 0)},
-                {"$x = true; --$x;", testStructs("(preDecr $x)", "\\.\\.", asList("true"), null, 1, 2, 0)},
+                {"$x = false; --$x;", testStructs("(preDecr $x)", "\\.\\.", asList("false"), 1, 2, 0)},
+                {"$x = true; --$x;", testStructs("(preDecr $x)", "\\.\\.", asList("true"), 1, 2, 0)},
                 {
                         "$x = (bool) 1 ? false : true; --$x;",
-                        testStructs("(preDecr $x)", "\\.\\.", asList("false", "true"), null, 1, 2, 0)
+                        testStructs("(preDecr $x)", "\\.\\.", asList("false", "true"), 1, 2, 0)
                 },
-                {"$x = 1; --$x;", testStructs("(preDecr $x)", "\\.\\.", asList("int"), null, 1, 2, 0)},
-                {"$x = 1.5; --$x;", testStructs("(preDecr $x)", "\\.\\.", asList("float"), null, 1, 2, 0)},
+                {"$x = 1; --$x;", testStructs("(preDecr $x)", "\\.\\.", asList("int"), 1, 2, 0)},
+                {"$x = 1.5; --$x;", testStructs("(preDecr $x)", "\\.\\.", asList("float"), 1, 2, 0)},
                 {
                         "$x = (bool) 1 ? 1 : 1.5; --$x;",
-                        testStructs("(preDecr $x)", "\\.\\.", asList("int", "float"), null, 1, 2, 0)
+                        testStructs("(preDecr $x)", "\\.\\.", asList("int", "float"), 1, 2, 0)
                 },
                 // postIncr
-                {"$x = false; $x++;", testStructs("(postIncr $x)", "\\.\\.", asList("false"), null, 1, 2, 0)},
-                {"$x = true; $x++;", testStructs("(postIncr $x)", "\\.\\.", asList("true"), null, 1, 2, 0)},
+                {"$x = false; $x++;", testStructs("(postIncr $x)", "\\.\\.", asList("false"), 1, 2, 0)},
+                {"$x = true; $x++;", testStructs("(postIncr $x)", "\\.\\.", asList("true"), 1, 2, 0)},
                 {
                         "$x = (bool) 1 ? false : true; $x++;",
-                        testStructs("(postIncr $x)", "\\.\\.", asList("false", "true"), null, 1, 2, 0)
+                        testStructs("(postIncr $x)", "\\.\\.", asList("false", "true"), 1, 2, 0)
                 },
-                {"$x = 1; $x++;", testStructs("(postIncr $x)", "\\.\\.", asList("int"), null, 1, 2, 0)},
-                {"$x = 1.5; $x++;", testStructs("(postIncr $x)", "\\.\\.", asList("float"), null, 1, 2, 0)},
+                {"$x = 1; $x++;", testStructs("(postIncr $x)", "\\.\\.", asList("int"), 1, 2, 0)},
+                {"$x = 1.5; $x++;", testStructs("(postIncr $x)", "\\.\\.", asList("float"), 1, 2, 0)},
                 {
                         "$x = (bool) 1 ? 1 : 1.5; $x++;",
-                        testStructs("(postIncr $x)", "\\.\\.", asList("int", "float"), null, 1, 2, 0)
+                        testStructs("(postIncr $x)", "\\.\\.", asList("int", "float"), 1, 2, 0)
                 },
                 //postDecr
-                {"$x = false; $x--;", testStructs("(postDecr $x)", "\\.\\.", asList("false"), null, 1, 2, 0)},
-                {"$x = true; $x--;", testStructs("(postDecr $x)", "\\.\\.", asList("true"), null, 1, 2, 0)},
+                {"$x = false; $x--;", testStructs("(postDecr $x)", "\\.\\.", asList("false"), 1, 2, 0)},
+                {"$x = true; $x--;", testStructs("(postDecr $x)", "\\.\\.", asList("true"), 1, 2, 0)},
                 {
                         "$x = (bool) 1 ? false : true; $x--;",
-                        testStructs("(postDecr $x)", "\\.\\.", asList("false", "true"), null, 1, 2, 0)
+                        testStructs("(postDecr $x)", "\\.\\.", asList("false", "true"), 1, 2, 0)
                 },
-                {"$x = 1; $x--;", testStructs("(postDecr $x)", "\\.\\.", asList("int"), null, 1, 2, 0)},
-                {"$x = 1.5; $x--;", testStructs("(postDecr $x)", "\\.\\.", asList("float"), null, 1, 2, 0)},
+                {"$x = 1; $x--;", testStructs("(postDecr $x)", "\\.\\.", asList("int"), 1, 2, 0)},
+                {"$x = 1.5; $x--;", testStructs("(postDecr $x)", "\\.\\.", asList("float"), 1, 2, 0)},
                 {
                         "$x = (bool) 1 ? 1 : 1.5; $x--;",
-                        testStructs("(postDecr $x)", "\\.\\.", asList("int", "float"), null, 1, 2, 0)
+                        testStructs("(postDecr $x)", "\\.\\.", asList("int", "float"), 1, 2, 0)
                 },
                 //@
-                {"@false;", testStructs("(@ false)", "\\.\\.", asList("false"), null, 1, 0, 0)},
-                {"@true;", testStructs("(@ true)", "\\.\\.", asList("true"), null, 1, 0, 0)},
-                {"@1;", testStructs("(@ 1)", "\\.\\.", asList("int"), null, 1, 0, 0)},
-                {"@1.3;", testStructs("(@ 1.3)", "\\.\\.", asList("float"), null, 1, 0, 0)},
-                {"@'a';", testStructs("(@ 'a')", "\\.\\.", asList("string"), null, 1, 0, 0)},
-                {"@[1];", testStructs("(@ (array 1))", "\\.\\.", asList("array"), null, 1, 0, 0)},
+                {"@false;", testStructs("(@ false)", "\\.\\.", asList("false"), 1, 0, 0)},
+                {"@true;", testStructs("(@ true)", "\\.\\.", asList("true"), 1, 0, 0)},
+                {"@1;", testStructs("(@ 1)", "\\.\\.", asList("int"), 1, 0, 0)},
+                {"@1.3;", testStructs("(@ 1.3)", "\\.\\.", asList("float"), 1, 0, 0)},
+                {"@'a';", testStructs("(@ 'a')", "\\.\\.", asList("string"), 1, 0, 0)},
+                {"@[1];", testStructs("(@ (array 1))", "\\.\\.", asList("array"), 1, 0, 0)},
                 //~
-                {"~1;", testStructs("(~ 1)", "\\.\\.", asList("int"), null, 1, 0, 0)},
-                {"~'a';", testStructs("(~ 'a')", "\\.\\.", asList("string"), null, 1, 0, 0)},
+                {"~1;", testStructs("(~ 1)", "\\.\\.", asList("int"), 1, 0, 0)},
+                {"~'a';", testStructs("(~ 'a')", "\\.\\.", asList("string"), 1, 0, 0)},
                 //uMinus
-                {"-false;", testStructs("(uMinus false)", "\\.\\.", asList("int"), null, 1, 0, 0)},
-                {"-true;", testStructs("(uMinus true)", "\\.\\.", asList("int"), null, 1, 0, 0)},
-                {"-1;", testStructs("(uMinus 1)", "\\.\\.", asList("int"), null, 1, 0, 0)},
-                {"-1.5;", testStructs("(uMinus 1.5)", "\\.\\.", asList("float"), null, 1, 0, 0)},
+                {"-false;", testStructs("(uMinus false)", "\\.\\.", asList("int"), 1, 0, 0)},
+                {"-true;", testStructs("(uMinus true)", "\\.\\.", asList("int"), 1, 0, 0)},
+                {"-1;", testStructs("(uMinus 1)", "\\.\\.", asList("int"), 1, 0, 0)},
+                {"-1.5;", testStructs("(uMinus 1.5)", "\\.\\.", asList("float"), 1, 0, 0)},
                 //uPlus
-                {"+false;", testStructs("(uPlus false)", "\\.\\.", asList("int"), null, 1, 0, 0)},
-                {"+true;", testStructs("(uPlus true)", "\\.\\.", asList("int"), null, 1, 0, 0)},
-                {"+1;", testStructs("(uPlus 1)", "\\.\\.", asList("int"), null, 1, 0, 0)},
-                {"+1.5;", testStructs("(uPlus 1.5)", "\\.\\.", asList("float"), null, 1, 0, 0)},
+                {"+false;", testStructs("(uPlus false)", "\\.\\.", asList("int"), 1, 0, 0)},
+                {"+true;", testStructs("(uPlus true)", "\\.\\.", asList("int"), 1, 0, 0)},
+                {"+1;", testStructs("(uPlus 1)", "\\.\\.", asList("int"), 1, 0, 0)},
+                {"+1.5;", testStructs("(uPlus 1.5)", "\\.\\.", asList("float"), 1, 0, 0)},
                 //if
-                {"$x = true; if($x){}", testStructs("$x", "\\.\\.", asList("true"), asList("bool"), 1, 2, 0)},
+                {"$x = true; if($x){}", testStructs("$x", "\\.\\.", asList("true"), 1, 2, 0)},
                 //while
-                {"$x = true; while($x){}", testStructs("$x", "\\.\\.", asList("true"), asList("bool"), 1, 2, 0)},
+                {"$x = true; while($x){}", testStructs("$x", "\\.\\.", asList("true"), 1, 2, 0)},
                 //do
-                {"$x = true; do{}while($x);", testStructs("$x", "\\.\\.", asList("true"), asList("bool"), 1, 2, 1)},
+                {"$x = true; do{}while($x);", testStructs("$x", "\\.\\.", asList("true"), 1, 2, 1)},
                 //for
-                {"$x = true; for(;$x;){}", testStructs("$x", "\\.\\.", asList("true"), asList("bool"), 1, 2, 1, 0)},
-                {"$x = true; for(;1,$x;){}", testStructs("$x", "\\.\\.", asList("true"), asList("bool"), 1, 2, 1, 1)},
-                {"$x = true; for(;1,2,$x;){}", testStructs("$x", "\\.\\.", asList("true"), asList("bool"), 1, 2, 1, 2)},
+                {"$x = true; for(;$x;){}", testStructs("$x", "\\.\\.", asList("true"), 1, 2, 1, 0)},
+                {"$x = true; for(;1,$x;){}", testStructs("$x", "\\.\\.", asList("true"), 1, 2, 1, 1)},
+                {"$x = true; for(;1,2,$x;){}", testStructs("$x", "\\.\\.", asList("true"), 1, 2, 1, 2)},
                 //foreach
                 {
                         "$x = []; foreach($x as $k => $v){}", new AbsoluteTypeNameTestStruct[]{
-                        testStruct("$x", "\\.\\.", asList("array"), asList("array"), 1, 4, 0),
-                        testStruct("$k", "\\.\\.", asList("int", "string"), asList("int", "string"), 1, 4, 1),
-                        testStruct("$v", "\\.\\.", asList("mixed"), asList("mixed"), 1, 4, 2)}
+                        testStruct("$x", "\\.\\.", asList("array"), 1, 4, 0),
+                        testStruct("$k", "\\.\\.", asList("int", "string"), 1, 4, 1),
+                        testStruct("$v", "\\.\\.", asList("mixed"), 1, 4, 2)}
                 },
                 //switch
-                {"$x = true; switch($x){}", testStructs("$x", "\\.\\.", asList("true"), asList("scalar"), 1, 2, 0)},
+                {"$x = true; switch($x){}", testStructs("$x", "\\.\\.", asList("true"), 1, 2, 0)},
                 //try/catch
                 {
                         "$x = null; try{}catch(Exception $x){}",
-                        testStructs("$x", "\\.\\.", asList("null", "Exception"), null, 1, 2, 1, 1)
+                        testStructs("$x", "\\.\\.", asList("null", "Exception"), 1, 2, 1, 1)
                 },
                 //echo
-                {"$x = 'h'; echo $x;", testStructs("$x", "\\.\\.", asList("string"), asList("string"), 1, 2, 0)},
+                {"$x = 'h'; echo $x;", testStructs("$x", "\\.\\.", asList("string"), 1, 2, 0)},
                 //exit
-                {"$x = 1; exit($x);", testStructs("$x", "\\.\\.", asList("int"), asList("int"), 1, 2, 0, 0)},
-                {"$x = 'h'; exit($x);", testStructs("$x", "\\.\\.", asList("string"), asList("string"), 1, 2, 0, 0)},
+                {"$x = 1; exit($x);", testStructs("$x", "\\.\\.", asList("int"), 1, 2, 0, 0)},
+                {"$x = 'h'; exit($x);", testStructs("$x", "\\.\\.", asList("string"), 1, 2, 0, 0)},
                 //throw
                 //TODO rstoll TINS-395 add new operator
 //                {"$x = 1; throw $x;", testStructs("$x", "\\.\\.", asList("int"), asList("int"), 1, 2, 0)}

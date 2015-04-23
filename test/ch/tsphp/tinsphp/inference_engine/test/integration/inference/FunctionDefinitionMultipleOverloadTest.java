@@ -44,13 +44,13 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceOverloadTe
                                         varBinding("foo()$y", "T1", null, asList("num"), false),
                                         varBinding(RETURN_VARIABLE_NAME, "T1", null, asList("num"), false))),
                                 functionDto("foo()", 2, bindingDtos(
-                                        varBinding("foo()$x", "T2", null, asList("bool"), true),
-                                        varBinding("foo()$y", "T3", null, asList("bool"), true),
-                                        varBinding(RETURN_VARIABLE_NAME, "T4", asList("int"), null, true))),
+                                        varBinding("foo()$x", "T2", asList("bool"), asList("bool"), true),
+                                        varBinding("foo()$y", "T3", asList("bool"), asList("bool"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "T4", asList("int"), asList("int"), true))),
                                 functionDto("foo()", 2, bindingDtos(
-                                        varBinding("foo()$x", "T2", null, asList("array"), true),
-                                        varBinding("foo()$y", "T3", null, asList("array"), true),
-                                        varBinding(RETURN_VARIABLE_NAME, "T4", asList("array"), null, true)))
+                                        varBinding("foo()$x", "T2", asList("array"), asList("array"), true),
+                                        varBinding("foo()$y", "T3", asList("array"), asList("array"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "T4", asList("array"), asList("array"), true)))
                         ), 1, 0, 2)
                 },
                 {
@@ -62,15 +62,15 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceOverloadTe
                                         varBinding("foo()$z", "T4", null, asList("num"), false),
                                         varBinding(RETURN_VARIABLE_NAME, "T4", null, asList("num"), false))),
                                 functionDto("foo()", 3, bindingDtos(
-                                        varBinding("foo()$x", "T2", null, asList("bool"), true),
-                                        varBinding("foo()$y", "T3", null, asList("bool"), true),
+                                        varBinding("foo()$x", "T2", asList("bool"), asList("bool"), true),
+                                        varBinding("foo()$y", "T3", asList("bool"), asList("bool"), true),
                                         varBinding("foo()$z", "T4", asList("int"), asList("num"), false),
                                         varBinding(RETURN_VARIABLE_NAME, "T4", asList("int"), asList("num"), false))),
                                 functionDto("foo()", 3, bindingDtos(
-                                        varBinding("foo()$x", "T2", null, asList("array"), true),
-                                        varBinding("foo()$y", "T3", null, asList("array"), true),
-                                        varBinding("foo()$z", "T5", null, asList("array"), true),
-                                        varBinding(RETURN_VARIABLE_NAME, "T6", asList("array"), null, true)))
+                                        varBinding("foo()$x", "T2", asList("array"), asList("array"), true),
+                                        varBinding("foo()$y", "T3", asList("array"), asList("array"), true),
+                                        varBinding("foo()$z", "T5", asList("array"), asList("array"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "T6", asList("array"), asList("array"), true)))
                         ), 1, 0, 2)
                 },
                 {
@@ -83,8 +83,8 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceOverloadTe
                                         varBinding("foo()$b", "T8", null, asList("num"), false),
                                         varBinding(RETURN_VARIABLE_NAME, "T8", null, asList("num"), false))),
                                 functionDto("foo()", 4, bindingDtos(
-                                        varBinding("foo()$x", "T2", null, asList("bool"), true),
-                                        varBinding("foo()$y", "T3", null, asList("bool"), true),
+                                        varBinding("foo()$x", "T2", asList("bool"), asList("bool"), true),
+                                        varBinding("foo()$y", "T3", asList("bool"), asList("bool"), true),
                                         varBinding("foo()$a", "T8", asList("int"), asList("num"), false),
                                         varBinding("foo()$b", "T8", asList("int"), asList("num"), false),
                                         varBinding(RETURN_VARIABLE_NAME, "T8", asList("int"), asList("num"), false)))
@@ -94,9 +94,10 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceOverloadTe
                         "function foo($x, $y){return $x / $y;}",
                         testStructs("foo()", "\\.\\.", functionDtos(
                                 functionDto("foo()", 2, bindingDtos(
-                                        varBinding("foo()$x", "T2", null, asList("bool"), true),
-                                        varBinding("foo()$y", "T3", null, asList("bool"), true),
-                                        varBinding(RETURN_VARIABLE_NAME, "T4", asList("int", "false"), null, true))),
+                                        varBinding("foo()$x", "T2", asList("bool"), asList("bool"), true),
+                                        varBinding("foo()$y", "T3", asList("bool"), asList("bool"), true),
+                                        varBinding(RETURN_VARIABLE_NAME,
+                                                "T4", asList("int", "false"), asList("(int | false)"), true))),
                                 functionDto("foo()", 2, bindingDtos(
                                         varBinding("foo()$x", "T2", asList("float"), asList("num"), false),
                                         varBinding("foo()$y", "T2", asList("float"), asList("num"), false),

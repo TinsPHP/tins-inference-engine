@@ -53,22 +53,24 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                 {
                         "function foo($x){return $x + (1 + 1.5);}",
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 1, bindingDtos(
-                                varBinding("foo()$x", "T4", asList("int", "float"), asList("num"), false),
-                                varBinding(RETURN_VARIABLE_NAME, "T4", asList("int", "float"), asList("num"), false)))
+                                varBinding("foo()$x", "T4", asList("int", "float"), asList("(int | float)"), false),
+                                varBinding(RETURN_VARIABLE_NAME,
+                                        "T4", asList("int", "float"), asList("(int | float)"), false)))
                                 , 1, 0, 2)
                 },
                 {
                         "function foo($x){return $x + [];}",
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 1, bindingDtos(
-                                varBinding("foo()$x", "T2", null, asList("array"), true),
-                                varBinding(RETURN_VARIABLE_NAME, "T4", asList("array"), null, true)))
+                                varBinding("foo()$x", "T2", asList("array"), asList("array"), true),
+                                varBinding(RETURN_VARIABLE_NAME, "T4", asList("array"), asList("array"), true)))
                                 , 1, 0, 2)
                 },
                 {
                         "function foo($x){return $x + true;}",
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 1, bindingDtos(
-                                varBinding("foo()$x", "T2", null, asList("bool"), true),
-                                varBinding(RETURN_VARIABLE_NAME, "T4", asList("int"), null, true))), 1, 0, 2)
+                                varBinding("foo()$x", "T2", asList("bool"), asList("bool"), true),
+                                varBinding(RETURN_VARIABLE_NAME, "T4", asList("int"), asList("int"), true)))
+                                , 1, 0, 2)
                 },
                 {
                         "function foo($x){return $x;}",
@@ -79,15 +81,15 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                 {
                         "function foo(){return null;}",
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 0, bindingDtos(
-                                varBinding(RETURN_VARIABLE_NAME, "T1", asList("null"), null, true))), 1, 0, 2)
+                                varBinding(RETURN_VARIABLE_NAME, "T1", asList("null"), asList("null"), true))), 1, 0, 2)
                 },
                 //notice $x and $y are not used within the function body
                 {
                         "function foo($x, $y){return null;}",
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 2, bindingDtos(
-                                varBinding("foo()$x", "T3", null, asList("mixed"), true),
-                                varBinding("foo()$y", "T4", null, asList("mixed"), true),
-                                varBinding(RETURN_VARIABLE_NAME, "T1", asList("null"), null, true))), 1, 0, 2)
+                                varBinding("foo()$x", "T3", asList("mixed"), asList("mixed"), true),
+                                varBinding("foo()$y", "T4", asList("mixed"), asList("mixed"), true),
+                                varBinding(RETURN_VARIABLE_NAME, "T1", asList("null"), asList("null"), true))), 1, 0, 2)
                 },
                 {
                         "function foo($x, $y){ $x = $y; return $x;}",
@@ -116,11 +118,10 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                 {
                         "function foo($x, $y){ $a = $y; $x = $a; $b = $x; return 1;} /* constant return */",
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 2, bindingDtos(
-                                //TODO rstoll TINS-387 function application only consider upper bounds
                                 //should have mixed as lower instead of bottom type
-                                varBinding("foo()$x", "T4", null, null, true),
-                                varBinding("foo()$y", "T3", null, null, true),
-                                varBinding(RETURN_VARIABLE_NAME, "T8", asList("int"), null, true))), 1, 0, 2)
+                                varBinding("foo()$x", "T4", asList("mixed"), asList("mixed"), true),
+                                varBinding("foo()$y", "T3", asList("mixed"), asList("mixed"), true),
+                                varBinding(RETURN_VARIABLE_NAME, "T8", asList("int"), asList("int"), true))), 1, 0, 2)
                 },
                 //return is variable again but $x has additionally an upper bound
                 {
@@ -161,22 +162,22 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                 {
                         "function foo(){ $a = null; return \n$a;}",
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 0, bindingDtos(
-                                varBinding(RETURN_VARIABLE_NAME, "T4", asList("null"), null, true))), 1, 0, 2)
+                                varBinding(RETURN_VARIABLE_NAME, "T4", asList("null"), asList("null"), true))), 1, 0, 2)
                 },
                 //same as before but with unused parameter
                 {
                         "function foo($x){ $a = null; return \n$a;}",
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 1, bindingDtos(
-                                varBinding("foo()$x", "T5", null, asList("mixed"), true),
-                                varBinding(RETURN_VARIABLE_NAME, "T4", asList("null"), null, true))), 1, 0, 2)
+                                varBinding("foo()$x", "T5", asList("mixed"), asList("mixed"), true),
+                                varBinding(RETURN_VARIABLE_NAME, "T4", asList("null"), asList("null"), true))), 1, 0, 2)
                 },
                 //$x with useless statement. Second one is constant but $x has no lower bound
                 //see also TINS-384 most specific overload and variable parameter
                 {
                         "function foo($x){ $x + true; $x + true; return \n1;}",
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 1, bindingDtos(
-                                varBinding("foo()$x", "T2", null, asList("bool"), true),
-                                varBinding(RETURN_VARIABLE_NAME, "T6", asList("int"), null, true))), 1, 0, 2)
+                                varBinding("foo()$x", "T2", asList("bool"), asList("bool"), true),
+                                varBinding(RETURN_VARIABLE_NAME, "T6", asList("int"), asList("int"), true))), 1, 0, 2)
                 }
         });
     }

@@ -10,7 +10,7 @@ import ch.tsphp.tinsphp.common.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.inference_engine.resolver.PutAtTopVariableDeclarationCreator;
-import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.inference.AInferenceTypeTest;
+import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.inference.AInferenceNamespaceTypeTest;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.inference.AbsoluteTypeNameTestStruct;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 import org.antlr.runtime.RecognitionException;
@@ -24,7 +24,7 @@ import static java.util.Arrays.asList;
 
 
 @RunWith(Parameterized.class)
-public class VariableDeclarationTest extends AInferenceTypeTest
+public class VariableDeclarationTest extends AInferenceNamespaceTypeTest
 {
 
     public VariableDeclarationTest(String testString, AbsoluteTypeNameTestStruct[] theTestStructs) {
@@ -47,23 +47,23 @@ public class VariableDeclarationTest extends AInferenceTypeTest
     @Parameterized.Parameters
     public static Collection<Object[]> testStrings() {
         return asList(new Object[][]{
-                {"$a = null;", testStructs("$a", "\\.\\.", asList("null"), null, 1, 1, 0, 0)},
-                {"$a = false;", testStructs("$a", "\\.\\.", asList("false"), null, 1, 1, 0, 0)},
-                {"$a = true;", testStructs("$a", "\\.\\.", asList("true"), null, 1, 1, 0, 0)},
-                {"$a = 1;", testStructs("$a", "\\.\\.", asList("int"), null, 1, 1, 0, 0)},
-                {"$a = 1.4;", testStructs("$a", "\\.\\.", asList("float"), null, 1, 1, 0, 0)},
-                {"$a = 'h';", testStructs("$a", "\\.\\.", asList("string"), null, 1, 1, 0, 0)},
+                {"$a = null;", testStructs("$a", "\\.\\.", asList("null"), 1, 1, 0, 0)},
+                {"$a = false;", testStructs("$a", "\\.\\.", asList("false"), 1, 1, 0, 0)},
+                {"$a = true;", testStructs("$a", "\\.\\.", asList("true"), 1, 1, 0, 0)},
+                {"$a = 1;", testStructs("$a", "\\.\\.", asList("int"), 1, 1, 0, 0)},
+                {"$a = 1.4;", testStructs("$a", "\\.\\.", asList("float"), 1, 1, 0, 0)},
+                {"$a = 'h';", testStructs("$a", "\\.\\.", asList("string"), 1, 1, 0, 0)},
                 {
                         "$a = 1; $b = $a;", new AbsoluteTypeNameTestStruct[]{
-                        testStruct("$a", "\\.\\.", asList("int"), null, 1, 2, 0, 0),
-                        testStruct("$b", "\\.\\.", asList("int"), null, 1, 3, 0, 0)}
+                        testStruct("$a", "\\.\\.", asList("int"), 1, 2, 0, 0),
+                        testStruct("$b", "\\.\\.", asList("int"), 1, 3, 0, 0)}
                 },
                 {
                         "$a = 1;\n $b = $a;\n $b = 1.2;\n $a = $b;", new AbsoluteTypeNameTestStruct[]{
-                        testStruct("$a", "\\.\\.", asList("int", "float"), null, 1, 2, 0, 0),
-                        testStruct("$b", "\\.\\.", asList("int", "float"), null, 1, 3, 0, 0),
-                        testStruct("$b", "\\.\\.", asList("int", "float"), null, 1, 4, 0, 0),
-                        testStruct("$a", "\\.\\.", asList("int", "float"), null, 1, 5, 0, 0)}
+                        testStruct("$a", "\\.\\.", asList("int", "float"), 1, 2, 0, 0),
+                        testStruct("$b", "\\.\\.", asList("int", "float"), 1, 3, 0, 0),
+                        testStruct("$b", "\\.\\.", asList("int", "float"), 1, 4, 0, 0),
+                        testStruct("$a", "\\.\\.", asList("int", "float"), 1, 5, 0, 0)}
                 }
         });
     }
