@@ -56,17 +56,17 @@ public class FunctionDefinitionBindingTest extends AInferenceBindingTest
                 {
                         "function foo(){return \n1 \n+ 1 \n+ 1 \n+ 1 \n+ 1 \n+ 1;}",
                         testStructs("foo()", "\\.\\.", matcherDtos(matcherDto(
-                                varBinding("1@2|0", "T10", asList("int"), null, true),
+                                varBinding("1@2|0", "T10", asList("int"), asList("int"), true),
                                 varBinding("foo()+@3|0", "T10", asList("int"), asList("int"), true),
-                                varBinding("1@3|2", "T10", asList("int"), null, true),
+                                varBinding("1@3|2", "T10", asList("int"), asList("int"), true),
                                 varBinding("foo()+@4|0", "T10", asList("int"), asList("int"), true),
-                                varBinding("1@4|2", "T10", asList("int"), null, true),
+                                varBinding("1@4|2", "T10", asList("int"), asList("int"), true),
                                 varBinding("foo()+@5|0", "T10", asList("int"), asList("int"), true),
-                                varBinding("1@5|2", "T10", asList("int"), null, true),
+                                varBinding("1@5|2", "T10", asList("int"), asList("int"), true),
                                 varBinding("foo()+@6|0", "T10", asList("int"), asList("int"), true),
-                                varBinding("1@6|2", "T10", asList("int"), null, true),
+                                varBinding("1@6|2", "T10", asList("int"), asList("int"), true),
                                 varBinding("foo()+@7|0", "T10", asList("int"), asList("int"), true),
-                                varBinding("1@7|2", "T10", asList("int"), null, true),
+                                varBinding("1@7|2", "T10", asList("int"), asList("int"), true),
                                 varBinding(RETURN_VARIABLE_NAME, "T12", asList("int"), asList("int"), true))), 1, 0, 2)
                 },
                 {
@@ -93,22 +93,22 @@ public class FunctionDefinitionBindingTest extends AInferenceBindingTest
                 {
                         "function foo($x){ \nif($x){ return \n1;} return \n1.2;}",
                         testStructs("foo()", "\\.\\.", matcherDtos(matcherDto(
-                                varBinding("if@2|0", "T1", asList("mixed"), asList("mixed"), true),
-                                varBinding("foo()$x", "T2", asList("bool"), asList("bool"), true),
                                 varBinding(RETURN_VARIABLE_NAME,
-                                        "T3", asList("int", "float"), asList("(int | float)"), true),
-                                varBinding("1@3|0", "T4", asList("int"), null, true),
+                                        "T1", asList("int", "float"), asList("(int | float)"), true),
+                                varBinding("1@3|0", "T2", asList("int"), null, true),
+                                varBinding("if@2|0", "T3", asList("mixed"), asList("mixed"), true),
+                                varBinding("foo()$x", "T4", asList("bool"), asList("bool"), true),
                                 varBinding("1.2@4|0", "T5", asList("float"), null, true))), 1, 0, 2)
                 },
                 {
                         "function foo($x){ \nif($x){ return \n1;} else { return \n1.2;} }",
                         testStructs("foo()", "\\.\\.", matcherDtos(matcherDto(
-                                varBinding("if@2|0", "T1", asList("mixed"), asList("mixed"), true),
-                                varBinding("foo()$x", "T2", asList("bool"), asList("bool"), true),
                                 varBinding(RETURN_VARIABLE_NAME,
-                                        "T3", asList("int", "float"), asList("(int | float"), true),
-                                varBinding("1@3|0", "T4", asList("int"), null, true),
-                                varBinding("1.2@4|0", "T5", asList("float"), null, true))), 1, 0, 2)
+                                        "T1", asList("int", "float"), asList("(int | float)"), true),
+                                varBinding("1@3|0", "T2", asList("int"), null, true),
+                                varBinding("1.2@4|0", "T3", asList("float"), null, true),
+                                varBinding("if@2|0", "T4", asList("mixed"), asList("mixed"), true),
+                                varBinding("foo()$x", "T5", asList("bool"), asList("bool"), true))), 1, 0, 2)
                 },
         });
     }

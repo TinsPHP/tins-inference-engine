@@ -62,10 +62,11 @@ public class FunctionDefinitionWithImplicitReturnOverloadTest extends AInference
                 },
                 //partial return
                 {
-                        "function foo($x){if($x) return 1;}",
+                        "function foo($x){if($x){ return 1;}}",
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 1, bindingDtos(
-                                varBinding("foo()$x", "T2", asList("bool"), asList("bool"), true),
-                                varBinding(RETURN_VARIABLE_NAME, "T3", asList("null"), asList("null"), true))), 1, 0, 2)
+                                varBinding(RETURN_VARIABLE_NAME,
+                                        "T1", asList("int", "null"), asList("(int | null)"), true),
+                                varBinding("foo()$x", "T4", asList("bool"), asList("bool"), true))), 1, 0, 2)
                 },
         });
     }

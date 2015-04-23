@@ -25,12 +25,12 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.core.DescribedAs.describedAs;
 
 @Ignore
-public class AInferenceTypeTest extends AInferenceTest
+public class AInferenceNamespaceTypeTest extends AInferenceTest
 {
 
     protected AbsoluteTypeNameTestStruct[] testStructs;
 
-    public AInferenceTypeTest(String testString, AbsoluteTypeNameTestStruct[] theTestStructs) {
+    public AInferenceNamespaceTypeTest(String testString, AbsoluteTypeNameTestStruct[] theTestStructs) {
         super(testString);
         testStructs = theTestStructs;
     }
@@ -81,8 +81,14 @@ public class AInferenceTypeTest extends AInferenceTest
             IUnionTypeSymbol lowerTypeBounds = overloadBindings.getLowerTypeBounds(typeVariable);
             assertThat(lowerTypeBounds.getTypeSymbols().keySet(), describedAs(testString + " -- " + testStruct
                             .astText + " failed " +
-                            "(testStruct Nr " + counter + "). wrong lower types. \nExpected: " + testStruct.lowerTypes,
-                    containsInAnyOrder(testStruct.lowerTypes.toArray())));
+                            "(testStruct Nr " + counter + "). wrong lower types. \nExpected: " + testStruct.types,
+                    containsInAnyOrder(testStruct.types.toArray())));
+
+            IUnionTypeSymbol upperTypeBounds = overloadBindings.getLowerTypeBounds(typeVariable);
+            assertThat(upperTypeBounds.getTypeSymbols().keySet(), describedAs(testString + " -- " + testStruct
+                            .astText + " failed " +
+                            "(testStruct Nr " + counter + "). wrong lower types. \nExpected: " + testStruct.types,
+                    containsInAnyOrder(testStruct.types.toArray())));
 
             ++counter;
         }
@@ -100,20 +106,18 @@ public class AInferenceTypeTest extends AInferenceTest
             String astText,
             String definitionScope,
             List<String> lowerTypes,
-            List<String> upperTypes,
             Integer... astAccessOrder) {
         return new AbsoluteTypeNameTestStruct(
-                astText, definitionScope, Arrays.asList(astAccessOrder), lowerTypes, upperTypes);
+                astText, definitionScope, Arrays.asList(astAccessOrder), lowerTypes);
     }
 
     protected static AbsoluteTypeNameTestStruct[] testStructs(
             String astText,
             String definitionScope,
             List<String> lowerTypes,
-            List<String> upperTypes,
             Integer... astAccessOrder) {
         return new AbsoluteTypeNameTestStruct[]{
-                testStruct(astText, definitionScope, lowerTypes, upperTypes, astAccessOrder)
+                testStruct(astText, definitionScope, lowerTypes, astAccessOrder)
         };
 
     }

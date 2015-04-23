@@ -179,7 +179,11 @@ public class ConstraintSolver implements IConstraintSolver
             }
             bindings.addVariable(absoluteName, typeVariableReference);
             if (typeSymbol != null) {
-                bindings.addLowerTypeBound(typeVariableReference.getTypeVariable(), typeSymbol);
+                String typeVariable = typeVariableReference.getTypeVariable();
+                bindings.addLowerTypeBound(typeVariable, typeSymbol);
+                //TODO rstoll TINS-407 - store fixed type only in lower bound
+                //TODO rstoll TINS-387 function application only consider upper bounds
+//                bindings.addUpperTypeBound(typeVariable, typeSymbol);
                 bindingDoesNotExist = false;
             }
         }
@@ -246,7 +250,7 @@ public class ConstraintSolver implements IConstraintSolver
             if (!needToIterateOverload) {
                 String lhsAbsoluteName = leftHandSide.getAbsoluteName();
                 ITypeVariableReference reference = bindings.getTypeVariableReference(lhsAbsoluteName);
-                if (!reference.hasFixedType() && (rightHandSide.hasFixedType() || argumentsAreAllFixed)) {
+                if (!reference.hasFixedType() && argumentsAreAllFixed) {
                     bindings.fixType(lhsAbsoluteName);
                 }
             }
@@ -494,6 +498,9 @@ public class ConstraintSolver implements IConstraintSolver
                 //the parameter is not used at all, hence it can be mixed
                 ITypeVariableReference reference = new FixedTypeVariableReference(bindings.getNextTypeVariable());
                 bindings.addVariable(parameterId, reference);
+                //TODO rstoll TINS-407 - store fixed type only in lower bound
+                //TODO rstoll TINS-387 function application only consider upper bounds
+                bindings.addLowerTypeBound(reference.getTypeVariable(), mixedTypeSymbol);
                 bindings.addUpperTypeBound(reference.getTypeVariable(), mixedTypeSymbol);
                 //TODO could generate a warning
             }

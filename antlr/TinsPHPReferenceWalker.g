@@ -516,7 +516,7 @@ instruction returns[boolean isReturning, boolean isBreaking]
     ;
     
 ifCondition returns[boolean isReturning]
-    :   ^(op=If
+    :   ^(op='if'
             expression 
             ifBlock=blockConditional
             (elseBlock=blockConditional)?

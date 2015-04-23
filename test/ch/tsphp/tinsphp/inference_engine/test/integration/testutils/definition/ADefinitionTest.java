@@ -76,6 +76,17 @@ public abstract class ADefinitionTest extends ATest
 
 
     public void runTest() {
+        try {
+            run();
+        } catch (Throwable ex) {
+            if (!(ex instanceof AssertionError)) {
+                System.out.println(testString + " failed - unexpected exception occurred.");
+            }
+            throw ex;
+        }
+    }
+
+    private void run() {
         ParserUnitDto parserUnit = parser.parse("<?php" + testString + "?>");
         ast = parserUnit.compilationUnit;
 

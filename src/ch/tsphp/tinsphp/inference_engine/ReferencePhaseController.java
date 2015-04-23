@@ -185,9 +185,8 @@ public class ReferencePhaseController implements IReferencePhaseController
 
     @Override
     public IMinimalVariableSymbol resolveReturn(ITSPHPAst returnAst) {
-        IScope scope = returnAst.getScope();
-        if (scope instanceof IMethodSymbol) {
-            IMethodSymbol methodSymbol = (IMethodSymbol) scope;
+        IMethodSymbol methodSymbol = scopeHelper.getEnclosingMethod(returnAst);
+        if (methodSymbol != null) {
             return methodSymbol.getReturnVariable();
         }
         return null;
