@@ -223,6 +223,8 @@ public class InferenceIssueReporter implements IInferenceIssueReporter
 
         Set<String> typeVariablesAdded = new HashSet<>(numberOfParameters + 1);
         List<TypeParameterDto> typeParameters = new ArrayList<>(numberOfParameters + 1);
+        TypeDto returnType = createTypeDto(
+                overload.getReturnVariable(), bindings, typeParameters, typeVariablesAdded);
 
         List<ParameterDto> parameterDtos = new ArrayList<>();
         for (IVariable parameter : parameters) {
@@ -236,7 +238,7 @@ public class InferenceIssueReporter implements IInferenceIssueReporter
         if (typeParameters.isEmpty()) {
             typeParameters = null;
         }
-        return new MethodDto(null, name, typeParameters, parameterDtos, null);
+        return new MethodDto(returnType, name, typeParameters, parameterDtos, null);
     }
 
     private TypeDto createTypeDto(
@@ -245,29 +247,36 @@ public class InferenceIssueReporter implements IInferenceIssueReporter
             List<TypeParameterDto> typeParameters,
             Set<String> typeVariablesAdded) {
 
-        TypeDto typeDto = createTypeDto(bindings.getTypeVariableReference(variable.getAbsoluteName()), bindings);
+        TypeDto typeDto = createTypeDto(variable, bindings);
         if (!variable.hasFixedType()) {
             String typeVariable = typeDto.type;
             if (!typeVariablesAdded.contains(typeVariable)) {
                 typeVariablesAdded.add(typeVariable);
-                String lowerBound = null;
-                if (bindings.hasLowerTypeBounds(typeVariable)) {
-                    lowerBound = bindings.getLowerTypeBounds(typeVariable).toString();
+                List<String> lowerBounds = null;
+                if (bindings.hasLowerBounds(typeVariable)) {
+                    lowerBounds = new ArrayList<>();
+                    if (bindings.hasLowerTypeBounds(typeVariable)) {
+                        lowerBounds.addAll(bindings.getLowerTypeBounds(typeVariable).getTypeSymbols().keySet());
+                    }
+                    if (bindings.hasLowerRefBounds(typeVariable)) {
+                        lowerBounds.addAll(bindings.getLowerRefBounds(typeVariable));
+                    }
                 }
-                String upperBound = null;
+                List<String> upperBounds = null;
                 if (bindings.hasUpperTypeBounds(typeVariable)) {
-                    upperBound = bindings.getUpperTypeBounds(typeVariable).toString();
+                    upperBounds = new ArrayList<>();
+                    upperBounds.addAll(bindings.getUpperTypeBounds(typeVariable).getTypeSymbols().keySet());
                 }
-                typeParameters.add(new TypeParameterDto(lowerBound, typeVariable, upperBound));
+                typeParameters.add(new TypeParameterDto(lowerBounds, typeVariable, upperBounds));
             }
         }
         return typeDto;
     }
 
-    private TypeDto createTypeDto(ITypeVariableReference reference, IOverloadBindings bindings) {
-        String typeVariable = reference.getTypeVariable();
+    private TypeDto createTypeDto(IVariable variable, IOverloadBindings bindings) {
+        String typeVariable = variable.getTypeVariable();
         String type;
-        if (reference.hasFixedType()) {
+        if (variable.hasFixedType()) {
             ITypeSymbol typeSymbol;
             if (bindings.hasUpperTypeBounds(typeVariable)) {
                 typeSymbol = bindings.getUpperTypeBounds(typeVariable);
