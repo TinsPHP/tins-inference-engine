@@ -10,6 +10,7 @@ import ch.tsphp.tinsphp.common.issues.AIssueMessageProvider;
 import ch.tsphp.tinsphp.common.issues.DefinitionIssueDto;
 import ch.tsphp.tinsphp.common.issues.IIssueMessageProvider;
 import ch.tsphp.tinsphp.common.issues.ReferenceIssueDto;
+import ch.tsphp.tinsphp.common.issues.WrongArgumentTypeIssueDto;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -49,7 +50,21 @@ public class HardCodedIssueMessageProvider extends AIssueMessageProvider impleme
     }
 
     @Override
-    protected String getStandardDefinitionErrorMessage(String identifier, DefinitionIssueDto dto) {
+    protected Map<String, String> loadWrongArgumentTypeIssueMessages() {
+        Map<String, String> map = new HashMap<>();
+        map.put("wrongFunctionCall", "Line %line%|%pos% - no applicable overload found for the "
+                + "function %id%.\n"
+                + "Given argument types: %args%\n"
+                + "existing overloads: %overloads%");
+        map.put("wrongOperatorUsage", "Line %line%|%pos% - usage of operator %id% is wrong.\n"
+                + "It cannot be applied to the given arguments: %args%\n"
+                + "existing overloads: %overloads%");
+
+        return map;
+    }
+
+    @Override
+    protected String getStandardDefinitionIssueMessage(String identifier, DefinitionIssueDto dto) {
         return "A definition issue occurred, corresponding issue message for \"" + identifier + "\" not defined. "
                 + "Please report bug to http://tsphp.ch/tins/jira\n"
                 + "However, the following information was gathered.\n"
@@ -58,11 +73,21 @@ public class HardCodedIssueMessageProvider extends AIssueMessageProvider impleme
     }
 
     @Override
-    protected String getStandardReferenceErrorMessage(String identifier, ReferenceIssueDto dto) {
+    protected String getStandardReferenceIssueMessage(String identifier, ReferenceIssueDto dto) {
         return "A reference issue occurred, corresponding error message for \"" + identifier + "\" is not defined. "
                 + "Please report bug to http://tsphp.ch/tins/jira\n"
                 + "However, the following information was gathered.\n"
                 + "Line " + dto.line + "|" + dto.position + " - " + dto.identifier + " could not been resolved to its "
                 + "corresponding reference.";
+    }
+
+    @Override
+    protected String getStandardWrongArgumentTypeIssueMessage(String identifier, WrongArgumentTypeIssueDto dto) {
+        return "A wrong argument type issue occurred, corresponding error message for \"" + identifier + "\" "
+                + "is not defined. Please report bug to http://tsphp.ch/tins/jira\n"
+                + "However, the following information was gathered.\n"
+                + "Line " + dto.line + "|" + dto.position + " - usage of " + dto.identifier + " was wrong.\n"
+                + "types actual parameters: " + getArguments(dto.actualParameterTypes) + "\n"
+                + "existing overloads: " + getOverloadSignatures(dto.possibleOverloads);
     }
 }

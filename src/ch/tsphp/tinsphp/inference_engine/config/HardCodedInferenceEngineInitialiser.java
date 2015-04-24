@@ -47,12 +47,11 @@ import java.util.List;
 
 public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInitialiser
 {
-    private final ITSPHPAstAdaptor astAdaptor;
     private final IScopeHelper scopeHelper;
     private final IModifierHelper modifierHelper;
     private final ISymbolFactory symbolFactory;
     private final IScopeFactory scopeFactory;
-    private final IInferenceIssueReporter inferenceErrorReporter;
+    private final IInferenceIssueReporter inferenceIssueReporter;
     private final IConstraintCreator constraintCreator;
     private final IAstModificationHelper astModificationHelper;
     private final ICore core;
@@ -68,7 +67,7 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
             IAstHelper astHelper,
             ISymbolsInitialiser symbolsInitialiser,
             ICoreInitialiser coreInitialiser) {
-        astAdaptor = theAstAdaptor;
+
         scopeHelper = symbolsInitialiser.getScopeHelper();
         modifierHelper = symbolsInitialiser.getModifierHelper();
         IOverloadResolver overloadResolver = symbolsInitialiser.getOverloadResolver();
@@ -77,20 +76,20 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
         symbolFactory = symbolsInitialiser.getSymbolFactory();
         scopeFactory = symbolsInitialiser.getScopeFactory();
 
-        inferenceErrorReporter = new InferenceIssueReporter(new HardCodedIssueMessageProvider());
-        constraintCreator = new ConstraintCreator(symbolFactory, overloadResolver, inferenceErrorReporter);
+        inferenceIssueReporter = new InferenceIssueReporter(new HardCodedIssueMessageProvider());
+        constraintCreator = new ConstraintCreator(symbolFactory, overloadResolver, inferenceIssueReporter);
 
         astModificationHelper = new AstModificationHelper(astHelper);
 
         additionalSymbolResolvers = new ArrayList<>();
         additionalSymbolResolvers.add(coreInitialiser.getCoreSymbolResolver());
 
-        constraintSolver = new ConstraintSolver(symbolFactory, overloadResolver);
+        constraintSolver = new ConstraintSolver(symbolFactory, overloadResolver, inferenceIssueReporter);
 
         init();
 
         engine = new InferenceEngine(
-                astAdaptor, inferenceErrorReporter, definitionPhaseController, referencePhaseController);
+                theAstAdaptor, inferenceIssueReporter, definitionPhaseController, referencePhaseController);
     }
 
     private void init() {
@@ -106,7 +105,7 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
                 additionalSymbolResolvers,
                 scopeHelper,
                 symbolFactory,
-                inferenceErrorReporter);
+                inferenceIssueReporter);
         ISymbolCheckController symbolCheckController = new SymbolCheckController(userSymbolResolver,
                 additionalSymbolResolvers);
 
@@ -115,7 +114,7 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
 
         referencePhaseController = new ReferencePhaseController(
                 symbolFactory,
-                inferenceErrorReporter,
+                inferenceIssueReporter,
                 astModificationHelper,
                 symbolResolverController,
                 symbolCheckController,
@@ -131,7 +130,7 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
 
     @Override
     public void reset() {
-        inferenceErrorReporter.reset();
+        inferenceIssueReporter.reset();
         init();
         engine.setDefinitionPhaseController(definitionPhaseController);
         engine.setReferencePhaseController(referencePhaseController);

@@ -70,9 +70,8 @@ public class ConstraintCreator implements IConstraintCreator
     @Override
     public void createRefConstraint(IConstraintCollection collection, ITSPHPAst identifier, ITSPHPAst rhs) {
         IVariable variableSymbol = (IVariable) identifier.getSymbol();
-
-        IConstraint constraint = new Constraint(
-                variableSymbol, Arrays.asList(variableSymbol, (IVariable) rhs.getSymbol()), assignFunction);
+        List<IVariable> parameters = Arrays.asList(variableSymbol, (IVariable) rhs.getSymbol());
+        IConstraint constraint = new Constraint(identifier, variableSymbol, parameters, assignFunction);
         collection.addConstraint(constraint);
     }
 
@@ -95,8 +94,7 @@ public class ConstraintCreator implements IConstraintCreator
             IMinimalMethodSymbol methodSymbol) {
         IMinimalVariableSymbol expressionVariable = symbolFactory.createExpressionTypeVariableSymbol(identifierAst);
         expressionVariable.setDefinitionScope(identifierAst.getScope());
-        IConstraint constraint = new Constraint(
-                expressionVariable, typeVariables, methodSymbol);
+        IConstraint constraint = new Constraint(parentAst, expressionVariable, typeVariables, methodSymbol);
         collection.addConstraint(constraint);
         parentAst.setSymbol(expressionVariable);
     }

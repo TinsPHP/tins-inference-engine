@@ -11,6 +11,12 @@ import ch.tsphp.common.exceptions.DefinitionException;
 import ch.tsphp.common.exceptions.ReferenceException;
 import ch.tsphp.common.exceptions.TSPHPException;
 import ch.tsphp.common.symbols.ISymbol;
+import ch.tsphp.common.symbols.ITypeSymbol;
+import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
+import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
+import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
+import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableReference;
+import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import ch.tsphp.tinsphp.common.issues.DefinitionIssueDto;
 import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
@@ -18,10 +24,21 @@ import ch.tsphp.tinsphp.common.issues.IIssueLogger;
 import ch.tsphp.tinsphp.common.issues.IIssueMessageProvider;
 import ch.tsphp.tinsphp.common.issues.IssueReporterHelper;
 import ch.tsphp.tinsphp.common.issues.ReferenceIssueDto;
+import ch.tsphp.tinsphp.common.issues.WrongArgumentTypeIssueDto;
+import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
+import ch.tsphp.tinsphp.common.translation.dtos.MethodDto;
+import ch.tsphp.tinsphp.common.translation.dtos.ParameterDto;
+import ch.tsphp.tinsphp.common.translation.dtos.TypeDto;
+import ch.tsphp.tinsphp.common.translation.dtos.TypeParameterDto;
+import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class InferenceIssueReporter implements IInferenceIssueReporter
 {
@@ -87,7 +104,7 @@ public class InferenceIssueReporter implements IInferenceIssueReporter
     private DefinitionException addAndGetDefinitionException(String identifier, EIssueSeverity severity,
             ITSPHPAst existingDefinition, ITSPHPAst newDefinition) {
 
-        String errorMessage = messageProvider.getDefinitionErrorMessage(
+        String errorMessage = messageProvider.getDefinitionIssueMessage(
                 identifier,
                 new DefinitionIssueDto(
                         existingDefinition.getText(),
@@ -133,7 +150,7 @@ public class InferenceIssueReporter implements IInferenceIssueReporter
     private ReferenceException addAndGetReferenceException(
             String identifier, EIssueSeverity severity, ITSPHPAst definition) {
 
-        String errorMessage = messageProvider.getReferenceErrorMessage(
+        String errorMessage = messageProvider.getReferenceIssueMessage(
                 identifier,
                 new ReferenceIssueDto(
                         definition.getText(),
@@ -144,5 +161,123 @@ public class InferenceIssueReporter implements IInferenceIssueReporter
         ReferenceException exception = new ReferenceException(errorMessage, definition);
         reportIssue(exception, severity);
         return exception;
+    }
+
+    @Override
+    public ReferenceException constraintViolation(IOverloadBindings bindings, IConstraint constraint) {
+        ReferenceException exception;
+        ITSPHPAst operator = constraint.getOperator();
+        switch (operator.getType()) {
+            case TokenTypes.FUNCTION_CALL:
+                exception = addAndGetWrongArgumentTypeException(
+                        "wrongFunctionCall", EIssueSeverity.Error, bindings, constraint, operator.getChild(0));
+                break;
+            default:
+                exception = addAndGetWrongArgumentTypeException(
+                        "wrongOperatorUsage", EIssueSeverity.Error, bindings, constraint, operator);
+        }
+        return exception;
+    }
+
+    private ReferenceException addAndGetWrongArgumentTypeException(
+            String key, EIssueSeverity severity,
+            IOverloadBindings bindings, IConstraint constraint, ITSPHPAst identifier) {
+
+        List<IVariable> arguments = constraint.getArguments();
+        int numberOfArguments = arguments.size();
+        String[] actualParameterTypes = new String[numberOfArguments];
+        for (int i = 0; i < numberOfArguments; ++i) {
+            ITypeVariableReference reference = bindings.getTypeVariableReference(arguments.get(i).getAbsoluteName());
+            String typeVariable = reference.getTypeVariable();
+            actualParameterTypes[i] = bindings.getLowerTypeBounds(typeVariable).getAbsoluteName();
+        }
+
+        return addAndGetWrongArgumentTypeException(key, severity, constraint, identifier, actualParameterTypes);
+    }
+
+    private ReferenceException addAndGetWrongArgumentTypeException(
+            String key, EIssueSeverity severity, IConstraint constraint, ITSPHPAst identifier,
+            String[] actualParameterTypes) {
+
+        List<MethodDto> existingOverloads = new ArrayList<>();
+        IMinimalMethodSymbol methodSymbol = constraint.getMethodSymbol();
+        for (IFunctionType overload : methodSymbol.getOverloads()) {
+            MethodDto methodDto = createMethodDto(methodSymbol.getName(), overload);
+            existingOverloads.add(methodDto);
+        }
+
+        WrongArgumentTypeIssueDto issueDto = new WrongArgumentTypeIssueDto(
+                identifier.getText(), identifier.getLine(), identifier.getCharPositionInLine(),
+                actualParameterTypes, existingOverloads);
+
+        String issueMessage = messageProvider.getWrongArgumentTypeIssueMessage(key, issueDto);
+        ReferenceException exception = new ReferenceException(issueMessage, identifier);
+        reportIssue(exception, severity);
+        return exception;
+    }
+
+    private MethodDto createMethodDto(String name, IFunctionType overload) {
+        IOverloadBindings bindings = overload.getBindings();
+        List<IVariable> parameters = overload.getParameters();
+        int numberOfParameters = parameters.size();
+
+        Set<String> typeVariablesAdded = new HashSet<>(numberOfParameters + 1);
+        List<TypeParameterDto> typeParameters = new ArrayList<>(numberOfParameters + 1);
+
+        List<ParameterDto> parameterDtos = new ArrayList<>();
+        for (IVariable parameter : parameters) {
+            parameterDtos.add(new ParameterDto(
+                    createTypeDto(parameter, bindings, typeParameters, typeVariablesAdded),
+                    parameter.getName(),
+                    null
+            ));
+        }
+
+        if (typeParameters.isEmpty()) {
+            typeParameters = null;
+        }
+        return new MethodDto(null, name, typeParameters, parameterDtos, null);
+    }
+
+    private TypeDto createTypeDto(
+            IVariable variable,
+            IOverloadBindings bindings,
+            List<TypeParameterDto> typeParameters,
+            Set<String> typeVariablesAdded) {
+
+        TypeDto typeDto = createTypeDto(bindings.getTypeVariableReference(variable.getAbsoluteName()), bindings);
+        if (!variable.hasFixedType()) {
+            String typeVariable = typeDto.type;
+            if (!typeVariablesAdded.contains(typeVariable)) {
+                typeVariablesAdded.add(typeVariable);
+                String lowerBound = null;
+                if (bindings.hasLowerTypeBounds(typeVariable)) {
+                    lowerBound = bindings.getLowerTypeBounds(typeVariable).toString();
+                }
+                String upperBound = null;
+                if (bindings.hasUpperTypeBounds(typeVariable)) {
+                    upperBound = bindings.getUpperTypeBounds(typeVariable).toString();
+                }
+                typeParameters.add(new TypeParameterDto(lowerBound, typeVariable, upperBound));
+            }
+        }
+        return typeDto;
+    }
+
+    private TypeDto createTypeDto(ITypeVariableReference reference, IOverloadBindings bindings) {
+        String typeVariable = reference.getTypeVariable();
+        String type;
+        if (reference.hasFixedType()) {
+            ITypeSymbol typeSymbol;
+            if (bindings.hasUpperTypeBounds(typeVariable)) {
+                typeSymbol = bindings.getUpperTypeBounds(typeVariable);
+            } else {
+                typeSymbol = bindings.getLowerTypeBounds(typeVariable);
+            }
+            type = typeSymbol.toString();
+        } else {
+            type = typeVariable;
+        }
+        return new TypeDto(null, type, null);
     }
 }

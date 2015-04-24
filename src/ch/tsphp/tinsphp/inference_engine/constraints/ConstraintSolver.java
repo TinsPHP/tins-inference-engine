@@ -17,6 +17,7 @@ import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableReference;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import ch.tsphp.tinsphp.common.inference.constraints.TypeVariableReference;
+import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.symbols.IIntersectionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
@@ -47,13 +48,16 @@ public class ConstraintSolver implements IConstraintSolver
 {
     private final ISymbolFactory symbolFactory;
     private final IOverloadResolver overloadResolver;
+    private final IInferenceIssueReporter issueReporter;
     private final ITypeSymbol mixedTypeSymbol;
 
     public ConstraintSolver(
             ISymbolFactory theSymbolFactory,
-            IOverloadResolver theOverloadResolver) {
+            IOverloadResolver theOverloadResolver,
+            IInferenceIssueReporter theIssueReporter) {
         symbolFactory = theSymbolFactory;
         overloadResolver = theOverloadResolver;
+        issueReporter = theIssueReporter;
         mixedTypeSymbol = symbolFactory.getMixedTypeSymbol();
     }
 
@@ -61,7 +65,7 @@ public class ConstraintSolver implements IConstraintSolver
     public void solveConstraints(List<IMethodSymbol> methodSymbols) {
         Map<String, List<Pair<IMethodSymbol, Deque<WorklistDto>>>> dependencies = new HashMap<>();
         for (IMethodSymbol methodSymbol : methodSymbols) {
-            Deque<WorklistDto> workDeque = createInitialWorklist();
+            Deque<WorklistDto> workDeque = createInitialWorklist(false);
             solveMethodConstraints(dependencies, methodSymbol, workDeque);
         }
 
@@ -73,7 +77,7 @@ public class ConstraintSolver implements IConstraintSolver
     @Override
     public void solveConstraints(IGlobalNamespaceScope globalDefaultNamespaceScope) {
         if (!globalDefaultNamespaceScope.getConstraints().isEmpty()) {
-            Deque<WorklistDto> workDeque = createInitialWorklist();
+            Deque<WorklistDto> workDeque = createInitialWorklist(true);
             List<IOverloadBindings> bindings = solveConstraints(globalDefaultNamespaceScope, workDeque);
             if (bindings.isEmpty()) {
                 //TODO rstoll TINS-306 inference - runtime check insertion
@@ -87,10 +91,10 @@ public class ConstraintSolver implements IConstraintSolver
         }
     }
 
-    private Deque<WorklistDto> createInitialWorklist() {
+    private Deque<WorklistDto> createInitialWorklist(boolean isSolvingGlobalDefaultNamespace) {
         IOverloadBindings bindings = new OverloadBindings(symbolFactory, overloadResolver);
         Deque<WorklistDto> workDeque = new ArrayDeque<>();
-        workDeque.add(new WorklistDto(workDeque, 0, bindings));
+        workDeque.add(new WorklistDto(workDeque, 0, isSolvingGlobalDefaultNamespace, bindings));
         return workDeque;
     }
 
@@ -159,7 +163,7 @@ public class ConstraintSolver implements IConstraintSolver
             atLeastOneBindingCreated = atLeastOneBindingCreated || neededBinding;
         }
 
-        if (atLeastOneBindingCreated || constraint.getMethodSymbol().getOverloads().size() == 1) {
+        if (atLeastOneBindingCreated) {
             addApplicableOverloadsToWorklist(worklistDto, constraint);
         } else {
             addMostSpecificOverloadToWorklist(worklistDto, constraint);
@@ -195,8 +199,7 @@ public class ConstraintSolver implements IConstraintSolver
             try {
                 IOverloadBindings bindings = solveOverLoad(worklistDto, constraint, overload);
                 if (bindings != null) {
-                    worklistDto.workDeque.add(
-                            new WorklistDto(worklistDto.workDeque, worklistDto.pointer + 1, bindings));
+                    worklistDto.workDeque.add(new WorklistDto(worklistDto, bindings));
                 }
             } catch (BoundException ex) {
                 //That is ok, we will deal with it in solveConstraints
@@ -336,8 +339,15 @@ public class ConstraintSolver implements IConstraintSolver
                     //TODO unify most specific
                 }
             }
-            worklistDto.workDeque.add(
-                    new WorklistDto(worklistDto.workDeque, worklistDto.pointer + 1, overloadRankingDto.bindings));
+            worklistDto.workDeque.add(new WorklistDto(worklistDto, overloadRankingDto.bindings));
+        } else if (worklistDto.isSolvingGlobalDefaultNamespace) {
+            issueReporter.constraintViolation(worklistDto.overloadBindings, constraint);
+            //TODO rstoll TINS-306 inference - runtime check insertion
+            //I am not sure but maybe we do not need to do anything. see
+            //TINS-399 save which overload was taken in AST
+            //I think it is enough if the symbol does not contain any overload. The translator can then insert an
+            // error in the output
+
         }
     }
 

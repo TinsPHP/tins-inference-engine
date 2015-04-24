@@ -15,10 +15,23 @@ public class WorklistDto
     public Deque<WorklistDto> workDeque;
     public int pointer;
     public IOverloadBindings overloadBindings;
+    public boolean isSolvingGlobalDefaultNamespace;
 
-    public WorklistDto(Deque<WorklistDto> theWorkDeque, int thePointer, IOverloadBindings theOverloadBindings) {
+    public WorklistDto(
+            Deque<WorklistDto> theWorkDeque,
+            int thePointer,
+            boolean isItSolvingGlobalDefaultNamespace,
+            IOverloadBindings theOverloadBindings) {
         workDeque = theWorkDeque;
         pointer = thePointer;
+        isSolvingGlobalDefaultNamespace = isItSolvingGlobalDefaultNamespace;
+        overloadBindings = theOverloadBindings;
+    }
+
+    public WorklistDto(WorklistDto dto, IOverloadBindings theOverloadBindings) {
+        workDeque = dto.workDeque;
+        pointer = dto.pointer + 1;
+        isSolvingGlobalDefaultNamespace = dto.isSolvingGlobalDefaultNamespace;
         overloadBindings = theOverloadBindings;
     }
 }
