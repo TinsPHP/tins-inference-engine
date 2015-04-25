@@ -45,16 +45,17 @@ public class ConstraintCreator implements IConstraintCreator
         //Tlhs x Trhs -> Tlhs \ Tlhs > Trhs
         String tLhs = "Tlhs";
         String tRhs = "Trhs";
-        IVariable lhs = symbolFactory.createVariable("$lhs", tLhs);
-        IVariable rhs = symbolFactory.createVariable("$rhs", tRhs);
-        IVariable rtn = symbolFactory.createVariable(TypeVariableNames.RETURN_VARIABLE_NAME, tLhs);
+        String varLhs = "$lhs";
+        String varRhs = "$rhs";
+        IVariable lhs = symbolFactory.createVariable(varLhs);
+        IVariable rhs = symbolFactory.createVariable(varRhs);
         IOverloadBindings overloadBindings = new OverloadBindings(theSymbolFactory, theOverloadResolver);
-        overloadBindings.addVariable("$lhs", new TypeVariableReference(tLhs));
-        overloadBindings.addVariable("$rhs", new TypeVariableReference(tRhs));
+        overloadBindings.addVariable(varLhs, new TypeVariableReference(tLhs));
+        overloadBindings.addVariable(varRhs, new TypeVariableReference(tRhs));
         overloadBindings.addVariable(TypeVariableNames.RETURN_VARIABLE_NAME, new TypeVariableReference(tLhs));
         overloadBindings.addLowerRefBound(tLhs, new TypeVariableReference(tRhs));
         IFunctionType identityOverload = symbolFactory.createFunctionType(
-                "=", overloadBindings, Arrays.asList(lhs, rhs), rtn);
+                "=", overloadBindings, Arrays.asList(lhs, rhs));
         assignFunction = symbolFactory.createMinimalMethodSymbol("=");
         assignFunction.addOverload(identityOverload);
     }
@@ -63,7 +64,6 @@ public class ConstraintCreator implements IConstraintCreator
     public void createTypeConstraint(ITSPHPAst literal) {
         IMinimalVariableSymbol typeVariableSymbol = symbolFactory.createExpressionVariableSymbol(literal);
         typeVariableSymbol.setType(literal.getEvalType());
-        typeVariableSymbol.setHasFixedType();
         literal.setSymbol(typeVariableSymbol);
     }
 

@@ -30,6 +30,7 @@ import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IAliasSymbol;
 import ch.tsphp.tinsphp.common.symbols.IAliasTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
+import ch.tsphp.tinsphp.common.symbols.IMinimalVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.IScalarTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
@@ -88,11 +89,11 @@ public class ReferencePhaseControllerTest
     public void resolveConstant_SymbolResolverFindsSymbol_ReturnsSymbol() {
         ITSPHPAst ast = createAst("Dummy");
         ISymbolResolverController symbolResolverController = mock(ISymbolResolverController.class);
-        IVariableSymbol symbol = mock(IVariableSymbol.class);
+        IMinimalVariableSymbol symbol = mock(IMinimalVariableSymbol.class);
         when(symbolResolverController.resolveConstantLikeIdentifier(ast)).thenReturn(symbol);
 
         IReferencePhaseController controller = createController(symbolResolverController);
-        IVariableSymbol result = controller.resolveConstant(ast);
+        IMinimalVariableSymbol result = controller.resolveConstant(ast);
 
         assertThat(result, is(symbol));
     }
@@ -107,10 +108,10 @@ public class ReferencePhaseControllerTest
                 .thenReturn(erroneousVariableSymbol);
 
         IReferencePhaseController controller = createController(symbolFactory);
-        IVariableSymbol result = controller.resolveConstant(ast);
+        IMinimalVariableSymbol result = controller.resolveConstant(ast);
 
         verify(symbolFactory).createErroneousVariableSymbol(eq(ast), any(TSPHPException.class));
-        assertThat(result, is((IVariableSymbol) erroneousVariableSymbol));
+        assertThat(result, is((IMinimalVariableSymbol) erroneousVariableSymbol));
     }
 
     @Test
@@ -128,11 +129,11 @@ public class ReferencePhaseControllerTest
     public void resolveVariable_SymbolResolverFindsSymbol_ReturnsSymbol() {
         ITSPHPAst ast = createAst("Dummy");
         ISymbolResolverController symbolResolverController = mock(ISymbolResolverController.class);
-        IVariableSymbol symbol = mock(IVariableSymbol.class);
+        IMinimalVariableSymbol symbol = mock(IMinimalVariableSymbol.class);
         when(symbolResolverController.resolveVariableLikeIdentifier(ast)).thenReturn(symbol);
 
         IReferencePhaseController controller = createController(symbolResolverController);
-        IVariableSymbol result = controller.resolveVariable(ast);
+        IMinimalVariableSymbol result = controller.resolveVariable(ast);
 
         assertThat(result, is(symbol));
     }
@@ -148,11 +149,11 @@ public class ReferencePhaseControllerTest
         when(variableDeclarationCreator.create(ast)).thenReturn(symbol);
 
         IReferencePhaseController controller = createController(symbolResolverController, variableDeclarationCreator);
-        IVariableSymbol result = controller.resolveVariable(ast);
+        IMinimalVariableSymbol result = controller.resolveVariable(ast);
 
         verify(symbolResolverController).resolveVariableLikeIdentifier(ast);
         verify(variableDeclarationCreator).create(ast);
-        assertThat(result, is(symbol));
+        assertThat(result, is((IMinimalVariableSymbol) symbol));
     }
 
     @Test
@@ -1819,7 +1820,8 @@ public class ReferencePhaseControllerTest
         when(astModificationHelper.createReturnStatement(any(ITSPHPAst.class))).thenReturn(returnAst);
         IConstraintCreator constraintCreator = mock(IConstraintCreator.class);
 
-        IReferencePhaseController controller = createController(issueReporter, astModificationHelper, constraintCreator);
+        IReferencePhaseController controller = createController(issueReporter, astModificationHelper,
+                constraintCreator);
         controller.addImplicitReturnStatementIfRequired(false, true, identifier, block);
 
         verify(returnAst).setScope(methodSymbol);
@@ -1844,7 +1846,8 @@ public class ReferencePhaseControllerTest
         when(astModificationHelper.createReturnStatement(any(ITSPHPAst.class))).thenReturn(returnAst);
         IConstraintCreator constraintCreator = mock(IConstraintCreator.class);
 
-        IReferencePhaseController controller = createController(issueReporter, astModificationHelper, constraintCreator);
+        IReferencePhaseController controller = createController(issueReporter, astModificationHelper,
+                constraintCreator);
         controller.addImplicitReturnStatementIfRequired(false, false, identifier, block);
 
         verify(returnAst).setScope(methodSymbol);

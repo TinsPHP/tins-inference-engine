@@ -40,7 +40,6 @@ import ch.tsphp.tinsphp.common.symbols.IMinimalVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.IUnionTypeSymbol;
-import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousTypeSymbol;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 import ch.tsphp.tinsphp.symbols.ModifierSet;
@@ -102,8 +101,9 @@ public class ReferencePhaseController implements IReferencePhaseController
     }
 
     @Override
-    public IVariableSymbol resolveConstant(ITSPHPAst identifier) {
-        IVariableSymbol symbol = (IVariableSymbol) symbolResolverController.resolveConstantLikeIdentifier(identifier);
+    public IMinimalVariableSymbol resolveConstant(ITSPHPAst identifier) {
+        IMinimalVariableSymbol symbol = (IMinimalVariableSymbol) symbolResolverController
+                .resolveConstantLikeIdentifier(identifier);
         if (symbol == null) {
             ReferenceException exception = inferenceErrorReporter.notDefined(identifier);
             symbol = symbolFactory.createErroneousVariableSymbol(identifier, exception);
@@ -158,9 +158,9 @@ public class ReferencePhaseController implements IReferencePhaseController
 //    }
 
     @Override
-    public IVariableSymbol resolveVariable(ITSPHPAst variableId) {
-        IVariableSymbol variableSymbol =
-                (IVariableSymbol) symbolResolverController.resolveVariableLikeIdentifier(variableId);
+    public IMinimalVariableSymbol resolveVariable(ITSPHPAst variableId) {
+        IMinimalVariableSymbol variableSymbol =
+                (IMinimalVariableSymbol) symbolResolverController.resolveVariableLikeIdentifier(variableId);
         if (variableSymbol == null) {
             variableSymbol = variableDeclarationCreator.create(variableId);
         }

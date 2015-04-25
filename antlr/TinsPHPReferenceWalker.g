@@ -35,6 +35,7 @@ import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
+import ch.tsphp.tinsphp.common.symbols.IMinimalVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
 }
@@ -215,7 +216,7 @@ primitiveAtomWithConstant
 
     |   cnst=CONSTANT
         {
-            IVariableSymbol variableSymbol = controller.resolveConstant($cnst);
+            IMinimalVariableSymbol variableSymbol = controller.resolveConstant($cnst);
             $cnst.setSymbol(variableSymbol);
             if(controller.checkIsNotForwardReference($cnst)){
                 typeSymbol = variableSymbol.getType();
@@ -631,7 +632,7 @@ foreachLoop
             // However, it does not matter here since both are just VariableId this way we can avoid an LL1 conflict
             varId2=VariableId?
             {
-                IVariableSymbol variableSymbol = controller.resolveVariable($varId1);
+                IMinimalVariableSymbol variableSymbol = controller.resolveVariable($varId1);
                 $varId1.setSymbol(variableSymbol);
                 IScope scope = varId1.getScope();
                 scope.addToInitialisedSymbols(variableSymbol, true);
@@ -723,7 +724,7 @@ catchBlocks returns[boolean isReturning, List<ITSPHPAst> asts]
                 classInterfaceType[null] 
                 variableId=VariableId 
                 {
-                    IVariableSymbol variableSymbol = controller.resolveVariable($variableId);
+                    IMinimalVariableSymbol variableSymbol = controller.resolveVariable($variableId);
                     $variableId.setSymbol(variableSymbol);
                     $variableId.getScope().addToInitialisedSymbols(variableSymbol, true);
                 }

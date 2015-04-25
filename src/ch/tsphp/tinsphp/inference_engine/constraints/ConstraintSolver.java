@@ -43,7 +43,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static ch.tsphp.tinsphp.common.utils.Pair.pair;
-import static ch.tsphp.tinsphp.symbols.TypeVariableNames.RETURN_VARIABLE_NAME;
 
 public class ConstraintSolver implements IConstraintSolver
 {
@@ -238,14 +237,16 @@ public class ConstraintSolver implements IConstraintSolver
         while (needToIterateOverload) {
 
             IVariable leftHandSide = constraint.getLeftHandSide();
-            IVariable rightHandSide = overload.getReturnVariable();
-            needToIterateOverload = !mergeTypeVariables(bindings, overload, mapping, leftHandSide, rightHandSide);
+            needToIterateOverload = !mergeTypeVariables(
+                    bindings, overload, mapping, leftHandSide, TypeVariableNames.RETURN_VARIABLE_NAME);
 
             boolean argumentsAreAllFixed = true;
             for (int i = 0; i < count; ++i) {
                 IVariable argument = arguments.get(i);
-                IVariable parameter = parameters.get(i);
-                boolean needToIterateParameter = !mergeTypeVariables(bindings, overload, mapping, argument, parameter);
+                String parameterId = parameters.get(i).getAbsoluteName();
+                boolean needToIterateParameter = !mergeTypeVariables(
+                        bindings, overload, mapping, argument, parameterId);
+
                 needToIterateOverload = needToIterateOverload || needToIterateParameter;
                 argumentsAreAllFixed = argumentsAreAllFixed
                         && bindings.getTypeVariableReference(argument.getAbsoluteName()).hasFixedType();
@@ -275,10 +276,11 @@ public class ConstraintSolver implements IConstraintSolver
             IFunctionType overload,
             Map<String, ITypeVariableReference> mapping,
             IVariable bindingVariable,
-            IVariable overloadVariable) throws BoundException {
+            String overloadVariableId) throws BoundException {
         String bindingVariableName = bindingVariable.getAbsoluteName();
         ITypeVariableReference bindingTypeVariableReference = bindings.getTypeVariableReference(bindingVariableName);
-        String overloadTypeVariable = overloadVariable.getTypeVariable();
+        IOverloadBindings overloadBindings = overload.getBindings();
+        String overloadTypeVariable = overloadBindings.getTypeVariableReference(overloadVariableId).getTypeVariable();
 
         String lhsTypeVariable;
         if (mapping.containsKey(overloadTypeVariable)) {
@@ -290,9 +292,9 @@ public class ConstraintSolver implements IConstraintSolver
             mapping.put(overloadTypeVariable, bindingTypeVariableReference);
         }
 
-        IOverloadBindings overloadTypeVariables = overload.getBindings();
+
         return applyRightToLeft(
-                mapping, bindings, lhsTypeVariable, overloadTypeVariables, overloadTypeVariable);
+                mapping, bindings, lhsTypeVariable, overloadBindings, overloadTypeVariable);
     }
 
     private boolean applyRightToLeft(
@@ -380,8 +382,10 @@ public class ConstraintSolver implements IConstraintSolver
             IIntersectionTypeSymbol intersectionTypeSymbol = symbolFactory.createIntersectionTypeSymbol();
 
             for (OverloadRankingDto dto : overloadBindingsList) {
-                String parameterTypeVariable = dto.overload.getParameters().get(i).getTypeVariable();
                 IOverloadBindings bindings = dto.overload.getBindings();
+                IVariable parameter = dto.overload.getParameters().get(i);
+                ITypeVariableReference reference = bindings.getTypeVariableReference(parameter.getAbsoluteName());
+                String parameterTypeVariable = reference.getTypeVariable();
                 if (bindings.hasLowerTypeBounds(parameterTypeVariable)) {
                     dto.lowerBound = bindings.getLowerTypeBounds(parameterTypeVariable);
                     unionTypeSymbol.addTypeSymbol(dto.lowerBound);
@@ -477,27 +481,13 @@ public class ConstraintSolver implements IConstraintSolver
 
         List<IVariable> parameters = new ArrayList<>();
         for (IVariableSymbol parameter : methodSymbol.getParameters()) {
-            String parameterId = parameter.getAbsoluteName();
-            ITypeVariableReference parameterTypeVariableReference = bindings.getTypeVariableReference(parameterId);
-            String typeVariable = parameterTypeVariableReference.getTypeVariable();
             IMinimalVariableSymbol parameterVariable = symbolFactory.createMinimalVariableSymbol(
-                    parameter.getDefinitionAst(), parameter.getName(), typeVariable);
+                    parameter.getDefinitionAst(), parameter.getName());
             parameterVariable.setDefinitionScope(parameter.getDefinitionScope());
-            if (parameterTypeVariableReference.hasFixedType()) {
-                parameterVariable.setHasFixedType();
-            }
             parameters.add(parameterVariable);
         }
 
-        ITypeVariableReference returnTypeVariableReference = bindings.getTypeVariableReference(RETURN_VARIABLE_NAME);
-        String returnTypeVariable = returnTypeVariableReference.getTypeVariable();
-        IVariable returnVariable = symbolFactory.createVariable(RETURN_VARIABLE_NAME, returnTypeVariable);
-        if (returnTypeVariableReference.hasFixedType()) {
-            returnVariable.setHasFixedType();
-        }
-
-        IFunctionType functionType = symbolFactory.createFunctionType(
-                methodSymbol.getName(), bindings, parameters, returnVariable);
+        IFunctionType functionType = symbolFactory.createFunctionType(methodSymbol.getName(), bindings, parameters);
         methodSymbol.addOverload(functionType);
     }
 

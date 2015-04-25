@@ -123,7 +123,7 @@ public class SymbolCheckController implements ISymbolCheckController
         VariableInitialisedResultDto result = new VariableInitialisedResultDto();
         result.isFullyInitialised = true;
         ISymbol symbol = variableId.getSymbol();
-        if (!(symbol instanceof IErroneousVariableSymbol)) {
+        if (!(symbol instanceof IErroneousVariableSymbol) && isNotSuperGlobal(symbol)) {
             IScope scope = variableId.getScope();
             result.isFullyInitialised = scope.isFullyInitialised(symbol) || isLeftHandSideOfAssignment(variableId);
             if (!result.isFullyInitialised) {
@@ -131,6 +131,11 @@ public class SymbolCheckController implements ISymbolCheckController
             }
         }
         return result;
+    }
+
+    private boolean isNotSuperGlobal(ISymbol symbol) {
+        //quick and dirty, if it has got a namespace, then it cannot be a super global
+        return symbol.getDefinitionScope() != null;
     }
 
     private boolean isLeftHandSideOfAssignment(ITSPHPAst variableId) {

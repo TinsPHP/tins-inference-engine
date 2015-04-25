@@ -16,7 +16,6 @@ import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.inference_engine.resolver.PutAtTopVariableDeclarationCreator;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.ScopeTestHelper;
-import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.inference.AInferenceNamespaceTypeTest;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.inference.AInferenceOverloadTest;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.inference.OverloadTestStruct;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
@@ -62,8 +61,7 @@ public class AppliedOverloadTest extends AInferenceOverloadTest
                         "wrong scope",
                 testStruct.astScope, ScopeTestHelper.getEnclosingScopeNames(definitionScope));
 
-        IConstraintCollection collectionScope
-                = AInferenceNamespaceTypeTest.getConstraintCollection(definitionScope);
+        IConstraintCollection collectionScope = definitionPhaseController.getGlobalDefaultNamespace();
 
         List<IOverloadBindings> overloadBindingsList = collectionScope.getBindings();
         Assert.assertEquals(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
@@ -118,6 +116,14 @@ public class AppliedOverloadTest extends AInferenceOverloadTest
                                         varBinding(RETURN_VARIABLE_NAME, "Treturn", asList("array"), null, true)
                                 )), 1, 0, 0)
                 },
+                {
+                        "namespace a{const a = 'hi';} namespace b{ echo \\a\\a;}",
+                        testStructs("(echo \\a\\a#)", "\\b\\.\\b\\.",
+                                functionDtos("echo", 1, bindingDtos(
+                                        varBinding("$expr", "Texpr", null, asList("string"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "Treturn", asList("mixed"), null, true)
+                                )), 1, 1, 0)
+                }
         });
     }
 }

@@ -9,9 +9,12 @@ package ch.tsphp.tinsphp.inference_engine.test.integration.testutils.inference;
 import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ISymbol;
+import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableReference;
+import ch.tsphp.tinsphp.common.symbols.IContainerTypeSymbol;
+import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.ScopeTestHelper;
 import org.junit.Assert;
@@ -19,6 +22,7 @@ import org.junit.Ignore;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -55,7 +59,10 @@ public class AInferenceNamespaceTypeTest extends AInferenceTest
                             "wrong scope",
                     testStruct.astScope, ScopeTestHelper.getEnclosingScopeNames(definitionScope));
 
-            IConstraintCollection collectionScope = getConstraintCollection(definitionScope);
+            IConstraintCollection collectionScope = getEnclosingMethodSymbol(testCandidate.getScope());
+            if (collectionScope == null) {
+                collectionScope = definitionPhaseController.getGlobalDefaultNamespace();
+            }
 
             List<IOverloadBindings> overloadBindingsList = collectionScope.getBindings();
             Assert.assertEquals(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
@@ -63,43 +70,69 @@ public class AInferenceNamespaceTypeTest extends AInferenceTest
 
             IOverloadBindings overloadBindings = overloadBindingsList.get(0);
 
-            Assert.assertTrue(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
-                            "no type variableId defined for " + symbol.getAbsoluteName(),
-                    overloadBindings.containsVariable(symbol.getAbsoluteName()));
+            if (overloadBindings.containsVariable(symbol.getAbsoluteName())) {
+                checkBinding(counter, testStruct, symbol, overloadBindings);
+            } else {
+                ITypeSymbol typeSymbol = symbol.getType();
+                Assert.assertNotNull(testString + " -- " + testStruct.astText
+                        + " failed (testStruct Nr " + counter + "). no type variableId defined for"
+                        + symbol.getAbsoluteName() + "neither a predefined type specified!", typeSymbol);
 
-            ITypeVariableReference reference = overloadBindings.getTypeVariableReference(symbol.getAbsoluteName());
+                if (testStruct.types.size() > 1) {
+                    Assert.assertTrue(testString + " -- " + testStruct.astText
+                            + " failed (testStruct Nr " + counter + "). multiple types expected "
+                            + "but type is not a container type", typeSymbol instanceof IContainerTypeSymbol);
 
-            Assert.assertTrue(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
-                    " type was not fixed.", reference.hasFixedType());
-
-            String typeVariable = reference.getTypeVariable();
-
-            Assert.assertTrue(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
-                            "no lower type bound defined",
-                    overloadBindings.hasLowerTypeBounds(typeVariable));
-
-            IUnionTypeSymbol lowerTypeBounds = overloadBindings.getLowerTypeBounds(typeVariable);
-            assertThat(lowerTypeBounds.getTypeSymbols().keySet(), describedAs(testString + " -- " + testStruct
-                            .astText + " failed " +
-                            "(testStruct Nr " + counter + "). wrong lower types. \nExpected: " + testStruct.types,
-                    containsInAnyOrder(testStruct.types.toArray())));
-
-            IUnionTypeSymbol upperTypeBounds = overloadBindings.getLowerTypeBounds(typeVariable);
-            assertThat(upperTypeBounds.getTypeSymbols().keySet(), describedAs(testString + " -- " + testStruct
-                            .astText + " failed " +
-                            "(testStruct Nr " + counter + "). wrong lower types. \nExpected: " + testStruct.types,
-                    containsInAnyOrder(testStruct.types.toArray())));
+                    IContainerTypeSymbol containerTypeSymbol = (IContainerTypeSymbol) typeSymbol;
+                    Map<String, ITypeSymbol> typeSymbols = containerTypeSymbol.getTypeSymbols();
+                    assertThat(typeSymbols.keySet(),
+                            describedAs(testString + " -- " + testStruct.astText
+                                            + " failed (testStruct Nr " + counter + "). wrong lower types.\n"
+                                            + "Expected: " + testStruct.types,
+                                    containsInAnyOrder(testStruct.types.toArray())));
+                } else {
+                    Assert.assertEquals(testString + " -- " + testStruct.astText
+                                    + " failed (testStruct Nr " + counter + ")", testStruct.types.get(0),
+                            typeSymbol.getAbsoluteName());
+                }
+            }
 
             ++counter;
         }
     }
 
-    public static IConstraintCollection getConstraintCollection(IScope definitionScope) {
+    public static IMethodSymbol getEnclosingMethodSymbol(IScope definitionScope) {
         IScope scope = definitionScope;
-        while (!(scope instanceof IConstraintCollection)) {
+        while (scope != null && !(scope instanceof IMethodSymbol)) {
             scope = scope.getEnclosingScope();
         }
-        return (IConstraintCollection) scope;
+        return (IMethodSymbol) scope;
+    }
+
+    private void checkBinding(
+            int counter, AbsoluteTypeNameTestStruct testStruct, ISymbol symbol, IOverloadBindings overloadBindings) {
+
+        ITypeVariableReference reference = overloadBindings.getTypeVariableReference(symbol.getAbsoluteName());
+
+        Assert.assertTrue(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
+                " type was not fixed.", reference.hasFixedType());
+
+        String typeVariable = reference.getTypeVariable();
+        Assert.assertTrue(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
+                        "no lower type bound defined",
+                overloadBindings.hasLowerTypeBounds(typeVariable));
+
+        IUnionTypeSymbol lowerTypeBounds = overloadBindings.getLowerTypeBounds(typeVariable);
+        assertThat(lowerTypeBounds.getTypeSymbols().keySet(),
+                describedAs(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). "
+                                + "wrong lower types. \nExpected: " + testStruct.types,
+                        containsInAnyOrder(testStruct.types.toArray())));
+
+        IUnionTypeSymbol upperTypeBounds = overloadBindings.getLowerTypeBounds(typeVariable);
+        assertThat(upperTypeBounds.getTypeSymbols().keySet(),
+                describedAs(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). "
+                                + "wrong lower types. \nExpected: " + testStruct.types,
+                        containsInAnyOrder(testStruct.types.toArray())));
     }
 
     protected static AbsoluteTypeNameTestStruct testStruct(

@@ -24,10 +24,10 @@ import static java.util.Arrays.asList;
 
 
 @RunWith(Parameterized.class)
-public class VariableDeclarationTest extends AInferenceNamespaceTypeTest
+public class ProblematicExpressionTest extends AInferenceNamespaceTypeTest
 {
 
-    public VariableDeclarationTest(String testString, AbsoluteTypeNameTestStruct[] theTestStructs) {
+    public ProblematicExpressionTest(String testString, AbsoluteTypeNameTestStruct[] theTestStructs) {
         super(testString, theTestStructs);
     }
 
@@ -47,27 +47,26 @@ public class VariableDeclarationTest extends AInferenceNamespaceTypeTest
     @Parameterized.Parameters
     public static Collection<Object[]> testStrings() {
         return asList(new Object[][]{
-                {"$a = null;", testStructs("$a", "\\.\\.", asList("null"), 1, 1, 0, 0)},
-                {"$a = false;", testStructs("$a", "\\.\\.", asList("false"), 1, 1, 0, 0)},
-                {"$a = true;", testStructs("$a", "\\.\\.", asList("true"), 1, 1, 0, 0)},
-                {"$a = 1;", testStructs("$a", "\\.\\.", asList("int"), 1, 1, 0, 0)},
-                {"$a = 1.4;", testStructs("$a", "\\.\\.", asList("float"), 1, 1, 0, 0)},
-                {"$a = 'h';", testStructs("$a", "\\.\\.", asList("string"), 1, 1, 0, 0)},
+                //see TINS-410 super globals are not in binding
                 {
-                        "$a = 1; $b = $a;", new AbsoluteTypeNameTestStruct[]{
-                        testStruct("$a", "\\.\\.", asList("int"), 1, 2, 0, 0),
-                        testStruct("$b", "\\.\\.", asList("int"), 1, 3, 0, 0)}
+                        "$_GET; $a = 1; //$a = 1; only because we do not have constraints in global otherwise",
+                        testStructs("$_GET", "", asList("array"), 1, 1, 0)
                 },
                 {
-                        "$a = 1;\n $b = $a;\n $b = 1.2;\n $a = $b;", new AbsoluteTypeNameTestStruct[]{
-                        testStruct("$a", "\\.\\.", asList("int", "float"), 1, 2, 0, 0),
-                        testStruct("$b", "\\.\\.", asList("int", "float"), 1, 3, 0, 0),
-                        testStruct("$b", "\\.\\.", asList("int", "float"), 1, 4, 0, 0),
-                        testStruct("$a", "\\.\\.", asList("int", "float"), 1, 5, 0, 0)}
+                        "function foo(){$_GET; return 1;}",
+                        testStructs("$_GET", "", asList("array"), 1, 0, 4, 0, 0)
                 },
-                //see TINS-278 $_GET is a type instead of a variable
-                {"$a = $_GET;", testStructs("$a", "\\.\\.", asList("array"), 1, 1, 0, 0)},
-                {"$a = $_GET + [2];", testStructs("$a", "\\.\\.", asList("array"), 1, 1, 0, 0)},
+                {"$a = E_ALL;", testStructs("$a", "\\.\\.", asList("int"), 1, 1, 0, 0)},
+                //predefined constants in a single statement also do not generate a constraint but should have a
+                // predefined type
+                {
+                        "E_ALL; $a = 1; //$a = 1; only because we do not have constraints in global otherwise",
+                        testStructs("E_ALL#", "", asList("int"), 1, 1, 0)
+                },
+                {
+                        "function foo(){E_ALL; return 1;}",
+                        testStructs("E_ALL#", "", asList("int"), 1, 0, 4, 0, 0)
+                },
         });
     }
 }

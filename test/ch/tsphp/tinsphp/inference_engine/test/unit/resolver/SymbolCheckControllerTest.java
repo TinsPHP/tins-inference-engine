@@ -484,6 +484,7 @@ public class SymbolCheckControllerTest
     public void isVariableInitialised_IsFullyInitialised_ReturnsTrueAndFalse() {
         ITSPHPAst variableId = mock(ITSPHPAst.class);
         ISymbol symbol = mock(ISymbol.class);
+        when(symbol.getDefinitionScope()).thenReturn(mock(IScope.class));
         when(variableId.getSymbol()).thenReturn(symbol);
         IScope scope = mock(IScope.class);
         when(variableId.getScope()).thenReturn(scope);
@@ -502,6 +503,7 @@ public class SymbolCheckControllerTest
     public void isVariableInitialised_IsPartiallyInitialised_ReturnsTrueAndFalse() {
         ITSPHPAst variableId = mock(ITSPHPAst.class);
         ISymbol symbol = mock(ISymbol.class);
+        when(symbol.getDefinitionScope()).thenReturn(mock(IScope.class));
         when(variableId.getSymbol()).thenReturn(symbol);
         IScope scope = mock(IScope.class);
         when(variableId.getScope()).thenReturn(scope);
@@ -523,6 +525,7 @@ public class SymbolCheckControllerTest
     public void isVariableInitialised_IsLeftHandSideOfAssignment_ReturnsTrueAndFalse() {
         ITSPHPAst variableId = mock(ITSPHPAst.class);
         ISymbol symbol = mock(ISymbol.class);
+        when(symbol.getDefinitionScope()).thenReturn(mock(IScope.class));
         when(variableId.getSymbol()).thenReturn(symbol);
         IScope scope = mock(IScope.class);
         when(variableId.getScope()).thenReturn(scope);
@@ -545,6 +548,7 @@ public class SymbolCheckControllerTest
     public void isVariableInitialised_IsRightHandSideOfAssignmentAndPartiallyInitialised_ReturnsFalseAndTrue() {
         ITSPHPAst variableId = mock(ITSPHPAst.class);
         ISymbol symbol = mock(ISymbol.class);
+        when(symbol.getDefinitionScope()).thenReturn(mock(IScope.class));
         when(variableId.getSymbol()).thenReturn(symbol);
         IScope scope = mock(IScope.class);
         when(variableId.getScope()).thenReturn(scope);
@@ -568,6 +572,7 @@ public class SymbolCheckControllerTest
     public void isVariableInitialised_IsRightHandSideOfAssignmentAndNotInitialised_ReturnsFalseAndFalse() {
         ITSPHPAst variableId = mock(ITSPHPAst.class);
         ISymbol symbol = mock(ISymbol.class);
+        when(symbol.getDefinitionScope()).thenReturn(mock(IScope.class));
         when(variableId.getSymbol()).thenReturn(symbol);
         IScope scope = mock(IScope.class);
         when(variableId.getScope()).thenReturn(scope);
@@ -584,6 +589,23 @@ public class SymbolCheckControllerTest
         verify(scope).isFullyInitialised(symbol);
         verify(scope).isPartiallyInitialised(symbol);
         assertThat(result.isFullyInitialised, is(false));
+        assertThat(result.isPartiallyInitialised, is(false));
+    }
+
+    @Test
+    public void isVariableInitialised_SymbolDoesNotHaveDefinitionScope_ReturnsTrueAndFalseNeverAsksScope() {
+        ITSPHPAst variableId = mock(ITSPHPAst.class);
+        ISymbol symbol = mock(ISymbol.class);
+        when(variableId.getSymbol()).thenReturn(symbol);
+        IScope scope = mock(IScope.class);
+        when(variableId.getScope()).thenReturn(scope);
+        when(scope.isFullyInitialised(symbol)).thenReturn(false);
+
+        ISymbolCheckController controller = createController();
+        VariableInitialisedResultDto result = controller.isVariableInitialised(variableId);
+
+        verifyNoMoreInteractions(scope);
+        assertThat(result.isFullyInitialised, is(true));
         assertThat(result.isPartiallyInitialised, is(false));
     }
 

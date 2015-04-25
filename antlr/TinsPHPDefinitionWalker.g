@@ -65,7 +65,7 @@ topdown
     |   constantDefinitionList
     |   variableDefinitionList
     |   parameterDeclarationList
-    |   returnBreakContinue
+    |   controlFlowOperatorsAndGlobalFunctions
     ;
 
 bottomup
@@ -349,10 +349,12 @@ primitiveTypesWithoutResource
     |   'array'
     ;
 
-returnBreakContinue
+controlFlowOperatorsAndGlobalFunctions
     :   (   Return
         |   Break
         |   Continue
+        |   Throw
+        |   Echo
         )
         {$start.setScope(currentScope);}
     ;

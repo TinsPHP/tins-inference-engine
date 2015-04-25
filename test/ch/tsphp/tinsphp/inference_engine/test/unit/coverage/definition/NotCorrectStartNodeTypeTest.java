@@ -99,7 +99,7 @@ public class NotCorrectStartNodeTypeTest extends ADefinitionWalkerTest
                 {"parameterDeclaration", Try},
                 {"parameterDeclarationList", Try},
                 {"primitiveTypesWithoutResource", Try},
-                {"returnBreakContinue", Try},
+                {"controlFlowOperatorsAndGlobalFunctions", Try},
                 {"topdown", Try},
                 {"useDeclaration", Try},
                 {"useDeclarationList", Try},

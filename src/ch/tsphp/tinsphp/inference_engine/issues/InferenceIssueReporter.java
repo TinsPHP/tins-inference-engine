@@ -30,6 +30,7 @@ import ch.tsphp.tinsphp.common.translation.dtos.MethodDto;
 import ch.tsphp.tinsphp.common.translation.dtos.ParameterDto;
 import ch.tsphp.tinsphp.common.translation.dtos.TypeDto;
 import ch.tsphp.tinsphp.common.translation.dtos.TypeParameterDto;
+import ch.tsphp.tinsphp.symbols.TypeVariableNames;
 import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
 
 import java.util.ArrayDeque;
@@ -224,12 +225,12 @@ public class InferenceIssueReporter implements IInferenceIssueReporter
         Set<String> typeVariablesAdded = new HashSet<>(numberOfParameters + 1);
         List<TypeParameterDto> typeParameters = new ArrayList<>(numberOfParameters + 1);
         TypeDto returnType = createTypeDto(
-                overload.getReturnVariable(), bindings, typeParameters, typeVariablesAdded);
+                TypeVariableNames.RETURN_VARIABLE_NAME, bindings, typeParameters, typeVariablesAdded);
 
         List<ParameterDto> parameterDtos = new ArrayList<>();
         for (IVariable parameter : parameters) {
             parameterDtos.add(new ParameterDto(
-                    createTypeDto(parameter, bindings, typeParameters, typeVariablesAdded),
+                    createTypeDto(parameter.getAbsoluteName(), bindings, typeParameters, typeVariablesAdded),
                     parameter.getName(),
                     null
             ));
@@ -242,13 +243,14 @@ public class InferenceIssueReporter implements IInferenceIssueReporter
     }
 
     private TypeDto createTypeDto(
-            IVariable variable,
+            String variableId,
             IOverloadBindings bindings,
             List<TypeParameterDto> typeParameters,
             Set<String> typeVariablesAdded) {
 
-        TypeDto typeDto = createTypeDto(variable, bindings);
-        if (!variable.hasFixedType()) {
+        ITypeVariableReference reference = bindings.getTypeVariableReference(variableId);
+        TypeDto typeDto = createTypeDto(reference, bindings);
+        if (!reference.hasFixedType()) {
             String typeVariable = typeDto.type;
             if (!typeVariablesAdded.contains(typeVariable)) {
                 typeVariablesAdded.add(typeVariable);
@@ -273,10 +275,11 @@ public class InferenceIssueReporter implements IInferenceIssueReporter
         return typeDto;
     }
 
-    private TypeDto createTypeDto(IVariable variable, IOverloadBindings bindings) {
-        String typeVariable = variable.getTypeVariable();
+    private TypeDto createTypeDto(ITypeVariableReference reference, IOverloadBindings bindings) {
         String type;
-        if (variable.hasFixedType()) {
+
+        String typeVariable = reference.getTypeVariable();
+        if (reference.hasFixedType()) {
             ITypeSymbol typeSymbol;
             if (bindings.hasUpperTypeBounds(typeVariable)) {
                 typeSymbol = bindings.getUpperTypeBounds(typeVariable);
@@ -287,6 +290,7 @@ public class InferenceIssueReporter implements IInferenceIssueReporter
         } else {
             type = typeVariable;
         }
+
         return new TypeDto(null, type, null);
     }
 }
