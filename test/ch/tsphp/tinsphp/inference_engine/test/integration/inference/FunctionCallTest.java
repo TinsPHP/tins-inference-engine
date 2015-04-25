@@ -48,13 +48,12 @@ public class FunctionCallTest extends AInferenceNamespaceTypeTest
     public static Collection<Object[]> testStrings() {
         return asList(new Object[][]{
                 {"$a = strpos('hello','h');", testStructs("$a", "\\.\\.", asList("int", "false"), 1, 1, 0, 0)},
-                //TODO rstoll TINS-37 6overload creation
-//                {
-//                        "function foo($x, $y){return bar($x, $y);}" +
-//                                "function bar($x, $y){return $x + $y;}" +
-//                                "$a = foo(1, 2);",
-//                        testStructs("$a", "\\.\\.", asList("int"), null, 1, 3, 0, 0)
-//                },
+                {
+                        "function foo($x, $y){return bar($x, $y);}" +
+                                "function bar($x, $y){return $x + $y;}" +
+                                "$a = foo(1, 2);",
+                        testStructs("$a", "\\.\\.", asList("int"), null, 1, 3, 0, 0)
+                },
         });
     }
 }
