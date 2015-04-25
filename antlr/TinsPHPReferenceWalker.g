@@ -396,6 +396,7 @@ functionDefinition
             $identifier.getSymbol().setType($returnTypesOrUnknown.type);
             controller.checkIsNotDoubleDefinitionCaseInsensitive($identifier);
         //Warning! end duplicated code as in functionDeclaration
+        
             controller.addImplicitReturnStatementIfRequired(
                 $block.isReturning, hasAtLeastOneReturnOrThrow, $identifier, $block.start);
         }
@@ -490,17 +491,9 @@ instruction returns[boolean isReturning, boolean isBreaking]
     |   doWhileLoop                  {$isReturning = $doWhileLoop.isReturning;}
     |   tryCatch                     {$isReturning = $tryCatch.isReturning;}
     |   ^(EXPRESSION expression?)
-    |   ^(rtn=Return expression?)    {$isReturning = true; hasAtLeastOneReturnOrThrow = true; doesNotReachThisStatement = true;}
+    |   ^(rtn='return' expression?)    {$isReturning = true; hasAtLeastOneReturnOrThrow = true; doesNotReachThisStatement = true;}
         {
-            ISymbol symbol = controller.resolveReturn(rtn);
-            if(symbol != null){
-                rtn.setSymbol(symbol);
-                ITSPHPAst expr = $expression.start;
-                if (expr == null){
-                    expr = controller.createNullLiteral();
-                }
-                controller.createRefConstraint(currentScope, rtn, expr);
-            }
+            controller.createReturnConstraint(currentScope, rtn, $expression.start);
         }
     |   ^(op='throw' expression)        {$isReturning = true; hasAtLeastOneReturnOrThrow = true; doesNotReachThisStatement = true;}
         {

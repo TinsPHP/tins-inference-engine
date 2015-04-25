@@ -29,6 +29,7 @@ import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.common.utils.IOverloadResolver;
 import ch.tsphp.tinsphp.common.utils.MapHelper;
 import ch.tsphp.tinsphp.common.utils.Pair;
+import ch.tsphp.tinsphp.symbols.TypeVariableNames;
 import ch.tsphp.tinsphp.symbols.constraints.BoundException;
 import ch.tsphp.tinsphp.symbols.constraints.OverloadBindings;
 
@@ -255,6 +256,9 @@ public class ConstraintSolver implements IConstraintSolver
                 ITypeVariableReference reference = bindings.getTypeVariableReference(lhsAbsoluteName);
                 if (!reference.hasFixedType() && argumentsAreAllFixed) {
                     bindings.fixType(lhsAbsoluteName);
+                }
+                if (!lhsAbsoluteName.equals(TypeVariableNames.RETURN_VARIABLE_NAME)) {
+                    bindings.setAppliedOverload(lhsAbsoluteName, overload);
                 }
             }
 

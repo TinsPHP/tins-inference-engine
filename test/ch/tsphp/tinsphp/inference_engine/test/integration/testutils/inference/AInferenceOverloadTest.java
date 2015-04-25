@@ -53,11 +53,7 @@ public class AInferenceOverloadTest extends AInferenceTest
             Assert.assertNotNull(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + ")." +
                     " symbol was null", symbol);
 
-            Assert.assertTrue(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + ")." +
-                    "symbol is not a constraint collection", symbol instanceof IConstraintCollection);
-
-            IMethodSymbol methodSymbol = (IMethodSymbol) symbol;
-            List<IFunctionType> overloads = methodSymbol.getOverloads();
+            List<IFunctionType> overloads = getOverloads(counter, testStruct, symbol);
             int size = testStruct.dtos.size();
 
             for (int i = 0; i < size; ++i) {
@@ -73,6 +69,14 @@ public class AInferenceOverloadTest extends AInferenceTest
 
             ++counter;
         }
+    }
+
+    protected List<IFunctionType> getOverloads(int counter, OverloadTestStruct testStruct, ISymbol symbol) {
+        Assert.assertTrue(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + ")." +
+                "symbol is not a constraint collection", symbol instanceof IConstraintCollection);
+
+        IMethodSymbol methodSymbol = (IMethodSymbol) symbol;
+        return methodSymbol.getOverloads();
     }
 
 

@@ -55,16 +55,16 @@ public class ConstantDefinitionTest extends AInferenceNamespaceTypeTest
                 {"const a = -1.5;", testStructs("(a# (uMinus 1.5))", "\\.\\.", asList("float"), 1, 0, 1)},
 
                 //TODO rstoll TINS-344 seeding and constants
-//                {
-//                        "const a = 1, b = 'h';", new AbsoluteTypeNameTestStruct[]{
-//                        testStruct("(a# 1)", "\\.\\.", "int", 1, 0, 1),
-//                        testStruct("(b# a#)", "\\.\\.", "int", 1, 0, 2)}
-//                },
-//                {
-//                        "const a = 1, b = a;", new AbsoluteTypeNameTestStruct[]{
-//                        testStruct("(a# 1)", "\\.\\.", "int", 1, 0, 1),
-//                        testStruct("(b# a#)", "\\.\\.", "int", 1, 0, 2)}
-//                },
+                {
+                        "const a = 1, b = 'hi';", new AbsoluteTypeNameTestStruct[]{
+                        testStruct("(a# 1)", "\\.\\.", asList("int"), 1, 0, 1),
+                        testStruct("(b# 'hi')", "\\.\\.", asList("string"), 1, 0, 2)}
+                },
+                {
+                        "const a = 1, b = a;", new AbsoluteTypeNameTestStruct[]{
+                        testStruct("(a# 1)", "\\.\\.", asList("int"), 1, 0, 1),
+                        testStruct("(b# a#)", "\\.\\.", asList("int"), 1, 0, 2)}
+                },
         });
     }
 }

@@ -94,7 +94,7 @@ public class AInferenceNamespaceTypeTest extends AInferenceTest
         }
     }
 
-    private IConstraintCollection getConstraintCollection(IScope definitionScope) {
+    public static IConstraintCollection getConstraintCollection(IScope definitionScope) {
         IScope scope = definitionScope;
         while (!(scope instanceof IConstraintCollection)) {
             scope = scope.getEnclosingScope();

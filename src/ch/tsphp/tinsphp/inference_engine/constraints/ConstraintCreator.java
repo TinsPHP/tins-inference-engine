@@ -61,7 +61,7 @@ public class ConstraintCreator implements IConstraintCreator
 
     @Override
     public void createTypeConstraint(ITSPHPAst literal) {
-        IMinimalVariableSymbol typeVariableSymbol = symbolFactory.createExpressionTypeVariableSymbol(literal);
+        IMinimalVariableSymbol typeVariableSymbol = symbolFactory.createExpressionVariableSymbol(literal);
         typeVariableSymbol.setType(literal.getEvalType());
         typeVariableSymbol.setHasFixedType();
         literal.setSymbol(typeVariableSymbol);
@@ -92,7 +92,7 @@ public class ConstraintCreator implements IConstraintCreator
             ITSPHPAst identifierAst,
             List<IVariable> typeVariables,
             IMinimalMethodSymbol methodSymbol) {
-        IMinimalVariableSymbol expressionVariable = symbolFactory.createExpressionTypeVariableSymbol(identifierAst);
+        IMinimalVariableSymbol expressionVariable = symbolFactory.createExpressionVariableSymbol(identifierAst);
         expressionVariable.setDefinitionScope(identifierAst.getScope());
         IConstraint constraint = new Constraint(parentAst, expressionVariable, typeVariables, methodSymbol);
         collection.addConstraint(constraint);

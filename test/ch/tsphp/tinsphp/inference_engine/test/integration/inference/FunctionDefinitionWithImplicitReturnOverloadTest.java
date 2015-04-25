@@ -66,7 +66,7 @@ public class FunctionDefinitionWithImplicitReturnOverloadTest extends AInference
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 1, bindingDtos(
                                 varBinding(RETURN_VARIABLE_NAME,
                                         "T1", asList("int", "null"), asList("(int | null)"), true),
-                                varBinding("foo()$x", "T4", asList("bool"), asList("bool"), true))), 1, 0, 2)
+                                varBinding("foo()$x", "T5", asList("bool"), asList("bool"), true))), 1, 0, 2)
                 },
         });
     }

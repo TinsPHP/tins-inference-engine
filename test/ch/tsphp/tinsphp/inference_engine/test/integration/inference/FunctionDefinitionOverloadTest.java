@@ -87,8 +87,8 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                 {
                         "function foo($x, $y){return null;}",
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 2, bindingDtos(
-                                varBinding("foo()$x", "T3", asList("mixed"), asList("mixed"), true),
-                                varBinding("foo()$y", "T4", asList("mixed"), asList("mixed"), true),
+                                varBinding("foo()$x", "T4", asList("mixed"), asList("mixed"), true),
+                                varBinding("foo()$y", "T5", asList("mixed"), asList("mixed"), true),
                                 varBinding(RETURN_VARIABLE_NAME, "T1", asList("null"), asList("null"), true))), 1, 0, 2)
                 },
                 {
@@ -168,7 +168,7 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                 {
                         "function foo($x){ $a = null; return \n$a;}",
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 1, bindingDtos(
-                                varBinding("foo()$x", "T5", asList("mixed"), asList("mixed"), true),
+                                varBinding("foo()$x", "T6", asList("mixed"), asList("mixed"), true),
                                 varBinding(RETURN_VARIABLE_NAME, "T4", asList("null"), asList("null"), true))), 1, 0, 2)
                 },
                 //$x with useless statement. Second one is constant but $x has no lower bound

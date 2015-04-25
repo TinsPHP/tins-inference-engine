@@ -184,15 +184,6 @@ public class ReferencePhaseController implements IReferencePhaseController
     }
 
     @Override
-    public IMinimalVariableSymbol resolveReturn(ITSPHPAst returnAst) {
-        IMethodSymbol methodSymbol = scopeHelper.getEnclosingMethod(returnAst);
-        if (methodSymbol != null) {
-            return methodSymbol.getReturnVariable();
-        }
-        return null;
-    }
-
-    @Override
     public ITypeSymbol resolvePrimitiveType(ITSPHPAst typeAst, ITSPHPAst typeModifierAst) {
         return resolveType(
                 typeAst,
@@ -575,8 +566,28 @@ public class ReferencePhaseController implements IReferencePhaseController
     }
 
     @Override
-    public void createOperatorConstraint(
-            IConstraintCollection collection, ITSPHPAst operator, ITSPHPAst... arguments) {
+    public void createReturnConstraint(IConstraintCollection currentScope, ITSPHPAst returnAst, ITSPHPAst expression) {
+        IMethodSymbol methodSymbol = scopeHelper.getEnclosingMethod(returnAst);
+        if (methodSymbol != null) {
+            ITSPHPAst returnValue = expression;
+            if (returnValue == null) {
+                returnValue = createNullLiteral();
+            }
+
+            //we create two ref constraints, the first is an assignment from this return to the global return
+            IMinimalVariableSymbol returnVariable = methodSymbol.getReturnVariable();
+            returnAst.setSymbol(returnVariable);
+            constraintCreator.createRefConstraint(currentScope, returnAst, returnValue);
+
+            //the second assigns the actual value (or null if it is missing) to this return statement
+            IMinimalVariableSymbol expressionVariableSymbol = symbolFactory.createExpressionVariableSymbol(returnAst);
+            returnAst.setSymbol(expressionVariableSymbol);
+            constraintCreator.createRefConstraint(currentScope, returnAst, returnValue);
+        }
+    }
+
+    @Override
+    public void createOperatorConstraint(IConstraintCollection collection, ITSPHPAst operator, ITSPHPAst... arguments) {
         constraintCreator.createOperatorConstraint(collection, operator, arguments);
     }
 
