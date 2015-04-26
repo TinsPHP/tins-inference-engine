@@ -364,7 +364,9 @@ public class ConstraintSolver implements IConstraintSolver
         for (IFunctionType overload : constraint.getMethodSymbol().getOverloads()) {
             try {
                 IOverloadBindings bindings = solveOverLoad(worklistDto, constraint, overload);
-                overloadBindingsList.add(new OverloadRankingDto(overload, bindings));
+                if (bindings != null) {
+                    overloadBindingsList.add(new OverloadRankingDto(overload, bindings));
+                }
             } catch (BoundException ex) {
                 //That is ok, we are looking for applicable overloads
             }
