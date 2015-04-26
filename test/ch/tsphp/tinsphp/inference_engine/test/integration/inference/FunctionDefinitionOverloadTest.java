@@ -81,7 +81,8 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                 {
                         "function foo(){return null;}",
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 0, bindingDtos(
-                                varBinding(RETURN_VARIABLE_NAME, "T1", asList("null"), asList("null"), true))), 1, 0, 2)
+                                varBinding(RETURN_VARIABLE_NAME, "T1", asList("nullType"), asList("nullType"),
+                                        true))), 1, 0, 2)
                 },
                 //notice $x and $y are not used within the function body
                 {
@@ -89,7 +90,8 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 2, bindingDtos(
                                 varBinding("foo()$x", "T4", asList("mixed"), asList("mixed"), true),
                                 varBinding("foo()$y", "T5", asList("mixed"), asList("mixed"), true),
-                                varBinding(RETURN_VARIABLE_NAME, "T1", asList("null"), asList("null"), true))), 1, 0, 2)
+                                varBinding(RETURN_VARIABLE_NAME, "T1", asList("nullType"), asList("nullType"),
+                                        true))), 1, 0, 2)
                 },
                 {
                         "function foo($x, $y){ $x = $y; return $x;}",
@@ -154,22 +156,24 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                 {
                         "function foo($x){ $x = null; return $x;}",
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 1, bindingDtos(
-                                varBinding("foo()$x", "T1", asList("null"), null, false),
-                                varBinding(RETURN_VARIABLE_NAME, "T1", asList("null"), null, false))), 1, 0, 2)
+                                varBinding("foo()$x", "T1", asList("nullType"), null, false),
+                                varBinding(RETURN_VARIABLE_NAME, "T1", asList("nullType"), null, false))), 1, 0, 2)
                 },
                 //constant function but with indirection
                 //see also TINS-386 - function with constant return via indirection
                 {
                         "function foo(){ $a = null; return \n$a;}",
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 0, bindingDtos(
-                                varBinding(RETURN_VARIABLE_NAME, "T4", asList("null"), asList("null"), true))), 1, 0, 2)
+                                varBinding(RETURN_VARIABLE_NAME, "T4", asList("nullType"), asList("nullType"),
+                                        true))), 1, 0, 2)
                 },
                 //same as before but with unused parameter
                 {
                         "function foo($x){ $a = null; return \n$a;}",
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 1, bindingDtos(
                                 varBinding("foo()$x", "T6", asList("mixed"), asList("mixed"), true),
-                                varBinding(RETURN_VARIABLE_NAME, "T4", asList("null"), asList("null"), true))), 1, 0, 2)
+                                varBinding(RETURN_VARIABLE_NAME, "T4", asList("nullType"), asList("nullType"),
+                                        true))), 1, 0, 2)
                 },
                 //$x with useless statement. Second one is constant but $x has no lower bound
                 //see also TINS-384 most specific overload and variable parameter

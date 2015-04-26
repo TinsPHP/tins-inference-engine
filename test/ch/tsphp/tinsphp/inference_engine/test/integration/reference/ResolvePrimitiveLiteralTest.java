@@ -34,9 +34,9 @@ public class ResolvePrimitiveLiteralTest extends AReferenceEvalTypeScopeTest
     @Parameterized.Parameters
     public static Collection<Object[]> testStrings() {
         return Arrays.asList(new Object[][]{
-                {"null;", typeStruct("null", "null", "", 1, 0, 0)},
-                {"true;", typeStruct("true", "true", "", 1, 0, 0)},
-                {"false;", typeStruct("false", "false", "", 1, 0, 0)},
+                {"null;", typeStruct("null", "nullType", "", 1, 0, 0)},
+                {"true;", typeStruct("true", "trueType", "", 1, 0, 0)},
+                {"false;", typeStruct("false", "falseType", "", 1, 0, 0)},
                 {"1;", typeStruct("1", "int", "", 1, 0, 0)},
                 {"1.2;", typeStruct("1.2", "float", "", 1, 0, 0)},
                 {"\"hello\";", typeStruct("\"hello\"", "string", "", 1, 0, 0)},

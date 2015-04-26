@@ -97,12 +97,12 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceOverloadTe
                                         varBinding("foo()$x", "T2", asList("bool"), asList("bool"), true),
                                         varBinding("foo()$y", "T3", asList("bool"), asList("bool"), true),
                                         varBinding(RETURN_VARIABLE_NAME,
-                                                "T4", asList("int", "false"), asList("(int | false)"), true))),
+                                                "T4", asList("int", "falseType"), asList("(falseType | int)"), true))),
                                 functionDto("foo()", 2, bindingDtos(
                                         varBinding("foo()$x", "T2", asList("float"), asList("num"), false),
                                         varBinding("foo()$y", "T2", asList("float"), asList("num"), false),
                                         varBinding(RETURN_VARIABLE_NAME,
-                                                "T4", asList("@T2", "float", "false"), null, false)))
+                                                "T4", asList("@T2", "float", "falseType"), null, false)))
                         ), 1, 0, 2)
                 },
         });

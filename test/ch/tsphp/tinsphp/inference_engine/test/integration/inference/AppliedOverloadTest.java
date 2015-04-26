@@ -86,7 +86,8 @@ public class AppliedOverloadTest extends AInferenceOverloadTest
                                 functionDtos("strpos", 2, bindingDtos(
                                         varBinding("$lhs", "Tlhs", null, asList("string"), true),
                                         varBinding("$rhs", "Trhs", null, asList("string"), true),
-                                        varBinding(RETURN_VARIABLE_NAME, "Treturn", asList("int", "false"), null, true)
+                                        varBinding(RETURN_VARIABLE_NAME, "Treturn", asList("int", "falseType"), null,
+                                                true)
                                 )), 1, 1, 0, 1)
                 },
                 {

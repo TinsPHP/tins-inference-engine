@@ -47,7 +47,7 @@ public class FunctionCallTest extends AInferenceNamespaceTypeTest
     @Parameterized.Parameters
     public static Collection<Object[]> testStrings() {
         return asList(new Object[][]{
-                {"$a = strpos('hello','h');", testStructs("$a", "\\.\\.", asList("int", "false"), 1, 1, 0, 0)},
+                {"$a = strpos('hello','h');", testStructs("$a", "\\.\\.", asList("int", "falseType"), 1, 1, 0, 0)},
                 {
                         "function foo($x, $y){return bar($x, $y);}" +
                                 "function bar($x, $y){return $x + $y;}" +

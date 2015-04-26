@@ -34,9 +34,9 @@ public class ConstantDefinitionTest extends AInferenceNamespaceTypeTest
     @Parameterized.Parameters
     public static Collection<Object[]> testStrings() {
         return asList(new Object[][]{
-                {"const a = null;", testStructs("(a# null)", "\\.\\.", asList("null"), 1, 0, 1)},
-                {"const a = false;", testStructs("(a# false)", "\\.\\.", asList("false"), 1, 0, 1)},
-                {"const a = true;", testStructs("(a# true)", "\\.\\.", asList("true"), 1, 0, 1)},
+                {"const a = null;", testStructs("(a# null)", "\\.\\.", asList("nullType"), 1, 0, 1)},
+                {"const a = false;", testStructs("(a# false)", "\\.\\.", asList("falseType"), 1, 0, 1)},
+                {"const a = true;", testStructs("(a# true)", "\\.\\.", asList("trueType"), 1, 0, 1)},
                 {"const a = 1;", testStructs("(a# 1)", "\\.\\.", asList("int"), 1, 0, 1)},
                 {"const a = 1.4;", testStructs("(a# 1.4)", "\\.\\.", asList("float"), 1, 0, 1)},
                 {"const a = 'h';", testStructs("(a# 'h')", "\\.\\.", asList("string"), 1, 0, 1)},

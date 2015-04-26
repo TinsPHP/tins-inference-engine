@@ -47,26 +47,26 @@ public class OperatorTest extends AInferenceNamespaceTypeTest
     public static Collection<Object[]> testStrings() {
         return asList(new Object[][]{
                 // or
-                {"false or false;", testStructs("(or false false)", "\\.\\.", asList("false"), 1, 0, 0)},
-                {"$x = (bool) true; true or $x;", testStructs("(or true $x)", "\\.\\.", asList("true"), 1, 2, 0)},
-                {"$x = (bool) true; $x or true;", testStructs("(or $x true)", "\\.\\.", asList("true"), 1, 2, 0)},
+                {"false or false;", testStructs("(or false false)", "\\.\\.", asList("falseType"), 1, 0, 0)},
+                {"$x = (bool) true; true or $x;", testStructs("(or true $x)", "\\.\\.", asList("trueType"), 1, 2, 0)},
+                {"$x = (bool) true; $x or true;", testStructs("(or $x true)", "\\.\\.", asList("trueType"), 1, 2, 0)},
                 {"$x = (bool) true; $x or $x;", testStructs("(or $x $x)", "\\.\\.", asList("bool"), 1, 2, 0)},
                 // xor
-                {"false xor true;", testStructs("(xor false true)", "\\.\\.", asList("true"), 1, 0, 0)},
-                {"true xor false;", testStructs("(xor true false)", "\\.\\.", asList("true"), 1, 0, 0)},
-                {"false xor false;", testStructs("(xor false false)", "\\.\\.", asList("false"), 1, 0, 0)},
-                {"true xor true;", testStructs("(xor true true)", "\\.\\.", asList("false"), 1, 0, 0)},
+                {"false xor true;", testStructs("(xor false true)", "\\.\\.", asList("trueType"), 1, 0, 0)},
+                {"true xor false;", testStructs("(xor true false)", "\\.\\.", asList("trueType"), 1, 0, 0)},
+                {"false xor false;", testStructs("(xor false false)", "\\.\\.", asList("falseType"), 1, 0, 0)},
+                {"true xor true;", testStructs("(xor true true)", "\\.\\.", asList("falseType"), 1, 0, 0)},
                 {"$x = (bool) true; $x xor $x;", testStructs("(xor $x $x)", "\\.\\.", asList("bool"), 1, 2, 0)},
                 // and
                 {
                         "$x = (bool) true; false and $x;",
-                        testStructs("(and false $x)", "\\.\\.", asList("false"), 1, 2, 0)
+                        testStructs("(and false $x)", "\\.\\.", asList("falseType"), 1, 2, 0)
                 },
                 {
                         "$x = (bool) true; $x and false;",
-                        testStructs("(and $x false)", "\\.\\.", asList("false"), 1, 2, 0)
+                        testStructs("(and $x false)", "\\.\\.", asList("falseType"), 1, 2, 0)
                 },
-                {"true and true;", testStructs("(and true true)", "\\.\\.", asList("true"), 1, 0, 0)},
+                {"true and true;", testStructs("(and true true)", "\\.\\.", asList("trueType"), 1, 0, 0)},
                 {"$x = (bool) true; $x and $x;", testStructs("(and $x $x)", "\\.\\.", asList("bool"), 1, 2, 0)},
                 // +=
                 //TODO rstoll TINS-347 create overloads for conversion constraints
@@ -100,19 +100,19 @@ public class OperatorTest extends AInferenceNamespaceTypeTest
                 //TODO rstoll TINS-347 create overloads for conversion constraints
 //                {
 //                        "$x = true; $x /= false;",
-//                        testStructs("(/= $x false)", "\\.\\.", asList("int","false"), null, 1, 2, 0)
+//                        testStructs("(/= $x false)", "\\.\\.", asList("int","falseType"), null, 1, 2, 0)
 //                },
                 {
                         "$x = 1.3; $x /= 1.3;",
-                        testStructs("(/= $x 1.3)", "\\.\\.", asList("false", "float"), 1, 2, 0)
+                        testStructs("(/= $x 1.3)", "\\.\\.", asList("falseType", "float"), 1, 2, 0)
                 },
                 //TODO rstoll TINS-347 create overloads for conversion constraints
 //                {
 //                        "$x = (bool) 1 ? 1 : 1.5; $x /= $x;",
-//                        testStructs("(/= $x $x)", "\\.\\.", asList("num", "false"), null, 1, 2, 0)
+//                        testStructs("(/= $x $x)", "\\.\\.", asList("num", "falseType"), null, 1, 2, 0)
 //                },
                 // %=
-                {"$x = 1; $x %= 1;", testStructs("(%= $x 1)", "\\.\\.", asList("int", "false"), 1, 2, 0)},
+                {"$x = 1; $x %= 1;", testStructs("(%= $x 1)", "\\.\\.", asList("int", "falseType"), 1, 2, 0)},
                 // |=
                 {"$x = 1; $x |= 1;", testStructs("(|= $x 1)", "\\.\\.", asList("int"), 1, 2, 0)},
                 {"$x = 'a'; $x |= 'b';", testStructs("(|= $x 'b')", "\\.\\.", asList("string"), 1, 2, 0)},
@@ -140,20 +140,20 @@ public class OperatorTest extends AInferenceNamespaceTypeTest
                         testStructs("(? $x (array 1) 1.3)", "\\.\\.", asList("float", "array"), 1, 2, 0)
                 },
                 // ||
-                {"false || false;", testStructs("(|| false false)", "\\.\\.", asList("false"), 1, 0, 0)},
-                {"$x = (bool) true; true || $x;", testStructs("(|| true $x)", "\\.\\.", asList("true"), 1, 2, 0)},
-                {"$x = (bool) true; $x || true;", testStructs("(|| $x true)", "\\.\\.", asList("true"), 1, 2, 0)},
+                {"false || false;", testStructs("(|| false false)", "\\.\\.", asList("falseType"), 1, 0, 0)},
+                {"$x = (bool) true; true || $x;", testStructs("(|| true $x)", "\\.\\.", asList("trueType"), 1, 2, 0)},
+                {"$x = (bool) true; $x || true;", testStructs("(|| $x true)", "\\.\\.", asList("trueType"), 1, 2, 0)},
                 {"$x = (bool) true; $x || $x;", testStructs("(|| $x $x)", "\\.\\.", asList("bool"), 1, 2, 0)},
                 // &&
                 {
                         "$x = (bool) true; false && $x;",
-                        testStructs("(&& false $x)", "\\.\\.", asList("false"), 1, 2, 0)
+                        testStructs("(&& false $x)", "\\.\\.", asList("falseType"), 1, 2, 0)
                 },
                 {
                         "$x = (bool) true; $x && false;",
-                        testStructs("(&& $x false)", "\\.\\.", asList("false"), 1, 2, 0)
+                        testStructs("(&& $x false)", "\\.\\.", asList("falseType"), 1, 2, 0)
                 },
-                {"true && true;", testStructs("(&& true true)", "\\.\\.", asList("true"), 1, 0, 0)},
+                {"true && true;", testStructs("(&& true true)", "\\.\\.", asList("trueType"), 1, 0, 0)},
                 {"$x = (bool) true; $x && $x;", testStructs("(&& $x $x)", "\\.\\.", asList("bool"), 1, 2, 0)},
                 // |
                 {"2 | 1;", testStructs("(| 2 1)", "\\.\\.", asList("int"), 1, 0, 0)},
@@ -220,14 +220,14 @@ public class OperatorTest extends AInferenceNamespaceTypeTest
                         testStructs("(* $x $x)", "\\.\\.", asList("int", "float"), 1, 2, 0)
                 },
                 // /
-                {"true / false;", testStructs("(/ true false)", "\\.\\.", asList("int", "false"), 1, 0, 0)},
-                {"2.1 / 1.5;", testStructs("(/ 2.1 1.5)", "\\.\\.", asList("false", "float"), 1, 0, 0)},
+                {"true / false;", testStructs("(/ true false)", "\\.\\.", asList("int", "falseType"), 1, 0, 0)},
+                {"2.1 / 1.5;", testStructs("(/ 2.1 1.5)", "\\.\\.", asList("falseType", "float"), 1, 0, 0)},
                 {
                         "$x = (bool) 1 ? 1 : 1.5; $x / $x;",
-                        testStructs("(/ $x $x)", "\\.\\.", asList("int", "float", "false"), 1, 2, 0)
+                        testStructs("(/ $x $x)", "\\.\\.", asList("int", "float", "falseType"), 1, 2, 0)
                 },
                 // %
-                {"2 % 1;", testStructs("(% 2 1)", "\\.\\.", asList("int", "false"), 1, 0, 0)},
+                {"2 % 1;", testStructs("(% 2 1)", "\\.\\.", asList("int", "falseType"), 1, 0, 0)},
                 //instanceof
                 {
                         "$x = 1; 1 instanceof $x;",
@@ -248,11 +248,11 @@ public class OperatorTest extends AInferenceNamespaceTypeTest
                 },
                 {"(array) 1;", testStructs("(casting (type tMod array) 1)", "\\.\\.", asList("array"), 1, 0, 0)},
                 // preIncr
-                {"$x = false; ++$x;", testStructs("(preIncr $x)", "\\.\\.", asList("false"), 1, 2, 0)},
-                {"$x = true; ++$x;", testStructs("(preIncr $x)", "\\.\\.", asList("true"), 1, 2, 0)},
+                {"$x = false; ++$x;", testStructs("(preIncr $x)", "\\.\\.", asList("falseType"), 1, 2, 0)},
+                {"$x = true; ++$x;", testStructs("(preIncr $x)", "\\.\\.", asList("trueType"), 1, 2, 0)},
                 {
                         "$x = (bool) 1 ? false : true; ++$x;",
-                        testStructs("(preIncr $x)", "\\.\\.", asList("false", "true"), 1, 2, 0)
+                        testStructs("(preIncr $x)", "\\.\\.", asList("falseType", "trueType"), 1, 2, 0)
                 },
                 {"$x = 1; ++$x;", testStructs("(preIncr $x)", "\\.\\.", asList("int"), 1, 2, 0)},
                 {"$x = 1.5; ++$x;", testStructs("(preIncr $x)", "\\.\\.", asList("float"), 1, 2, 0)},
@@ -261,11 +261,11 @@ public class OperatorTest extends AInferenceNamespaceTypeTest
                         testStructs("(preIncr $x)", "\\.\\.", asList("int", "float"), 1, 2, 0)
                 },
                 //preDecr
-                {"$x = false; --$x;", testStructs("(preDecr $x)", "\\.\\.", asList("false"), 1, 2, 0)},
-                {"$x = true; --$x;", testStructs("(preDecr $x)", "\\.\\.", asList("true"), 1, 2, 0)},
+                {"$x = false; --$x;", testStructs("(preDecr $x)", "\\.\\.", asList("falseType"), 1, 2, 0)},
+                {"$x = true; --$x;", testStructs("(preDecr $x)", "\\.\\.", asList("trueType"), 1, 2, 0)},
                 {
                         "$x = (bool) 1 ? false : true; --$x;",
-                        testStructs("(preDecr $x)", "\\.\\.", asList("false", "true"), 1, 2, 0)
+                        testStructs("(preDecr $x)", "\\.\\.", asList("falseType", "trueType"), 1, 2, 0)
                 },
                 {"$x = 1; --$x;", testStructs("(preDecr $x)", "\\.\\.", asList("int"), 1, 2, 0)},
                 {"$x = 1.5; --$x;", testStructs("(preDecr $x)", "\\.\\.", asList("float"), 1, 2, 0)},
@@ -274,11 +274,11 @@ public class OperatorTest extends AInferenceNamespaceTypeTest
                         testStructs("(preDecr $x)", "\\.\\.", asList("int", "float"), 1, 2, 0)
                 },
                 // postIncr
-                {"$x = false; $x++;", testStructs("(postIncr $x)", "\\.\\.", asList("false"), 1, 2, 0)},
-                {"$x = true; $x++;", testStructs("(postIncr $x)", "\\.\\.", asList("true"), 1, 2, 0)},
+                {"$x = false; $x++;", testStructs("(postIncr $x)", "\\.\\.", asList("falseType"), 1, 2, 0)},
+                {"$x = true; $x++;", testStructs("(postIncr $x)", "\\.\\.", asList("trueType"), 1, 2, 0)},
                 {
                         "$x = (bool) 1 ? false : true; $x++;",
-                        testStructs("(postIncr $x)", "\\.\\.", asList("false", "true"), 1, 2, 0)
+                        testStructs("(postIncr $x)", "\\.\\.", asList("falseType", "trueType"), 1, 2, 0)
                 },
                 {"$x = 1; $x++;", testStructs("(postIncr $x)", "\\.\\.", asList("int"), 1, 2, 0)},
                 {"$x = 1.5; $x++;", testStructs("(postIncr $x)", "\\.\\.", asList("float"), 1, 2, 0)},
@@ -287,11 +287,11 @@ public class OperatorTest extends AInferenceNamespaceTypeTest
                         testStructs("(postIncr $x)", "\\.\\.", asList("int", "float"), 1, 2, 0)
                 },
                 //postDecr
-                {"$x = false; $x--;", testStructs("(postDecr $x)", "\\.\\.", asList("false"), 1, 2, 0)},
-                {"$x = true; $x--;", testStructs("(postDecr $x)", "\\.\\.", asList("true"), 1, 2, 0)},
+                {"$x = false; $x--;", testStructs("(postDecr $x)", "\\.\\.", asList("falseType"), 1, 2, 0)},
+                {"$x = true; $x--;", testStructs("(postDecr $x)", "\\.\\.", asList("trueType"), 1, 2, 0)},
                 {
                         "$x = (bool) 1 ? false : true; $x--;",
-                        testStructs("(postDecr $x)", "\\.\\.", asList("false", "true"), 1, 2, 0)
+                        testStructs("(postDecr $x)", "\\.\\.", asList("falseType", "trueType"), 1, 2, 0)
                 },
                 {"$x = 1; $x--;", testStructs("(postDecr $x)", "\\.\\.", asList("int"), 1, 2, 0)},
                 {"$x = 1.5; $x--;", testStructs("(postDecr $x)", "\\.\\.", asList("float"), 1, 2, 0)},
@@ -300,8 +300,8 @@ public class OperatorTest extends AInferenceNamespaceTypeTest
                         testStructs("(postDecr $x)", "\\.\\.", asList("int", "float"), 1, 2, 0)
                 },
                 //@
-                {"@false;", testStructs("(@ false)", "\\.\\.", asList("false"), 1, 0, 0)},
-                {"@true;", testStructs("(@ true)", "\\.\\.", asList("true"), 1, 0, 0)},
+                {"@false;", testStructs("(@ false)", "\\.\\.", asList("falseType"), 1, 0, 0)},
+                {"@true;", testStructs("(@ true)", "\\.\\.", asList("trueType"), 1, 0, 0)},
                 {"@1;", testStructs("(@ 1)", "\\.\\.", asList("int"), 1, 0, 0)},
                 {"@1.3;", testStructs("(@ 1.3)", "\\.\\.", asList("float"), 1, 0, 0)},
                 {"@'a';", testStructs("(@ 'a')", "\\.\\.", asList("string"), 1, 0, 0)},
@@ -320,15 +320,15 @@ public class OperatorTest extends AInferenceNamespaceTypeTest
                 {"+1;", testStructs("(uPlus 1)", "\\.\\.", asList("int"), 1, 0, 0)},
                 {"+1.5;", testStructs("(uPlus 1.5)", "\\.\\.", asList("float"), 1, 0, 0)},
                 //if
-                {"$x = true; if($x){}", testStructs("$x", "\\.\\.", asList("true"), 1, 2, 0)},
+                {"$x = true; if($x){}", testStructs("$x", "\\.\\.", asList("trueType"), 1, 2, 0)},
                 //while
-                {"$x = true; while($x){}", testStructs("$x", "\\.\\.", asList("true"), 1, 2, 0)},
+                {"$x = true; while($x){}", testStructs("$x", "\\.\\.", asList("trueType"), 1, 2, 0)},
                 //do
-                {"$x = true; do{}while($x);", testStructs("$x", "\\.\\.", asList("true"), 1, 2, 1)},
+                {"$x = true; do{}while($x);", testStructs("$x", "\\.\\.", asList("trueType"), 1, 2, 1)},
                 //for
-                {"$x = true; for(;$x;){}", testStructs("$x", "\\.\\.", asList("true"), 1, 2, 1, 0)},
-                {"$x = true; for(;1,$x;){}", testStructs("$x", "\\.\\.", asList("true"), 1, 2, 1, 1)},
-                {"$x = true; for(;1,2,$x;){}", testStructs("$x", "\\.\\.", asList("true"), 1, 2, 1, 2)},
+                {"$x = true; for(;$x;){}", testStructs("$x", "\\.\\.", asList("trueType"), 1, 2, 1, 0)},
+                {"$x = true; for(;1,$x;){}", testStructs("$x", "\\.\\.", asList("trueType"), 1, 2, 1, 1)},
+                {"$x = true; for(;1,2,$x;){}", testStructs("$x", "\\.\\.", asList("trueType"), 1, 2, 1, 2)},
                 //foreach
                 {
                         "$x = []; foreach($x as $k => $v){}", new AbsoluteTypeNameTestStruct[]{
@@ -337,11 +337,11 @@ public class OperatorTest extends AInferenceNamespaceTypeTest
                         testStruct("$v", "\\.\\.", asList("mixed"), 1, 4, 2)}
                 },
                 //switch
-                {"$x = true; switch($x){}", testStructs("$x", "\\.\\.", asList("true"), 1, 2, 0)},
+                {"$x = true; switch($x){}", testStructs("$x", "\\.\\.", asList("trueType"), 1, 2, 0)},
                 //try/catch
                 {
                         "$x = null; try{}catch(Exception $x){}",
-                        testStructs("$x", "\\.\\.", asList("null", "Exception"), 1, 2, 1, 1)
+                        testStructs("$x", "\\.\\.", asList("nullType", "Exception"), 1, 2, 1, 1)
                 },
                 //echo
                 {"$x = 'h'; echo $x;", testStructs("$x", "\\.\\.", asList("string"), 1, 2, 0)},

@@ -40,10 +40,10 @@ import ch.tsphp.tinsphp.common.symbols.IMinimalVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.IUnionTypeSymbol;
+import ch.tsphp.tinsphp.common.symbols.PrimitiveTypeNames;
 import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousTypeSymbol;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 import ch.tsphp.tinsphp.symbols.ModifierSet;
-import ch.tsphp.tinsphp.symbols.PrimitiveTypeNames;
 import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
 import org.antlr.runtime.RecognitionException;
 
@@ -193,7 +193,7 @@ public class ReferencePhaseController implements IReferencePhaseController
                     @Override
                     public ITypeSymbol resolve(ITSPHPAst type) {
                         String typeName = type.getText();
-                        return primitiveTypes.get(typeName.charAt(0) == '\\' ? typeName : "\\" + typeName);
+                        return primitiveTypes.get(typeName);
                     }
                 }
         );
@@ -247,8 +247,8 @@ public class ReferencePhaseController implements IReferencePhaseController
                 : new ModifierSet();
 
         ITypeSymbol typeSymbol = currentType;
-        ITypeSymbol nullTypeSymbol = primitiveTypes.get(PrimitiveTypeNames.NULL);
-        ITypeSymbol falseTypeSymbol = primitiveTypes.get(PrimitiveTypeNames.FALSE);
+        ITypeSymbol nullTypeSymbol = primitiveTypes.get(PrimitiveTypeNames.NULL_TYPE);
+        ITypeSymbol falseTypeSymbol = primitiveTypes.get(PrimitiveTypeNames.FALSE_TYPE);
 
         boolean needsNullTypeSymbol = modifiers.isNullable() && currentType != nullTypeSymbol;
         boolean needsFalseTypeSymbol = modifiers.isFalseable() && currentType != falseTypeSymbol;
@@ -290,13 +290,13 @@ public class ReferencePhaseController implements IReferencePhaseController
         ITypeSymbol typeSymbol;
         switch (literal.getType()) {
             case TokenTypes.Null:
-                typeSymbol = primitiveTypes.get(PrimitiveTypeNames.NULL);
+                typeSymbol = primitiveTypes.get(PrimitiveTypeNames.NULL_TYPE);
                 break;
             case TokenTypes.False:
-                typeSymbol = primitiveTypes.get(PrimitiveTypeNames.FALSE);
+                typeSymbol = primitiveTypes.get(PrimitiveTypeNames.FALSE_TYPE);
                 break;
             case TokenTypes.True:
-                typeSymbol = primitiveTypes.get(PrimitiveTypeNames.TRUE);
+                typeSymbol = primitiveTypes.get(PrimitiveTypeNames.TRUE_TYPE);
                 break;
             case TokenTypes.Int:
                 typeSymbol = primitiveTypes.get(PrimitiveTypeNames.INT);
@@ -550,7 +550,7 @@ public class ReferencePhaseController implements IReferencePhaseController
     @Override
     public ITSPHPAst createNullLiteral() {
         ITSPHPAst nullLiteral = astModificationHelper.createNullLiteral();
-        nullLiteral.setEvalType(primitiveTypes.get(PrimitiveTypeNames.NULL));
+        nullLiteral.setEvalType(primitiveTypes.get(PrimitiveTypeNames.NULL_TYPE));
         createTypeConstraint(nullLiteral);
         return nullLiteral;
     }

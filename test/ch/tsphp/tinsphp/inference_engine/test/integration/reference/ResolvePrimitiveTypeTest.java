@@ -44,7 +44,7 @@ public class ResolvePrimitiveTypeTest extends ATypeSystemTest
 
         ITypeSymbol result = referencePhaseController.resolvePrimitiveType(ast, null);
 
-        assertThat(result, is(core.getPrimitiveTypes().get("\\" + type)));
+        assertThat(result, is(core.getPrimitiveTypes().get(type)));
     }
 
     @Test
@@ -54,7 +54,7 @@ public class ResolvePrimitiveTypeTest extends ATypeSystemTest
 
         ITypeSymbol result = referencePhaseController.resolvePrimitiveType(ast, null);
 
-        assertThat(result, is(core.getPrimitiveTypes().get("\\" + type)));
+        assertThat(result, is(core.getPrimitiveTypes().get(type)));
     }
 
     @Parameterized.Parameters

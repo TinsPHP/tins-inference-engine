@@ -31,7 +31,7 @@ public class GlobalNamespaceTest extends ATest
 
     @Test
     public void testResolveLengthLessThanNamespace() {
-        ISymbol symbol = new ScalarTypeSymbol("int", null, TokenTypes.Bool, "false");
+        ISymbol symbol = new ScalarTypeSymbol("int", null, TokenTypes.Bool, "falseType");
 
         GlobalNamespaceScope globalNamespace = createGlobalNamespaceScope("\\a\\b\\c");
         globalNamespace.define(symbol);

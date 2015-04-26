@@ -47,9 +47,9 @@ public class VariableDeclarationTest extends AInferenceNamespaceTypeTest
     @Parameterized.Parameters
     public static Collection<Object[]> testStrings() {
         return asList(new Object[][]{
-                {"$a = null;", testStructs("$a", "\\.\\.", asList("null"), 1, 1, 0, 0)},
-                {"$a = false;", testStructs("$a", "\\.\\.", asList("false"), 1, 1, 0, 0)},
-                {"$a = true;", testStructs("$a", "\\.\\.", asList("true"), 1, 1, 0, 0)},
+                {"$a = null;", testStructs("$a", "\\.\\.", asList("nullType"), 1, 1, 0, 0)},
+                {"$a = false;", testStructs("$a", "\\.\\.", asList("falseType"), 1, 1, 0, 0)},
+                {"$a = true;", testStructs("$a", "\\.\\.", asList("trueType"), 1, 1, 0, 0)},
                 {"$a = 1;", testStructs("$a", "\\.\\.", asList("int"), 1, 1, 0, 0)},
                 {"$a = 1.4;", testStructs("$a", "\\.\\.", asList("float"), 1, 1, 0, 0)},
                 {"$a = 'h';", testStructs("$a", "\\.\\.", asList("string"), 1, 1, 0, 0)},
