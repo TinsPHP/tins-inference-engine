@@ -627,18 +627,16 @@ foreachLoop
     :
         ^(op=Foreach
             expression 
-            varId1=VariableId
-            // Corresponding to the parser the first VariableId (the key) should be optional.
-            // However, it does not matter here since both are just VariableId this way we can avoid an LL1 conflict
-            varId2=VariableId?
+            value=VariableId
+            key=VariableId?
             {
-                IMinimalVariableSymbol variableSymbol = controller.resolveVariable($varId1);
-                $varId1.setSymbol(variableSymbol);
-                IScope scope = varId1.getScope();
+                IMinimalVariableSymbol variableSymbol = controller.resolveVariable($value);
+                $value.setSymbol(variableSymbol);
+                IScope scope = $value.getScope();
                 scope.addToInitialisedSymbols(variableSymbol, true);
-                if($varId2 != null){
-                    variableSymbol = controller.resolveVariable($varId2);
-                    $varId2.setSymbol(variableSymbol);
+                if($key != null){
+                    variableSymbol = controller.resolveVariable($key);
+                    $key.setSymbol(variableSymbol);
                     scope.addToInitialisedSymbols(variableSymbol, true);
                 }
             }
@@ -649,17 +647,15 @@ foreachLoop
             controller.sendUpInitialisedSymbols(op);
            
             op.setSymbol(controller.resolveOperator(op));
-            
-            //TODO rstoll TINS-393 - change key and value in foreach
-            //needs to adopted: switch varId2 and varId1 for the else case
-            if ($varId2 == null){
-                ITSPHPAst one = (ITSPHPAst) adaptor.create(this.Int, $varId1.getToken(), "1");
+
+            if ($key == null){
+                ITSPHPAst one = (ITSPHPAst) adaptor.create(this.Int, $value.getToken(), "1");
                 ITypeSymbol typeSymbol = controller.resolvePrimitiveLiteral(one);
                 one.setEvalType(typeSymbol);
                 controller.createTypeConstraint(one);
-                controller.createOperatorConstraint(currentScope, op, $expression.start, varId1, one);
+                controller.createOperatorConstraint(currentScope, op, $expression.start, $value, one);
             } else {
-                controller.createOperatorConstraint(currentScope, op, $expression.start, varId2, varId1);
+                controller.createOperatorConstraint(currentScope, op, $expression.start, $value, $key);
             }
         }
     ;

@@ -333,8 +333,8 @@ public class OperatorTest extends AInferenceNamespaceTypeTest
                 {
                         "$x = []; foreach($x as $k => $v){}", new AbsoluteTypeNameTestStruct[]{
                         testStruct("$x", "\\.\\.", asList("array"), 1, 4, 0),
-                        testStruct("$k", "\\.\\.", asList("int", "string"), 1, 4, 1),
-                        testStruct("$v", "\\.\\.", asList("mixed"), 1, 4, 2)}
+                        testStruct("$v", "\\.\\.", asList("mixed"), 1, 4, 1),
+                        testStruct("$k", "\\.\\.", asList("int", "string"), 1, 4, 2)}
                 },
                 //switch
                 {"$x = true; switch($x){}", testStructs("$x", "\\.\\.", asList("trueType"), 1, 2, 0)},
