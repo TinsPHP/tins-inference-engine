@@ -19,10 +19,7 @@ import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMinimalVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
-import ch.tsphp.tinsphp.common.utils.IOverloadResolver;
 import ch.tsphp.tinsphp.symbols.TypeVariableNames;
-import ch.tsphp.tinsphp.symbols.constraints.Constraint;
-import ch.tsphp.tinsphp.symbols.constraints.OverloadBindings;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,10 +32,7 @@ public class ConstraintCreator implements IConstraintCreator
     private final IMinimalMethodSymbol assignFunction;
 
 
-    public ConstraintCreator(
-            ISymbolFactory theSymbolFactory,
-            IOverloadResolver theOverloadResolver,
-            IInferenceIssueReporter theInferenceErrorReporter) {
+    public ConstraintCreator(ISymbolFactory theSymbolFactory, IInferenceIssueReporter theInferenceErrorReporter) {
         symbolFactory = theSymbolFactory;
         inferenceIssueReporter = theInferenceErrorReporter;
 
@@ -49,7 +43,7 @@ public class ConstraintCreator implements IConstraintCreator
         String varRhs = "$rhs";
         IVariable lhs = symbolFactory.createVariable(varLhs);
         IVariable rhs = symbolFactory.createVariable(varRhs);
-        IOverloadBindings overloadBindings = new OverloadBindings(theSymbolFactory, theOverloadResolver);
+        IOverloadBindings overloadBindings = symbolFactory.createOverloadBindings();
         overloadBindings.addVariable(varLhs, new TypeVariableReference(tLhs));
         overloadBindings.addVariable(varRhs, new TypeVariableReference(tRhs));
         overloadBindings.addVariable(TypeVariableNames.RETURN_VARIABLE_NAME, new TypeVariableReference(tLhs));
@@ -71,7 +65,7 @@ public class ConstraintCreator implements IConstraintCreator
     public void createRefConstraint(IConstraintCollection collection, ITSPHPAst identifier, ITSPHPAst rhs) {
         IVariable variableSymbol = (IVariable) identifier.getSymbol();
         List<IVariable> parameters = Arrays.asList(variableSymbol, (IVariable) rhs.getSymbol());
-        IConstraint constraint = new Constraint(identifier, variableSymbol, parameters, assignFunction);
+        IConstraint constraint = symbolFactory.createConstraint(identifier, variableSymbol, parameters, assignFunction);
         collection.addConstraint(constraint);
     }
 
@@ -94,7 +88,8 @@ public class ConstraintCreator implements IConstraintCreator
             IMinimalMethodSymbol methodSymbol) {
         IMinimalVariableSymbol expressionVariable = symbolFactory.createExpressionVariableSymbol(identifierAst);
         expressionVariable.setDefinitionScope(identifierAst.getScope());
-        IConstraint constraint = new Constraint(parentAst, expressionVariable, typeVariables, methodSymbol);
+        IConstraint constraint = symbolFactory.createConstraint(
+                parentAst, expressionVariable, typeVariables, methodSymbol);
         collection.addConstraint(constraint);
         parentAst.setSymbol(expressionVariable);
     }

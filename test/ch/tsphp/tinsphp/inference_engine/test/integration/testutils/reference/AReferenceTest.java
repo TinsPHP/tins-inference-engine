@@ -105,7 +105,7 @@ public abstract class AReferenceTest extends ADefinitionTest
 
         constraintSolver = createConstraintSolver(symbolFactory, overloadResolver, inferenceErrorReporter);
 
-        constraintCreator = createConstraintCreator(symbolFactory, overloadResolver, inferenceErrorReporter);
+        constraintCreator = createConstraintCreator(symbolFactory, inferenceErrorReporter);
 
         referencePhaseController = createReferencePhaseController(
                 symbolFactory,
@@ -212,9 +212,8 @@ public abstract class AReferenceTest extends ADefinitionTest
 
     protected IConstraintCreator createConstraintCreator(
             ISymbolFactory theSymbolFactory,
-            IOverloadResolver theOverloadResolver,
             IInferenceIssueReporter theInferenceErrorReporter) {
-        return new ConstraintCreator(theSymbolFactory, theOverloadResolver, theInferenceErrorReporter);
+        return new ConstraintCreator(theSymbolFactory, theInferenceErrorReporter);
     }
 
     protected IConstraintSolver createConstraintSolver(

@@ -31,7 +31,6 @@ import ch.tsphp.tinsphp.common.utils.MapHelper;
 import ch.tsphp.tinsphp.common.utils.Pair;
 import ch.tsphp.tinsphp.symbols.TypeVariableNames;
 import ch.tsphp.tinsphp.symbols.constraints.BoundException;
-import ch.tsphp.tinsphp.symbols.constraints.OverloadBindings;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -92,7 +91,7 @@ public class ConstraintSolver implements IConstraintSolver
     }
 
     private Deque<WorklistDto> createInitialWorklist(boolean isSolvingGlobalDefaultNamespace) {
-        IOverloadBindings bindings = new OverloadBindings(symbolFactory, overloadResolver);
+        IOverloadBindings bindings = symbolFactory.createOverloadBindings();
         Deque<WorklistDto> workDeque = new ArrayDeque<>();
         workDeque.add(new WorklistDto(workDeque, 0, isSolvingGlobalDefaultNamespace, bindings));
         return workDeque;
@@ -214,7 +213,7 @@ public class ConstraintSolver implements IConstraintSolver
 
         IOverloadBindings bindings = null;
         if (constraint.getArguments().size() >= overload.getNumberOfNonOptionalParameters()) {
-            bindings = new OverloadBindings((OverloadBindings) worklistDto.overloadBindings);
+            bindings = symbolFactory.createOverloadBindings(worklistDto.overloadBindings);
             aggregateBinding(constraint, overload, bindings);
         }
         return bindings;
