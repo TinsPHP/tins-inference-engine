@@ -502,12 +502,13 @@
     <macrodef name="copyComponent">
         <attribute name="dir"/>
         <attribute name="includes"/>
+        <attribute name="toDir" default="${lib}"/>
         <sequential>
             <delete>
-                <fileset dir="${lib}" includes="@{includes}"/>
+                <fileset dir="@{toDir}" includes="@{includes}"/>
             </delete>
-            <copy todir="${lib}">
-                <fileset dir="@{dir}" includes="@{includes}"/>
+            <copy todir="@{toDir}">
+            <fileset dir="@{dir}" includes="@{includes}"/>
             </copy>
         </sequential>
     </macrodef>
