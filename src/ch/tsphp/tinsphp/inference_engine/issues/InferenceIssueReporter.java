@@ -12,6 +12,7 @@ import ch.tsphp.common.exceptions.ReferenceException;
 import ch.tsphp.common.exceptions.TSPHPException;
 import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.common.symbols.ITypeSymbol;
+import ch.tsphp.tinsphp.common.gen.TokenTypes;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
@@ -31,7 +32,6 @@ import ch.tsphp.tinsphp.common.translation.dtos.ParameterDto;
 import ch.tsphp.tinsphp.common.translation.dtos.TypeDto;
 import ch.tsphp.tinsphp.common.translation.dtos.TypeParameterDto;
 import ch.tsphp.tinsphp.symbols.TypeVariableNames;
-import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;

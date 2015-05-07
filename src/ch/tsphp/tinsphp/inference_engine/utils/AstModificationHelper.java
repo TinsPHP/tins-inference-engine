@@ -8,7 +8,7 @@ package ch.tsphp.tinsphp.inference_engine.utils;
 
 import ch.tsphp.common.IAstHelper;
 import ch.tsphp.common.ITSPHPAst;
-import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
+import ch.tsphp.tinsphp.common.gen.TokenTypes;
 
 public class AstModificationHelper implements IAstModificationHelper
 {

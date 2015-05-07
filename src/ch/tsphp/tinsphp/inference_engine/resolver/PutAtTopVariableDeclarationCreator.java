@@ -9,12 +9,12 @@ package ch.tsphp.tinsphp.inference_engine.resolver;
 import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.tinsphp.common.IVariableDeclarationCreator;
+import ch.tsphp.tinsphp.common.gen.TokenTypes;
 import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
-import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
 import org.antlr.runtime.Token;
 
 public class PutAtTopVariableDeclarationCreator implements IVariableDeclarationCreator

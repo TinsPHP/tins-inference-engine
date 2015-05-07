@@ -15,11 +15,11 @@ import ch.tsphp.tinsphp.common.checking.DoubleDefinitionCheckResultDto;
 import ch.tsphp.tinsphp.common.checking.ForwardReferenceCheckResultDto;
 import ch.tsphp.tinsphp.common.checking.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.checking.VariableInitialisedResultDto;
+import ch.tsphp.tinsphp.common.gen.TokenTypes;
 import ch.tsphp.tinsphp.common.resolving.ISymbolResolver;
 import ch.tsphp.tinsphp.common.scopes.INamespaceScope;
 import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousSymbol;
 import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousVariableSymbol;
-import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
 
 import java.util.List;
 

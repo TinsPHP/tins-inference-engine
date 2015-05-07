@@ -13,10 +13,10 @@
 package ch.tsphp.tinsphp.inference_engine.test.integration.reference;
 
 import ch.tsphp.common.symbols.ISymbol;
+import ch.tsphp.tinsphp.common.gen.TokenTypes;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.ATest;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.AstTestHelper;
 import ch.tsphp.tinsphp.symbols.ScalarTypeSymbol;
-import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
 import ch.tsphp.tinsphp.symbols.scopes.GlobalNamespaceScope;
 import ch.tsphp.tinsphp.symbols.scopes.ScopeHelper;
 import org.junit.Test;

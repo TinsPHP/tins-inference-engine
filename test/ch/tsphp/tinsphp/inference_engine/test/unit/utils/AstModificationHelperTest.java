@@ -8,9 +8,9 @@ package ch.tsphp.tinsphp.inference_engine.test.unit.utils;
 
 import ch.tsphp.common.IAstHelper;
 import ch.tsphp.common.ITSPHPAst;
+import ch.tsphp.tinsphp.common.gen.TokenTypes;
 import ch.tsphp.tinsphp.inference_engine.utils.AstModificationHelper;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
-import ch.tsphp.tinsphp.symbols.gen.TokenTypes;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
