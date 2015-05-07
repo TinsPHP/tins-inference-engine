@@ -17,12 +17,7 @@
     <property name="parser-common.jar" location="${basedir}/../tsphp-parser-common/build/lib"/>
 
     <target name="parser-common" depends="" description="copy parser common jar to /lib/dev/">
-        <delete>
-            <fileset dir="${libdev}" includes="TSPHP-parser-common-*.jar"/>
-        </delete>
-        <copy todir="${libdev}">
-            <fileset dir="${parser-common.jar}" includes="TSPHP-parser-common-*.jar"/>
-        </copy>
+        <copyComponent dir="${parser-common.jar}" toDir="${libdev}" includes="TSPHP-parser-common-*.jar"/>
     </target>
 
 </project>

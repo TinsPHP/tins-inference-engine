@@ -44,7 +44,6 @@ import ch.tsphp.tinsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.PrimitiveTypeNames;
 import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousTypeSymbol;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
-import ch.tsphp.tinsphp.symbols.ModifierSet;
 import org.antlr.runtime.RecognitionException;
 
 import java.util.ArrayList;
@@ -242,27 +241,27 @@ public class ReferencePhaseController implements IReferencePhaseController
     private ITypeSymbol transformToNullableOrFalseableIfNecessary(
             ITSPHPAst typeModifierAst, ITypeSymbol currentType) {
 
-        IModifierSet modifiers = typeModifierAst != null
-                ? modifierHelper.getModifiers(typeModifierAst)
-                : new ModifierSet();
-
         ITypeSymbol typeSymbol = currentType;
-        ITypeSymbol nullTypeSymbol = primitiveTypes.get(PrimitiveTypeNames.NULL_TYPE);
-        ITypeSymbol falseTypeSymbol = primitiveTypes.get(PrimitiveTypeNames.FALSE_TYPE);
+        if (typeModifierAst != null) {
+            IModifierSet modifiers = modifierHelper.getModifiers(typeModifierAst);
+            ITypeSymbol nullTypeSymbol = primitiveTypes.get(PrimitiveTypeNames.NULL_TYPE);
+            ITypeSymbol falseTypeSymbol = primitiveTypes.get(PrimitiveTypeNames.FALSE_TYPE);
 
-        boolean needsNullTypeSymbol = modifiers.isNullable() && currentType != nullTypeSymbol;
-        boolean needsFalseTypeSymbol = modifiers.isFalseable() && currentType != falseTypeSymbol;
-        if (needsNullTypeSymbol || needsFalseTypeSymbol) {
-            IUnionTypeSymbol unionTypeSymbol = symbolFactory.createUnionTypeSymbol();
-            unionTypeSymbol.addTypeSymbol(currentType);
-            if (needsNullTypeSymbol) {
-                unionTypeSymbol.addTypeSymbol(nullTypeSymbol);
+            boolean needsNullTypeSymbol = modifiers.isNullable() && currentType != nullTypeSymbol;
+            boolean needsFalseTypeSymbol = modifiers.isFalseable() && currentType != falseTypeSymbol;
+            if (needsNullTypeSymbol || needsFalseTypeSymbol) {
+                IUnionTypeSymbol unionTypeSymbol = symbolFactory.createUnionTypeSymbol();
+                unionTypeSymbol.addTypeSymbol(currentType);
+                if (needsNullTypeSymbol) {
+                    unionTypeSymbol.addTypeSymbol(nullTypeSymbol);
+                }
+                if (needsFalseTypeSymbol) {
+                    unionTypeSymbol.addTypeSymbol(falseTypeSymbol);
+                }
+                typeSymbol = unionTypeSymbol;
             }
-            if (needsFalseTypeSymbol) {
-                unionTypeSymbol.addTypeSymbol(falseTypeSymbol);
-            }
-            typeSymbol = unionTypeSymbol;
         }
+
         return typeSymbol;
     }
 

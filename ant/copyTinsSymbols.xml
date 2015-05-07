@@ -10,8 +10,8 @@
 
     <property name="tins-symbols.jar" location="${basedir}/../tins-symbols/build/lib"/>
 
-    <target name="symbols" depends="" description="copy tins symbols library to the lib folder">
-        <copyComponent dir="${tins-symbols.jar}" includes="TinsPHP-symbols-*.jar"/>
+    <target name="symbols" depends="" description="copy tins symbols library to the lib dev folder">
+        <copyComponent dir="${tins-symbols.jar}" toDir="${libdev}" includes="TinsPHP-symbols-*.jar"/>
     </target>
 
 </project>

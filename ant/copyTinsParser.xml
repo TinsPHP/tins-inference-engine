@@ -28,12 +28,7 @@
         <copy todir="${src.antlr}">
             <fileset dir="${parser.tokens}" includes="TinsPHP.tokens"/>
         </copy>
-        <delete>
-            <fileset dir="${libdev}" includes="TinsPHP-parser-*.jar"/>
-        </delete>
-        <copy todir="${libdev}">
-            <fileset dir="${tins-parser.jar}" includes="TinsPHP-parser-*.jar"/>
-        </copy>
+        <copyComponent dir="${tins-parser.jar}" toDir="${libdev}" includes="TinsPHP-parser-*.jar"/>
     </target>
 
 </project>

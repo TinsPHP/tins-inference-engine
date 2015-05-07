@@ -11,7 +11,7 @@
     <property name="tins-core.jar" location="${basedir}/../tins-core/build/lib"/>
 
     <target name="core" depends="" description="copy tins core library to the lib folder">
-        <copyComponent dir="${tins-core.jar}" includes="TinsPHP-core-*.jar"/>
+        <copyComponent dir="${tins-core.jar}" toDir="${libdev}" includes="TinsPHP-core-*.jar"/>
     </target>
 
 </project>
