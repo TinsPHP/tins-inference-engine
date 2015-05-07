@@ -15,8 +15,8 @@ import org.junit.runners.Parameterized;
 
 import java.util.Collection;
 
+import static ch.tsphp.tinsphp.common.TinsPHPConstants.RETURN_VARIABLE_NAME;
 import static ch.tsphp.tinsphp.inference_engine.test.integration.testutils.OverloadBindingsMatcher.varBinding;
-import static ch.tsphp.tinsphp.symbols.TypeVariableNames.RETURN_VARIABLE_NAME;
 import static java.util.Arrays.asList;
 
 

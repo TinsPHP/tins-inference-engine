@@ -8,6 +8,7 @@ package ch.tsphp.tinsphp.inference_engine.constraints;
 
 
 import ch.tsphp.common.ITSPHPAst;
+import ch.tsphp.tinsphp.common.TinsPHPConstants;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCreator;
@@ -19,7 +20,6 @@ import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMinimalVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
-import ch.tsphp.tinsphp.symbols.TypeVariableNames;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,7 +46,7 @@ public class ConstraintCreator implements IConstraintCreator
         IOverloadBindings overloadBindings = symbolFactory.createOverloadBindings();
         overloadBindings.addVariable(varLhs, new TypeVariableReference(tLhs));
         overloadBindings.addVariable(varRhs, new TypeVariableReference(tRhs));
-        overloadBindings.addVariable(TypeVariableNames.RETURN_VARIABLE_NAME, new TypeVariableReference(tLhs));
+        overloadBindings.addVariable(TinsPHPConstants.RETURN_VARIABLE_NAME, new TypeVariableReference(tLhs));
         overloadBindings.addLowerRefBound(tLhs, new TypeVariableReference(tRhs));
         IFunctionType identityOverload = symbolFactory.createFunctionType(
                 "=", overloadBindings, Arrays.asList(lhs, rhs));

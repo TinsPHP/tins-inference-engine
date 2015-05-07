@@ -8,6 +8,7 @@ package ch.tsphp.tinsphp.inference_engine.constraints;
 
 
 import ch.tsphp.common.symbols.ITypeSymbol;
+import ch.tsphp.tinsphp.common.TinsPHPConstants;
 import ch.tsphp.tinsphp.common.inference.constraints.FixedTypeVariableReference;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
@@ -29,7 +30,6 @@ import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.common.utils.IOverloadResolver;
 import ch.tsphp.tinsphp.common.utils.MapHelper;
 import ch.tsphp.tinsphp.common.utils.Pair;
-import ch.tsphp.tinsphp.symbols.TypeVariableNames;
 import ch.tsphp.tinsphp.symbols.constraints.BoundException;
 
 import java.util.ArrayDeque;
@@ -237,7 +237,7 @@ public class ConstraintSolver implements IConstraintSolver
 
             IVariable leftHandSide = constraint.getLeftHandSide();
             needToIterateOverload = !mergeTypeVariables(
-                    bindings, overload, mapping, leftHandSide, TypeVariableNames.RETURN_VARIABLE_NAME);
+                    bindings, overload, mapping, leftHandSide, TinsPHPConstants.RETURN_VARIABLE_NAME);
 
             boolean argumentsAreAllFixed = true;
             for (int i = 0; i < count; ++i) {
@@ -257,7 +257,7 @@ public class ConstraintSolver implements IConstraintSolver
                 if (!reference.hasFixedType() && argumentsAreAllFixed) {
                     bindings.fixType(lhsAbsoluteName);
                 }
-                if (!lhsAbsoluteName.equals(TypeVariableNames.RETURN_VARIABLE_NAME)) {
+                if (!lhsAbsoluteName.equals(TinsPHPConstants.RETURN_VARIABLE_NAME)) {
                     bindings.setAppliedOverload(lhsAbsoluteName, overload);
                 }
             }

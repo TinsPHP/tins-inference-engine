@@ -12,6 +12,7 @@ import ch.tsphp.common.exceptions.ReferenceException;
 import ch.tsphp.common.exceptions.TSPHPException;
 import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.common.symbols.ITypeSymbol;
+import ch.tsphp.tinsphp.common.TinsPHPConstants;
 import ch.tsphp.tinsphp.common.gen.TokenTypes;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
@@ -31,7 +32,6 @@ import ch.tsphp.tinsphp.common.translation.dtos.MethodDto;
 import ch.tsphp.tinsphp.common.translation.dtos.ParameterDto;
 import ch.tsphp.tinsphp.common.translation.dtos.TypeDto;
 import ch.tsphp.tinsphp.common.translation.dtos.TypeParameterDto;
-import ch.tsphp.tinsphp.symbols.TypeVariableNames;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -225,7 +225,7 @@ public class InferenceIssueReporter implements IInferenceIssueReporter
         Set<String> typeVariablesAdded = new HashSet<>(numberOfParameters + 1);
         List<TypeParameterDto> typeParameters = new ArrayList<>(numberOfParameters + 1);
         TypeDto returnType = createTypeDto(
-                TypeVariableNames.RETURN_VARIABLE_NAME, bindings, typeParameters, typeVariablesAdded);
+                TinsPHPConstants.RETURN_VARIABLE_NAME, bindings, typeParameters, typeVariablesAdded);
 
         List<ParameterDto> parameterDtos = new ArrayList<>();
         for (IVariable parameter : parameters) {
