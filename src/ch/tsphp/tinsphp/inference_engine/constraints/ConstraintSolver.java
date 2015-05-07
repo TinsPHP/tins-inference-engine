@@ -9,6 +9,7 @@ package ch.tsphp.tinsphp.inference_engine.constraints;
 
 import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.TinsPHPConstants;
+import ch.tsphp.tinsphp.common.inference.constraints.BoundException;
 import ch.tsphp.tinsphp.common.inference.constraints.FixedTypeVariableReference;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
@@ -30,7 +31,6 @@ import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.common.utils.IOverloadResolver;
 import ch.tsphp.tinsphp.common.utils.MapHelper;
 import ch.tsphp.tinsphp.common.utils.Pair;
-import ch.tsphp.tinsphp.symbols.constraints.BoundException;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
