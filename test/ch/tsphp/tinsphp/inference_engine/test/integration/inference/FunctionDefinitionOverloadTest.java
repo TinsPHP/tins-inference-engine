@@ -53,9 +53,9 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                 {
                         "function foo($x){return $x + (1 + 1.5);}",
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 1, bindingDtos(
-                                varBinding("foo()$x", "T4", asList("int", "float"), asList("(float | int)"), false),
+                                varBinding("foo()$x", "T4", asList("(float | int)"), asList("(float | int)"), true),
                                 varBinding(RETURN_VARIABLE_NAME,
-                                        "T4", asList("int", "float"), asList("(float | int)"), false)))
+                                        "T6", asList("float", "int"), asList("(float | int)"), true)))
                                 , 1, 0, 2)
                 },
                 {
