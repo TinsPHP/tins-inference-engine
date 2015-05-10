@@ -14,6 +14,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.util.Collection;
+import java.util.List;
 
 import static ch.tsphp.tinsphp.common.TinsPHPConstants.RETURN_VARIABLE_NAME;
 import static ch.tsphp.tinsphp.inference_engine.test.integration.testutils.OverloadBindingsMatcher.varBinding;
@@ -35,13 +36,18 @@ public class FunctionDefinitionBindingTest extends AInferenceBindingTest
 
     @Parameterized.Parameters
     public static Collection<Object[]> testStrings() {
+        List<String> boolLower = asList("falseType", "trueType");
+        List<String> boolUpper = asList("(falseType | trueType)");
+        List<String> numLower = asList("float", "int");
+        List<String> numUpper = asList("(float | int)");
         return asList(new Object[][]{
                 {
                         "function foo($x){\nreturn $x;}",
                         testStructs("foo()", "\\.\\.", matcherDtos(matcherDto(
                                 varBinding("foo()$x", "T2", null, null, false),
                                 varBinding(RETURN_VARIABLE_NAME, "T2", null, null, false),
-                                varBinding("return@2|0", "T2", null, null, false))), 1, 0, 2)
+                                varBinding("return@2|0", "T2", null, null, false)
+                        )), 1, 0, 2)
                 },
                 {
                         "function foo($name){\nreturn \n'hello '\n.$name;}",
@@ -50,8 +56,7 @@ public class FunctionDefinitionBindingTest extends AInferenceBindingTest
                                 //is constant as well since there is no parametric overload of . operator
                                 varBinding("'hello '@3|0", "T2", asList("string"), asList("string"), true),
                                 varBinding("foo()$name", "T3", asList("string"), asList("string"), true),
-                                varBinding(RETURN_VARIABLE_NAME,
-                                        "T4", asList("string"), asList("string"), true),
+                                varBinding(RETURN_VARIABLE_NAME, "T4", asList("string"), asList("string"), true),
                                 varBinding("return@2|0", "T5", asList("string"), asList("string"), true)
                         )), 1, 0, 2)
                 },
@@ -91,8 +96,7 @@ public class FunctionDefinitionBindingTest extends AInferenceBindingTest
                 {
                         "function foo(){\nreturn \n1; \nreturn \n1.2;}",
                         testStructs("foo()", "\\.\\.", matcherDtos(matcherDto(
-                                varBinding(RETURN_VARIABLE_NAME,
-                                        "T1", asList("int", "float"), asList("(float | int)"), true),
+                                varBinding(RETURN_VARIABLE_NAME, "T1", asList("int", "float"), numUpper, true),
                                 varBinding("1@3|0", "T2", asList("int"), null, true),
                                 varBinding("return@2|0", "T3", asList("int"), asList("int"), true),
                                 varBinding("1.2@5|0", "T4", asList("float"), null, true),
@@ -102,12 +106,11 @@ public class FunctionDefinitionBindingTest extends AInferenceBindingTest
                 {
                         "function foo($x){ \nif($x){ \nreturn \n1;} \nreturn \n1.2;}",
                         testStructs("foo()", "\\.\\.", matcherDtos(matcherDto(
-                                varBinding(RETURN_VARIABLE_NAME,
-                                        "T1", asList("int", "float"), asList("(float | int)"), true),
+                                varBinding(RETURN_VARIABLE_NAME, "T1", asList("int", "float"), numUpper, true),
                                 varBinding("1@4|0", "T2", asList("int"), null, true),
                                 varBinding("return@3|0", "T3", asList("int"), asList("int"), true),
                                 varBinding("if@2|0", "T4", asList("mixed"), asList("mixed"), true),
-                                varBinding("foo()$x", "T5", asList("bool"), asList("bool"), true),
+                                varBinding("foo()$x", "T5", boolLower, boolUpper, true),
                                 varBinding("1.2@6|0", "T6", asList("float"), null, true),
                                 varBinding("return@5|0", "T7", asList("float"), asList("float"), true)
                         )), 1, 0, 2)
@@ -115,25 +118,24 @@ public class FunctionDefinitionBindingTest extends AInferenceBindingTest
                 //see TINS-449 unused ad-hoc polymorphic parameters
                 {
                         "function foo($x, $y){$a \n= $x \n+ $y;\nreturn \n1;}",
-                        testStructs("foo()", "\\.\\.", matcherDtos(matcherDto(
-                                        varBinding("foo()+@3|0", "T1", asList("num"), asList("num"), true),
-                                        varBinding("foo()$x", "T1", asList("num"), asList("num"), true),
-                                        varBinding("foo()$y", "T1", asList("num"), asList("num"), true),
-                                        varBinding("foo()=@2|0", "T4", asList("num"), asList("num"), true),
-                                        varBinding("foo()$a", "T4", asList("num"), asList("num"), true),
-                                        varBinding(RETURN_VARIABLE_NAME,
-                                                "T6", asList("int"), asList("int"), true),
+                        testStructs("foo()", "\\.\\.", matcherDtos(
+                                matcherDto(
+                                        varBinding("foo()+@3|0", "T1", numLower, numUpper, true),
+                                        varBinding("foo()$x", "T1", numLower, numUpper, true),
+                                        varBinding("foo()$y", "T1", numLower, numUpper, true),
+                                        varBinding("foo()=@2|0", "T4", numLower, numUpper, true),
+                                        varBinding("foo()$a", "T4", numLower, numUpper, true),
+                                        varBinding(RETURN_VARIABLE_NAME, "T6", asList("int"), asList("int"), true),
                                         varBinding("1@5|0", "T7", asList("int"), null, true),
                                         varBinding("return@4|0", "T8", asList("int"), asList("int"), true)
                                 ),
                                 matcherDto(
                                         varBinding("foo()+@3|0", "T1", asList("int"), asList("int"), true),
-                                        varBinding("foo()$x", "T2", asList("bool"), asList("bool"), true),
-                                        varBinding("foo()$y", "T3", asList("bool"), asList("bool"), true),
+                                        varBinding("foo()$x", "T2", boolLower, boolUpper, true),
+                                        varBinding("foo()$y", "T3", boolLower, boolUpper, true),
                                         varBinding("foo()=@2|0", "T4", asList("int"), asList("int"), true),
                                         varBinding("foo()$a", "T4", asList("int"), asList("int"), true),
-                                        varBinding(RETURN_VARIABLE_NAME,
-                                                "T6", asList("int"), asList("int"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "T6", asList("int"), asList("int"), true),
                                         varBinding("1@5|0", "T7", asList("int"), null, true),
                                         varBinding("return@4|0", "T8", asList("int"), asList("int"), true)
                                 ),
@@ -143,8 +145,7 @@ public class FunctionDefinitionBindingTest extends AInferenceBindingTest
                                         varBinding("foo()$y", "T3", asList("array"), asList("array"), true),
                                         varBinding("foo()=@2|0", "T4", asList("array"), asList("array"), true),
                                         varBinding("foo()$a", "T4", asList("array"), asList("array"), true),
-                                        varBinding(RETURN_VARIABLE_NAME,
-                                                "T6", asList("int"), asList("int"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "T6", asList("int"), asList("int"), true),
                                         varBinding("1@5|0", "T7", asList("int"), null, true),
                                         varBinding("return@4|0", "T8", asList("int"), asList("int"), true)
                                 )

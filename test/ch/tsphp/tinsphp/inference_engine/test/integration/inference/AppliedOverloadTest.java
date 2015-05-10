@@ -94,17 +94,17 @@ public class AppliedOverloadTest extends AInferenceOverloadTest
                         "1 + 1;",
                         testStructs("(+ 1 1)", "\\.\\.",
                                 functionDtos("+", 2, bindingDtos(
-                                        varBinding("$lhs", "T", null, asList("num"), false),
-                                        varBinding("$rhs", "T", null, asList("num"), false),
-                                        varBinding(RETURN_VARIABLE_NAME, "T", null, asList("num"), false)
+                                        varBinding("$lhs", "T", null, asList("(float | int)"), false),
+                                        varBinding("$rhs", "T", null, asList("(float | int)"), false),
+                                        varBinding(RETURN_VARIABLE_NAME, "T", null, asList("(float | int)"), false)
                                 )), 1, 0, 0)
                 },
                 {
                         "false + true;",
                         testStructs("(+ false true)", "\\.\\.",
                                 functionDtos("+", 2, bindingDtos(
-                                        varBinding("$lhs", "Tlhs", null, asList("bool"), true),
-                                        varBinding("$rhs", "Trhs", null, asList("bool"), true),
+                                        varBinding("$lhs", "Tlhs", null, asList("(falseType | trueType)"), true),
+                                        varBinding("$rhs", "Trhs", null, asList("(falseType | trueType)"), true),
                                         varBinding(RETURN_VARIABLE_NAME, "Treturn", asList("int"), null, true)
                                 )), 1, 0, 0)
                 },

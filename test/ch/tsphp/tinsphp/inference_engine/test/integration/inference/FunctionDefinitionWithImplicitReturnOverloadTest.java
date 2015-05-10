@@ -52,23 +52,25 @@ public class FunctionDefinitionWithImplicitReturnOverloadTest extends AInference
                 {
                         "function foo(){}",
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 0, bindingDtos(
-                                varBinding(RETURN_VARIABLE_NAME, "T1", asList("nullType"), asList("nullType"),
-                                        true))), 1, 0, 2)
+                                varBinding(RETURN_VARIABLE_NAME, "T1", asList("nullType"), asList("nullType"), true)
+                        )), 1, 0, 2)
                 },
                 {
                         "function foo($x){}",
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 1, bindingDtos(
                                 varBinding("foo()$x", "T3", asList("mixed"), asList("mixed"), true),
-                                varBinding(RETURN_VARIABLE_NAME, "T1", asList("nullType"), asList("nullType"),
-                                        true))), 1, 0, 2)
+                                varBinding(RETURN_VARIABLE_NAME, "T1", asList("nullType"), asList("nullType"), true)
+                        )), 1, 0, 2)
                 },
                 //partial return
                 {
                         "function foo($x){if($x){ return 1;}}",
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 1, bindingDtos(
-                                varBinding(RETURN_VARIABLE_NAME,
-                                        "T1", asList("int", "nullType"), asList("(int | nullType)"), true),
-                                varBinding("foo()$x", "T5", asList("bool"), asList("bool"), true))), 1, 0, 2)
+                                varBinding(RETURN_VARIABLE_NAME, "T1",
+                                        asList("int", "nullType"), asList("(int | nullType)"), true),
+                                varBinding("foo()$x", "T5",
+                                        asList("falseType", "trueType"), asList("(falseType | trueType)"), true)
+                        )), 1, 0, 2)
                 },
         });
     }
