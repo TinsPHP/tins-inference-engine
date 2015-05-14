@@ -17,7 +17,6 @@ import ch.tsphp.common.IAstHelper;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.ITSPHPAstAdaptor;
 import ch.tsphp.common.ParserUnitDto;
-import ch.tsphp.common.TSPHPAstAdaptor;
 import ch.tsphp.tinsphp.common.config.ICoreInitialiser;
 import ch.tsphp.tinsphp.common.config.ISymbolsInitialiser;
 import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
@@ -43,7 +42,6 @@ public abstract class ADefinitionTest extends ATest
 
     protected String testString;
     protected String errorMessagePrefix;
-    protected ITSPHPAstAdaptor astAdaptor;
     protected IAstHelper astHelper;
 
     protected TestDefinitionPhaseController definitionPhaseController;
@@ -63,7 +61,6 @@ public abstract class ADefinitionTest extends ATest
     }
 
     private void init() {
-        astAdaptor = createAstAdaptor();
         astHelper = createAstHelper(astAdaptor);
 
         symbolsInitialiser = createSymbolsInitialiser();
@@ -118,9 +115,6 @@ public abstract class ADefinitionTest extends ATest
                 definition.hasFound(EnumSet.allOf(EIssueSeverity.class)));
     }
 
-    protected ITSPHPAstAdaptor createAstAdaptor() {
-        return new TSPHPAstAdaptor();
-    }
 
     protected IAstHelper createAstHelper(ITSPHPAstAdaptor theAstAdaptor) {
         return new AstHelper(theAstAdaptor);

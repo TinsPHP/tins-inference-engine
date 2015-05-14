@@ -12,15 +12,18 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.testutils;
 
+import ch.tsphp.common.ITSPHPAstAdaptor;
+import ch.tsphp.common.TSPHPAstAdaptor;
 import ch.tsphp.common.exceptions.TSPHPException;
 import ch.tsphp.tinsphp.common.IParser;
+import ch.tsphp.tinsphp.common.config.IParserInitialiser;
 import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.issues.IIssueLogger;
 import ch.tsphp.tinsphp.common.issues.IIssueMessageProvider;
 import ch.tsphp.tinsphp.inference_engine.issues.HardCodedIssueMessageProvider;
 import ch.tsphp.tinsphp.inference_engine.issues.InferenceIssueReporter;
-import ch.tsphp.tinsphp.parser.ParserFacade;
+import ch.tsphp.tinsphp.parser.config.HardCodedParserInitialiser;
 import org.junit.Ignore;
 
 import java.util.ArrayList;
@@ -34,9 +37,14 @@ public abstract class ATest implements IIssueLogger
     protected IParser parser;
     protected IInferenceIssueReporter inferenceErrorReporter;
     protected IIssueMessageProvider issueMessageProvider;
+    protected ITSPHPAstAdaptor astAdaptor;
+
 
     public ATest() {
-        parser = createParser();
+        astAdaptor = createAstAdaptor();
+
+        IParserInitialiser parserInitialiser = createParserInitialiser(astAdaptor);
+        parser = parserInitialiser.getParser();
         registerParserErrorLogger();
 
         issueMessageProvider = createIssueMessageProvider();
@@ -45,13 +53,18 @@ public abstract class ATest implements IIssueLogger
         inferenceErrorReporter.registerIssueLogger(this);
     }
 
+
     @Override
     public void log(TSPHPException exception, EIssueSeverity severity) {
         exceptions.add(exception);
     }
 
-    protected IParser createParser() {
-        return new ParserFacade();
+    protected ITSPHPAstAdaptor createAstAdaptor() {
+        return new TSPHPAstAdaptor();
+    }
+
+    protected IParserInitialiser createParserInitialiser(ITSPHPAstAdaptor anAstAdaptor) {
+        return new HardCodedParserInitialiser(anAstAdaptor);
     }
 
     protected void registerParserErrorLogger() {

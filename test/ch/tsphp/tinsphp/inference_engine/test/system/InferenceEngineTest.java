@@ -16,11 +16,12 @@ import ch.tsphp.common.exceptions.TSPHPException;
 import ch.tsphp.tinsphp.common.IInferenceEngine;
 import ch.tsphp.tinsphp.common.IParser;
 import ch.tsphp.tinsphp.common.config.IInferenceEngineInitialiser;
+import ch.tsphp.tinsphp.common.config.IParserInitialiser;
 import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
 import ch.tsphp.tinsphp.common.issues.IIssueLogger;
 import ch.tsphp.tinsphp.core.config.HardCodedCoreInitialiser;
 import ch.tsphp.tinsphp.inference_engine.config.HardCodedInferenceEngineInitialiser;
-import ch.tsphp.tinsphp.parser.ParserFacade;
+import ch.tsphp.tinsphp.parser.config.HardCodedParserInitialiser;
 import ch.tsphp.tinsphp.symbols.config.HardCodedSymbolsInitialiser;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 import org.junit.Assert;
@@ -40,7 +41,7 @@ public class InferenceEngineTest
 
     @Test
     public void allFine_DoesNotFindIssues() {
-        IParser parser = new ParserFacade();
+        IParser parser = createParser();
         ParserUnitDto parserUnitDto = parser.parse("<?php const a = 1;?>");
         CommonTreeNodeStream commonTreeNodeStream =
                 new CommonTreeNodeStream(new TSPHPAstAdaptor(), parserUnitDto.compilationUnit);
@@ -58,7 +59,7 @@ public class InferenceEngineTest
 
     @Test
     public void allFine_Reset_AllFineAgain_DoesNotFindIssues() {
-        IParser parser = new ParserFacade();
+        IParser parser = createParser();
         ParserUnitDto parserUnitDto = parser.parse("<?php const a = 1;?>");
         CommonTreeNodeStream commonTreeNodeStream =
                 new CommonTreeNodeStream(new TSPHPAstAdaptor(), parserUnitDto.compilationUnit);
@@ -89,7 +90,7 @@ public class InferenceEngineTest
 
     @Test
     public void uninitialisedVariable_FindsOneIssue() {
-        IParser parser = new ParserFacade();
+        IParser parser = createParser();
         ParserUnitDto parserUnitDto = parser.parse("<?php echo $a; ?>");
         CommonTreeNodeStream commonTreeNodeStream =
                 new CommonTreeNodeStream(new TSPHPAstAdaptor(), parserUnitDto.compilationUnit);
@@ -107,7 +108,7 @@ public class InferenceEngineTest
 
     @Test
     public void uninitialisedVariable_FindsOneIssue_InformsLoggers() {
-        IParser parser = new ParserFacade();
+        IParser parser = createParser();
         ParserUnitDto parserUnitDto = parser.parse("<?php echo $a; ?>");
         CommonTreeNodeStream commonTreeNodeStream =
                 new CommonTreeNodeStream(new TSPHPAstAdaptor(), parserUnitDto.compilationUnit);
@@ -131,7 +132,7 @@ public class InferenceEngineTest
     @Test
     public void registerIssueLogger_Standard_InformsLoggerWhenErrorOccurs() {
         //should cause an issue with severity fatal error due to a double definition
-        IParser parser = new ParserFacade();
+        IParser parser = createParser();
         ParserUnitDto parserUnit = parser.parse("<?php function foo(){return;} function foo(){return;}");
         ITSPHPAst ast = parserUnit.compilationUnit;
 
@@ -158,7 +159,7 @@ public class InferenceEngineTest
     @Test
     public void reset_RegisteredErrorLoggers_AreStillInformedWhenErrorOccurs() {
         //should cause an issue due to a double definition
-        IParser parser = new ParserFacade();
+        IParser parser = createParser();
         ParserUnitDto parserUnit = parser.parse("<?php function foo(){return;} function foo(){return;}");
         ITSPHPAst ast = parserUnit.compilationUnit;
 
@@ -183,6 +184,11 @@ public class InferenceEngineTest
         Assert.assertThat(inferenceEngine.hasFound(EnumSet.of(EIssueSeverity.FatalError)), is(true));
     }
 
+    private IParser createParser() {
+        ITSPHPAstAdaptor astAdaptor = new TSPHPAstAdaptor();
+        IParserInitialiser parserInitialiser = new HardCodedParserInitialiser(astAdaptor);
+        return parserInitialiser.getParser();
+    }
 
     protected IInferenceEngineInitialiser createInitialiser() {
         ITSPHPAstAdaptor astAdaptor = new TSPHPAstAdaptor();
