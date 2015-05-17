@@ -85,10 +85,10 @@ public abstract class ADefinitionTest extends ATest
 
     private void run() {
         ParserUnitDto parserUnit = parser.parse("<?php" + testString + "?>");
-        ast = parserUnit.compilationUnit;
 
         checkNoIssuesDuringParsing();
 
+        ast = parserUnit.compilationUnit;
         commonTreeNodeStream = new CommonTreeNodeStream(astAdaptor, ast);
         commonTreeNodeStream.setTokenStream(parserUnit.tokenStream);
 

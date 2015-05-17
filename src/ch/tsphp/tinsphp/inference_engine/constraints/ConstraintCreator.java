@@ -17,6 +17,7 @@ import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import ch.tsphp.tinsphp.common.inference.constraints.TypeVariableReference;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
+import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMinimalVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
@@ -86,26 +87,44 @@ public class ConstraintCreator implements IConstraintCreator
             ITSPHPAst identifierAst,
             List<IVariable> typeVariables,
             IMinimalMethodSymbol methodSymbol) {
-        IMinimalVariableSymbol expressionVariable = symbolFactory.createExpressionVariableSymbol(identifierAst);
-        expressionVariable.setDefinitionScope(identifierAst.getScope());
+        IMinimalVariableSymbol expressionVariable = createExpressionVariable(parentAst, identifierAst);
         IConstraint constraint = symbolFactory.createConstraint(
                 parentAst, expressionVariable, typeVariables, methodSymbol);
         collection.addConstraint(constraint);
+    }
+
+    private IMinimalVariableSymbol createExpressionVariable(ITSPHPAst parentAst, ITSPHPAst identifierAst) {
+        IMinimalVariableSymbol expressionVariable = symbolFactory.createExpressionVariableSymbol(identifierAst);
+        expressionVariable.setDefinitionScope(identifierAst.getScope());
         parentAst.setSymbol(expressionVariable);
+        return expressionVariable;
     }
 
     @Override
     public void createFunctionCallConstraint(
             IConstraintCollection collection, ITSPHPAst functionCall, ITSPHPAst identifier, ITSPHPAst argumentList) {
-        int size = argumentList.getChildCount();
-        List<IVariable> typeVariables = new ArrayList<>(size);
-        if (size > 0) {
-            for (ITSPHPAst argument : argumentList.getChildren()) {
-                typeVariables.add((IVariable) argument.getSymbol());
-            }
-        }
 
         IMinimalMethodSymbol methodSymbol = (IMinimalMethodSymbol) identifier.getSymbol();
-        createConstraint(collection, functionCall, identifier, typeVariables, methodSymbol);
+        boolean isNotDirectRecursion = collection != methodSymbol;
+
+        if (isNotDirectRecursion) {
+            int size = argumentList.getChildCount();
+            List<IVariable> typeVariables = new ArrayList<>(size);
+            if (size > 0) {
+                for (ITSPHPAst argument : argumentList.getChildren()) {
+                    typeVariables.add((IVariable) argument.getSymbol());
+                }
+            }
+            createConstraint(collection, functionCall, identifier, typeVariables, methodSymbol);
+        } else {
+            // direct recursion can be replaced with the assign function with expressionVariable as lhs and the return
+            // variable of the method as rhs
+            IMinimalVariableSymbol expressionVariable = createExpressionVariable(functionCall, identifier);
+            IVariable variableSymbol = ((IMethodSymbol) methodSymbol).getReturnVariable();
+            List<IVariable> arguments = Arrays.asList(expressionVariable, variableSymbol);
+            IConstraint constraint = symbolFactory.createConstraint(
+                    functionCall, expressionVariable, arguments, assignFunction);
+            collection.addConstraint(constraint);
+        }
     }
 }

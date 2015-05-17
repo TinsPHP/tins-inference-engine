@@ -150,7 +150,7 @@ public class FunctionDefinitionBindingTest extends AInferenceBindingTest
                                         varBinding("return@4|0", "T8", asList("int"), asList("int"), true)
                                 )
                         ), 1, 0, 2)
-                },
+                }
         });
     }
 }
