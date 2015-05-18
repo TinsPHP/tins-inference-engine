@@ -18,7 +18,7 @@ import java.util.List;
 
 public class TempMethodSymbol implements IMinimalMethodSymbol
 {
-    private static String ERROR_MESSAGE = "You are dealing with a temp method symbol";
+    private static final String ERROR_MESSAGE = "You are dealing with a temp method symbol";
 
     private final ISymbolFactory symbolFactory;
     private final IMethodSymbol methodSymbol;

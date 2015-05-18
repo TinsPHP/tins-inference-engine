@@ -95,7 +95,7 @@ public class ConstraintSolver implements IConstraintSolver
             if (overloadBindingsList.size() > 1) {
                 //more overloads generated, need to reiterate
                 for (IOverloadBindings overloadBindings : overloadBindingsList) {
-
+                    //TODO create new WorklistDto and recalculate temp overloads
                 }
             } else if (overloadBindingsList.size() == 1) {
                 IOverloadBindings overloadBindings = overloadBindingsList.get(0);
@@ -507,7 +507,7 @@ public class ConstraintSolver implements IConstraintSolver
         }
     }
 
-    private boolean mergeTypeVariables(AggregateBindingDto dto) throws BoundException {
+    private boolean mergeTypeVariables(AggregateBindingDto dto) {
 
         String bindingVariableName = dto.bindingVariable.getAbsoluteName();
         ITypeVariableReference bindingTypeVariableReference =
@@ -530,7 +530,7 @@ public class ConstraintSolver implements IConstraintSolver
     }
 
     private boolean applyRightToLeft(
-            AggregateBindingDto dto, String left, IOverloadBindings rightBindings, String right) throws BoundException {
+            AggregateBindingDto dto, String left, IOverloadBindings rightBindings, String right) {
 
         IOverloadBindings leftBindings = dto.bindings;
 
