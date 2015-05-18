@@ -93,13 +93,8 @@ public class InferenceEngine implements IInferenceEngine, IIssueLogger
     }
 
     @Override
-    public void solveMethodSymbolConstraints() {
-        referencePhaseController.solveMethodSymbolConstraints();
-    }
-
-    @Override
-    public void solveGlobalDefaultNamespaceConstraints() {
-        referencePhaseController.solveGlobalDefaultNamespaceConstraints();
+    public void solveConstraints() {
+        referencePhaseController.solveConstraints();
     }
 
     @Override

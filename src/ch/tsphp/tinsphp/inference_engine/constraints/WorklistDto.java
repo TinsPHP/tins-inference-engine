@@ -6,32 +6,48 @@
 
 package ch.tsphp.tinsphp.inference_engine.constraints;
 
+import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 
 import java.util.Deque;
+import java.util.List;
 
 public class WorklistDto
 {
     public Deque<WorklistDto> workDeque;
+    public IConstraintCollection constraintCollection;
     public int pointer;
+    public boolean isSolvingMethod;
     public IOverloadBindings overloadBindings;
-    public boolean isSolvingGlobalDefaultNamespace;
+
+    public List<Integer> unsolvedConstraints;
+    public boolean isInIterativeMode;
+    public boolean isSolvingDependency;
+    public Boolean needToRecreateOverloads;
 
     public WorklistDto(
             Deque<WorklistDto> theWorkDeque,
+            IConstraintCollection theConstraintCollection,
             int thePointer,
-            boolean isItSolvingGlobalDefaultNamespace,
+            boolean isItSolvingMethod,
             IOverloadBindings theOverloadBindings) {
         workDeque = theWorkDeque;
+        constraintCollection = theConstraintCollection;
         pointer = thePointer;
-        isSolvingGlobalDefaultNamespace = isItSolvingGlobalDefaultNamespace;
+        isSolvingMethod = isItSolvingMethod;
         overloadBindings = theOverloadBindings;
     }
 
-    public WorklistDto(WorklistDto dto, IOverloadBindings theOverloadBindings) {
+    public WorklistDto(WorklistDto dto, int newPointer, IOverloadBindings theOverloadBindings) {
         workDeque = dto.workDeque;
-        pointer = dto.pointer + 1;
-        isSolvingGlobalDefaultNamespace = dto.isSolvingGlobalDefaultNamespace;
+        constraintCollection = dto.constraintCollection;
+        isSolvingMethod = dto.isSolvingMethod;
+        pointer = newPointer;
         overloadBindings = theOverloadBindings;
+
+        unsolvedConstraints = dto.unsolvedConstraints;
+        isInIterativeMode = dto.isInIterativeMode;
+        isSolvingDependency = dto.isSolvingDependency;
+        needToRecreateOverloads = dto.needToRecreateOverloads;
     }
 }

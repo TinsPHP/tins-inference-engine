@@ -602,15 +602,9 @@ public class ReferencePhaseController implements IReferencePhaseController
     }
 
     @Override
-    public void solveMethodSymbolConstraints() {
-        constraintSolver.solveConstraints(methodSymbols);
+    public void solveConstraints() {
+        constraintSolver.solveConstraints(methodSymbols, globalDefaultNamespace);
     }
-
-    @Override
-    public void solveGlobalDefaultNamespaceConstraints() {
-        constraintSolver.solveConstraints(globalDefaultNamespace);
-    }
-
 
     //TODO rstoll TINS-228 - reference phase - evaluate if methods return
 //    @SuppressWarnings("ThrowableResultOfMethodCallIgnored")

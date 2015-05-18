@@ -15,8 +15,10 @@ import ch.tsphp.common.TSPHPAstAdaptor;
 import ch.tsphp.common.exceptions.TSPHPException;
 import ch.tsphp.tinsphp.common.IInferenceEngine;
 import ch.tsphp.tinsphp.common.IParser;
+import ch.tsphp.tinsphp.common.config.ICoreInitialiser;
 import ch.tsphp.tinsphp.common.config.IInferenceEngineInitialiser;
 import ch.tsphp.tinsphp.common.config.IParserInitialiser;
+import ch.tsphp.tinsphp.common.config.ISymbolsInitialiser;
 import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
 import ch.tsphp.tinsphp.common.issues.IIssueLogger;
 import ch.tsphp.tinsphp.core.config.HardCodedCoreInitialiser;
@@ -51,8 +53,7 @@ public class InferenceEngineTest
         IInferenceEngine inferenceEngine = initialiser.getEngine();
         inferenceEngine.enrichWithDefinitions(parserUnitDto.compilationUnit, commonTreeNodeStream);
         inferenceEngine.enrichWithReferences(parserUnitDto.compilationUnit, commonTreeNodeStream);
-        inferenceEngine.solveMethodSymbolConstraints();
-        inferenceEngine.solveGlobalDefaultNamespaceConstraints();
+        inferenceEngine.solveConstraints();
 
         assertThat(inferenceEngine.hasFound(EnumSet.allOf(EIssueSeverity.class)), is(false));
     }
@@ -69,8 +70,7 @@ public class InferenceEngineTest
         IInferenceEngine inferenceEngine = initialiser.getEngine();
         inferenceEngine.enrichWithDefinitions(parserUnitDto.compilationUnit, commonTreeNodeStream);
         inferenceEngine.enrichWithReferences(parserUnitDto.compilationUnit, commonTreeNodeStream);
-        inferenceEngine.solveMethodSymbolConstraints();
-        inferenceEngine.solveGlobalDefaultNamespaceConstraints();
+        inferenceEngine.solveConstraints();
 
         assertThat(inferenceEngine.hasFound(EnumSet.allOf(EIssueSeverity.class)), is(false));
 
@@ -82,8 +82,7 @@ public class InferenceEngineTest
         initialiser.reset();
         inferenceEngine.enrichWithDefinitions(parserUnitDto.compilationUnit, commonTreeNodeStream);
         inferenceEngine.enrichWithReferences(parserUnitDto.compilationUnit, commonTreeNodeStream);
-        inferenceEngine.solveMethodSymbolConstraints();
-        inferenceEngine.solveGlobalDefaultNamespaceConstraints();
+        inferenceEngine.solveConstraints();
 
         assertThat(inferenceEngine.hasFound(EnumSet.allOf(EIssueSeverity.class)), is(false));
     }
@@ -100,8 +99,7 @@ public class InferenceEngineTest
         IInferenceEngine inferenceEngine = initialiser.getEngine();
         inferenceEngine.enrichWithDefinitions(parserUnitDto.compilationUnit, commonTreeNodeStream);
         inferenceEngine.enrichWithReferences(parserUnitDto.compilationUnit, commonTreeNodeStream);
-        inferenceEngine.solveMethodSymbolConstraints();
-        inferenceEngine.solveGlobalDefaultNamespaceConstraints();
+        inferenceEngine.solveConstraints();
 
         assertThat(inferenceEngine.hasFound(EnumSet.allOf(EIssueSeverity.class)), is(true));
     }
@@ -122,8 +120,7 @@ public class InferenceEngineTest
         inferenceEngine.registerIssueLogger(logger2);
         inferenceEngine.enrichWithDefinitions(parserUnitDto.compilationUnit, commonTreeNodeStream);
         inferenceEngine.enrichWithReferences(parserUnitDto.compilationUnit, commonTreeNodeStream);
-        inferenceEngine.solveMethodSymbolConstraints();
-        inferenceEngine.solveGlobalDefaultNamespaceConstraints();
+        inferenceEngine.solveConstraints();
 
         verify(logger1).log(any(TSPHPException.class), any(EIssueSeverity.class));
         verify(logger2).log(any(TSPHPException.class), any(EIssueSeverity.class));
@@ -193,8 +190,8 @@ public class InferenceEngineTest
     protected IInferenceEngineInitialiser createInitialiser() {
         ITSPHPAstAdaptor astAdaptor = new TSPHPAstAdaptor();
         IAstHelper astHelper = new AstHelper(astAdaptor);
-        HardCodedSymbolsInitialiser symbolsInitialiser = new HardCodedSymbolsInitialiser();
-        HardCodedCoreInitialiser coreInitialiser = new HardCodedCoreInitialiser(astHelper, symbolsInitialiser);
+        ISymbolsInitialiser symbolsInitialiser = new HardCodedSymbolsInitialiser();
+        ICoreInitialiser coreInitialiser = new HardCodedCoreInitialiser(astHelper, symbolsInitialiser);
 
         return new HardCodedInferenceEngineInitialiser(astAdaptor, astHelper, symbolsInitialiser, coreInitialiser);
     }
