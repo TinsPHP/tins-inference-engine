@@ -47,7 +47,8 @@ public class FunctionTypeMatcher extends BaseMatcher<IFunctionType>
         IFunctionType functionType = (IFunctionType) item;
         List<IVariable> parameters = functionType.getParameters();
         if (parameters.size() + 1 != dto.bindings.length) {
-            description.appendText("Not all parameters or the return variable was not specified. Missing were:\n");
+            description.appendText("Not all parameters or too many were specified or the return variable was missing." +
+                    " Missing were:\n");
             Set<String> variableIds = new HashSet<>();
             for (BindingMatcherDto binding : dto.bindings) {
                 variableIds.add(binding.variableId);

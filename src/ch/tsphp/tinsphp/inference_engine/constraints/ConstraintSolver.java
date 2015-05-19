@@ -225,9 +225,9 @@ public class ConstraintSolver implements IConstraintSolver
                 collectionsWhichChanged.add(absoluteName);
                 Iterator<IOverloadBindings> iterator = overloadBindingsList.iterator();
                 worklistDto.overloadBindings = iterator.next();
-                Set<WorklistDto> dtos = unresolvedConstraints.get(absoluteName);
                 while (iterator.hasNext()) {
-                    dtos.add(new WorklistDto(worklistDto, 0, iterator.next()));
+                    WorklistDto newWorklistDto = new WorklistDto(worklistDto, 0, iterator.next());
+                    createDependencies(newWorklistDto);
                 }
             } else if (overloadBindingsList.size() == 1) {
                 IOverloadBindings overloadBindings = overloadBindingsList.get(0);
@@ -288,6 +288,22 @@ public class ConstraintSolver implements IConstraintSolver
         return isNotTheSame;
     }
 
+    private void createOverloadsForRecursiveMethod(
+            Iterator<WorklistDto> iterator, WorklistDto firstWorkListDto, IMethodSymbol methodSymbol) {
+
+        List<IOverloadBindings> solvedBindings = new ArrayList<>();
+        solvedBindings.add(firstWorkListDto.overloadBindings);
+        createOverload(methodSymbol, firstWorkListDto.overloadBindings);
+        while (iterator.hasNext()) {
+            WorklistDto worklistDto = iterator.next();
+            IOverloadBindings overloadBindings = worklistDto.overloadBindings;
+            solvedBindings.add(overloadBindings);
+            createOverload(methodSymbol, overloadBindings);
+        }
+        methodSymbol.setBindings(solvedBindings);
+
+    }
+
     private void solveDependenciesOfRecursiveMethod(String absoluteName) {
         for (Pair<WorklistDto, Integer> pair : directDependencies.get(absoluteName)) {
             WorklistDto worklistDto = pair.first;
@@ -310,23 +326,6 @@ public class ConstraintSolver implements IConstraintSolver
             }
         }
     }
-
-    private void createOverloadsForRecursiveMethod(
-            Iterator<WorklistDto> iterator, WorklistDto firstWorkListDto, IMethodSymbol methodSymbol) {
-
-        List<IOverloadBindings> solvedBindings = new ArrayList<>();
-        solvedBindings.add(firstWorkListDto.overloadBindings);
-        createOverload(methodSymbol, firstWorkListDto.overloadBindings);
-        while (iterator.hasNext()) {
-            WorklistDto worklistDto = iterator.next();
-            IOverloadBindings overloadBindings = worklistDto.overloadBindings;
-            solvedBindings.add(overloadBindings);
-            createOverload(methodSymbol, overloadBindings);
-        }
-        methodSymbol.setBindings(solvedBindings);
-
-    }
-
 
     public void solveGlobalDefaultNamespaceConstraints(
             IGlobalNamespaceScope globalDefaultNamespaceScope, Deque<WorklistDto> workDeque) {
@@ -391,16 +390,7 @@ public class ConstraintSolver implements IConstraintSolver
             } else {
                 hasDependency = true;
                 if (!worklistDto.isSolvingDependency) {
-                    String absoluteName = worklistDto.constraintCollection.getAbsoluteName();
-                    for (Integer pointer : worklistDto.unsolvedConstraints) {
-                        String refAbsoluteName = constraints.get(pointer).getMethodSymbol().getAbsoluteName();
-                        MapHelper.addToListInMap(directDependencies, refAbsoluteName, pair(worklistDto, pointer));
-                        MapHelper.addToSetInMap(dependencies, refAbsoluteName, absoluteName);
-                    }
-                    MapHelper.addToSetInMap(
-                            unresolvedConstraints,
-                            absoluteName,
-                            worklistDto);
+                    createDependencies(worklistDto);
                 }
             }
         }
@@ -410,6 +400,20 @@ public class ConstraintSolver implements IConstraintSolver
         }
 
         return solvedBindings;
+    }
+
+    private void createDependencies(WorklistDto worklistDto) {
+        List<IConstraint> constraints = worklistDto.constraintCollection.getConstraints();
+        String absoluteName = worklistDto.constraintCollection.getAbsoluteName();
+        for (Integer pointer : worklistDto.unsolvedConstraints) {
+            String refAbsoluteName = constraints.get(pointer).getMethodSymbol().getAbsoluteName();
+            MapHelper.addToListInMap(directDependencies, refAbsoluteName, pair(worklistDto, pointer));
+            MapHelper.addToSetInMap(dependencies, refAbsoluteName, absoluteName);
+        }
+        MapHelper.addToSetInMap(
+                unresolvedConstraints,
+                absoluteName,
+                worklistDto);
     }
 
     private List<IOverloadBindings> solveConstraintsIterativeMode(Deque<WorklistDto> workDeque) {
