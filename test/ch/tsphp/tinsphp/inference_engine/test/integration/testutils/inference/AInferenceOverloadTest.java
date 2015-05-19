@@ -67,6 +67,9 @@ public class AInferenceOverloadTest extends AInferenceTest
                 }
             }
 
+            Assert.assertEquals(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
+                    "too many or not enough overloads", size, overloads.size());
+
             ++counter;
         }
     }

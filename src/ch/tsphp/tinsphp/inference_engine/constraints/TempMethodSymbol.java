@@ -19,9 +19,7 @@ public class TempMethodSymbol implements IMinimalMethodSymbol
 {
     private static final String ERROR_MESSAGE = "You are dealing with a temp method symbol";
 
-
     private final IMethodSymbol methodSymbol;
-
     private List<IFunctionType> tempOverloads;
 
     public TempMethodSymbol(IMethodSymbol theMethodSymbol, List<IFunctionType> theTempOverloads) {
