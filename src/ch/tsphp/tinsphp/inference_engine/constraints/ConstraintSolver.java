@@ -368,7 +368,7 @@ public class ConstraintSolver implements IConstraintSolver
                     String absoluteName = worklistDto.constraintCollection.getAbsoluteName();
                     for (Integer pointer : worklistDto.unsolvedConstraints) {
                         String refAbsoluteName = constraints.get(pointer).getMethodSymbol().getAbsoluteName();
-                        MapHelper.addToListMap(directDependencies, refAbsoluteName, pair(worklistDto, pointer));
+                        MapHelper.addToListInMap(directDependencies, refAbsoluteName, pair(worklistDto, pointer));
                         MapHelper.addToSetInMap(dependencies, refAbsoluteName, absoluteName);
                     }
                     MapHelper.addToSetInMap(
