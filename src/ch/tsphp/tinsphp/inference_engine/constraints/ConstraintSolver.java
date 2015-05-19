@@ -302,10 +302,10 @@ public class ConstraintSolver implements IConstraintSolver
 
                     addMostSpecificOverloadToWorklist(worklistDto, constraint);
                     WorklistDto tempWorklistDto = worklistDto.workDeque.removeFirst();
-                    String absoluteNameLhs = constraint.getLeftHandSide().getAbsoluteName();
-                    IFunctionType appliedOverload = tempWorklistDto.overloadBindings.getAppliedOverload
-                            (absoluteNameLhs);
-                    worklistDto.overloadBindings.setAppliedOverload(absoluteNameLhs, appliedOverload);
+                    String lhsAbsoluteName = constraint.getLeftHandSide().getAbsoluteName();
+                    IFunctionType appliedOverload
+                            = tempWorklistDto.overloadBindings.getAppliedOverload(lhsAbsoluteName);
+                    worklistDto.overloadBindings.setAppliedOverload(lhsAbsoluteName, appliedOverload);
                 }
             }
         }
