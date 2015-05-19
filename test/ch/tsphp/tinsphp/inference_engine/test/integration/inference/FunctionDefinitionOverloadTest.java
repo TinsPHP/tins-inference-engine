@@ -195,95 +195,43 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                                 varBinding(RETURN_VARIABLE_NAME, "T6", asList("int"), asList("int"), true)
                         )), 1, 0, 2)
                 },
-                //direct recursive functions
                 {
-                        "function fib($n){ return $n > 1 ? fib($n - 1) + fib($n - 2) : 1;}",
-                        testStructs("fib()", "\\.\\.", functionDtos("fib()", 1, bindingDtos(
-                                varBinding("fib()$n", "T8", numLower, numUpper, true),
-                                varBinding(RETURN_VARIABLE_NAME, "T7", asList("int"), asList("int"), true)
-                        )), 1, 0, 2)
-                },
-                {
-                        "function spaces($n){ if($n > 0){ return ' '.spaces($n-1);} return '';}",
-                        testStructs("spaces()", "\\.\\.", functionDtos("spaces()", 1, bindingDtos(
-                                varBinding("spaces()$n", "T4", numLower, numUpper, true),
-                                varBinding(RETURN_VARIABLE_NAME, "T7", asList("string"), asList("string"), true)
-                        )), 1, 0, 2)
-                },
-                {
-                        "function fac($n){ return $n > 0 ? $n * fac($n-1) : $n;}",
-                        testStructs("fac()", "\\.\\.", functionDtos("fac()", 1, bindingDtos(
-                                varBinding("fac()$n", "T8", asList("int"), numUpper, false),
-                                varBinding(RETURN_VARIABLE_NAME, "T8", asList("int"), numUpper, false)
-                        )), 1, 0, 2)
-                },
-                {
-                        "function endless(){ return endless();}",
-                        testStructs("endless()", "\\.\\.", functionDtos("endless()", 0, bindingDtos(
-                                varBinding(RETURN_VARIABLE_NAME, "T2", asList("mixed"), asList("mixed"), true)
-                        )), 1, 0, 2)
-                },
-                {
-                        "function endless2(){ $a = endless2(); return $a;}",
-                        testStructs("endless2()", "\\.\\.", functionDtos("endless2()", 0, bindingDtos(
-                                varBinding(RETURN_VARIABLE_NAME, "T2", asList("mixed"), asList("mixed"), true)
-                        )), 1, 0, 2)
-                },
-                {
-                        "function endless3($x){ $x = endless3(); return $x;}",
-                        testStructs("endless3()", "\\.\\.", functionDtos("endless3()", 1, bindingDtos(
-                                varBinding("endless3()$x", "T3", null, null, false),
-                                varBinding(RETURN_VARIABLE_NAME, "T3", null, null, false)
-                        )), 1, 0, 2)
-                },
-                {
-                        "function endless4($x, $y){ $x = endless4(); $y = $x; return $y;}",
-                        testStructs("endless4()", "\\.\\.", functionDtos("endless4()", 2, bindingDtos(
-                                varBinding("endless4()$x", "T3", null, null, false),
-                                varBinding("endless4()$y", "T3", null, null, false),
-                                varBinding(RETURN_VARIABLE_NAME, "T3", null, null, false)
-                        )), 1, 0, 2)
-                },
-                {
-                        "function fac2($x, $y){ $y = $x > 0 ? $x * fac2($x-1, $y) : $x; return $y;}",
-                        testStructs("fac2()", "\\.\\.", functionDtos("fac2()", 2, bindingDtos(
-                                varBinding("fac2()$x", "T8", asList("int"), numUpper, false),
-                                varBinding("fac2()$y", "T8", asList("int"), numUpper, false),
-                                varBinding(RETURN_VARIABLE_NAME, "T8", asList("int"), numUpper, false)
-                        )), 1, 0, 2)
-                },
-                //indirect recursive functions
-                {
-                        "function foo($x){ if($x > 0){return bar($x-1);} return $x;}"
-                                + "function bar($x){ if($x > 0){return foo($x-1);} return $x;}",
+                        "function foo($x, $y){ if($x){return $y;} return false; }"
+                                + "function bar($x){ if($x > 0){return foo(true, $x-1);} return $x;}"
+                                + "function test(){return foo(true, 'hello');}",
                         new OverloadTestStruct[]{
-                                testStruct("foo()", "\\.\\.", functionDtos("foo()", 1, bindingDtos(
-                                        varBinding("foo()$x", "T4", asList("int"), numUpper, false),
-                                        varBinding(RETURN_VARIABLE_NAME, "T4", asList("int"), numUpper, false)
+                                testStruct("foo()", "\\.\\.", functionDtos("foo()", 2, bindingDtos(
+                                        varBinding("foo()$x", "T5", boolLower, boolUpper, true),
+                                        varBinding("foo()$y", "T2", null, null, false),
+                                        varBinding(RETURN_VARIABLE_NAME, "T1", asList("falseType", "@T2"), null, false)
                                 )), 1, 0, 2),
                                 testStruct("bar()", "\\.\\.", functionDtos("bar()", 1, bindingDtos(
                                         varBinding("bar()$x", "T4", asList("int"), numUpper, false),
-                                        varBinding(RETURN_VARIABLE_NAME, "T4", asList("int"), numUpper, false)
+                                        varBinding(RETURN_VARIABLE_NAME, "T8",
+                                                asList("falseType", "int", "@T4"), null, false)
+                                )), 1, 1, 2),
+                                testStruct("test()", "\\.\\.", functionDtos("test()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "T4",
+                                                asList("string", "falseType"), asList("(falseType | string)"), true)
+                                )), 1, 2, 2)
+                        }
+                },
+                //see TINS-466 - rename type variable does not promote type bounds
+                {
+                        "function test(){return foo(true, 'hello');}"
+                                + "function foo($x, $y){ if($x){ } return $y;}",
+                        new OverloadTestStruct[]{
+                                testStruct("test()", "\\.\\.", functionDtos("test()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "T1",
+                                                asList("string"), asList("string"), true)
+                                )), 1, 0, 2),
+                                testStruct("foo()", "\\.\\.", functionDtos("foo()", 2, bindingDtos(
+                                        varBinding("foo()$x", "T2", boolLower, boolUpper, true),
+                                        varBinding("foo()$y", "T4", null, null, false),
+                                        varBinding(RETURN_VARIABLE_NAME, "T4", null, null, false)
                                 )), 1, 1, 2)
                         }
                 },
-                //TODO TINS-378 solve recursive functions
-//                // indirect recursive function with parameter which has no constraint other than recursive function,
-//                // hence will not have a binding when iterating
-//                {
-//                        "function foo($x){ return bar($x); }"
-//                                + "function bar($x){ if($x > 0){return foo($x-1);} return $x;}",
-//                        new OverloadTestStruct[]{
-//                                testStruct("foo()", "\\.\\.", functionDtos("foo()", 1, bindingDtos(
-//                                        varBinding("foo()$x", "T8", asList("int"), numUpper, false),
-//                                        varBinding(RETURN_VARIABLE_NAME, "T8", asList("int"), numUpper, false)
-//                                )), 1, 0, 2),
-//                                testStruct("bar()", "\\.\\.", functionDtos("bar()", 1, bindingDtos(
-//                                        varBinding("bar()$x", "T8", asList("int"), numUpper, false),
-//                                        varBinding(RETURN_VARIABLE_NAME, "T8", asList("int"), numUpper, false)
-//                                )), 1, 1, 2)
-//                        }
-//                },
         });
     }
 }
