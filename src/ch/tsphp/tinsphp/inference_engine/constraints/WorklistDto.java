@@ -23,7 +23,6 @@ public class WorklistDto
     public List<Integer> unsolvedConstraints;
     public boolean isInIterativeMode;
     public boolean isSolvingDependency;
-    public Boolean needToRecreateOverloads;
 
     public WorklistDto(
             Deque<WorklistDto> theWorkDeque,
@@ -48,6 +47,5 @@ public class WorklistDto
         unsolvedConstraints = dto.unsolvedConstraints;
         isInIterativeMode = dto.isInIterativeMode;
         isSolvingDependency = dto.isSolvingDependency;
-        needToRecreateOverloads = dto.needToRecreateOverloads;
     }
 }

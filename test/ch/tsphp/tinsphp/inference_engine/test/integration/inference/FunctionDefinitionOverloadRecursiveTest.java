@@ -129,7 +129,68 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                                 )), 1, 1, 2)
                         }
                 },
-
+                // indirect recursive function which does not change during first iteration,
+                // dependent function changes though
+                {
+                        "function foo($x){ return foo2($x); }"
+                                + "function foo2($x){ return bar($x);}"
+                                + "function bar($x){ if($x > 0){return foo($x-1);} return $x;}",
+                        new OverloadTestStruct[]{
+                                testStruct("foo()", "\\.\\.", functionDtos("foo()", 1, bindingDtos(
+                                        varBinding("foo()$x", "T4", asList("int"), numUpper, false),
+                                        varBinding(RETURN_VARIABLE_NAME, "T4", asList("int"), numUpper, false)
+                                )), 1, 0, 2),
+                                testStruct("foo2()", "\\.\\.", functionDtos("foo2()", 1, bindingDtos(
+                                        varBinding("foo2()$x", "T4", asList("int"), numUpper, false),
+                                        varBinding(RETURN_VARIABLE_NAME, "T4", asList("int"), numUpper, false)
+                                )), 1, 1, 2),
+                                testStruct("bar()", "\\.\\.", functionDtos("bar()", 1, bindingDtos(
+                                        varBinding("bar()$x", "T4", asList("int"), numUpper, false),
+                                        varBinding(RETURN_VARIABLE_NAME, "T4", asList("int"), numUpper, false)
+                                )), 1, 2, 2)
+                        }
+                },
+                // call to an indirect recursive function
+                {
+                        "function foo($x, $y){ if($x){return $y;} return bar($y); }"
+                                + "function bar($x){ if($x > 0){return foo(false, $x-1);} return $x;}"
+                                + "function test(){return foo(true, 1);}",
+                        new OverloadTestStruct[]{
+                                testStruct("foo()", "\\.\\.", functionDtos("foo()", 2, bindingDtos(
+                                        varBinding("foo()$x", "T5", boolLower, boolUpper, true),
+                                        varBinding("foo()$y", "T2", asList("int"), numUpper, false),
+                                        varBinding(RETURN_VARIABLE_NAME, "T2", asList("int"), numUpper, false)
+                                )), 1, 0, 2),
+                                testStruct("bar()", "\\.\\.", functionDtos("bar()", 1, bindingDtos(
+                                        varBinding("bar()$x", "T4", asList("int"), numUpper, false),
+                                        varBinding(RETURN_VARIABLE_NAME, "T4", asList("int"), numUpper, false)
+                                )), 1, 1, 2),
+                                testStruct("test()", "\\.\\.", functionDtos("test()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "T1", asList("int"), asList("int"), true)
+                                )), 1, 2, 2)
+                        }
+                },
+                //TODO TINS-465 - mixed or nothing as single type bound
+                {
+                        "function foo($x, $y){ if($x){return $y;} return bar($y); }"
+                                + "function bar($x){ if($x > 0){return foo(false, $x);} return $x;}"
+                                + "function test(){return foo(true, 'hello');}",
+                        new OverloadTestStruct[]{
+                                testStruct("foo()", "\\.\\.", functionDtos("foo()", 2, bindingDtos(
+                                        varBinding("foo()$x", "T5", boolLower, boolUpper, true),
+                                        varBinding("foo()$y", "T2", null, asList("mixed"), false),
+                                        varBinding(RETURN_VARIABLE_NAME, "T2", null, asList("mixed"), false)
+                                )), 1, 0, 2),
+                                testStruct("bar()", "\\.\\.", functionDtos("bar()", 1, bindingDtos(
+                                        varBinding("bar()$x", "T2", null, asList("mixed"), false),
+                                        varBinding(RETURN_VARIABLE_NAME, "T2", null, asList("mixed"), false)
+                                )), 1, 1, 2),
+                                testStruct("test()", "\\.\\.", functionDtos("test()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "T1",
+                                                asList("string"), asList("string"), true)
+                                )), 1, 2, 2)
+                        }
+                },
         });
     }
 }

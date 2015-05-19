@@ -12,7 +12,6 @@ import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
-import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 
 import java.util.List;
 
@@ -20,30 +19,19 @@ public class TempMethodSymbol implements IMinimalMethodSymbol
 {
     private static final String ERROR_MESSAGE = "You are dealing with a temp method symbol";
 
-    private final ISymbolFactory symbolFactory;
+
     private final IMethodSymbol methodSymbol;
 
     private List<IFunctionType> tempOverloads;
 
-    public TempMethodSymbol(
-            ISymbolFactory theSymbolFactory, IMethodSymbol theMethodSymbol, List<IFunctionType> theTempOverloads) {
-        symbolFactory = theSymbolFactory;
+    public TempMethodSymbol(IMethodSymbol theMethodSymbol, List<IFunctionType> theTempOverloads) {
         methodSymbol = theMethodSymbol;
         tempOverloads = theTempOverloads;
     }
-//
-//    public void removeOverload(WorklistDto dto) {
-//        worklistDtos.remove(dto);
-//
-//        String absoluteName = methodSymbol.getAbsoluteName();
-//        tempOverloads = new ArrayList<>(worklistDtos.size());
-//        for (WorklistDto worklistDto : worklistDtos) {
-//            IFunctionType overload
-//                    = symbolFactory.createFunctionType(absoluteName, worklistDto.overloadBindings,
-// parameterVariables);
-//            tempOverloads.add(overload);
-//        }
-//    }
+
+    public void renewTempOverloads(List<IFunctionType> newTempOverloads) {
+        tempOverloads = newTempOverloads;
+    }
 
     @Override
     public void addOverload(IFunctionType overload) {

@@ -52,6 +52,7 @@ public class ConstraintSolver implements IConstraintSolver
     private final ITypeSymbol mixedTypeSymbol;
     private final Map<String, List<Pair<WorklistDto, Integer>>> dependencies = new ConcurrentHashMap<>();
     private final Map<String, List<WorklistDto>> unresolvedConstraints = new ConcurrentHashMap<>();
+    private final Map<String, TempMethodSymbol> tempMethodSymbols = new HashMap<>();
 
     public ConstraintSolver(
             ISymbolFactory theSymbolFactory,
@@ -71,22 +72,108 @@ public class ConstraintSolver implements IConstraintSolver
         }
 
         if (!unresolvedConstraints.isEmpty()) {
-            solveIteratively();
+            solveConstraintsIteratively();
         }
 
         if (!globalDefaultNamespaceScope.getConstraints().isEmpty()) {
             Deque<WorklistDto> workDeque = createInitialWorklist(globalDefaultNamespaceScope, false);
             solveGlobalDefaultNamespaceConstraints(globalDefaultNamespaceScope, workDeque);
         }
-
     }
 
-    private void solveIteratively() {
+    private Deque<WorklistDto> createInitialWorklist(
+            IConstraintCollection constraintCollection, boolean isSolvingMethod) {
+        IOverloadBindings bindings = symbolFactory.createOverloadBindings();
+        Deque<WorklistDto> workDeque = new ArrayDeque<>();
+        workDeque.add(new WorklistDto(workDeque, constraintCollection, 0, isSolvingMethod, bindings));
+        return workDeque;
+    }
+
+    private void solveConstraintsIteratively() {
 
         Deque<WorklistDto> worklist = new ArrayDeque<>();
 
         createTempOverloadsAndPopulateWorklist(worklist);
+        solveIteratively(worklist);
 
+        createOverloadsAndSolveDependencies();
+    }
+
+    private void createTempOverloadsAndPopulateWorklist(Deque<WorklistDto> worklist) {
+        for (Map.Entry<String, List<WorklistDto>> entry : unresolvedConstraints.entrySet()) {
+            String absoluteName = entry.getKey();
+            //we only solve recursive functions
+            if (dependencies.containsKey(absoluteName)) {
+                List<WorklistDto> worklistDtos = entry.getValue();
+                TempMethodSymbol tempMethodSymbol = createTempMethodSymbol(worklistDtos);
+                tempMethodSymbols.put(tempMethodSymbol.getAbsoluteName(), tempMethodSymbol);
+
+                for (Pair<WorklistDto, Integer> dependency : dependencies.get(absoluteName)) {
+                    WorklistDto worklistDto = dependency.first;
+                    List<IConstraint> constraints = worklistDto.constraintCollection.getConstraints();
+                    int pointer = dependency.second;
+                    IConstraint constraint = constraints.get(pointer);
+                    IConstraint newConstraint = symbolFactory.createConstraint(
+                            constraint.getOperator(),
+                            constraint.getLeftHandSide(),
+                            constraint.getArguments(),
+                            tempMethodSymbol);
+                    constraints.set(pointer, newConstraint);
+                }
+
+                for (WorklistDto worklistDto : entry.getValue()) {
+                    worklistDto.pointer = 0;
+                    worklistDto.isSolvingDependency = false;
+                    worklistDto.isInIterativeMode = true;
+                    worklist.add(worklistDto);
+                }
+            }
+        }
+    }
+
+    private TempMethodSymbol createTempMethodSymbol(List<WorklistDto> worklistDtos) {
+        IMethodSymbol methodSymbol = (IMethodSymbol) worklistDtos.get(0).constraintCollection;
+        List<IFunctionType> tempOverloads = createTempOverloads(methodSymbol, worklistDtos);
+        return new TempMethodSymbol(methodSymbol, tempOverloads);
+    }
+
+    private List<IFunctionType> createTempOverloads(
+            IMethodSymbol methodSymbol, List<WorklistDto> worklistDtos) {
+
+        List<IVariable> parameterVariables = new ArrayList<IVariable>(methodSymbol.getParameters());
+        IMinimalVariableSymbol returnVariable = methodSymbol.getReturnVariable();
+        String absoluteName = methodSymbol.getAbsoluteName();
+        int size = worklistDtos.size();
+
+
+        List<IFunctionType> tempOverloads = new ArrayList<>(size);
+        for (int i = 0; i < size; ++i) {
+            WorklistDto worklistDto = worklistDtos.get(i);
+
+            IOverloadBindings overloadBindings = worklistDto.overloadBindings;
+            boolean notYetAllBindingsCreated = !overloadBindings.containsVariable(returnVariable.getAbsoluteName());
+            if (!notYetAllBindingsCreated) {
+                for (IVariable parameterVariable : parameterVariables) {
+                    if (!overloadBindings.containsVariable(parameterVariable.getAbsoluteName())) {
+                        notYetAllBindingsCreated = true;
+                        break;
+                    }
+                }
+            }
+
+            if (notYetAllBindingsCreated) {
+                overloadBindings = symbolFactory.createOverloadBindings(worklistDto.overloadBindings);
+                createBindingsIfNecessary(overloadBindings, returnVariable, parameterVariables);
+            }
+
+            IFunctionType overload =
+                    symbolFactory.createFunctionType(absoluteName, overloadBindings, parameterVariables);
+            tempOverloads.add(overload);
+        }
+        return tempOverloads;
+    }
+
+    private void solveIteratively(Deque<WorklistDto> worklist) {
         while (!worklist.isEmpty()) {
             WorklistDto worklistDto = worklist.removeFirst();
             worklistDto.workDeque.add(worklistDto);
@@ -99,15 +186,8 @@ public class ConstraintSolver implements IConstraintSolver
                 }
             } else if (overloadBindingsList.size() == 1) {
                 IOverloadBindings overloadBindings = overloadBindingsList.get(0);
-                if (worklistDto.needToRecreateOverloads) {
-                    //parameter or return variable did not have bindings, need to recreate overloads and iterate again
-                    worklistDto.needToRecreateOverloads = false;
-                    worklist.add(worklistDto);
-                } else {
-                    if (hasChanged(worklistDto, overloadBindings)) {
-                        worklist.add(worklistDto);
-                    }
-                    worklistDto.overloadBindings = overloadBindings;
+                if (hasChanged(worklistDto, overloadBindings)) {
+                    reiterate(worklist, worklistDto, overloadBindings);
                 }
             } else {
                 //TODO overload bindings are not valid, fair enough, we remove it and need to recreate the temp
@@ -116,52 +196,21 @@ public class ConstraintSolver implements IConstraintSolver
                 throw new UnsupportedOperationException("oho... recursion and soft typing");
             }
         }
-
-        for (List<WorklistDto> worklistDtos : unresolvedConstraints.values()) {
-            int size = worklistDtos.size();
-            List<IOverloadBindings> solvedBindings = new ArrayList<>(size);
-            WorklistDto worklistDto = worklistDtos.get(0);
-            IMethodSymbol methodSymbol = (IMethodSymbol) worklistDto.constraintCollection;
-            solvedBindings.add(worklistDto.overloadBindings);
-            createOverload(methodSymbol, worklistDto.overloadBindings);
-            for (int i = 1; i < size; ++i) {
-                IOverloadBindings overloadBindings = worklistDtos.get(i).overloadBindings;
-                solvedBindings.add(overloadBindings);
-                createOverload(methodSymbol, overloadBindings);
-            }
-            methodSymbol.setBindings(solvedBindings);
-        }
     }
 
-    private void createTempOverloadsAndPopulateWorklist(Deque<WorklistDto> worklist) {
-        for (Map.Entry<String, List<WorklistDto>> entry : unresolvedConstraints.entrySet()) {
-            List<WorklistDto> worklistDtos = entry.getValue();
+    private void reiterate(Deque<WorklistDto> worklist, WorklistDto worklistDto, IOverloadBindings overloadBindings) {
+        worklistDto.overloadBindings = overloadBindings;
+        IMethodSymbol methodSymbol = (IMethodSymbol) worklistDto.constraintCollection;
 
-            Pair<IMinimalMethodSymbol, Boolean> result = createMinimalMethodSymbol(worklistDtos);
+        String absoluteName = methodSymbol.getAbsoluteName();
+        TempMethodSymbol tempMethodSymbol = tempMethodSymbols.get(absoluteName);
+        List<IFunctionType> tempOverloads = createTempOverloads(methodSymbol, unresolvedConstraints.get(absoluteName));
+        tempMethodSymbol.renewTempOverloads(tempOverloads);
 
-            for (Pair<WorklistDto, Integer> dependency : dependencies.get(entry.getKey())) {
-                WorklistDto worklistDto = dependency.first;
-                List<IConstraint> constraints = worklistDto.constraintCollection.getConstraints();
-                int pointer = dependency.second;
-                IConstraint constraint = constraints.get(pointer);
-                IConstraint newConstraint = symbolFactory.createConstraint(
-                        constraint.getOperator(),
-                        constraint.getLeftHandSide(),
-                        constraint.getArguments(),
-                        result.first);
-                constraints.set(pointer, newConstraint);
-            }
-
-            for (WorklistDto worklistDto : entry.getValue()) {
-                worklistDto.pointer = 0;
-                worklistDto.isSolvingDependency = false;
-                worklistDto.isInIterativeMode = true;
-                worklistDto.needToRecreateOverloads = result.second;
-                worklist.add(worklistDto);
-            }
+        for (Pair<WorklistDto, Integer> pair : dependencies.get(absoluteName)) {
+            worklist.add(pair.first);
         }
     }
-
 
     private boolean hasChanged(WorklistDto worklistDto, IOverloadBindings newBindings) {
         IOverloadBindings oldBindings = worklistDto.overloadBindings;
@@ -204,52 +253,36 @@ public class ConstraintSolver implements IConstraintSolver
         return isNotTheSame;
     }
 
-    private Pair<IMinimalMethodSymbol, Boolean> createMinimalMethodSymbol(List<WorklistDto> worklistDtos) {
-        IMethodSymbol methodSymbol = (IMethodSymbol) worklistDtos.get(0).constraintCollection;
-        List<IVariable> parameterVariables = new ArrayList<IVariable>(methodSymbol.getParameters());
-        IMinimalVariableSymbol returnVariable = methodSymbol.getReturnVariable();
 
-        String absoluteName = methodSymbol.getAbsoluteName();
+    private void createOverloadsAndSolveDependencies() {
+        for (List<WorklistDto> worklistDtos : unresolvedConstraints.values()) {
+            int size = worklistDtos.size();
+            List<IOverloadBindings> solvedBindings = new ArrayList<>(size);
+            WorklistDto worklistDto = worklistDtos.get(0);
+            IMethodSymbol methodSymbol = (IMethodSymbol) worklistDto.constraintCollection;
+            String absoluteName = methodSymbol.getAbsoluteName();
+            if (dependencies.containsKey(absoluteName)) {
 
-        int size = worklistDtos.size();
-        boolean needToRecreateOverloadsNextTime = false;
+                solvedBindings.add(worklistDto.overloadBindings);
+                createOverload(methodSymbol, worklistDto.overloadBindings);
+                for (int i = 1; i < size; ++i) {
+                    IOverloadBindings overloadBindings = worklistDtos.get(i).overloadBindings;
+                    solvedBindings.add(overloadBindings);
+                    createOverload(methodSymbol, overloadBindings);
+                }
+                methodSymbol.setBindings(solvedBindings);
 
-        List<IFunctionType> tempOverloads = new ArrayList<>(size);
-        for (int i = 0; i < size; ++i) {
-            WorklistDto worklistDto = worklistDtos.get(i);
-
-            IOverloadBindings overloadBindings = worklistDto.overloadBindings;
-            boolean notYetAllBindingsCreated = !overloadBindings.containsVariable(returnVariable.getAbsoluteName());
-            if (!notYetAllBindingsCreated) {
-                for (IVariable parameterVariable : parameterVariables) {
-                    if (!overloadBindings.containsVariable(parameterVariable.getAbsoluteName())) {
-                        notYetAllBindingsCreated = true;
-                        break;
+                for (Pair<WorklistDto, Integer> pair : dependencies.get(absoluteName)) {
+                    if (!dependencies.containsKey(pair.first.constraintCollection.getAbsoluteName())) {
+                        solveDependency(pair);
                     }
                 }
             }
-
-            if (notYetAllBindingsCreated) {
-                needToRecreateOverloadsNextTime = true;
-                overloadBindings = symbolFactory.createOverloadBindings(worklistDto.overloadBindings);
-                createBindingsIfNecessary(overloadBindings, returnVariable, parameterVariables);
-            }
-
-            IFunctionType overload =
-                    symbolFactory.createFunctionType(absoluteName, overloadBindings, parameterVariables);
-            tempOverloads.add(overload);
         }
-        IMinimalMethodSymbol tempMethodSymbol = new TempMethodSymbol(symbolFactory, methodSymbol, tempOverloads);
-        return pair(tempMethodSymbol, needToRecreateOverloadsNextTime);
+        dependencies.clear();
+        unresolvedConstraints.clear();
     }
 
-    private Deque<WorklistDto> createInitialWorklist(
-            IConstraintCollection constraintCollection, boolean isSolvingMethod) {
-        IOverloadBindings bindings = symbolFactory.createOverloadBindings();
-        Deque<WorklistDto> workDeque = new ArrayDeque<>();
-        workDeque.add(new WorklistDto(workDeque, constraintCollection, 0, isSolvingMethod, bindings));
-        return workDeque;
-    }
 
     public void solveGlobalDefaultNamespaceConstraints(
             IGlobalNamespaceScope globalDefaultNamespaceScope, Deque<WorklistDto> workDeque) {
@@ -274,17 +307,21 @@ public class ConstraintSolver implements IConstraintSolver
             String methodName = methodSymbol.getAbsoluteName();
             if (dependencies.containsKey(methodName)) {
                 for (Pair<WorklistDto, Integer> element : dependencies.remove(methodName)) {
-                    WorklistDto worklistDto = element.first;
-                    worklistDto.pointer = element.second;
-                    //removing pointer not the element at index thus the cast to (Integer)
-                    worklistDto.unsolvedConstraints.remove((Integer) worklistDto.pointer);
-                    worklistDto.isSolvingDependency = true;
-                    worklistDto.workDeque.add(worklistDto);
-                    solveMethodConstraints((IMethodSymbol) worklistDto.constraintCollection, worklistDto.workDeque);
+                    solveDependency(element);
                 }
             }
             unresolvedConstraints.remove(methodName);
         }
+    }
+
+    private void solveDependency(Pair<WorklistDto, Integer> pair) {
+        WorklistDto worklistDto = pair.first;
+        worklistDto.pointer = pair.second;
+        //removing pointer not the element at index thus the cast to (Integer)
+        worklistDto.unsolvedConstraints.remove((Integer) worklistDto.pointer);
+        worklistDto.isSolvingDependency = true;
+        worklistDto.workDeque.add(worklistDto);
+        solveMethodConstraints((IMethodSymbol) worklistDto.constraintCollection, worklistDto.workDeque);
     }
 
     private List<IOverloadBindings> solveConstraints(Deque<WorklistDto> workDeque) {
