@@ -17,7 +17,7 @@ public class TestSymbolsInitialiser extends HardCodedSymbolsInitialiser
     private IScopeFactory scopeFactory;
 
     public TestSymbolsInitialiser() {
-        symbolFactory = new TestSymbolFactory(getScopeHelper(), getModifierHelper(), getOverloadResolver());
+        symbolFactory = new TestSymbolFactory(getScopeHelper(), getModifierHelper(), getTypeHelper());
         scopeFactory = new TestNamespaceScopeFactory(getScopeHelper());
     }
 

@@ -39,7 +39,7 @@ import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.PrimitiveTypeNames;
 import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousVariableSymbol;
-import ch.tsphp.tinsphp.common.utils.IOverloadResolver;
+import ch.tsphp.tinsphp.common.utils.ITypeHelper;
 import ch.tsphp.tinsphp.inference_engine.ReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 import ch.tsphp.tinsphp.symbols.ModifierSet;
@@ -1963,7 +1963,7 @@ public class ReferencePhaseControllerTest
         {
             @Override
             public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
-                return new UnionTypeSymbol(mock(IOverloadResolver.class));
+                return new UnionTypeSymbol(mock(ITypeHelper.class));
             }
         });
         return symbolFactory;

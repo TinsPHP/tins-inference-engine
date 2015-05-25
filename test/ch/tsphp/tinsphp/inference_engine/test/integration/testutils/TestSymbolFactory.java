@@ -19,7 +19,7 @@ import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
-import ch.tsphp.tinsphp.common.utils.IOverloadResolver;
+import ch.tsphp.tinsphp.common.utils.ITypeHelper;
 import ch.tsphp.tinsphp.symbols.SymbolFactory;
 
 import java.util.ArrayList;
@@ -33,8 +33,8 @@ public class TestSymbolFactory extends SymbolFactory
     public TestSymbolFactory(
             IScopeHelper theScopeHelper,
             IModifierHelper theModifierHelper,
-            IOverloadResolver theOverloadResolver) {
-        super(theScopeHelper, theModifierHelper, theOverloadResolver);
+            ITypeHelper theTypeHelper) {
+        super(theScopeHelper, theModifierHelper, theTypeHelper);
     }
 
     //TODO rstoll TINS-161 inference OOP

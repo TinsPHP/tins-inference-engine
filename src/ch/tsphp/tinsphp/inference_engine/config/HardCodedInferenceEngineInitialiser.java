@@ -27,7 +27,7 @@ import ch.tsphp.tinsphp.common.scopes.IScopeFactory;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
-import ch.tsphp.tinsphp.common.utils.IOverloadResolver;
+import ch.tsphp.tinsphp.common.utils.ITypeHelper;
 import ch.tsphp.tinsphp.inference_engine.DefinitionPhaseController;
 import ch.tsphp.tinsphp.inference_engine.InferenceEngine;
 import ch.tsphp.tinsphp.inference_engine.ReferencePhaseController;
@@ -70,7 +70,7 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
 
         scopeHelper = symbolsInitialiser.getScopeHelper();
         modifierHelper = symbolsInitialiser.getModifierHelper();
-        IOverloadResolver overloadResolver = symbolsInitialiser.getOverloadResolver();
+        ITypeHelper typeHelper = symbolsInitialiser.getTypeHelper();
         core = coreInitialiser.getCore();
 
         symbolFactory = symbolsInitialiser.getSymbolFactory();
@@ -84,7 +84,7 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
         additionalSymbolResolvers = new ArrayList<>();
         additionalSymbolResolvers.add(coreInitialiser.getCoreSymbolResolver());
 
-        constraintSolver = new ConstraintSolver(symbolFactory, overloadResolver, inferenceIssueReporter);
+        constraintSolver = new ConstraintSolver(symbolFactory, typeHelper, inferenceIssueReporter);
 
         init();
 

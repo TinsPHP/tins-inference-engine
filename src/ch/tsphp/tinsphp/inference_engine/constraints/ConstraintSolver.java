@@ -28,7 +28,7 @@ import ch.tsphp.tinsphp.common.symbols.IMinimalVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
-import ch.tsphp.tinsphp.common.utils.IOverloadResolver;
+import ch.tsphp.tinsphp.common.utils.ITypeHelper;
 import ch.tsphp.tinsphp.common.utils.MapHelper;
 import ch.tsphp.tinsphp.common.utils.Pair;
 
@@ -49,7 +49,7 @@ import static ch.tsphp.tinsphp.common.utils.Pair.pair;
 public class ConstraintSolver implements IConstraintSolver
 {
     private final ISymbolFactory symbolFactory;
-    private final IOverloadResolver overloadResolver;
+    private final ITypeHelper typeHelper;
     private final IInferenceIssueReporter issueReporter;
     private final ITypeSymbol mixedTypeSymbol;
     private final Map<String, Set<String>> dependencies = new HashMap<>();
@@ -59,10 +59,10 @@ public class ConstraintSolver implements IConstraintSolver
 
     public ConstraintSolver(
             ISymbolFactory theSymbolFactory,
-            IOverloadResolver theOverloadResolver,
+            ITypeHelper theTypeHelper,
             IInferenceIssueReporter theIssueReporter) {
         symbolFactory = theSymbolFactory;
-        overloadResolver = theOverloadResolver;
+        typeHelper = theTypeHelper;
         issueReporter = theIssueReporter;
         mixedTypeSymbol = symbolFactory.getMixedTypeSymbol();
     }
@@ -270,13 +270,13 @@ public class ConstraintSolver implements IConstraintSolver
             IUnionTypeSymbol oldLowerType = oldBindings.getLowerTypeBounds(newTypeVariable);
             IUnionTypeSymbol newLowerType = newBindings.getLowerTypeBounds(newTypeVariable);
             isNotTheSame = !(oldLowerType == null && newLowerType == null
-                    || oldLowerType != null && overloadResolver.areSame(oldLowerType, newLowerType));
+                    || oldLowerType != null && typeHelper.areSame(oldLowerType, newLowerType));
 
             if (!isNotTheSame) {
                 IIntersectionTypeSymbol oldUpperType = oldBindings.getUpperTypeBounds(newTypeVariable);
                 IIntersectionTypeSymbol newUpperType = newBindings.getUpperTypeBounds(newTypeVariable);
                 isNotTheSame = !(oldUpperType == null && newUpperType == null
-                        || oldUpperType != null && overloadResolver.areSame(oldUpperType, newUpperType));
+                        || oldUpperType != null && typeHelper.areSame(oldUpperType, newUpperType));
                 if (!isNotTheSame) {
                     Set<String> oldLowerRefBounds = oldBindings.getLowerRefBounds(newTypeVariable);
                     Set<String> newLowerRefBounds = newBindings.getLowerRefBounds(newTypeVariable);
@@ -774,15 +774,15 @@ public class ConstraintSolver implements IConstraintSolver
         if (dto.lowerBound == null) {
             return mostGeneralLowerBound.getTypeSymbols().size() == 0;
         } else {
-            return overloadResolver.areSame(dto.lowerBound, mostGeneralLowerBound);
+            return typeHelper.areSame(dto.lowerBound, mostGeneralLowerBound);
         }
     }
 
     private boolean isMostSpecificUpperBound(OverloadRankingDto dto, IIntersectionTypeSymbol mostSpecificUpperBound) {
         if (dto.upperBound == null) {
-            return overloadResolver.areSame(mixedTypeSymbol, mostSpecificUpperBound);
+            return typeHelper.areSame(mixedTypeSymbol, mostSpecificUpperBound);
         } else {
-            return overloadResolver.areSame(dto.upperBound, mostSpecificUpperBound);
+            return typeHelper.areSame(dto.upperBound, mostSpecificUpperBound);
         }
     }
 

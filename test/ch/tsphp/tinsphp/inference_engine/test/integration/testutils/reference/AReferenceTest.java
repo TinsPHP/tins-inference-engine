@@ -30,7 +30,7 @@ import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
-import ch.tsphp.tinsphp.common.utils.IOverloadResolver;
+import ch.tsphp.tinsphp.common.utils.ITypeHelper;
 import ch.tsphp.tinsphp.inference_engine.ReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPReferenceWalker;
 import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintCreator;
@@ -77,7 +77,7 @@ public abstract class AReferenceTest extends ADefinitionTest
     private void init() {
         IScopeHelper scopeHelper = symbolsInitialiser.getScopeHelper();
         ISymbolFactory symbolFactory = symbolsInitialiser.getSymbolFactory();
-        IOverloadResolver overloadResolver = symbolsInitialiser.getOverloadResolver();
+        ITypeHelper typeHelper = symbolsInitialiser.getTypeHelper();
 
         astModificationHelper = createAstModificationHelper(astHelper);
 
@@ -103,7 +103,7 @@ public abstract class AReferenceTest extends ADefinitionTest
         variableDeclarationCreator = createVariableDeclarationCreator(
                 symbolFactory, astModificationHelper, definitionPhaseController);
 
-        constraintSolver = createConstraintSolver(symbolFactory, overloadResolver, inferenceErrorReporter);
+        constraintSolver = createConstraintSolver(symbolFactory, typeHelper, inferenceErrorReporter);
 
         constraintCreator = createConstraintCreator(symbolFactory, inferenceErrorReporter);
 
@@ -218,9 +218,9 @@ public abstract class AReferenceTest extends ADefinitionTest
 
     protected IConstraintSolver createConstraintSolver(
             ISymbolFactory theSymbolFactory,
-            IOverloadResolver theOverloadResolver,
+            ITypeHelper theTypeHelper,
             IInferenceIssueReporter theInferenceIssueReport) {
-        return new ConstraintSolver(theSymbolFactory, theOverloadResolver, theInferenceIssueReport);
+        return new ConstraintSolver(theSymbolFactory, theTypeHelper, theInferenceIssueReport);
     }
 
 
