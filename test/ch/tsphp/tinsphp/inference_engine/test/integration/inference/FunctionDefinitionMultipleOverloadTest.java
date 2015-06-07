@@ -79,16 +79,17 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
                                 "{as T1} -> T1 \\ float <: T1 <: (float | int)"
                         ), 1, 0, 2)
                 },
-                {
-                        "function foo($x){return $x + ('1' + '1.5');}",
-                        testStructs("foo()", "\\.\\.", asList(
-                                "float -> float",
-                                //TODO TINS-494 ambiguous overloads calculated
-                                "float -> float",
-                                "{as (float | int)} -> float",
-                                "{as T4} -> T4 \\ float <: T4 <: (float | int)"
-                        ), 1, 0, 2)
-                },
+                //TODO see TINS-494 ambiguous overloads calculated
+//                {
+//                        "function foo($x){return $x + (1 ? 1: 1.3);}",
+//                        testStructs("foo()", "\\.\\.", asList(
+//                                "float -> float",
+//                                //TODO TINS-494 ambiguous overloads calculated
+//                                "float -> float",
+//                                "{as (float | int)} -> float",
+//                                "{as T4} -> T4 \\ float <: T4 <: (float | int)"
+//                        ), 1, 0, 2)
+//                },
                 {
                         "function foo($x){return $x + true;}",
                         testStructs("foo()", "\\.\\.", asList(
@@ -139,8 +140,8 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
                         "function foo($x, $y){return $x / $y;}",
                         testStructs("foo()", "\\.\\.", asList(
                                 "float x float -> (falseType | float)",
-                                "float x {as float} -> (falseType | float)",
-                                "{as float} x float -> (falseType | float)",
+                                "float x {as (float | int)} -> (falseType | float)",
+                                "{as (float | int)} x float -> (falseType | float)",
                                 "{as (float | int)} x {as (float | int)} -> (falseType | float | int)"
                         ), 1, 0, 2)
                 },
