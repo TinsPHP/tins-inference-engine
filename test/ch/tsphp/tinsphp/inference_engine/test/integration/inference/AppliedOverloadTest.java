@@ -94,17 +94,8 @@ public class AppliedOverloadTest extends AInferenceOverloadTest
                         "1 + 1;",
                         testStructs("(+ 1 1)", "\\.\\.",
                                 functionDtos("+", 2, bindingDtos(
-                                        varBinding("$lhs", "T", null, asList("(float | int)"), false),
-                                        varBinding("$rhs", "T", null, asList("(float | int)"), false),
-                                        varBinding(RETURN_VARIABLE_NAME, "T", null, asList("(float | int)"), false)
-                                )), 1, 0, 0)
-                },
-                {
-                        "false + true;",
-                        testStructs("(+ false true)", "\\.\\.",
-                                functionDtos("+", 2, bindingDtos(
-                                        varBinding("$lhs", "Tlhs", null, asList("(falseType | trueType)"), true),
-                                        varBinding("$rhs", "Trhs", null, asList("(falseType | trueType)"), true),
+                                        varBinding("$lhs", "Tlhs", null, asList("int"), true),
+                                        varBinding("$rhs", "Trhs", null, asList("int"), true),
                                         varBinding(RETURN_VARIABLE_NAME, "Treturn", asList("int"), null, true)
                                 )), 1, 0, 0)
                 },
@@ -124,7 +115,92 @@ public class AppliedOverloadTest extends AInferenceOverloadTest
                                         varBinding("$expr", "Texpr", null, asList("string"), true),
                                         varBinding(RETURN_VARIABLE_NAME, "Treturn", asList("mixed"), null, true)
                                 )), 1, 1, 0)
-                }
+                },
+                //overloads with implicit conversions
+                {
+                        "1 + 1.2;",
+                        testStructs("(+ 1 1.2)", "\\.\\.",
+                                functionDtos("+", 2, bindingDtos(
+                                        varBinding("$lhs", "Tlhs", null, asList("{as (float | int)}"), true),
+                                        varBinding("$rhs", "Trhs", null, asList("float"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "Treturn", asList("float"), null, true)
+                                )), 1, 0, 0)
+                },
+                {
+                        "1.2 + 1;",
+                        testStructs("(+ 1.2 1)", "\\.\\.",
+                                functionDtos("+", 2, bindingDtos(
+                                        varBinding("$lhs", "Tlhs", null, asList("float"), true),
+                                        varBinding("$rhs", "Trhs", null, asList("{as (float | int)}"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "Treturn", asList("float"), null, true)
+                                )), 1, 0, 0)
+                },
+                //overloads with convertible types
+                {
+                        "'1.2' + 1;",
+                        testStructs("(+ '1.2' 1)", "\\.\\.",
+                                functionDtos("+", 2, bindingDtos(
+                                        varBinding("$lhs", "Tlhs", null, asList("{as T}"), true),
+                                        varBinding("$rhs", "Trhs", null, asList("{as T}"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "T", null, asList("(float | int)"), false)
+                                )), 1, 0, 0)
+                },
+                {
+                        "'1' + 1.2;",
+                        testStructs("(+ '1' 1.2)", "\\.\\.",
+                                functionDtos("+", 2, bindingDtos(
+                                        varBinding("$lhs", "Tlhs", null, asList("{as (float | int)}"), true),
+                                        varBinding("$rhs", "Trhs", null, asList("float"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "Treturn", asList("float"), null, true)
+                                )), 1, 0, 0)
+                },
+                {
+                        "1 + '1.2';",
+                        testStructs("(+ 1 '1.2')", "\\.\\.",
+                                functionDtos("+", 2, bindingDtos(
+                                        varBinding("$lhs", "Tlhs", null, asList("{as T}"), true),
+                                        varBinding("$rhs", "Trhs", null, asList("{as T}"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "T", null, asList("(float | int)"), false)
+                                )), 1, 0, 0)
+                },
+                {
+                        "1.2 + '1';",
+                        testStructs("(+ 1.2 '1')", "\\.\\.",
+                                functionDtos("+", 2, bindingDtos(
+                                        varBinding("$lhs", "Tlhs", null, asList("float"), true),
+                                        varBinding("$rhs", "Trhs", null, asList("{as (float | int)}"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "Treturn", asList("float"), null, true)
+                                )), 1, 0, 0)
+                },
+                {
+                        "'1.2' + '1';",
+                        testStructs("(+ '1.2' '1')", "\\.\\.",
+                                functionDtos("+", 2, bindingDtos(
+                                        varBinding("$lhs", "Tlhs", null, asList("{as T}"), true),
+                                        varBinding("$rhs", "Trhs", null, asList("{as T}"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "T", null, asList("(float | int)"), false)
+                                )), 1, 0, 0)
+                },
+                {
+                        "true + null;",
+                        testStructs("(+ true null)", "\\.\\.",
+                                functionDtos("+", 2, bindingDtos(
+                                        varBinding("$lhs", "Tlhs", null, asList("{as T}"), true),
+                                        varBinding("$rhs", "Trhs", null, asList("{as T}"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "T", null, asList("(float | int)"), false)
+                                )), 1, 0, 0)
+                },
+                {
+                        "$x = 1 ? 1 : 1.5; $x / 1;",
+                        testStructs("(/ $x 1)", "\\.\\.",
+                                functionDtos("/", 2, bindingDtos(
+                                        varBinding("$lhs", "Tlhs", null, asList("{as (float | int)}"), true),
+                                        varBinding("$rhs", "Trhs", null, asList("{as (float | int)}"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "Treturn",
+                                                asList("falseType", "int", "float"), null, true)
+                                )), 1, 2, 0)
+                },
+
         });
     }
 }

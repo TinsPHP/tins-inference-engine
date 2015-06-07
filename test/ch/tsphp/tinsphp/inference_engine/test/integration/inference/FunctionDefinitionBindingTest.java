@@ -40,6 +40,8 @@ public class FunctionDefinitionBindingTest extends AInferenceBindingTest
         List<String> boolUpper = asList("(falseType | trueType)");
         List<String> numLower = asList("float", "int");
         List<String> numUpper = asList("(float | int)");
+        List<String> asBool = asList("{as (falseType | trueType)}");
+        List<String> asNum = asList("{as (float | int)}");
         return asList(new Object[][]{
                 {
                         "function foo($x){\nreturn $x;}",
@@ -51,29 +53,41 @@ public class FunctionDefinitionBindingTest extends AInferenceBindingTest
                 },
                 {
                         "function foo($name){\nreturn \n'hello '\n.$name;}",
-                        testStructs("foo()", "\\.\\.", matcherDtos(matcherDto(
-                                varBinding("foo().@4|0", "T1", asList("string"), asList("string"), true),
-                                //is constant as well since there is no parametric overload of . operator
-                                varBinding("'hello '@3|0", "T2", asList("string"), asList("string"), true),
-                                varBinding("foo()$name", "T3", asList("string"), asList("string"), true),
-                                varBinding(RETURN_VARIABLE_NAME, "T4", asList("string"), asList("string"), true),
-                                varBinding("return@2|0", "T5", asList("string"), asList("string"), true)
-                        )), 1, 0, 2)
+                        testStructs("foo()", "\\.\\.", matcherDtos(
+                                matcherDto(
+                                        varBinding("foo().@4|0", "T1", asList("string"), asList("string"), true),
+                                        //is constant as well since there is no parametric overload of . operator
+                                        varBinding("'hello '@3|0", "T2", asList("string"), asList("string"), true),
+                                        varBinding("foo()$name", "T3", asList("string"), asList("string"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "T4",
+                                                asList("string"), asList("string"), true),
+                                        varBinding("return@2|0", "T5", asList("string"), asList("string"), true)
+                                ),
+                                matcherDto(
+                                        varBinding("foo().@4|0", "T1", asList("string"), asList("string"), true),
+                                        //is constant as well since there is no parametric overload of . operator
+                                        varBinding("'hello '@3|0", "T2", asList("string"), asList("{as string}"), true),
+                                        varBinding("foo()$name", "T3",
+                                                asList("{as string}"), asList("{as string}"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "T4",
+                                                asList("string"), asList("string"), true),
+                                        varBinding("return@2|0", "T5", asList("string"), asList("string"), true)
+                                )), 1, 0, 2)
                 },
                 {
                         "function foo(){\nreturn \n1 \n+ 1 \n+ 1 \n+ 1 \n+ 1 \n+ 1;}",
                         testStructs("foo()", "\\.\\.", matcherDtos(matcherDto(
-                                varBinding("1@3|0", "T10", asList("int"), asList("int"), true),
-                                varBinding("foo()+@4|0", "T10", asList("int"), asList("int"), true),
-                                varBinding("1@4|2", "T10", asList("int"), asList("int"), true),
-                                varBinding("foo()+@5|0", "T10", asList("int"), asList("int"), true),
-                                varBinding("1@5|2", "T10", asList("int"), asList("int"), true),
-                                varBinding("foo()+@6|0", "T10", asList("int"), asList("int"), true),
-                                varBinding("1@6|2", "T10", asList("int"), asList("int"), true),
-                                varBinding("foo()+@7|0", "T10", asList("int"), asList("int"), true),
-                                varBinding("1@7|2", "T10", asList("int"), asList("int"), true),
+                                varBinding("foo()+@4|0", "T1", asList("int"), asList("int"), true),
+                                varBinding("1@3|0", "T2", asList("int"), asList("int"), true),
+                                varBinding("1@4|2", "T3", asList("int"), asList("int"), true),
+                                varBinding("foo()+@5|0", "T4", asList("int"), asList("int"), true),
+                                varBinding("1@5|2", "T5", asList("int"), asList("int"), true),
+                                varBinding("foo()+@6|0", "T6", asList("int"), asList("int"), true),
+                                varBinding("1@6|2", "T7", asList("int"), asList("int"), true),
+                                varBinding("foo()+@7|0", "T8", asList("int"), asList("int"), true),
+                                varBinding("1@7|2", "T9", asList("int"), asList("int"), true),
                                 varBinding("foo()+@8|0", "T10", asList("int"), asList("int"), true),
-                                varBinding("1@8|2", "T10", asList("int"), asList("int"), true),
+                                varBinding("1@8|2", "T11", asList("int"), asList("int"), true),
                                 varBinding(RETURN_VARIABLE_NAME, "T12", asList("int"), asList("int"), true),
                                 varBinding("return@2|0", "T13", asList("int"), asList("int"), true)
                         )), 1, 0, 2)
@@ -105,40 +119,86 @@ public class FunctionDefinitionBindingTest extends AInferenceBindingTest
                 },
                 {
                         "function foo($x){ \nif($x){ \nreturn \n1;} \nreturn \n1.2;}",
-                        testStructs("foo()", "\\.\\.", matcherDtos(matcherDto(
-                                varBinding(RETURN_VARIABLE_NAME, "T1", asList("int", "float"), numUpper, true),
-                                varBinding("1@4|0", "T2", asList("int"), null, true),
-                                varBinding("return@3|0", "T3", asList("int"), asList("int"), true),
-                                varBinding("if@2|0", "T4", asList("mixed"), asList("mixed"), true),
-                                varBinding("foo()$x", "T5", boolLower, boolUpper, true),
-                                varBinding("1.2@6|0", "T6", asList("float"), null, true),
-                                varBinding("return@5|0", "T7", asList("float"), asList("float"), true)
-                        )), 1, 0, 2)
+                        testStructs("foo()", "\\.\\.", matcherDtos(
+                                matcherDto(
+                                        varBinding(RETURN_VARIABLE_NAME, "T1", asList("int", "float"), numUpper, true),
+                                        varBinding("1@4|0", "T2", asList("int"), null, true),
+                                        varBinding("return@3|0", "T3", asList("int"), asList("int"), true),
+                                        varBinding("if@2|0", "T4", asList("mixed"), asList("mixed"), true),
+                                        varBinding("foo()$x", "T5", boolLower, boolUpper, true),
+                                        varBinding("1.2@6|0", "T6", asList("float"), null, true),
+                                        varBinding("return@5|0", "T7", asList("float"), asList("float"), true)
+                                ),
+                                matcherDto(
+                                        varBinding(RETURN_VARIABLE_NAME, "T1", asList("int", "float"), numUpper, true),
+                                        varBinding("1@4|0", "T2", asList("int"), null, true),
+                                        varBinding("return@3|0", "T3", asList("int"), asList("int"), true),
+                                        varBinding("if@2|0", "T4", asList("mixed"), asList("mixed"), true),
+                                        varBinding("foo()$x", "T5", asBool, asBool, true),
+                                        varBinding("1.2@6|0", "T6", asList("float"), null, true),
+                                        varBinding("return@5|0", "T7", asList("float"), asList("float"), true)
+                                )), 1, 0, 2)
                 },
                 //see TINS-449 unused ad-hoc polymorphic parameters
                 {
                         "function foo($x, $y){$a \n= $x \n+ $y;\nreturn \n1;}",
                         testStructs("foo()", "\\.\\.", matcherDtos(
-                                matcherDto(
-                                        varBinding("foo()+@3|0", "T1", numLower, numUpper, true),
-                                        varBinding("foo()$x", "T1", numLower, numUpper, true),
-                                        varBinding("foo()$y", "T1", numLower, numUpper, true),
-                                        varBinding("foo()=@2|0", "T4", numLower, numUpper, true),
-                                        varBinding("foo()$a", "T4", numLower, numUpper, true),
-                                        varBinding(RETURN_VARIABLE_NAME, "T6", asList("int"), asList("int"), true),
-                                        varBinding("1@5|0", "T7", asList("int"), null, true),
-                                        varBinding("return@4|0", "T8", asList("int"), asList("int"), true)
-                                ),
+                                //int x int -> int
                                 matcherDto(
                                         varBinding("foo()+@3|0", "T1", asList("int"), asList("int"), true),
-                                        varBinding("foo()$x", "T2", boolLower, boolUpper, true),
-                                        varBinding("foo()$y", "T3", boolLower, boolUpper, true),
+                                        varBinding("foo()$x", "T2", asList("int"), asList("int"), true),
+                                        varBinding("foo()$y", "T3", asList("int"), asList("int"), true),
                                         varBinding("foo()=@2|0", "T4", asList("int"), asList("int"), true),
                                         varBinding("foo()$a", "T4", asList("int"), asList("int"), true),
                                         varBinding(RETURN_VARIABLE_NAME, "T6", asList("int"), asList("int"), true),
                                         varBinding("1@5|0", "T7", asList("int"), null, true),
                                         varBinding("return@4|0", "T8", asList("int"), asList("int"), true)
                                 ),
+                                //float x float -> int
+                                matcherDto(
+                                        varBinding("foo()+@3|0", "T1", asList("float"), asList("float"), true),
+                                        varBinding("foo()$x", "T2", asList("float"), asList("float"), true),
+                                        varBinding("foo()$y", "T3", asList("float"), asList("float"), true),
+                                        varBinding("foo()=@2|0", "T4", asList("float"), asList("float"), true),
+                                        varBinding("foo()$a", "T4", asList("float"), asList("float"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "T6", asList("int"), asList("int"), true),
+                                        varBinding("1@5|0", "T7", asList("int"), null, true),
+                                        varBinding("return@4|0", "T8", asList("int"), asList("int"), true)
+                                ),
+                                //float x {as num} -> int
+                                matcherDto(
+                                        varBinding("foo()+@3|0", "T1", asList("float"), asList("float"), true),
+                                        varBinding("foo()$x", "T2", asList("float"), asList("float"), true),
+                                        varBinding("foo()$y", "T3", asNum, asNum, true),
+                                        varBinding("foo()=@2|0", "T4", asList("float"), asList("float"), true),
+                                        varBinding("foo()$a", "T4", asList("float"), asList("float"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "T6", asList("int"), asList("int"), true),
+                                        varBinding("1@5|0", "T7", asList("int"), null, true),
+                                        varBinding("return@4|0", "T8", asList("int"), asList("int"), true)
+                                ),
+                                //{as num} x float -> int
+                                matcherDto(
+                                        varBinding("foo()+@3|0", "T1", asList("float"), asList("float"), true),
+                                        varBinding("foo()$x", "T2", asNum, asNum, true),
+                                        varBinding("foo()$y", "T3", asList("float"), asList("float"), true),
+                                        varBinding("foo()=@2|0", "T4", asList("float"), asList("float"), true),
+                                        varBinding("foo()$a", "T4", asList("float"), asList("float"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "T6", asList("int"), asList("int"), true),
+                                        varBinding("1@5|0", "T7", asList("int"), null, true),
+                                        varBinding("return@4|0", "T8", asList("int"), asList("int"), true)
+                                ),
+                                //{as num} x {as num} -> int
+                                matcherDto(
+                                        varBinding("foo()+@3|0", "T1", numLower, numUpper, true),
+                                        varBinding("foo()$x", "T2", asNum, asNum, true),
+                                        varBinding("foo()$y", "T3", asNum, asNum, true),
+                                        varBinding("foo()=@2|0", "T4", numLower, numUpper, true),
+                                        varBinding("foo()$a", "T4", numLower, numUpper, true),
+                                        varBinding(RETURN_VARIABLE_NAME, "T6", asList("int"), asList("int"), true),
+                                        varBinding("1@5|0", "T7", asList("int"), null, true),
+                                        varBinding("return@4|0", "T8", asList("int"), asList("int"), true)
+                                ),
+                                //array x array -> int
                                 matcherDto(
                                         varBinding("foo()+@3|0", "T1", asList("array"), asList("array"), true),
                                         varBinding("foo()$x", "T2", asList("array"), asList("array"), true),

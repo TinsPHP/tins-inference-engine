@@ -45,12 +45,12 @@ public class ConstantDefinitionTest extends AInferenceNamespaceTypeTest
                         testStruct("(a# 1)", "\\.\\.", asList("int"), 1, 0, 1),
                         testStruct("(b# a#)", "\\.\\.", asList("int"), 1, 1, 1)}
                 },
-                {"const a = +true;", testStructs("(a# (uPlus true))", "\\.\\.", asList("int"), 1, 0, 1)},
-                {"const a = +false;", testStructs("(a# (uPlus false))", "\\.\\.", asList("int"), 1, 0, 1)},
+                {"const a = +false;", testStructs("(a# (uPlus false))", "\\.\\.", asList("falseType"), 1, 0, 1)},
+                {"const a = +true;", testStructs("(a# (uPlus true))", "\\.\\.", asList("trueType"), 1, 0, 1)},
                 {"const a = +1;", testStructs("(a# (uPlus 1))", "\\.\\.", asList("int"), 1, 0, 1)},
                 {"const a = +1.5;", testStructs("(a# (uPlus 1.5))", "\\.\\.", asList("float"), 1, 0, 1)},
-                {"const a = -true;", testStructs("(a# (uMinus true))", "\\.\\.", asList("int"), 1, 0, 1)},
-                {"const a = -false;", testStructs("(a# (uMinus false))", "\\.\\.", asList("int"), 1, 0, 1)},
+                {"const a = -false;", testStructs("(a# (uMinus false))", "\\.\\.", asList("falseType"), 1, 0, 1)},
+                {"const a = -true;", testStructs("(a# (uMinus true))", "\\.\\.", asList("trueType"), 1, 0, 1)},
                 {"const a = -1;", testStructs("(a# (uMinus 1))", "\\.\\.", asList("int"), 1, 0, 1)},
                 {"const a = -1.5;", testStructs("(a# (uMinus 1.5))", "\\.\\.", asList("float"), 1, 0, 1)},
 

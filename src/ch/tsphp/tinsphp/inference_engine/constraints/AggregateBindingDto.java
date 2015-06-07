@@ -24,6 +24,8 @@ public class AggregateBindingDto
     public Map<String, ITypeVariableReference> mapping;
     public IVariable bindingVariable;
     public String overloadVariableId;
+    public boolean needToReIterate;
+    public int implicitConversionCounter;
 
     public AggregateBindingDto(
             IConstraint theConstraint,
@@ -34,6 +36,5 @@ public class AggregateBindingDto
         overload = theOverload;
         bindings = theBindings;
         isInIterativeMode = isInTheIterativeMode;
-
     }
 }

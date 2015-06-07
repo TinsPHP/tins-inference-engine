@@ -40,6 +40,7 @@ import ch.tsphp.tinsphp.common.symbols.PrimitiveTypeNames;
 import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousVariableSymbol;
 import ch.tsphp.tinsphp.common.utils.ITypeHelper;
+import ch.tsphp.tinsphp.common.utils.TypeHelperDto;
 import ch.tsphp.tinsphp.inference_engine.ReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 import ch.tsphp.tinsphp.symbols.ModifierSet;
@@ -1959,11 +1960,17 @@ public class ReferencePhaseControllerTest
 
     private ISymbolFactory createSymbolFactoryMock() {
         ISymbolFactory symbolFactory = mock(ISymbolFactory.class);
+        final ITypeHelper typeHelper = mock(ITypeHelper.class);
+        TypeHelperDto dto = new TypeHelperDto(mock(ITypeSymbol.class), mock(ITypeSymbol.class), false);
+        when(typeHelper.isFirstSameOrParentTypeOfSecond(any(ITypeSymbol.class), any(ITypeSymbol.class), eq(false)))
+                .thenReturn(dto);
+        when(typeHelper.isFirstSameOrSubTypeOfSecond(any(ITypeSymbol.class), any(ITypeSymbol.class), eq(false)))
+                .thenReturn(dto);
         when(symbolFactory.createUnionTypeSymbol()).then(new Answer<Object>()
         {
             @Override
             public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
-                return new UnionTypeSymbol(mock(ITypeHelper.class));
+                return new UnionTypeSymbol(typeHelper);
             }
         });
         return symbolFactory;

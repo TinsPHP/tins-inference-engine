@@ -67,8 +67,23 @@ public class AInferenceOverloadTest extends AInferenceTest
                 }
             }
 
-            Assert.assertEquals(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
-                    "too many or not enough overloads", size, overloads.size());
+            if (size != overloads.size()) {
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.append(testString).append(" -- ").append(testStruct.astText)
+                        .append(" failed (testStruct Nr ").append(counter)
+                        .append("). too many or not enough overloads.\nExpected: ").append(size).append(" actual: ")
+                        .append(overloads.size()).append("\n").append("Expected overloads:");
+                for (FunctionMatcherDto dto : testStruct.dtos) {
+                    stringBuilder.append(isFunctionType(dto).toString());
+                }
+                stringBuilder.append("\nActual overloads:\n");
+                for (IFunctionType overload : overloads) {
+                    stringBuilder.append(overload.toString()).append("\n");
+                }
+
+
+                Assert.fail(stringBuilder.toString());
+            }
 
             ++counter;
         }
@@ -120,6 +135,5 @@ public class AInferenceOverloadTest extends AInferenceTest
         return new OverloadTestStruct[]{
                 testStruct(astText, definitionScope, matcherDtos, astAccessOrder)
         };
-
     }
 }

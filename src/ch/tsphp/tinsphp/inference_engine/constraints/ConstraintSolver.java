@@ -10,6 +10,7 @@ package ch.tsphp.tinsphp.inference_engine.constraints;
 import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.TinsPHPConstants;
 import ch.tsphp.tinsphp.common.inference.constraints.BoundException;
+import ch.tsphp.tinsphp.common.inference.constraints.BoundResultDto;
 import ch.tsphp.tinsphp.common.inference.constraints.FixedTypeVariableReference;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
@@ -18,19 +19,22 @@ import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableReference;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
-import ch.tsphp.tinsphp.common.inference.constraints.TypeVariableReference;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.symbols.IIntersectionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMinimalVariableSymbol;
+import ch.tsphp.tinsphp.common.symbols.IParametricTypeSymbol;
+import ch.tsphp.tinsphp.common.symbols.IPolymorphicTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
+import ch.tsphp.tinsphp.common.utils.ERelation;
 import ch.tsphp.tinsphp.common.utils.ITypeHelper;
 import ch.tsphp.tinsphp.common.utils.MapHelper;
 import ch.tsphp.tinsphp.common.utils.Pair;
+import ch.tsphp.tinsphp.common.utils.TypeHelperDto;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -484,7 +488,7 @@ public class ConstraintSolver implements IConstraintSolver
         String absoluteName = variable.getAbsoluteName();
         boolean bindingDoesNotExist = !bindings.containsVariable(absoluteName);
         if (bindingDoesNotExist) {
-            TypeVariableReference reference = bindings.getNextTypeVariable();
+            ITypeVariableReference reference = bindings.getNextTypeVariable();
             ITypeVariableReference typeVariableReference = reference;
             //if it is a literal then we know already the lower bound and it is a fix typed type variable
             ITypeSymbol typeSymbol = variable.getType();
@@ -507,9 +511,9 @@ public class ConstraintSolver implements IConstraintSolver
     private void addApplicableOverloadsToWorklist(WorklistDto worklistDto, IConstraint constraint) {
         for (IFunctionType overload : constraint.getMethodSymbol().getOverloads()) {
             try {
-                IOverloadBindings bindings = solveOverLoad(worklistDto, constraint, overload);
-                if (bindings != null) {
-                    worklistDto.workDeque.add(nextWorklistDto(worklistDto, bindings));
+                AggregateBindingDto dto = solveOverLoad(worklistDto, constraint, overload);
+                if (dto != null) {
+                    worklistDto.workDeque.add(nextWorklistDto(worklistDto, dto.bindings));
                 }
             } catch (BoundException ex) {
                 //That is ok, we will deal with it in solveConstraints
@@ -527,19 +531,18 @@ public class ConstraintSolver implements IConstraintSolver
         return new WorklistDto(worklistDto, pointer, bindings);
     }
 
-    private IOverloadBindings solveOverLoad(
+    private AggregateBindingDto solveOverLoad(
             WorklistDto worklistDto,
             IConstraint constraint,
             IFunctionType overload) {
 
-        IOverloadBindings bindings = null;
+        AggregateBindingDto dto = null;
         if (constraint.getArguments().size() >= overload.getNumberOfNonOptionalParameters()) {
-            bindings = symbolFactory.createOverloadBindings(worklistDto.overloadBindings);
-            AggregateBindingDto dto = new AggregateBindingDto(
-                    constraint, overload, bindings, worklistDto.isInIterativeMode);
+            IOverloadBindings bindings = symbolFactory.createOverloadBindings(worklistDto.overloadBindings);
+            dto = new AggregateBindingDto(constraint, overload, bindings, worklistDto.isInIterativeMode);
             aggregateBinding(dto);
         }
-        return bindings;
+        return dto;
     }
 
     private void aggregateBinding(AggregateBindingDto dto) {
@@ -552,26 +555,25 @@ public class ConstraintSolver implements IConstraintSolver
         int numberOfArguments = arguments.size();
         int count = numberOfParameters <= numberOfArguments ? numberOfParameters : numberOfArguments;
 
-        boolean needToIterateOverload = true;
-        while (needToIterateOverload) {
+        dto.needToReIterate = true;
+        while (dto.needToReIterate) {
+            dto.needToReIterate = false;
 
             IVariable leftHandSide = dto.constraint.getLeftHandSide();
             dto.bindingVariable = leftHandSide;
             dto.overloadVariableId = TinsPHPConstants.RETURN_VARIABLE_NAME;
-            needToIterateOverload = !mergeTypeVariables(dto);
+            mergeTypeVariables(dto);
 
             boolean argumentsAreAllFixed = true;
             for (int i = 0; i < count; ++i) {
                 dto.bindingVariable = arguments.get(i);
                 dto.overloadVariableId = parameters.get(i).getAbsoluteName();
-                boolean needToIterateParameter = !mergeTypeVariables(dto);
-
-                needToIterateOverload = needToIterateOverload || needToIterateParameter;
+                mergeTypeVariables(dto);
                 argumentsAreAllFixed = argumentsAreAllFixed
                         && dto.bindings.getTypeVariableReference(dto.bindingVariable.getAbsoluteName()).hasFixedType();
             }
 
-            if (!needToIterateOverload) {
+            if (!dto.needToReIterate) {
                 String lhsAbsoluteName = leftHandSide.getAbsoluteName();
                 ITypeVariableReference reference = dto.bindings.getTypeVariableReference(lhsAbsoluteName);
                 if (!reference.hasFixedType() && argumentsAreAllFixed) {
@@ -581,7 +583,6 @@ public class ConstraintSolver implements IConstraintSolver
                     dto.bindings.setAppliedOverload(lhsAbsoluteName, dto.overload);
                 }
             }
-
             if (dto.iterateCount > 1) {
                 throw new IllegalStateException("overload uses type variables "
                         + "which are not part of the signature.");
@@ -590,12 +591,12 @@ public class ConstraintSolver implements IConstraintSolver
         }
     }
 
-    private boolean mergeTypeVariables(AggregateBindingDto dto) {
+    private void mergeTypeVariables(AggregateBindingDto dto) {
 
         String bindingVariableName = dto.bindingVariable.getAbsoluteName();
         ITypeVariableReference bindingTypeVariableReference =
                 dto.bindings.getTypeVariableReference(bindingVariableName);
-        IOverloadBindings overloadBindings = dto.overload.getBindings();
+        IOverloadBindings overloadBindings = dto.overload.getOverloadBindings();
         String overloadTypeVariable =
                 overloadBindings.getTypeVariableReference(dto.overloadVariableId).getTypeVariable();
 
@@ -609,37 +610,100 @@ public class ConstraintSolver implements IConstraintSolver
             dto.mapping.put(overloadTypeVariable, bindingTypeVariableReference);
         }
 
-        return applyRightToLeft(dto, lhsTypeVariable, overloadBindings, overloadTypeVariable);
+        applyRightToLeft(dto, lhsTypeVariable, overloadBindings, overloadTypeVariable);
     }
 
-    private boolean applyRightToLeft(
+    private void applyRightToLeft(
             AggregateBindingDto dto, String left, IOverloadBindings rightBindings, String right) {
 
         IOverloadBindings leftBindings = dto.bindings;
+        if (dto.iterateCount == 0) {
+            boolean usedImplicitConversions = false;
 
-        if (rightBindings.hasUpperTypeBounds(right)) {
-            leftBindings.addUpperTypeBound(left, rightBindings.getUpperTypeBounds(right));
+            if (rightBindings.hasUpperTypeBounds(right)) {
+                IIntersectionTypeSymbol rightUpperTypeBounds = rightBindings.getUpperTypeBounds(right);
+                ITypeSymbol copy = copyIfNotFixed(rightUpperTypeBounds, dto);
+                if (copy != null) {
+                    BoundResultDto result = leftBindings.addUpperTypeBound(left, copy);
+                    if (result.usedImplicitConversion) {
+                        usedImplicitConversions = true;
+                    }
+                }
+            }
+
+            if (rightBindings.hasLowerTypeBounds(right)) {
+                IUnionTypeSymbol rightLowerTypeBounds = rightBindings.getLowerTypeBounds(right);
+                ITypeSymbol copy = copyIfNotFixed(rightLowerTypeBounds, dto);
+                if (copy != null) {
+                    BoundResultDto result = leftBindings.addLowerTypeBound(left, copy);
+                    if (result.usedImplicitConversion) {
+                        usedImplicitConversions = true;
+                    }
+                }
+            }
+
+            if (usedImplicitConversions) {
+                ++dto.implicitConversionCounter;
+            }
         }
 
-        if (rightBindings.hasLowerTypeBounds(right)) {
-            leftBindings.addLowerTypeBound(left, rightBindings.getLowerTypeBounds(right));
-        }
-
-        boolean couldAddLower = true;
         if (rightBindings.hasLowerRefBounds(right)) {
             for (String refTypeVariable : rightBindings.getLowerRefBounds(right)) {
                 if (dto.mapping.containsKey(refTypeVariable)) {
                     leftBindings.addLowerRefBound(left, dto.mapping.get(refTypeVariable));
+                } else if (!dto.isInIterativeMode && dto.iterateCount == 1) {
+                    ITypeVariableReference typeVariableReference = leftBindings.createHelperVariable();
+                    dto.mapping.put(refTypeVariable, typeVariableReference);
+                    leftBindings.addLowerRefBound(left, typeVariableReference);
                 } else if (dto.isInIterativeMode && dto.iterateCount == 1) {
                     addLowerRefInIterativeMode(dto, left, rightBindings, refTypeVariable);
                 } else {
-                    couldAddLower = false;
+                    dto.needToReIterate = true;
                     break;
                 }
             }
         }
+    }
 
-        return couldAddLower;
+    private IPolymorphicTypeSymbol copyIfNotFixed(
+            IPolymorphicTypeSymbol polymorphicTypeSymbol, AggregateBindingDto dto) {
+
+        IPolymorphicTypeSymbol copy = polymorphicTypeSymbol;
+        if (!polymorphicTypeSymbol.isFixed()) {
+            IOverloadBindings leftBindings = dto.bindings;
+            Deque<IParametricTypeSymbol> parametricTypeSymbols = new ArrayDeque<>();
+            copy = polymorphicTypeSymbol.copy(parametricTypeSymbols);
+
+            parametricTypes:
+            for (IParametricTypeSymbol parametricTypeSymbol : parametricTypeSymbols) {
+                List<String> typeParameters = new ArrayList<>();
+                for (String typeParameter : parametricTypeSymbol.getTypeParameters()) {
+                    String typeVariable;
+                    if (dto.mapping.containsKey(typeParameter)) {
+                        typeVariable = dto.mapping.get(typeParameter).getTypeVariable();
+                    } else if (!dto.isInIterativeMode && dto.iterateCount == 1) {
+                        ITypeVariableReference typeVariableReference = leftBindings.createHelperVariable();
+                        dto.mapping.put(typeParameter, typeVariableReference);
+                        typeVariable = typeVariableReference.getTypeVariable();
+                    } else if (dto.isInIterativeMode && dto.iterateCount == 1) {
+                        //TODO implement
+                        throw new UnsupportedOperationException("not yet implemented.");
+                    } else {
+                        dto.needToReIterate = true;
+                        copy = null;
+                        break parametricTypes;
+//                        ITypeVariableReference typeVariableReference = leftBindings.createTempVariable();
+//                        dto.mapping.put(typeParameter, typeVariableReference);
+//                        typeVariable = typeVariableReference.getTypeVariable();
+//                        dto.hasCreatedATemporaryVariable = true;
+                    }
+                    typeParameters.add(typeVariable);
+                }
+                leftBindings.bind(parametricTypeSymbol, typeParameters);
+            }
+        }
+
+        return copy;
     }
 
     private void addLowerRefInIterativeMode(
@@ -661,17 +725,20 @@ public class ConstraintSolver implements IConstraintSolver
         if (numberOfApplicableOverloads > 0) {
             OverloadRankingDto overloadRankingDto = applicableOverloads.get(0);
             if (numberOfApplicableOverloads > 1) {
-                int size = overloadRankingDto.overload.getParameters().size();
-                List<Pair<IUnionTypeSymbol, IIntersectionTypeSymbol>> bounds
-                        = getParameterBounds(applicableOverloads, size);
+                Pair<List<OverloadRankingDto>, Integer> pair = fixOverloads(worklistDto, applicableOverloads);
 
+                int size = overloadRankingDto.overload.getParameters().size();
+                List<Pair<ITypeSymbol, ITypeSymbol>> bounds = getParameterBounds(pair, size);
+
+                List<OverloadRankingDto> fixedApplicableOverloads = pair.first;
                 List<OverloadRankingDto> overloadRankingDtos
-                        = getMostSpecificApplicableOverload(applicableOverloads, bounds);
+                        = getMostSpecificApplicableOverload(fixedApplicableOverloads, bounds);
 
                 if (overloadRankingDtos.size() == 1) {
                     overloadRankingDto = overloadRankingDtos.get(0);
                 } else {
                     //TODO unify most specific
+                    throw new UnsupportedOperationException("not yet implemented");
                 }
             }
             worklistDto.workDeque.add(nextWorklistDto(worklistDto, overloadRankingDto.bindings));
@@ -682,7 +749,6 @@ public class ConstraintSolver implements IConstraintSolver
             //TINS-399 save which overload was taken in AST
             //I think it is enough if the symbol does not contain any overload. The translator can then insert an
             // error in the output
-
         }
     }
 
@@ -692,9 +758,10 @@ public class ConstraintSolver implements IConstraintSolver
 
         for (IFunctionType overload : constraint.getMethodSymbol().getOverloads()) {
             try {
-                IOverloadBindings bindings = solveOverLoad(worklistDto, constraint, overload);
-                if (bindings != null) {
-                    overloadBindingsList.add(new OverloadRankingDto(overload, bindings));
+                AggregateBindingDto dto = solveOverLoad(worklistDto, constraint, overload);
+                if (dto != null) {
+                    overloadBindingsList.add(
+                            new OverloadRankingDto(overload, dto.bindings, dto.implicitConversionCounter));
                 }
             } catch (BoundException ex) {
                 //That is ok, we are looking for applicable overloads
@@ -703,38 +770,195 @@ public class ConstraintSolver implements IConstraintSolver
         return overloadBindingsList;
     }
 
-    private List<Pair<IUnionTypeSymbol, IIntersectionTypeSymbol>> getParameterBounds(
-            List<OverloadRankingDto> overloadBindingsList, int size) {
 
-        List<Pair<IUnionTypeSymbol, IIntersectionTypeSymbol>> bounds = new ArrayList<>(size);
+    private Pair<List<OverloadRankingDto>, Integer> fixOverloads(
+            WorklistDto worklistDto, List<OverloadRankingDto> applicableOverloads) {
+        List<OverloadRankingDto> overloadRankingDtos = new ArrayList<>(applicableOverloads.size());
+
+        int maxImplicitsUsed = Integer.MAX_VALUE;
+
+        for (OverloadRankingDto dto : applicableOverloads) {
+            //pre-filtering
+            if (dto.numberOfImplicitConversions > maxImplicitsUsed) {
+                continue;
+            }
+            maxImplicitsUsed = dto.numberOfImplicitConversions;
+
+            OverloadRankingDto overloadRankingDto;
+            if (dto.overload.wasSimplified()) {
+                overloadRankingDto = fixOverload(dto);
+            } else if (worklistDto.isInIterativeMode) {
+                overloadRankingDto = fixOverloadInIterativeMode(dto);
+            } else {
+                throw new IllegalStateException("function " + dto.overload.getName() + " was not simplified "
+                        + "and we are not in iterative mode.");
+            }
+            overloadRankingDto.bounds = new ArrayList<>();
+            overloadRankingDtos.add(overloadRankingDto);
+        }
+
+        return pair(overloadRankingDtos, maxImplicitsUsed);
+    }
+
+    private OverloadRankingDto fixOverload(OverloadRankingDto dto) {
+        if (!dto.overload.isFixed()) {
+            IFunctionType copyOverload = dto.overload.copy(new HashSet<IParametricTypeSymbol>());
+            IOverloadBindings overloadBindings = dto.overload.getOverloadBindings();
+            IOverloadBindings copyBindings = symbolFactory.createOverloadBindings(overloadBindings);
+
+            List<String> typeParameters = copyOverload.getTypeParameters();
+            copyBindings.bind(copyOverload, typeParameters);
+
+            Collection<String> nonFixedTypeParameters = new ArrayList<>(copyOverload.getNonFixedTypeParameters());
+            for (String nonFixedTypeParameter : nonFixedTypeParameters) {
+                copyBindings.fixTypeParameter(nonFixedTypeParameter);
+            }
+
+            return new OverloadRankingDto(copyOverload, dto.bindings, dto.numberOfImplicitConversions);
+        }
+        return dto;
+    }
+
+    private OverloadRankingDto fixOverloadInIterativeMode(OverloadRankingDto dto) {
+        IOverloadBindings overloadBindings = symbolFactory.createOverloadBindings(dto.overload.getOverloadBindings());
+        overloadBindings.fixTypeParameters();
+        IFunctionType copyOverload = symbolFactory.createFunctionType(
+                dto.overload.getName(), overloadBindings, dto.overload.getParameters());
+
+        return new OverloadRankingDto(copyOverload, dto.bindings, dto.numberOfImplicitConversions);
+//
+//
+//        OverloadRankingDto overloadRankingDto = dto;
+//
+//
+//
+//        IFunctionType overload = dto.overload;
+//        IOverloadBindings overloadBindings = symbolFactory.createOverloadBindings(overload.getOverloadBindings());
+//        overloadBindings.fixTypeParameters();
+//
+//        for (IVariable parameter : overload.getParameters()) {
+//            String absoluteName = parameter.getAbsoluteName();
+//            String typeVariable = overloadBindings.getTypeVariableReference(absoluteName).getTypeVariable();
+//            if (overloadBindings.hasUpperTypeBounds(typeVariable)) {
+//                IIntersectionTypeSymbol upperTypeBounds = overloadBindings.getUpperTypeBounds(typeVariable);
+//                if (!upperTypeBounds.isFixed()) {
+//                    fixParametricTypes(overloadBindings, upperTypeBounds);
+//                }
+//            }
+//            if (overloadBindings.hasLowerTypeBounds(typeVariable)) {
+//                IUnionTypeSymbol lowerTypeBounds = overloadBindings.getLowerTypeBounds(typeVariable);
+//                if (!lowerTypeBounds.isFixed()) {
+//                    fixParametricTypes(overloadBindings, lowerTypeBounds);
+//                }
+//            }
+//            //parameteric type could also be in a lower ref's upper type bound (upper type bounds are not
+//            // propagated upwards)
+//            if (overloadBindings.hasLowerRefBounds(typeVariable)) {
+//                for (String refTypeVariable : overloadBindings.getLowerRefBounds(typeVariable)) {
+//                    if(overloadBindings.hasUpperTypeBounds(refTypeVariable)){
+//
+//                    }
+//                }
+//
+//            }
+//        }
+//        return overloadRankingDto;
+    }
+
+//    private void fixParametricTypes(IOverloadBindings overloadBindings, IContainerTypeSymbol upperTypeBounds) {
+//        for (Map.Entry<String, ITypeSymbol> entry : upperTypeBounds.getTypeSymbols().entrySet()) {
+//            ITypeSymbol typeSymbol = entry.getValue();
+//            if (typeSymbol instanceof IParametricTypeSymbol) {
+//                IParametricTypeSymbol parametricTypeSymbol = (IParametricTypeSymbol) typeSymbol;
+//                if (!parametricTypeSymbol.isFixed()) {
+//                    for (String typeParameter : parametricTypeSymbol.getTypeParameters()) {
+//                        overloadBindings.fixTypeParameter(typeParameter);
+//                    }
+//                }
+//            } else if (typeSymbol instanceof IContainerTypeSymbol) {
+//                fixParametricTypes(overloadBindings, (IContainerTypeSymbol) typeSymbol);
+//            }
+//        }
+//    }
+
+    private List<Pair<ITypeSymbol, ITypeSymbol>> getParameterBounds(
+            Pair<List<OverloadRankingDto>, Integer> pair, int size) {
+
+        List<Pair<ITypeSymbol, ITypeSymbol>> bounds = new ArrayList<>(size);
 
         for (int i = 0; i < size; ++i) {
-            IUnionTypeSymbol unionTypeSymbol = symbolFactory.createUnionTypeSymbol();
-            IIntersectionTypeSymbol intersectionTypeSymbol = symbolFactory.createIntersectionTypeSymbol();
+            //the most general type is the most specific lower bound
+            ITypeSymbol mostSpecificLowerBound = null;
+            ITypeSymbol mostSpecificUpperBound = null;
 
-            for (OverloadRankingDto dto : overloadBindingsList) {
-                IOverloadBindings bindings = dto.overload.getBindings();
+            Iterator<OverloadRankingDto> iterator = pair.first.iterator();
+            while (iterator.hasNext()) {
+                OverloadRankingDto dto = iterator.next();
+                if (dto.numberOfImplicitConversions > pair.second) {
+                    iterator.remove();
+                    continue;
+                }
+
+                IOverloadBindings bindings = dto.overload.getOverloadBindings();
                 IVariable parameter = dto.overload.getParameters().get(i);
                 ITypeVariableReference reference = bindings.getTypeVariableReference(parameter.getAbsoluteName());
                 String parameterTypeVariable = reference.getTypeVariable();
+                IUnionTypeSymbol lowerBound = null;
+                IIntersectionTypeSymbol upperBound = null;
                 if (bindings.hasLowerTypeBounds(parameterTypeVariable)) {
-                    dto.lowerBound = bindings.getLowerTypeBounds(parameterTypeVariable);
-                    unionTypeSymbol.addTypeSymbol(dto.lowerBound);
+                    lowerBound = bindings.getLowerTypeBounds(parameterTypeVariable);
+                    if (mostSpecificLowerBound != null) {
+                        TypeHelperDto result = typeHelper.isFirstSameOrParentTypeOfSecond(
+                                lowerBound, mostSpecificLowerBound);
+                        ERelation relation = result.relation;
+                        if (relation == ERelation.HAS_COERCIVE_RELATION) {
+                            TypeHelperDto result2 = typeHelper.isFirstSameOrParentTypeOfSecond(
+                                    mostSpecificLowerBound, lowerBound, false);
+                            //we prefer a non coercive relation, hence if the current lower is a parent type of the
+                            // new (without coercive subtyping) then it is more specific
+                            if (result2.relation == ERelation.HAS_RELATION) {
+                                relation = ERelation.HAS_NO_RELATION;
+                            }
+                        }
+                        if (relation != ERelation.HAS_NO_RELATION) {
+                            mostSpecificLowerBound = lowerBound;
+                        }
+                    } else {
+                        mostSpecificLowerBound = lowerBound;
+                    }
                 }
                 if (bindings.hasUpperTypeBounds(parameterTypeVariable)) {
-                    dto.upperBound = bindings.getUpperTypeBounds(parameterTypeVariable);
-                    intersectionTypeSymbol.addTypeSymbol(dto.upperBound);
+                    upperBound = bindings.getUpperTypeBounds(parameterTypeVariable);
+                    if (mostSpecificUpperBound != null) {
+                        TypeHelperDto result = typeHelper.isFirstSameOrSubTypeOfSecond(
+                                upperBound, mostSpecificUpperBound);
+                        ERelation relation = result.relation;
+                        if (relation == ERelation.HAS_COERCIVE_RELATION) {
+                            TypeHelperDto result2 = typeHelper.isFirstSameOrSubTypeOfSecond(
+                                    mostSpecificUpperBound, upperBound, false);
+                            //we prefer a non coercive relation, hence if the current upper is a subtype of the
+                            // new (without coercive subtyping) then it is more specific
+                            if (result2.relation == ERelation.HAS_RELATION) {
+                                relation = ERelation.HAS_NO_RELATION;
+                            }
+                        }
+                        if (relation != ERelation.HAS_NO_RELATION) {
+                            mostSpecificUpperBound = upperBound;
+                        }
+                    } else {
+                        mostSpecificUpperBound = upperBound;
+                    }
                 }
+                dto.bounds.add(pair(lowerBound, upperBound));
             }
-            bounds.add(pair(unionTypeSymbol, intersectionTypeSymbol));
+            bounds.add(pair(mostSpecificLowerBound, mostSpecificUpperBound));
         }
         return bounds;
     }
 
-
     public List<OverloadRankingDto> getMostSpecificApplicableOverload(
             List<OverloadRankingDto> overloadBindingsList,
-            List<Pair<IUnionTypeSymbol, IIntersectionTypeSymbol>> boundsList) {
+            List<Pair<ITypeSymbol, ITypeSymbol>> boundsList) {
         List<OverloadRankingDto> mostSpecificOverloads = new ArrayList<>(3);
 
         int numberOfParameters = boundsList.size();
@@ -744,11 +968,12 @@ public class ConstraintSolver implements IConstraintSolver
         for (int i = 0; i < overloadSize; ++i) {
             OverloadRankingDto dto = overloadBindingsList.get(i);
             for (int j = 0; j < numberOfParameters; ++j) {
-                Pair<IUnionTypeSymbol, IIntersectionTypeSymbol> bounds = boundsList.get(j);
-                if (isMostGeneralLowerBound(dto, bounds.first)) {
+                Pair<ITypeSymbol, ITypeSymbol> mostSpecificBound = boundsList.get(j);
+                Pair<IUnionTypeSymbol, IIntersectionTypeSymbol> bound = dto.bounds.get(j);
+                if (isMostGeneralLowerBound(bound.first, mostSpecificBound.first)) {
                     ++dto.mostGeneralLowerCount;
                 }
-                if (isMostSpecificUpperBound(dto, bounds.second)) {
+                if (isMostSpecificUpperBound(bound.second, mostSpecificBound.second)) {
                     ++dto.mostSpecificUpperCount;
                 }
             }
@@ -766,23 +991,24 @@ public class ConstraintSolver implements IConstraintSolver
                 mostSpecificOverloads.add(dto);
             }
         }
-        mostSpecificOverloads.add(mostSpecificDto);
+
         return mostSpecificOverloads;
     }
 
-    private boolean isMostGeneralLowerBound(OverloadRankingDto dto, IUnionTypeSymbol mostGeneralLowerBound) {
-        if (dto.lowerBound == null) {
-            return mostGeneralLowerBound.getTypeSymbols().size() == 0;
+    private boolean isMostGeneralLowerBound(ITypeSymbol lowerBound, ITypeSymbol mostGeneralLowerBound) {
+        if (lowerBound == null) {
+            return mostGeneralLowerBound == null;
         } else {
-            return typeHelper.areSame(dto.lowerBound, mostGeneralLowerBound);
+            return typeHelper.areSame(lowerBound, mostGeneralLowerBound);
         }
     }
 
-    private boolean isMostSpecificUpperBound(OverloadRankingDto dto, IIntersectionTypeSymbol mostSpecificUpperBound) {
-        if (dto.upperBound == null) {
-            return typeHelper.areSame(mixedTypeSymbol, mostSpecificUpperBound);
+    private boolean isMostSpecificUpperBound(ITypeSymbol upperBound, ITypeSymbol mostSpecificUpperBound) {
+        if (upperBound == null) {
+            return mostSpecificUpperBound == null
+                    || typeHelper.areSame(mixedTypeSymbol, mostSpecificUpperBound);
         } else {
-            return typeHelper.areSame(dto.upperBound, mostSpecificUpperBound);
+            return typeHelper.areSame(upperBound, mostSpecificUpperBound);
         }
     }
 
@@ -795,6 +1021,9 @@ public class ConstraintSolver implements IConstraintSolver
         int diff = dto.mostSpecificUpperCount - currentMostSpecific.mostSpecificUpperCount;
         if (diff == 0) {
             diff = currentMostSpecific.numberOfTypeParameter - dto.numberOfTypeParameter;
+            if (diff == 0) {
+                diff = currentMostSpecific.numberOfImplicitConversions - dto.numberOfImplicitConversions;
+            }
         }
         return diff;
     }
@@ -806,30 +1035,10 @@ public class ConstraintSolver implements IConstraintSolver
     }
 
     private void createOverload(IMethodSymbol methodSymbol, IOverloadBindings bindings) {
-        Set<String> parameterTypeVariables = getParameterTypeVariables(methodSymbol, bindings);
-
-        bindings.tryToFix(parameterTypeVariables);
-
         List<IVariable> parameters = new ArrayList<>();
         for (IVariableSymbol parameter : methodSymbol.getParameters()) {
-            IMinimalVariableSymbol parameterVariable = symbolFactory.createMinimalVariableSymbol(
-                    parameter.getDefinitionAst(), parameter.getName());
-            parameterVariable.setDefinitionScope(parameter.getDefinitionScope());
-            parameters.add(parameterVariable);
-        }
-
-        IFunctionType functionType = symbolFactory.createFunctionType(methodSymbol.getName(), bindings, parameters);
-        methodSymbol.addOverload(functionType);
-    }
-
-    private Set<String> getParameterTypeVariables(IMethodSymbol methodSymbol, IOverloadBindings bindings) {
-
-        Set<String> parameterTypeVariables = new HashSet<>();
-        for (IVariableSymbol parameter : methodSymbol.getParameters()) {
             String parameterId = parameter.getAbsoluteName();
-            if (bindings.containsVariable(parameterId)) {
-                parameterTypeVariables.add(bindings.getTypeVariableReference(parameterId).getTypeVariable());
-            } else {
+            if (!bindings.containsVariable(parameterId)) {
                 //the parameter is not used at all, hence it can be mixed
                 ITypeVariableReference reference = new FixedTypeVariableReference(bindings.getNextTypeVariable());
                 bindings.addVariable(parameterId, reference);
@@ -839,7 +1048,15 @@ public class ConstraintSolver implements IConstraintSolver
                 bindings.addUpperTypeBound(reference.getTypeVariable(), mixedTypeSymbol);
                 //TODO could generate a warning
             }
+            IMinimalVariableSymbol parameterVariable = symbolFactory.createMinimalVariableSymbol(
+                    parameter.getDefinitionAst(), parameter.getName());
+            parameterVariable.setDefinitionScope(parameter.getDefinitionScope());
+            parameters.add(parameterVariable);
         }
-        return parameterTypeVariables;
+
+        IFunctionType functionType = symbolFactory.createFunctionType(methodSymbol.getName(), bindings, parameters);
+        functionType.simplify();
+        methodSymbol.addOverload(functionType);
     }
+
 }

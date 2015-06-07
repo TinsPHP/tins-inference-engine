@@ -37,7 +37,7 @@ public class FunctionTypeMatcher extends BaseMatcher<IFunctionType>
                 && functionType.getName().equals(dto.name)
                 && functionType.getParameters().size() + 1 == dto.bindings.length;
         if (ok) {
-            ok = overloadBindingsMatcher.matches(functionType.getBindings());
+            ok = overloadBindingsMatcher.matches(functionType.getOverloadBindings());
         }
         return ok;
     }
@@ -68,7 +68,7 @@ public class FunctionTypeMatcher extends BaseMatcher<IFunctionType>
             description.appendText("\n").appendText(functionType.getName()).appendText("{")
                     .appendText(String.valueOf(functionType.getNumberOfNonOptionalParameters()))
                     .appendText("}");
-            overloadBindingsMatcher.describeMismatch(functionType.getBindings(), description, false, false);
+            overloadBindingsMatcher.describeMismatch(functionType.getOverloadBindings(), description, false, false);
         }
     }
 

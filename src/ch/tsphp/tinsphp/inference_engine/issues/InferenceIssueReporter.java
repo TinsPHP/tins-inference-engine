@@ -218,7 +218,7 @@ public class InferenceIssueReporter implements IInferenceIssueReporter
     }
 
     private MethodDto createMethodDto(String name, IFunctionType overload) {
-        IOverloadBindings bindings = overload.getBindings();
+        IOverloadBindings bindings = overload.getOverloadBindings();
         List<IVariable> parameters = overload.getParameters();
         int numberOfParameters = parameters.size();
 

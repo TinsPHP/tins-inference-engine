@@ -16,6 +16,7 @@ import org.junit.runners.Parameterized;
 
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.List;
 
 import static ch.tsphp.tinsphp.common.TinsPHPConstants.RETURN_VARIABLE_NAME;
 import static ch.tsphp.tinsphp.inference_engine.test.integration.testutils.OverloadBindingsMatcher.varBinding;
@@ -48,6 +49,7 @@ public class FunctionDefinitionWithImplicitReturnOverloadTest extends AInference
 
     @Parameterized.Parameters
     public static Collection<Object[]> testStrings() {
+        List<String> asBool = asList("{as (falseType | trueType)}");
         return asList(new Object[][]{
                 {
                         "function foo(){}",
@@ -65,12 +67,18 @@ public class FunctionDefinitionWithImplicitReturnOverloadTest extends AInference
                 //partial return
                 {
                         "function foo($x){if($x){ return 1;}}",
-                        testStructs("foo()", "\\.\\.", functionDtos("foo()", 1, bindingDtos(
-                                varBinding(RETURN_VARIABLE_NAME, "T1",
-                                        asList("int", "nullType"), asList("(int | nullType)"), true),
-                                varBinding("foo()$x", "T5",
-                                        asList("falseType", "trueType"), asList("(falseType | trueType)"), true)
-                        )), 1, 0, 2)
+                        testStructs("foo()", "\\.\\.", functionDtos(
+                                functionDto("foo()", 1, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "T1",
+                                                asList("int", "nullType"), asList("(int | nullType)"), true),
+                                        varBinding("foo()$x", "T5",
+                                                asList("falseType", "trueType"), asList("(falseType | trueType)"), true)
+                                )),
+                                functionDto("foo()", 1, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "T1",
+                                                asList("int", "nullType"), asList("(int | nullType)"), true),
+                                        varBinding("foo()$x", "T5", asBool, asBool, true)
+                                ))), 1, 0, 2)
                 },
         });
     }

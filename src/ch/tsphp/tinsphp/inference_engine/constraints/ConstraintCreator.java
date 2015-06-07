@@ -24,7 +24,9 @@ import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ConstraintCreator implements IConstraintCreator
 {
@@ -37,7 +39,7 @@ public class ConstraintCreator implements IConstraintCreator
         symbolFactory = theSymbolFactory;
         inferenceIssueReporter = theInferenceErrorReporter;
 
-        //Tlhs x Trhs -> Tlhs \ Tlhs > Trhs
+        //Tlhs x Trhs -> Tlhs \ Trhs <: Tlhs
         String tLhs = "Tlhs";
         String tRhs = "Trhs";
         String varLhs = "$lhs";
@@ -51,6 +53,10 @@ public class ConstraintCreator implements IConstraintCreator
         overloadBindings.addLowerRefBound(tLhs, new TypeVariableReference(tRhs));
         IFunctionType identityOverload = symbolFactory.createFunctionType(
                 "=", overloadBindings, Arrays.asList(lhs, rhs));
+        Set<String> nonFixedTypeParameters = new HashSet<>();
+        nonFixedTypeParameters.add("Tlhs");
+        nonFixedTypeParameters.add("Trhs");
+        identityOverload.simplified(nonFixedTypeParameters);
         assignFunction = symbolFactory.createMinimalMethodSymbol("=");
         assignFunction.addOverload(identityOverload);
     }

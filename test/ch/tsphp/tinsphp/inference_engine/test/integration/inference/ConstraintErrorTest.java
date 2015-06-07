@@ -75,7 +75,7 @@ public class ConstraintErrorTest extends AInferenceTest
 
     @Override
     protected void checkNoIssueInInferencePhase() {
-        assertTrue(testString + " failed. Exceptions occurred." + exceptions,
+        assertTrue(testString + " failed. Exceptions did not occur but we expected a wrongOperatorUsage." + exceptions,
                 inferenceErrorReporter.hasFound(EnumSet.of(EIssueSeverity.Error)));
         assertsInInferencePhase();
     }
@@ -89,9 +89,9 @@ public class ConstraintErrorTest extends AInferenceTest
         return asList(new Object[][]{
                 {"$a = \n strpos('hello', 1);", dtos("wrongFunctionCall", "strpos()", 2, 1)},
                 {"$a = 1; \n strpos('hello', $a);", dtos("wrongFunctionCall", "strpos()", 2, 1)},
-                {"null \n+ 1;", dtos("wrongOperatorUsage", "+", 2, 0)},
-                {"null \n- 1;", dtos("wrongOperatorUsage", "-", 2, 0)},
-                {"null \n* 1;", dtos("wrongOperatorUsage", "*", 2, 0)},
+                {"[0] \n+ 1;", dtos("wrongOperatorUsage", "+", 2, 0)},
+                {"[0] \n- 1;", dtos("wrongOperatorUsage", "-", 2, 0)},
+                {"[0] \n* 1;", dtos("wrongOperatorUsage", "*", 2, 0)},
         });
     }
 
