@@ -13,6 +13,7 @@ import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
 
+import java.util.Collection;
 import java.util.List;
 
 public class TempMethodSymbol implements IMinimalMethodSymbol
@@ -37,8 +38,8 @@ public class TempMethodSymbol implements IMinimalMethodSymbol
     }
 
     @Override
-    public List<IFunctionType> getOverloads() {
-        List<IFunctionType> overloads = methodSymbol.getOverloads();
+    public Collection<IFunctionType> getOverloads() {
+        Collection<IFunctionType> overloads = methodSymbol.getOverloads();
         if (overloads.size() == 0) {
             return tempOverloads;
         }

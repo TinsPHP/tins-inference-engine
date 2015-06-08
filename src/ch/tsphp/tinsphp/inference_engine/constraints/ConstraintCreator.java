@@ -56,7 +56,7 @@ public class ConstraintCreator implements IConstraintCreator
         Set<String> nonFixedTypeParameters = new HashSet<>();
         nonFixedTypeParameters.add("Tlhs");
         nonFixedTypeParameters.add("Trhs");
-        identityOverload.simplified(nonFixedTypeParameters);
+        identityOverload.manuallySimplified(nonFixedTypeParameters, 0, false);
         assignFunction = symbolFactory.createMinimalMethodSymbol("=");
         assignFunction.addOverload(identityOverload);
     }

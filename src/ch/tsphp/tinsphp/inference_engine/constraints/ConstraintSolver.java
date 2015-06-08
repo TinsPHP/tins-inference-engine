@@ -320,6 +320,7 @@ public class ConstraintSolver implements IConstraintSolver
                     //exchange applied overload, currently it is still pointing to the temp overload
                     IConstraint constraint = worklistDto.constraintCollection.getConstraints().get(pair.second);
 
+                    worklistDto.isInIterativeMode = false;
                     addMostSpecificOverloadToWorklist(worklistDto, constraint);
                     WorklistDto tempWorklistDto = worklistDto.workDeque.removeFirst();
                     String lhsAbsoluteName = constraint.getLeftHandSide().getAbsoluteName();
@@ -579,7 +580,7 @@ public class ConstraintSolver implements IConstraintSolver
                 if (!reference.hasFixedType() && argumentsAreAllFixed) {
                     dto.bindings.fixType(lhsAbsoluteName);
                 }
-                if (!lhsAbsoluteName.equals(TinsPHPConstants.RETURN_VARIABLE_NAME)) {
+                if (!dto.isInIterativeMode && !lhsAbsoluteName.equals(TinsPHPConstants.RETURN_VARIABLE_NAME)) {
                     dto.bindings.setAppliedOverload(lhsAbsoluteName, dto.overload);
                 }
             }
@@ -689,10 +690,6 @@ public class ConstraintSolver implements IConstraintSolver
                         dto.needToReIterate = true;
                         copy = null;
                         break parametricTypes;
-//                        ITypeVariableReference typeVariableReference = leftBindings.createTempVariable();
-//                        dto.mapping.put(typeParameter, typeVariableReference);
-//                        typeVariable = typeVariableReference.getTypeVariable();
-//                        dto.hasCreatedATemporaryVariable = true;
                     }
                     typeParameters.add(typeVariable);
                 }
@@ -821,12 +818,18 @@ public class ConstraintSolver implements IConstraintSolver
     }
 
     private OverloadRankingDto fixOverload(OverloadRankingDto dto) {
-        if (!dto.overload.isFixed()) {
-            IOverloadBindings overloadBindings = dto.overload.getOverloadBindings();
+        IFunctionType overload = dto.overload;
+
+        if (!overload.isFixed()) {
+            IOverloadBindings overloadBindings = overload.getOverloadBindings();
             IOverloadBindings copyBindings = symbolFactory.createOverloadBindings(overloadBindings);
             IFunctionType copyOverload = symbolFactory.createFunctionType(
-                    dto.overload.getName(), copyBindings, dto.overload.getParameters());
-            copyOverload.simplified(dto.overload.getNonFixedTypeParameters());
+                    overload.getName(), copyBindings, overload.getParameters());
+
+            copyOverload.manuallySimplified(
+                    overload.getNonFixedTypeParameters(),
+                    overload.getNumberOfConvertibleApplications(),
+                    overload.hasConvertibleParameterTypes());
 
             Collection<String> nonFixedTypeParameters = new ArrayList<>(copyOverload.getNonFixedTypeParameters());
             for (String nonFixedTypeParameter : nonFixedTypeParameters) {

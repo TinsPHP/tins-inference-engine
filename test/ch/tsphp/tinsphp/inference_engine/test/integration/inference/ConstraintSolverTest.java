@@ -35,8 +35,11 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static ch.tsphp.tinsphp.common.TinsPHPConstants.RETURN_VARIABLE_NAME;
 import static ch.tsphp.tinsphp.core.StandardConstraintAndVariables.T_LHS;
@@ -94,6 +97,9 @@ public class ConstraintSolverTest
         IVariable rhs = symbolFactory.createVariable(VAR_RHS);
         List<IVariable> binaryParameterIds = Arrays.asList(lhs, rhs);
         IFunctionType function = symbolFactory.createFunctionType("+", overloadBindings, binaryParameterIds);
+        Set<String> set = new HashSet<>();
+        set.add("T");
+        function.manuallySimplified(set, 0, true);
         IMinimalMethodSymbol minimalMethodSymbol1 = symbolFactory.createMinimalMethodSymbol("+");
         minimalMethodSymbol1.addOverload(function);
         IConstraint constraint1 = symbolFactory.createConstraint(
@@ -116,6 +122,9 @@ public class ConstraintSolverTest
         overloadBindings.addUpperTypeBound(T_RHS, asTReturn);
         overloadBindings.addUpperTypeBound(T_RETURN, primitiveTypes.get(PrimitiveTypeNames.NUM));
         function = symbolFactory.createFunctionType("+", overloadBindings, binaryParameterIds);
+        set = new HashSet<>();
+        set.add("T");
+        function.manuallySimplified(set, 0, true);
         IMinimalMethodSymbol minimalMethodSymbol2 = symbolFactory.createMinimalMethodSymbol("+");
         minimalMethodSymbol2.addOverload(function);
         IConstraint constraint2
@@ -197,6 +206,9 @@ public class ConstraintSolverTest
         IVariable rhs = symbolFactory.createVariable(VAR_RHS);
         List<IVariable> binaryParameterIds = Arrays.asList(lhs, rhs);
         IFunctionType function = symbolFactory.createFunctionType("+", overloadBindings, binaryParameterIds);
+        Set<String> set = new HashSet<>();
+        set.add("T");
+        function.manuallySimplified(set, 0, false);
         IMinimalMethodSymbol minimalMethodSymbol1 = symbolFactory.createMinimalMethodSymbol("+");
         minimalMethodSymbol1.addOverload(function);
         IConstraint constraint1 = symbolFactory.createConstraint(
@@ -216,6 +228,9 @@ public class ConstraintSolverTest
         overloadBindings.addUpperTypeBound(T_RHS, asTReturn);
         overloadBindings.addUpperTypeBound(T_RETURN, primitiveTypes.get(PrimitiveTypeNames.NUM));
         function = symbolFactory.createFunctionType("+", overloadBindings, binaryParameterIds);
+        set = new HashSet<>();
+        set.add("T");
+        function.manuallySimplified(set, 0, true);
         IMinimalMethodSymbol minimalMethodSymbol2 = symbolFactory.createMinimalMethodSymbol("+");
         minimalMethodSymbol2.addOverload(function);
         IConstraint constraint2 = symbolFactory.createConstraint(
@@ -229,6 +244,7 @@ public class ConstraintSolverTest
         overloadBindings.addVariable(RETURN_VARIABLE_NAME, new TypeVariableReference("Tlhs"));
         overloadBindings.addLowerRefBound("Tlhs", new TypeVariableReference("Trhs"));
         IFunctionType identityOverload = symbolFactory.createFunctionType("=", overloadBindings, binaryParameterIds);
+        identityOverload.manuallySimplified(Collections.<String>emptySet(), 0, false);
         IMinimalMethodSymbol assignFunction = symbolFactory.createMinimalMethodSymbol("=");
         assignFunction.addOverload(identityOverload);
 
