@@ -51,6 +51,7 @@ public class OperatorUpToGreaterThanTest extends AInferenceNamespaceTypeTest
         return asList(new Object[][]{
                 // or
                 {"false or false;", testStructs("(or false false)", "\\.\\.", asList("falseType"), 1, 0, 0)},
+                {"true or true;", testStructs("(or true true)", "\\.\\.", asList("trueType"), 1, 0, 0)},
                 {"$x = (bool) true; true or $x;", testStructs("(or true $x)", "\\.\\.", asList("trueType"), 1, 2, 0)},
                 {"true or 0;", testStructs("(or true 0)", "\\.\\.", asList("trueType"), 1, 0, 0)},
                 {"$x = (bool) true; $x or true;", testStructs("(or $x true)", "\\.\\.", asList("trueType"), 1, 2, 0)},
@@ -65,6 +66,7 @@ public class OperatorUpToGreaterThanTest extends AInferenceNamespaceTypeTest
                 {"$x = (bool) true; $x xor $x;", testStructs("(xor $x $x)", "\\.\\.", bool, 1, 2, 0)},
                 {"0 xor 0;", testStructs("(xor 0 0)", "\\.\\.", bool, 1, 0, 0)},
                 // and
+                {"false && false;", testStructs("(&& false false)", "\\.\\.", asList("falseType"), 1, 0, 0)},
                 {
                         "$x = (bool) true; false and $x;",
                         testStructs("(and false $x)", "\\.\\.", asList("falseType"), 1, 2, 0)
@@ -387,6 +389,7 @@ public class OperatorUpToGreaterThanTest extends AInferenceNamespaceTypeTest
                 {"1 ? 1 : 1.3;", testStructs("(? 1 1 1.3)", "\\.\\.", num, 1, 0, 0)},
                 // ||
                 {"false || false;", testStructs("(|| false false)", "\\.\\.", asList("falseType"), 1, 0, 0)},
+                {"true || true;", testStructs("(|| true true)", "\\.\\.", asList("trueType"), 1, 0, 0)},
                 {"$x = (bool) true; true || $x;", testStructs("(|| true $x)", "\\.\\.", asList("trueType"), 1, 2, 0)},
                 {"true || 0;", testStructs("(|| true 0)", "\\.\\.", asList("trueType"), 1, 0, 0)},
                 {"$x = (bool) true; $x || true;", testStructs("(|| $x true)", "\\.\\.", asList("trueType"), 1, 2, 0)},
@@ -394,6 +397,7 @@ public class OperatorUpToGreaterThanTest extends AInferenceNamespaceTypeTest
                 {"$x = (bool) true; $x || $x;", testStructs("(|| $x $x)", "\\.\\.", bool, 1, 2, 0)},
                 {"0 || 0;", testStructs("(|| 0 0)", "\\.\\.", bool, 1, 0, 0)},
                 // &&
+                {"false && false;", testStructs("(&& false false)", "\\.\\.", asList("falseType"), 1, 0, 0)},
                 {
                         "$x = (bool) true; false && $x;",
                         testStructs("(&& false $x)", "\\.\\.", asList("falseType"), 1, 2, 0)
