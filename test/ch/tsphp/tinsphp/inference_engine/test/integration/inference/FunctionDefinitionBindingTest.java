@@ -46,9 +46,9 @@ public class FunctionDefinitionBindingTest extends AInferenceBindingTest
                 {
                         "function foo($x){\nreturn $x;}",
                         testStructs("foo()", "\\.\\.", matcherDtos(matcherDto(
-                                varBinding("foo()$x", "T1", null, null, false),
-                                varBinding(RETURN_VARIABLE_NAME, "T1", null, null, false),
-                                varBinding("return@2|0", "T1", null, null, false)
+                                varBinding("foo()$x", "T", null, null, false),
+                                varBinding(RETURN_VARIABLE_NAME, "T", null, null, false),
+                                varBinding("return@2|0", "T", null, null, false)
                         )), 1, 0, 2)
                 },
                 {

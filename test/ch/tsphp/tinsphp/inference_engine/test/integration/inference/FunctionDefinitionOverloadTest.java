@@ -53,8 +53,8 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                 {
                         "function foo($x){return $x;}",
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 1, bindingDtos(
-                                varBinding("foo()$x", "T1", null, null, false),
-                                varBinding(RETURN_VARIABLE_NAME, "T1", null, null, false)
+                                varBinding("foo()$x", "T", null, null, false),
+                                varBinding(RETURN_VARIABLE_NAME, "T", null, null, false)
                         )), 1, 0, 2)
                 },
                 {
@@ -157,8 +157,8 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                 {
                         "function foo($x){ $x = null; return $x;}",
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 1, bindingDtos(
-                                varBinding("foo()$x", "T1", asList("nullType"), null, false),
-                                varBinding(RETURN_VARIABLE_NAME, "T1", asList("nullType"), null, false)
+                                varBinding("foo()$x", "T", asList("nullType"), null, false),
+                                varBinding(RETURN_VARIABLE_NAME, "T", asList("nullType"), null, false)
                         )), 1, 0, 2)
                 },
                 //constant function but with indirection
@@ -195,15 +195,15 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                                 testStruct("foo()", "\\.\\.", functionDtos(
                                         functionDto("foo()", 2, bindingDtos(
                                                 varBinding("foo()$x", "V5", boolLower, boolUpper, true),
-                                                varBinding("foo()$y", "T1", null, asList("@T2"), false),
-                                                varBinding(RETURN_VARIABLE_NAME, "T2",
-                                                        asList("falseType", "@T1"), null, false)
+                                                varBinding("foo()$y", "T", null, asList("@V1"), false),
+                                                varBinding(RETURN_VARIABLE_NAME, "V1",
+                                                        asList("falseType", "@T"), null, false)
                                         )),
                                         functionDto("foo()", 2, bindingDtos(
                                                 varBinding("foo()$x", "V5", asBool, asBool, true),
-                                                varBinding("foo()$y", "T1", null, asList("@T2"), false),
-                                                varBinding(RETURN_VARIABLE_NAME, "T2",
-                                                        asList("falseType", "@T1"), null, false)
+                                                varBinding("foo()$y", "T", null, asList("@V1"), false),
+                                                varBinding(RETURN_VARIABLE_NAME, "V1",
+                                                        asList("falseType", "@T"), null, false)
                                         ))), 1, 0, 2),
                                 testStruct("bar()", "\\.\\.", functionDtos("bar()", 1, bindingDtos(
                                         varBinding("bar()$x", "V2", asList("int"), asList("int"), true),
@@ -228,13 +228,13 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                                 testStruct("foo()", "\\.\\.", functionDtos(
                                         functionDto("foo()", 2, bindingDtos(
                                                 varBinding("foo()$x", "V2", boolLower, boolUpper, true),
-                                                varBinding("foo()$y", "T1", null, null, false),
-                                                varBinding(RETURN_VARIABLE_NAME, "T1", null, null, false)
+                                                varBinding("foo()$y", "T", null, null, false),
+                                                varBinding(RETURN_VARIABLE_NAME, "T", null, null, false)
                                         )),
                                         functionDto("foo()", 2, bindingDtos(
                                                 varBinding("foo()$x", "V2", asBool, asBool, true),
-                                                varBinding("foo()$y", "T1", null, null, false),
-                                                varBinding(RETURN_VARIABLE_NAME, "T1", null, null, false)
+                                                varBinding("foo()$y", "T", null, null, false),
+                                                varBinding(RETURN_VARIABLE_NAME, "T", null, null, false)
                                         ))
                                 ), 1, 1, 2)
                         }

@@ -58,6 +58,7 @@ import static org.mockito.Mockito.when;
 
 public class ConstraintSolverTest
 {
+
     @Test
     public void solveMethod_XPlusYPlusZ_NumXAsNumXAsT4ReturnT4WhereT4SubNum() {
         ISymbolsInitialiser symbolsInitialiser = new HardCodedSymbolsInitialiser();
@@ -161,10 +162,10 @@ public class ConstraintSolverTest
         assertThat(bindings, withVariableBindings(
                 varBinding("$x", "V1", asList("int", "float"), asList("(float | int)"), true),
                 varBinding("$y", "V3", asList("{as (float | int)}"), asList("{as (float | int)}"), true),
-                varBinding("$z", "V5", asList("{as T1}"), asList("{as T1}"), true),
+                varBinding("$z", "V5", asList("{as T}"), asList("{as T}"), true),
                 varBinding("e1", "V1", asList("int", "float"), asList("(float | int)"), true),
-                varBinding("e2", "T1", null, asList("(float | int)"), false),
-                varBinding("rtn", "T1", null, asList("(float | int)"), false)
+                varBinding("e2", "T", null, asList("(float | int)"), false),
+                varBinding("rtn", "T", null, asList("(float | int)"), false)
         ));
         assertThat(bindingsList.size(), is(1));
     }
@@ -270,11 +271,11 @@ public class ConstraintSolverTest
         IOverloadBindings bindings = bindingsList.get(0);
 
         assertThat(bindings, withVariableBindings(
-                varBinding("$y", "V2", asList("(array & {as V4})"), asList("array", "{as V4}"), true),
-                varBinding("$z", "V3", asList("(array & {as V4})"), asList("array", "{as V4}"), true),
+                varBinding("$y", "V2", asList("(array & {as T})"), asList("array", "{as T}"), true),
+                varBinding("$z", "V3", asList("(array & {as T})"), asList("array", "{as T}"), true),
                 varBinding("e1", "V1", asList("array"), asList("array"), true),
-                varBinding("e2", "V4", null, asList("(float | int)", "@T1"), false),
-                varBinding("rtn", "T1", asList("array", "@V4"), null, false)
+                varBinding("e2", "T", null, asList("(float | int)", "@V5"), false),
+                varBinding("rtn", "V5", asList("array", "@T"), null, false)
         ));
         assertThat(bindingsList.size(), is(1));
     }

@@ -80,7 +80,6 @@ public class AInferenceOverloadTest extends AInferenceTest
                     stringBuilder.append(overload.toString()).append("\n");
                 }
 
-
                 Assert.fail(stringBuilder.toString());
             }
 

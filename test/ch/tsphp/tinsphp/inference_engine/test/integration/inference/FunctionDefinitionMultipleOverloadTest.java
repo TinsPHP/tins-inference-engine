@@ -55,7 +55,7 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
                                 "float x float -> float",
                                 "float x {as (float | int)} -> float",
                                 "{as (float | int)} x float -> float",
-                                "{as T1} x {as T1} -> T1 \\ T1 <: (float | int)",
+                                "{as T} x {as T} -> T \\ T <: (float | int)",
                                 "array x array -> array"
                         ), 1, 0, 2)
                 },
@@ -65,7 +65,7 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
                                 "int -> int",
                                 "float -> float",
                                 "{as (float | int)} -> float",
-                                "{as T1} -> T1 \\ int <: T1 <: (float | int)"
+                                "{as T} -> T \\ int <: T <: (float | int)"
                         ), 1, 0, 2)
                 },
                 {
@@ -73,7 +73,7 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
                         testStructs("foo()", "\\.\\.", asList(
                                 "float -> float",
                                 "{as (float | int)} -> float",
-                                "{as T1} -> T1 \\ float <: T1 <: (float | int)"
+                                "{as T} -> T \\ float <: T <: (float | int)"
                         ), 1, 0, 2)
                 },
                 //TODO rstoll TINS-513 implicit conversions and num addition 0.4.0
@@ -89,7 +89,7 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
                         "function foo($x){return $x + true;}",
                         testStructs("foo()", "\\.\\.", asList(
                                 "float -> float",
-                                "{as T1} -> T1 \\ int <: T1 <: (float | int)"
+                                "{as T} -> T \\ int <: T <: (float | int)"
                         ), 1, 0, 2)
                 },
                 {
@@ -98,21 +98,21 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
                                 "int x int x int -> int",
                                 "int x int x float -> float",
                                 "int x int x {as (float | int)} -> float",
-                                "int x int x {as T1} -> T1 \\ int <: T1 <: (float | int)",
+                                "int x int x {as T} -> T \\ int <: T <: (float | int)",
                                 "float x float x float -> float",
                                 "float x float x {as (float | int)} -> float",
-                                "float x float x {as T1} -> T1 \\ float <: T1 <: (float | int)",
+                                "float x float x {as T} -> T \\ float <: T <: (float | int)",
                                 "float x {as (float | int)} x float -> float",
                                 "float x {as (float | int)} x {as (float | int)} -> float",
-                                "float x {as (float | int)} x {as T1} -> T1 \\ float <: T1 <: (float | int)",
+                                "float x {as (float | int)} x {as T} -> T \\ float <: T <: (float | int)",
                                 "{as int} x {as int} x int -> int",
                                 "{as float} x {as float} x float -> float",
                                 "{as float} x {as float} x {as (float | int)} -> float",
                                 "{as (float | int)} x float x float -> float",
                                 "{as (float | int)} x float x {as (float | int)} -> float",
-                                "{as (float | int)} x float x {as T1} -> T1 \\ float <: T1 <: (float | int)",
+                                "{as (float | int)} x float x {as T} -> T \\ float <: T <: (float | int)",
                                 "{as (float | int)} x {as (float | int)} x float -> float",
-                                "{as (float | int)} x {as (float | int)} x {as T1} -> T1 \\ T1 <: (float | int)",
+                                "{as (float | int)} x {as (float | int)} x {as T} -> T \\ T <: (float | int)",
                                 "array x array x array -> array"
                         ), 1, 0, 2)
                 },
