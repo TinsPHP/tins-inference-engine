@@ -159,12 +159,12 @@ public class ConstraintSolverTest
         IOverloadBindings bindings = bindingsList.get(0);
 
         assertThat(bindings, withVariableBindings(
-                varBinding("$x", "T1", asList("int", "float"), asList("(float | int)"), true),
-                varBinding("$y", "T3", asList("{as (float | int)}"), asList("{as (float | int)}"), true),
-                varBinding("$z", "T5", asList("{as T4}"), asList("{as T4}"), true),
-                varBinding("e1", "T1", asList("int", "float"), asList("(float | int)"), true),
-                varBinding("e2", "T4", null, asList("(float | int)"), false),
-                varBinding("rtn", "T4", null, asList("(float | int)"), false)
+                varBinding("$x", "V1", asList("int", "float"), asList("(float | int)"), true),
+                varBinding("$y", "V3", asList("{as (float | int)}"), asList("{as (float | int)}"), true),
+                varBinding("$z", "V5", asList("{as T1}"), asList("{as T1}"), true),
+                varBinding("e1", "V1", asList("int", "float"), asList("(float | int)"), true),
+                varBinding("e2", "T1", null, asList("(float | int)"), false),
+                varBinding("rtn", "T1", null, asList("(float | int)"), false)
         ));
         assertThat(bindingsList.size(), is(1));
     }
@@ -270,11 +270,11 @@ public class ConstraintSolverTest
         IOverloadBindings bindings = bindingsList.get(0);
 
         assertThat(bindings, withVariableBindings(
-                varBinding("$y", "T2", asList("(array & {as T4})"), asList("array", "{as T4}"), true),
-                varBinding("$z", "T3", asList("(array & {as T4})"), asList("array", "{as T4}"), true),
-                varBinding("e1", "T1", asList("array"), asList("array"), true),
-                varBinding("e2", "T4", null, asList("(float | int)"), false),
-                varBinding("rtn", "T5", asList("array", "@T4"), null, false)
+                varBinding("$y", "V2", asList("(array & {as V4})"), asList("array", "{as V4}"), true),
+                varBinding("$z", "V3", asList("(array & {as V4})"), asList("array", "{as V4}"), true),
+                varBinding("e1", "V1", asList("array"), asList("array"), true),
+                varBinding("e2", "V4", null, asList("(float | int)", "@T1"), false),
+                varBinding("rtn", "T1", asList("array", "@V4"), null, false)
         ));
         assertThat(bindingsList.size(), is(1));
     }

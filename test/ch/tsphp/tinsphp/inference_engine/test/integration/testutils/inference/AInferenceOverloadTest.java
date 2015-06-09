@@ -59,11 +59,10 @@ public class AInferenceOverloadTest extends AInferenceTest
             for (int i = 0; i < size; ++i) {
                 try {
                     assertThat(overloads, hasItem(isFunctionType(testStruct.dtos.get(i))));
-//                 assertThat(overloads.get(i).getParameters().size() + 1, is(testStruct.dtos.get(i).bindings.length));
                 } catch (AssertionError ex) {
-                    System.err.println(testString + " \n-- " + testStruct.astText
-                            + " failed (testStruct Nr " + counter + "). Error for functionType " + i);
-                    throw ex;
+                    Assert.fail(testString + " \n-- " + testStruct.astText
+                            + " failed (testStruct Nr " + counter + "). Error for functionType " + i + "\n" + ex
+                            .getMessage());
                 }
             }
 

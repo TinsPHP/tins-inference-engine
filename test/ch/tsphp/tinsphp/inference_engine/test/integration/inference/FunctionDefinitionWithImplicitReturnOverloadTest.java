@@ -54,14 +54,14 @@ public class FunctionDefinitionWithImplicitReturnOverloadTest extends AInference
                 {
                         "function foo(){}",
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 0, bindingDtos(
-                                varBinding(RETURN_VARIABLE_NAME, "T1", asList("nullType"), asList("nullType"), true)
+                                varBinding(RETURN_VARIABLE_NAME, "V1", asList("nullType"), asList("nullType"), true)
                         )), 1, 0, 2)
                 },
                 {
                         "function foo($x){}",
                         testStructs("foo()", "\\.\\.", functionDtos("foo()", 1, bindingDtos(
-                                varBinding("foo()$x", "T3", asList("mixed"), asList("mixed"), true),
-                                varBinding(RETURN_VARIABLE_NAME, "T1", asList("nullType"), asList("nullType"), true)
+                                varBinding("foo()$x", "V3", asList("mixed"), asList("mixed"), true),
+                                varBinding(RETURN_VARIABLE_NAME, "V1", asList("nullType"), asList("nullType"), true)
                         )), 1, 0, 2)
                 },
                 //partial return
@@ -69,15 +69,15 @@ public class FunctionDefinitionWithImplicitReturnOverloadTest extends AInference
                         "function foo($x){if($x){ return 1;}}",
                         testStructs("foo()", "\\.\\.", functionDtos(
                                 functionDto("foo()", 1, bindingDtos(
-                                        varBinding(RETURN_VARIABLE_NAME, "T1",
+                                        varBinding(RETURN_VARIABLE_NAME, "V1",
                                                 asList("int", "nullType"), asList("(int | nullType)"), true),
-                                        varBinding("foo()$x", "T5",
+                                        varBinding("foo()$x", "V5",
                                                 asList("falseType", "trueType"), asList("(falseType | trueType)"), true)
                                 )),
                                 functionDto("foo()", 1, bindingDtos(
-                                        varBinding(RETURN_VARIABLE_NAME, "T1",
+                                        varBinding(RETURN_VARIABLE_NAME, "V1",
                                                 asList("int", "nullType"), asList("(int | nullType)"), true),
-                                        varBinding("foo()$x", "T5", asBool, asBool, true)
+                                        varBinding("foo()$x", "V5", asBool, asBool, true)
                                 ))), 1, 0, 2)
                 },
         });
