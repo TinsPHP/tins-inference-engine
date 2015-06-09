@@ -61,7 +61,7 @@ public class AInferenceOverloadTest extends AInferenceTest
                     assertThat(overloads, hasItem(isFunctionType(testStruct.dtos.get(i))));
 //                 assertThat(overloads.get(i).getParameters().size() + 1, is(testStruct.dtos.get(i).bindings.length));
                 } catch (AssertionError ex) {
-                    System.out.println(testString + " \n-- " + testStruct.astText
+                    System.err.println(testString + " \n-- " + testStruct.astText
                             + " failed (testStruct Nr " + counter + "). Error for functionType " + i);
                     throw ex;
                 }

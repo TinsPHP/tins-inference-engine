@@ -14,21 +14,20 @@ import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
 
 import java.util.Collection;
-import java.util.List;
 
 public class TempMethodSymbol implements IMinimalMethodSymbol
 {
     private static final String ERROR_MESSAGE = "You are dealing with a temp method symbol";
 
     private final IMethodSymbol methodSymbol;
-    private List<IFunctionType> tempOverloads;
+    private Collection<IFunctionType> tempOverloads;
 
-    public TempMethodSymbol(IMethodSymbol theMethodSymbol, List<IFunctionType> theTempOverloads) {
+    public TempMethodSymbol(IMethodSymbol theMethodSymbol, Collection<IFunctionType> theTempOverloads) {
         methodSymbol = theMethodSymbol;
         tempOverloads = theTempOverloads;
     }
 
-    public void renewTempOverloads(List<IFunctionType> newTempOverloads) {
+    public void renewTempOverloads(Collection<IFunctionType> newTempOverloads) {
         tempOverloads = newTempOverloads;
     }
 

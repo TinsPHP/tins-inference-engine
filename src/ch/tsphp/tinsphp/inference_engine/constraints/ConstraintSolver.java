@@ -228,8 +228,10 @@ public class ConstraintSolver implements IConstraintSolver
             if (overloadBindingsList.size() > 1) {
                 collectionsWhichChanged.add(absoluteName);
                 Iterator<IOverloadBindings> iterator = overloadBindingsList.iterator();
+                //this work item will be re-added to the worklist since its collection is marked as has changed
                 worklistDto.overloadBindings = iterator.next();
                 while (iterator.hasNext()) {
+                    //need to create more work items for the new overloads
                     WorklistDto newWorklistDto = new WorklistDto(worklistDto, 0, iterator.next());
                     createDependencies(newWorklistDto);
                 }
@@ -238,6 +240,7 @@ public class ConstraintSolver implements IConstraintSolver
                 if (hasChanged(worklistDto, overloadBindings)) {
                     collectionsWhichChanged.add(absoluteName);
                 }
+                //this work item will be re-added to the worklist if its collection is marked as has changed
                 worklistDto.overloadBindings = overloadBindings;
             } else {
                 Set<WorklistDto> dtos = unresolvedConstraints.get(absoluteName);
@@ -597,9 +600,9 @@ public class ConstraintSolver implements IConstraintSolver
         String bindingVariableName = dto.bindingVariable.getAbsoluteName();
         ITypeVariableReference bindingTypeVariableReference =
                 dto.bindings.getTypeVariableReference(bindingVariableName);
-        IOverloadBindings overloadBindings = dto.overload.getOverloadBindings();
+        IOverloadBindings rightBindings = dto.overload.getOverloadBindings();
         String overloadTypeVariable =
-                overloadBindings.getTypeVariableReference(dto.overloadVariableId).getTypeVariable();
+                rightBindings.getTypeVariableReference(dto.overloadVariableId).getTypeVariable();
 
         String lhsTypeVariable;
         if (dto.mapping.containsKey(overloadTypeVariable)) {
@@ -611,13 +614,13 @@ public class ConstraintSolver implements IConstraintSolver
             dto.mapping.put(overloadTypeVariable, bindingTypeVariableReference);
         }
 
-        applyRightToLeft(dto, lhsTypeVariable, overloadBindings, overloadTypeVariable);
+        applyRightToLeft(dto, lhsTypeVariable, overloadTypeVariable);
     }
 
-    private void applyRightToLeft(
-            AggregateBindingDto dto, String left, IOverloadBindings rightBindings, String right) {
+    private void applyRightToLeft(AggregateBindingDto dto, String left, String right) {
 
         IOverloadBindings leftBindings = dto.bindings;
+        IOverloadBindings rightBindings = dto.overload.getOverloadBindings();
 
         boolean usedImplicitConversions = false;
 
@@ -656,7 +659,7 @@ public class ConstraintSolver implements IConstraintSolver
                     ITypeVariableReference typeVariableReference = addHelperVariable(dto, refTypeVariable);
                     leftBindings.addLowerRefBound(left, typeVariableReference);
                 } else if (dto.isInIterativeMode && dto.iterateCount == 1) {
-                    addLowerRefInIterativeMode(dto, left, rightBindings, refTypeVariable);
+                    addLowerRefInIterativeMode(dto, left, refTypeVariable);
                 } else {
                     dto.needToReIterate = true;
                     break;
@@ -684,8 +687,10 @@ public class ConstraintSolver implements IConstraintSolver
                     } else if (!dto.isInIterativeMode && dto.iterateCount == 1) {
                         typeVariable = addHelperVariable(dto, typeParameter).getTypeVariable();
                     } else if (dto.isInIterativeMode && dto.iterateCount == 1) {
-                        //TODO implement
-                        throw new UnsupportedOperationException("not yet implemented.");
+                        typeVariable = searchTypeVariable(dto, typeParameter);
+                        if (typeVariable == null) {
+                            typeVariable = addHelperVariable(dto, typeParameter).getTypeVariable();
+                        }
                     } else {
                         dto.needToReIterate = true;
                         copy = null;
@@ -705,23 +710,43 @@ public class ConstraintSolver implements IConstraintSolver
         dto.mapping.put(typeParameter, typeVariableReference);
 
         String typeVariable = typeVariableReference.getTypeVariable();
-        IOverloadBindings overloadBindings = dto.overload.getOverloadBindings();
-        applyRightToLeft(dto, typeVariable, overloadBindings, typeParameter);
+        applyRightToLeft(dto, typeVariable, typeParameter);
 
         return typeVariableReference;
     }
 
+    //Warning! start code duplication - very similar as in addLowerRefInIterativeMode
+    private String searchTypeVariable(AggregateBindingDto dto, String typeParameter) {
+        IOverloadBindings rightBindings = dto.overload.getOverloadBindings();
+        String typeVariable = null;
+        if (rightBindings.hasLowerRefBounds(typeParameter)) {
+            for (String refRefTypeVariable : rightBindings.getLowerRefBounds(typeParameter)) {
+                if (dto.mapping.containsKey(refRefTypeVariable)) {
+                    typeVariable = dto.mapping.get(refRefTypeVariable).getTypeVariable();
+                    break;
+                }
+                searchTypeVariable(dto, refRefTypeVariable);
+            }
+        }
+        return typeVariable;
+    }
+    //Warning! end code duplication - very similar as in addLowerRefInIterativeMode
+
+
+    //Warning! start code duplication - very similar as in searchTypeVariable
     private void addLowerRefInIterativeMode(
-            AggregateBindingDto dto, String left, IOverloadBindings rightBindings, String refTypeVariable) {
+            AggregateBindingDto dto, String left, String refTypeVariable) {
+        IOverloadBindings rightBindings = dto.overload.getOverloadBindings();
         if (rightBindings.hasLowerRefBounds(refTypeVariable)) {
             for (String refRefTypeVariable : rightBindings.getLowerRefBounds(refTypeVariable)) {
                 if (dto.mapping.containsKey(refRefTypeVariable)) {
                     dto.bindings.addLowerRefBound(left, dto.mapping.get(refRefTypeVariable));
                 }
-                addLowerRefInIterativeMode(dto, left, rightBindings, refRefTypeVariable);
+                addLowerRefInIterativeMode(dto, left, refRefTypeVariable);
             }
         }
     }
+    //Warning! end code duplication - very similar as in searchTypeVariable
 
     private void addMostSpecificOverloadToWorklist(WorklistDto worklistDto, IConstraint constraint) {
         List<OverloadRankingDto> applicableOverloads = getApplicableOverloads(worklistDto, constraint);
@@ -735,17 +760,20 @@ public class ConstraintSolver implements IConstraintSolver
                 if (filteredOverloads.size() > 1) {
                     List<OverloadRankingDto> fixedOverloads = fixOverloads(worklistDto, filteredOverloads);
 
-                    int size = overloadRankingDto.overload.getParameters().size();
-                    List<Pair<ITypeSymbol, ITypeSymbol>> bounds = getParameterBounds(fixedOverloads, size);
+                    int numberOfParameters = overloadRankingDto.overload.getParameters().size();
+                    List<Pair<ITypeSymbol, ITypeSymbol>> bounds = getParameterBounds(fixedOverloads,
+                            numberOfParameters);
 
                     List<OverloadRankingDto> overloadRankingDtos
                             = getMostSpecificApplicableOverload(fixedOverloads, bounds);
 
-                    if (overloadRankingDtos.size() == 1) {
-                        overloadRankingDto = overloadRankingDtos.get(0);
-                    } else {
-                        //TODO unify most specific
-                        throw new UnsupportedOperationException("not yet implemented");
+                    overloadRankingDto = overloadRankingDtos.get(0);
+                    if (overloadRankingDtos.size() != 1) {
+                        if (!worklistDto.isInIterativeMode
+                                || overloadRankingDto.mostSpecificUpperCount < numberOfParameters) {
+                            //TODO unify most specific
+                            throw new UnsupportedOperationException("not yet implemented");
+                        }
                     }
                 }
             }

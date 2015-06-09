@@ -39,8 +39,8 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
         List<String> boolLower = asList("falseType", "trueType");
         List<String> boolUpper = asList("(falseType | trueType)");
         List<String> asBool = asList("{as (falseType | trueType)}");
-        List<String> numLower = asList("float", "int");
         List<String> numUpper = asList("(float | int)");
+        List<String> asNum = asList("{as (float | int)}");
         return asList(new Object[][]{
                 //direct recursive functions
                 {
@@ -151,27 +151,70 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                                 )), 1, 2, 2)
                         }
                 },
-                //TODO TINS-515 helper variable and indirect recursive functions
-//                //indirect recursive function with erroneous overloads (bool x bool -> int) is no longer valid if $y
-//                // is restricted to Ty <: (int|float) - functions have only one overload in the end
-//                {
-//                        "function foo($x, $y){ return $x > 0 ?  bar($x - $y, $y) : $x; }"
-//                                + "function bar($x, $y){ return $x > 10 ? foo($x - $y, $y) : $y;}",
-//                        new OverloadTestStruct[]{
-//                                testStruct("foo()", "\\.\\.", functionDtos("foo()", 2, bindingDtos(
-//                                        varBinding("foo()$x", "T4", null, numUpper, false),
-//                                        varBinding("foo()$y", "T4", null, numUpper, false),
-//                                        varBinding(RETURN_VARIABLE_NAME, "T4", null, numUpper, false)
-//                                )), 1, 0, 2),
-//                                testStruct("bar()", "\\.\\.", functionDtos("bar()", 2, bindingDtos(
-//                                        varBinding("bar()$x", "T4", null, numUpper, false),
-//                                        varBinding("bar()$y", "T4", null, numUpper, false),
-//                                        varBinding(RETURN_VARIABLE_NAME, "T4", null, numUpper, false)
-//                                )), 1, 1, 2)
-//                        }
-//                },
-//                //indirect recursive function which produces more overloads once the dependent function is known but
-//                // erroneous ones (in the end the functions still have only one overload)
+                //indirect recursive function with erroneous overloads (bool x bool -> int) is no longer valid if $y
+                // is restricted to Ty <: (int|float) - functions have only one overload in the end
+                {
+                        "function foo($x, $y){ return $x > 0 ?  bar($x - $y, $y) : $x; }"
+                                + "function bar($x, $y){ return $x > 10 ? foo($x - $y, $y) : $y;}",
+                        new OverloadTestStruct[]{
+                                testStruct("foo()", "\\.\\.", functionDtos(
+                                        functionDto("foo()", 2, bindingDtos(
+                                                varBinding("foo()$x", "T2", asList("int"), asList("int"), true),
+                                                varBinding("foo()$y", "T5", asList("int"), asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T8",
+                                                        asList("int"), asList("int"), true)
+                                        )),
+                                        functionDto("foo()", 2, bindingDtos(
+                                                varBinding("foo()$x", "T2", asList("float"), asList("float"), true),
+                                                varBinding("foo()$y", "T5", asList("float"), asList("float"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T8",
+                                                        asList("float"), asList("float"), true)
+                                        )),
+                                        functionDto("foo()", 2, bindingDtos(
+                                                varBinding("foo()$x", "T2", null, asList("{as int}"), false),
+                                                varBinding("foo()$y", "T5", asList("int"), asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T8",
+                                                        asList("int", "@T2"), null, false)
+                                        )),
+                                        functionDto("foo()", 2, bindingDtos(
+                                                varBinding("foo()$x", "T2", null, asList("{as (float | int)}"), false),
+                                                varBinding("foo()$y", "T5", asList("float"), asList("float"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T8",
+                                                        asList("float", "@T2"), null, false)
+                                        ))
+                                ), 1, 0, 2),
+                                testStruct("bar()", "\\.\\.", functionDtos(
+                                        functionDto("bar()", 2, bindingDtos(
+                                                varBinding("bar()$x", "T2", asList("int"), asList("int"), true),
+                                                varBinding("bar()$y", "T5", asList("int"), asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T8",
+                                                        asList("int"), asList("int"), true)
+                                        )),
+                                        functionDto("bar()", 2, bindingDtos(
+                                                varBinding("bar()$x", "T2", asList("float"), asList("float"), true),
+                                                varBinding("bar()$y", "T5", asList("float"), asList("float"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T8",
+                                                        asList("float"), asList("float"), true)
+                                        )),
+                                        functionDto("bar()", 2, bindingDtos(
+                                                varBinding("bar()$x", "T2",
+                                                        asList("{as int}"), asList("{as int}"), true),
+                                                varBinding("bar()$y", "T5", asList("int"), asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T8",
+                                                        asList("int"), asList("int"), true)
+                                        )),
+                                        functionDto("bar()", 2, bindingDtos(
+                                                varBinding("bar()$x", "T2", asNum, asNum, true),
+                                                varBinding("bar()$y", "T5", asList("float"), asList("float"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T8",
+                                                        asList("float"), asList("float"), true)
+                                        ))
+                                ), 1, 1, 2)
+                        }
+                },
+                //TODO TINS-494 ambiguous overloads calculated
+                //indirect recursive function which produces more overloads once the dependent function is known but
+                // erroneous ones (in the end the functions still have only one overload)
 //                {
 //                        "function foo($x, $y){ return bar($x, $y); }"
 //                                + "function bar($x, $y){ return $x > 10 ? foo($x - $y, $y) : $y;}",
@@ -188,38 +231,79 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
 //                                )), 1, 1, 2)
 //                        }
 //                },
-//                //indirect recursive function with erroneous overloads (bool x bool -> int) is no longer valid if $y
-//                // is restricted to Ty <: (int|float), Ty <: array respectively.
-//                {
-//                        "function foo($x, $y){ return $x > 0 ?  bar($x + $y, $y) : $x; }"
-//                                + "function bar($x, $y){ return $x > 10 ? foo($x + $y, $y) : $y;}",
-//                        new OverloadTestStruct[]{
-//                                testStruct("foo()", "\\.\\.", functionDtos(
-//                                        functionDto("foo()", 2, bindingDtos(
-//                                                varBinding("foo()$x", "T4", null, numUpper, false),
-//                                                varBinding("foo()$y", "T4", null, numUpper, false),
-//                                                varBinding(RETURN_VARIABLE_NAME, "T4", null, numUpper, false)
-//                                        )),
-//                                        functionDto("foo()", 2, bindingDtos(
-//                                                varBinding("foo()$x", "T2", null, asList("array"), false),
-//                                                varBinding("foo()$y", "T5", null, asList("array"), false),
-//                                                varBinding(RETURN_VARIABLE_NAME, "T8",
-//                                                        asList("@T2", "@T5", "array"), null, false)
-//                                        ))), 1, 0, 2),
-//                                testStruct("bar()", "\\.\\.", functionDtos(
-//                                        functionDto("bar()", 2, bindingDtos(
-//                                                varBinding("bar()$x", "T4", null, numUpper, false),
-//                                                varBinding("bar()$y", "T4", null, numUpper, false),
-//                                                varBinding(RETURN_VARIABLE_NAME, "T4", null, numUpper, false)
-//                                        )),
-//                                        functionDto("bar()", 2, bindingDtos(
-//                                                varBinding("bar()$x", "T2", asList("array"), asList("array"), true),
-//                                                varBinding("bar()$y", "T5", null, asList("array"), false),
-//                                                varBinding(RETURN_VARIABLE_NAME, "T8",
-//                                                        asList("@T5", "array"), null, false)
-//                                        ))), 1, 1, 2)
-//                        }
-//                },
+                //indirect recursive function with erroneous overloads (bool x bool -> int) is no longer valid if $y
+                // is restricted to Ty <: (int|float), Ty <: array respectively.
+                {
+                        "function foo($x, $y){ return $x > 0 ?  bar($x + $y, $y) : $x; }"
+                                + "function bar($x, $y){ return $x > 10 ? foo($x + $y, $y) : $y;}",
+                        new OverloadTestStruct[]{
+                                testStruct("foo()", "\\.\\.", functionDtos(
+                                        functionDto("foo()", 2, bindingDtos(
+                                                varBinding("foo()$x", "T2", asList("int"), asList("int"), true),
+                                                varBinding("foo()$y", "T5", asList("int"), asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T8",
+                                                        asList("int"), asList("int"), true)
+                                        )),
+                                        functionDto("foo()", 2, bindingDtos(
+                                                varBinding("foo()$x", "T2", asList("float"), asList("float"), true),
+                                                varBinding("foo()$y", "T5", asList("float"), asList("float"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T8",
+                                                        asList("float"), asList("float"), true)
+                                        )),
+                                        functionDto("foo()", 2, bindingDtos(
+                                                varBinding("foo()$x", "T2", asList("array"), asList("array"), true),
+                                                varBinding("foo()$y", "T5", asList("array"), asList("array"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T8",
+                                                        asList("array"), asList("array"), true)
+                                        )),
+                                        functionDto("foo()", 2, bindingDtos(
+                                                varBinding("foo()$x", "T2", null, asList("{as int}"), false),
+                                                varBinding("foo()$y", "T5", asList("int"), asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T8",
+                                                        asList("int", "@T2"), null, false)
+                                        )),
+                                        functionDto("foo()", 2, bindingDtos(
+                                                varBinding("foo()$x", "T2", null, asList("{as (float | int)}"), false),
+                                                varBinding("foo()$y", "T5", asList("float"), asList("float"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T8",
+                                                        asList("float", "@T2"), null, false)
+                                        ))
+                                ), 1, 0, 2),
+                                testStruct("bar()", "\\.\\.", functionDtos(
+                                        functionDto("bar()", 2, bindingDtos(
+                                                varBinding("bar()$x", "T2", asList("int"), asList("int"), true),
+                                                varBinding("bar()$y", "T5", asList("int"), asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T8",
+                                                        asList("int"), asList("int"), true)
+                                        )),
+                                        functionDto("bar()", 2, bindingDtos(
+                                                varBinding("bar()$x", "T2", asList("float"), asList("float"), true),
+                                                varBinding("bar()$y", "T5", asList("float"), asList("float"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T8",
+                                                        asList("float"), asList("float"), true)
+                                        )),
+                                        functionDto("bar()", 2, bindingDtos(
+                                                varBinding("bar()$x", "T2", asList("array"), asList("array"), true),
+                                                varBinding("bar()$y", "T5", asList("array"), asList("array"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T8",
+                                                        asList("array"), asList("array"), true)
+                                        )),
+                                        functionDto("bar()", 2, bindingDtos(
+                                                varBinding("bar()$x", "T2",
+                                                        asList("{as int}"), asList("{as int}"), true),
+                                                varBinding("bar()$y", "T5", asList("int"), asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T8",
+                                                        asList("int"), asList("int"), true)
+                                        )),
+                                        functionDto("bar()", 2, bindingDtos(
+                                                varBinding("bar()$x", "T2", asNum, asNum, true),
+                                                varBinding("bar()$y", "T5", asList("float"), asList("float"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T8",
+                                                        asList("float"), asList("float"), true)
+                                        ))), 1, 1, 2)
+                        }
+                },
+                //TODO TINS-494 ambiguous overloads calculated
 //                //indirect recursive function which produces more overloads once the dependent function is known. An
 //                // erroneous one (bool x bool -> int) and a valid one (array x array -> array)
 //                {
@@ -309,6 +393,7 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                                 )), 1, 2, 2)
                         }
                 },
+                //TODO TINS-494 ambiguous overloads calculated
 //                //call to an indirect recursive function which produces more overloads once the dependent function is
 //                // known. An erroneous one (bool x bool -> int) and a valid one (array x array -> array)
 //                {
