@@ -248,7 +248,7 @@ public class ConstraintSolver implements IConstraintSolver
                     collectionsWhichChanged.add(absoluteName);
                 }
                 if (dtos.isEmpty()) {
-                    throw new UnsupportedOperationException("oho... recursion and soft typing");
+                    throw new UnsupportedOperationException("oho... indirect recursion and soft typing");
                 }
             }
         }
@@ -771,8 +771,8 @@ public class ConstraintSolver implements IConstraintSolver
                     if (overloadRankingDtos.size() != 1) {
                         if (!worklistDto.isInIterativeMode
                                 || overloadRankingDto.mostSpecificUpperCount < numberOfParameters) {
-                            //TODO unify most specific
-                            throw new UnsupportedOperationException("not yet implemented");
+                            throw new UnsupportedOperationException(
+                                    "oho... indirect recursion and ambiguous overloads.");
                         }
                     }
                 }

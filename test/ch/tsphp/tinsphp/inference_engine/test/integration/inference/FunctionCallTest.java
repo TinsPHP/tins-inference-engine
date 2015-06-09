@@ -55,15 +55,14 @@ public class FunctionCallTest extends AInferenceNamespaceTypeTest
                                 + "$a = foo(1, 2);",
                         testStructs("$a", "\\.\\.", asList("int"), null, 1, 3, 0, 0)
                 },
-                //TODO rstoll TINS-494 ambiguous overloads calculated
-//                //see TINS-463 multiple return and ConcurrentModificationException
-//                //function with two return calling twice user defined functions
-//                {
-//                        "function foo($x, $y, $z){ if($z){ return bar($x, $y);} return bar($x-1, $y); }" +
-//                                "function bar($x, $y){ return $x + $y; }"
-//                                + "$a = foo(1, 2, false);",
-//                        testStructs("$a", "\\.\\.", asList("int"), null, 1, 3, 0, 0)
-//                },
+                //see TINS-463 multiple return and ConcurrentModificationException
+                //function with two return calling twice user defined functions
+                {
+                        "function foo($x, $y, $z){ if($z){ return bar($x, $y);} return bar($x-1, $y); }" +
+                                "function bar($x, $y){ return $x + $y; }"
+                                + "$a = foo(1, 2, false);",
+                        testStructs("$a", "\\.\\.", asList("int"), null, 1, 3, 0, 0)
+                },
                 //see TINS-463 multiple return and ConcurrentModificationException
                 //function with multiple return constant and parameter
                 {
@@ -104,8 +103,8 @@ public class FunctionCallTest extends AInferenceNamespaceTypeTest
                         testStructs("$a", "\\.\\.", asList("string", "int", "float"), null, 1, 2, 0, 0)
                 },
                 //TODO rstoll TINS-494 ambiguous overloads calculated
-//                //see TINS-463 multiple return and ConcurrentModificationException
-//                //function with multiple return constant via local parameters
+                //see TINS-463 multiple return and ConcurrentModificationException
+                //function with multiple return constant via local parameters
 //                {
 //                        ""
 //                                + "function foo($x, $y, $z){ "
@@ -117,19 +116,19 @@ public class FunctionCallTest extends AInferenceNamespaceTypeTest
 //                                + "$a = foo(true, false, true);",
 //                        testStructs("$a", "\\.\\.", asList("trueType", "falseType"), null, 1, 2, 0, 0)
 //                },
-//                //see TINS-463 multiple return and ConcurrentModificationException
-//                //function with multiple return not constant via local parameters
-//                {
-//                        ""
-//                                + "function foo($x, $y, $z){ "
-//                                + "  if ($x) {"
-//                                + "    return $y + $z;"
-//                                + "  }"
-//                                + "  return $y - $z;"
-//                                + "}"
-//                                + "$a = foo(true, 1, 2);",
-//                        testStructs("$a", "\\.\\.", asList("int"), null, 1, 2, 0, 0)
-//                },
+                //see TINS-463 multiple return and ConcurrentModificationException
+                //function with multiple return not constant via local parameters
+                {
+                        ""
+                                + "function foo($x, $y, $z){ "
+                                + "  if ($x) {"
+                                + "    return $y + $z;"
+                                + "  }"
+                                + "  return $y - $z;"
+                                + "}"
+                                + "$a = foo(true, 1, 2);",
+                        testStructs("$a", "\\.\\.", asList("int"), null, 1, 2, 0, 0)
+                },
                 //see TINS-463 multiple return and ConcurrentModificationException
                 //function with multiple return non constant via user defined function
                 {
