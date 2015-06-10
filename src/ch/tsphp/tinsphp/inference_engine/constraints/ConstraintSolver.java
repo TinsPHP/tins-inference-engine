@@ -622,7 +622,7 @@ public class ConstraintSolver implements IConstraintSolver
         if (dto.mapping.containsKey(overloadTypeVariable)) {
             lhsTypeVariable = dto.mapping.get(overloadTypeVariable).getTypeVariable();
             String rhsTypeVariable = bindingTypeVariableReference.getTypeVariable();
-            dto.bindings.renameTypeVariable(rhsTypeVariable, lhsTypeVariable);
+            dto.bindings.mergeFirstIntoSecond(rhsTypeVariable, lhsTypeVariable);
         } else {
             lhsTypeVariable = bindingTypeVariableReference.getTypeVariable();
             dto.mapping.put(overloadTypeVariable, bindingTypeVariableReference);
