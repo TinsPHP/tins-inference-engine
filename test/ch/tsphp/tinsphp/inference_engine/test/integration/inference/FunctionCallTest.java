@@ -154,6 +154,21 @@ public class FunctionCallTest extends AInferenceNamespaceTypeTest
                                 + "$a = foo(true, false, 2);",
                         testStructs("$a", "\\.\\.", asList("falseType", "int"), null, 1, 3, 0, 0)
                 },
+                //TODO TINS-494 ambiguous overloads calculated - check if still most specific overload is chosen in
+                // global namespace scope
+                {
+                        "function foo($x, $y, $z){return $x - $y - $z;}"
+                                + "$a = foo(1, 2, 3);"
+                                + "$b = foo(1.3, 2.5, 3.4);"
+                                + "$c = foo(1, 2, 3.5);"
+                                + "$d = foo(1, 2.5, 3);",
+                        new AbsoluteTypeNameTestStruct[]{
+                                testStruct("$a", "\\.\\.", asList("int"), null, 1, 5, 0, 0),
+                                testStruct("$b", "\\.\\.", asList("float"), null, 1, 6, 0, 0),
+                                testStruct("$c", "\\.\\.", asList("float"), null, 1, 7, 0, 0),
+                                testStruct("$d", "\\.\\.", asList("float"), null, 1, 8, 0, 0)
+                        }
+                }
         });
     }
 }

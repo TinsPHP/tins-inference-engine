@@ -215,25 +215,54 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                                 ), 1, 1, 2)
                         }
                 },
-                //TODO TINS-494 ambiguous overloads calculated
                 //indirect recursive function which produces more overloads once the dependent function is known but
                 // erroneous ones (in the end the functions still have only one overload)
-//                {
-//                        "function foo($x, $y){ return bar($x, $y); }"
-//                                + "function bar($x, $y){ return $x > 10 ? foo($x - $y, $y) : $y;}",
-//                        new OverloadTestStruct[]{
-//                                testStruct("foo()", "\\.\\.", functionDtos("foo()", 2, bindingDtos(
-//                                        varBinding("foo()$x", "V4", null, numUpper, false),
-//                                        varBinding("foo()$y", "V4", null, numUpper, false),
-//                                        varBinding(RETURN_VARIABLE_NAME, "V4", null, numUpper, false)
-//                                )), 1, 0, 2),
-//                                testStruct("bar()", "\\.\\.", functionDtos("bar()", 2, bindingDtos(
-//                                        varBinding("bar()$x", "V4", null, numUpper, false),
-//                                        varBinding("bar()$y", "V4", null, numUpper, false),
-//                                        varBinding(RETURN_VARIABLE_NAME, "V4", null, numUpper, false)
-//                                )), 1, 1, 2)
-//                        }
-//                },
+                {
+                        "function foo($x, $y){ return bar($x, $y); }"
+                                + "function bar($x, $y){ return $x > 10 ? foo($x - $y, $y) : $y;}",
+                        new OverloadTestStruct[]{
+                                testStruct("foo()", "\\.\\.", functionDtos(
+                                        functionDto("foo()", 2, bindingDtos(
+                                                varBinding("foo()$x", "V4", asList("int"), asList("int"), true),
+                                                varBinding("foo()$y", "T", null, asList("int"), false),
+                                                varBinding(RETURN_VARIABLE_NAME, "T", null, asList("int"), false)
+                                        )),
+                                        functionDto("foo()", 2, bindingDtos(
+                                                varBinding("foo()$x", "V4", asList("float"), asList("float"), true),
+                                                varBinding("foo()$y", "T", null, asList("float"), false),
+                                                varBinding(RETURN_VARIABLE_NAME, "T", null, asList("float"), false)
+                                        )),
+                                        functionDto("foo()", 2, bindingDtos(
+                                                varBinding("foo()$x", "V4", asNum, asNum, true),
+                                                varBinding("foo()$y", "T", null, asList("float"), false),
+                                                varBinding(RETURN_VARIABLE_NAME, "T", null, asList("float"), false)
+                                        ))
+                                ), 1, 0, 2),
+                                testStruct("bar()", "\\.\\.", functionDtos(
+                                        functionDto("bar()", 2, bindingDtos(
+                                                varBinding("bar()$x", "V2", asList("int"), asList("int"), true),
+                                                varBinding("bar()$y", "T", null, asList("int"), false),
+                                                varBinding(RETURN_VARIABLE_NAME, "T", null, asList("int"), false)
+                                        )),
+                                        functionDto("bar()", 2, bindingDtos(
+                                                varBinding("bar()$x", "V2", asList("float"), asList("float"), true),
+                                                varBinding("bar()$y", "T", null, asList("float"), false),
+                                                varBinding(RETURN_VARIABLE_NAME, "T", null, asList("float"), false)
+                                        )),
+                                        functionDto("bar()", 2, bindingDtos(
+                                                varBinding("bar()$x", "V2",
+                                                        asList("{as int}"), asList("{as int}"), true),
+                                                varBinding("bar()$y", "T", null, asList("int"), false),
+                                                varBinding(RETURN_VARIABLE_NAME, "T", null, asList("int"), false)
+                                        )),
+                                        functionDto("bar()", 2, bindingDtos(
+                                                varBinding("bar()$x", "V2", asNum, asNum, true),
+                                                varBinding("bar()$y", "T", null, asList("float"), false),
+                                                varBinding(RETURN_VARIABLE_NAME, "T", null, asList("float"), false)
+                                        ))
+                                ), 1, 1, 2)
+                        }
+                },
                 //indirect recursive function with erroneous overloads (bool x bool -> int) is no longer valid if $y
                 // is restricted to Ty <: (int|float), Ty <: array respectively.
                 {
@@ -308,7 +337,7 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                                         ))), 1, 1, 2)
                         }
                 },
-                //TODO TINS-494 ambiguous overloads calculated
+                //TODO TINS-519 fix indirect recursive - self ref removed when should not
 //                //indirect recursive function which produces more overloads once the dependent function is known. An
 //                // erroneous one (bool x bool -> int) and a valid one (array x array -> array)
 //                {
@@ -398,7 +427,7 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                                 )), 1, 2, 2)
                         }
                 },
-                //TODO TINS-494 ambiguous overloads calculated
+                //TODO TINS-519 fix indirect recursive - self ref removed when should not
 //                //call to an indirect recursive function which produces more overloads once the dependent function is
 //                // known. An erroneous one (bool x bool -> int) and a valid one (array x array -> array)
 //                {

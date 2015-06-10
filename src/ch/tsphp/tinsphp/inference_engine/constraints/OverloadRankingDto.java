@@ -20,7 +20,7 @@ public class OverloadRankingDto
     public IOverloadBindings bindings;
     public boolean hasNarrowedArguments;
     public int numberOfImplicitConversions;
-    public int numberOfTypeParameter;
+    public int numberOfTypeParameters;
     public int mostGeneralLowerCount;
     public int mostSpecificUpperCount;
     public List<Pair<IUnionTypeSymbol, IIntersectionTypeSymbol>> bounds;
@@ -39,9 +39,10 @@ public class OverloadRankingDto
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("[hasNarrowed: ").append(hasNarrowedArguments)
-                .append(", impl: ").append(numberOfImplicitConversions)
-                .append(", low: ").append(mostGeneralLowerCount)
                 .append(", up: ").append(mostSpecificUpperCount)
+                .append(", low: ").append(mostGeneralLowerCount)
+                .append(", tp: ").append(numberOfTypeParameters)
+                .append(", impl: ").append(numberOfImplicitConversions)
                 .append("]");
         return stringBuilder.toString();
     }
