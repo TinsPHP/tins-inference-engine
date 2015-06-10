@@ -957,8 +957,8 @@ public class ConstraintSolver implements IConstraintSolver
         boolean wereArgumentsNarrowed = true;
 
         for (OverloadRankingDto dto : applicableOverloads) {
-            if (wereArgumentsNarrowed == dto.hasNarrowedArguments &&
-                    dto.numberOfImplicitConversions == minNumberOfImplicitConversions) {
+            if (wereArgumentsNarrowed == dto.hasNarrowedArguments
+                    && dto.numberOfImplicitConversions == minNumberOfImplicitConversions) {
                 overloadRankingDtos.add(dto);
             } else if (wereArgumentsNarrowed && !dto.hasNarrowedArguments
                     || dto.numberOfImplicitConversions < minNumberOfImplicitConversions) {
