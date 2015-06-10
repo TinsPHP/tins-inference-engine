@@ -98,15 +98,13 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
                                 "{as T} -> T \\ float <: T <: (float | int)"
                         ), 1, 0, 2)
                 },
-                //TODO rstoll TINS-513 implicit conversions and num addition 0.4.0
-//                {
-//                        "function foo($x){return $x + (1 ? 1: 1.3);}",
-//                        testStructs("foo()", "\\.\\.", asList(
-//                                "float -> float",
-//                                "{as (float | int)} -> float",
-//                                "{as T1} -> T1 \\ float <: T1 <: (float | int)"
-//                        ), 1, 0, 2)
-//                },
+                {
+                        "function foo($x){return $x + (1 ? 1: 1.3);}",
+                        testStructs("foo()", "\\.\\.", asList(
+                                "float -> float",
+                                "{as (float | int)} -> (float | int)"
+                        ), 1, 0, 2)
+                },
                 {
                         "function foo($x){return $x + true;}",
                         testStructs("foo()", "\\.\\.", asList(
