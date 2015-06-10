@@ -18,15 +18,31 @@ public class OverloadRankingDto
 {
     public IFunctionType overload;
     public IOverloadBindings bindings;
+    public boolean hasNarrowedArguments;
     public int numberOfImplicitConversions;
     public int numberOfTypeParameter;
     public int mostGeneralLowerCount;
     public int mostSpecificUpperCount;
     public List<Pair<IUnionTypeSymbol, IIntersectionTypeSymbol>> bounds;
 
-    public OverloadRankingDto(IFunctionType theOverload, IOverloadBindings theBindings, int implicitConversionsCount) {
+    public OverloadRankingDto(
+            IFunctionType theOverload,
+            IOverloadBindings theBindings,
+            int implicitConversionsCount,
+            boolean narrowedArguments) {
         overload = theOverload;
         bindings = theBindings;
         numberOfImplicitConversions = implicitConversionsCount;
+        hasNarrowedArguments = narrowedArguments;
+    }
+
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("[hasNarrowed: ").append(hasNarrowedArguments)
+                .append(", impl: ").append(numberOfImplicitConversions)
+                .append(", low: ").append(mostGeneralLowerCount)
+                .append(", up: ").append(mostSpecificUpperCount)
+                .append("]");
+        return stringBuilder.toString();
     }
 }

@@ -102,20 +102,19 @@ public class FunctionCallTest extends AInferenceNamespaceTypeTest
                                 + "$a = foo(true, false, 'hello');",
                         testStructs("$a", "\\.\\.", asList("string", "int", "float"), null, 1, 2, 0, 0)
                 },
-                //TODO rstoll TINS-494 ambiguous overloads calculated
                 //see TINS-463 multiple return and ConcurrentModificationException
                 //function with multiple return constant via local parameters
-//                {
-//                        ""
-//                                + "function foo($x, $y, $z){ "
-//                                + "  if ($x) {"
-//                                + "    return $y || $z;"
-//                                + "  }"
-//                                + "  return $y && $z;"
-//                                + "}"
-//                                + "$a = foo(true, false, true);",
-//                        testStructs("$a", "\\.\\.", asList("trueType", "falseType"), null, 1, 2, 0, 0)
-//                },
+                {
+                        ""
+                                + "function foo($x, $y, $z){ "
+                                + "  if ($x) {"
+                                + "    return $y || $z;"
+                                + "  }"
+                                + "  return $y && $z;"
+                                + "}"
+                                + "$a = foo(true, false, true);",
+                        testStructs("$a", "\\.\\.", asList("trueType", "falseType"), null, 1, 2, 0, 0)
+                },
                 //see TINS-463 multiple return and ConcurrentModificationException
                 //function with multiple return not constant via local parameters
                 {
@@ -153,7 +152,7 @@ public class FunctionCallTest extends AInferenceNamespaceTypeTest
                                 + "  return bar($y, $z);"
                                 + "}"
                                 + "$a = foo(true, false, 2);",
-                        testStructs("$a", "\\.\\.", asList("falseType","int"), null, 1, 3, 0, 0)
+                        testStructs("$a", "\\.\\.", asList("falseType", "int"), null, 1, 3, 0, 0)
                 },
         });
     }

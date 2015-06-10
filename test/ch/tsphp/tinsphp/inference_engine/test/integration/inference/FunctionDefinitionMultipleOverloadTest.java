@@ -47,7 +47,30 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
 
     @Parameterized.Parameters
     public static Collection<Object[]> testStrings() {
+        String bool = "(falseType | trueType)";
+        String asBool = "{as " + bool + "}";
         return asList(new Object[][]{
+                {
+                        "function foo($x, $y, $z){if ($x) { return $y || $z;  } return $y && $z;}",
+                        testStructs("foo()", "\\.\\.", asList(
+                                bool + " x " + bool + " x " + bool + " -> " + bool,
+                                bool + " x " + bool + " x trueType -> " + bool,
+                                bool + " x falseType x falseType -> falseType",
+                                bool + " x trueType x " + bool + " -> " + bool,
+                                bool + " x trueType x trueType -> trueType",
+                                bool + " x trueType x " + asBool + " -> " + bool,
+                                bool + " x " + asBool + " x trueType -> " + bool,
+                                bool + " x " + asBool + " x " + asBool + " -> " + bool,
+                                asBool + " x " + bool + " x " + bool + " -> " + bool,
+                                asBool + " x " + bool + " x trueType -> " + bool,
+                                asBool + " x falseType x falseType -> falseType",
+                                asBool + " x trueType x " + bool + " -> " + bool,
+                                asBool + " x trueType x trueType -> trueType",
+                                asBool + " x trueType x " + asBool + " -> " + bool,
+                                asBool + " x " + asBool + " x trueType -> " + bool,
+                                asBool + " x " + asBool + " x " + asBool + " -> " + bool
+                        ), 1, 0, 2)
+                },
                 {
                         "function foo($x, $y){return $x + $y;}",
                         testStructs("foo()", "\\.\\.", asList(
@@ -64,7 +87,6 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
                         testStructs("foo()", "\\.\\.", asList(
                                 "int -> int",
                                 "float -> float",
-                                "{as (float | int)} -> float",
                                 "{as T} -> T \\ int <: T <: (float | int)"
                         ), 1, 0, 2)
                 },
@@ -95,73 +117,94 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
                 {
                         "function foo($x, $y, $z){return $x + $y + $z;}",
                         testStructs("foo()", "\\.\\.", asList(
-                                "int x int x int -> int",
-                                "int x int x float -> float",
-                                "int x int x {as (float | int)} -> float",
-                                "int x int x {as T} -> T \\ int <: T <: (float | int)",
+                                "array x array x array -> array",
                                 "float x float x float -> float",
                                 "float x float x {as (float | int)} -> float",
                                 "float x float x {as T} -> T \\ float <: T <: (float | int)",
                                 "float x {as (float | int)} x float -> float",
                                 "float x {as (float | int)} x {as (float | int)} -> float",
                                 "float x {as (float | int)} x {as T} -> T \\ float <: T <: (float | int)",
-                                "{as int} x {as int} x int -> int",
-                                "{as float} x {as float} x float -> float",
-                                "{as float} x {as float} x {as (float | int)} -> float",
+                                "int x int x float -> float",
+                                "int x int x int -> int",
+                                "int x int x {as T} -> T \\ int <: T <: (float | int)",
                                 "{as (float | int)} x float x float -> float",
                                 "{as (float | int)} x float x {as (float | int)} -> float",
                                 "{as (float | int)} x float x {as T} -> T \\ float <: T <: (float | int)",
                                 "{as (float | int)} x {as (float | int)} x float -> float",
-                                "{as (float | int)} x {as (float | int)} x {as T} -> T \\ T <: (float | int)",
-                                "array x array x array -> array"
+                                "{as T2} x {as T2} x {as T1} -> T1 \\ T2 <: T1 <: (float | int), T2 <: (float | int)",
+                                "{as float} x {as float} x float -> float",
+                                "{as float} x {as float} x {as (float | int)} -> float",
+                                "{as int} x {as int} x int -> int"
+                        ), 1, 0, 2)
+                },
+                {
+                        "function foo($x, $y, $z){return $x - $y - $z;}",
+                        testStructs("foo()", "\\.\\.", asList(
+                                "float x float x float -> float",
+                                "float x float x {as (float | int)} -> float",
+                                "float x float x {as T} -> T \\ float <: T <: (float | int)",
+                                "float x {as (float | int)} x float -> float",
+                                "float x {as (float | int)} x {as (float | int)} -> float",
+                                "float x {as (float | int)} x {as T} -> T \\ float <: T <: (float | int)",
+                                "int x int x float -> float",
+                                "int x int x int -> int",
+                                "int x int x {as T} -> T \\ int <: T <: (float | int)",
+                                "{as (float | int)} x float x float -> float",
+                                "{as (float | int)} x float x {as (float | int)} -> float",
+                                "{as (float | int)} x float x {as T} -> T \\ float <: T <: (float | int)",
+                                "{as (float | int)} x {as (float | int)} x float -> float",
+                                "{as T2} x {as T2} x {as T1} -> T1 \\ T2 <: T1 <: (float | int), T2 <: (float | int)",
+                                "{as float} x {as float} x float -> float",
+                                "{as float} x {as float} x {as (float | int)} -> float",
+                                "{as int} x {as int} x int -> int"
                         ), 1, 0, 2)
                 },
                 {
                         "function foo($x, $y, $a, $b){return $a * ($x + $y) - $a * $b;}",
                         testStructs("foo()", "\\.\\.", asList(
-                                "int x int x int x int -> int",
-                                "int x int x int x int -> float",
-                                "int x int x int x float -> float",
-                                "int x int x int x {as int} -> int",
-                                "int x int x float x float -> float",
-                                "int x int x float x {as (float | int)} -> float",
-                                "int x int x float x {as float} -> float",
-                                "int x int x {as (float | int)} x float -> float",
-                                "int x int x {as float} x {as float} -> float",
-                                "int x int x {as int} x {as int} -> int",
                                 "float x float x float x float -> float",
                                 "float x float x float x {as (float | int)} -> float",
                                 "float x float x float x {as float} -> float",
                                 "float x float x int x int -> float",
                                 "float x float x {as (float | int)} x float -> float",
+                                "float x float x {as T} x {as T} -> (float | T) \\ T <: (float | int)",
                                 "float x float x {as float} x {as float} -> float",
                                 "float x {as (float | int)} x float x float -> float",
                                 "float x {as (float | int)} x float x {as (float | int)} -> float",
                                 "float x {as (float | int)} x float x {as float} -> float",
                                 "float x {as (float | int)} x int x int -> float",
                                 "float x {as (float | int)} x {as (float | int)} x float -> float",
+                                "float x {as (float | int)} x {as T} x {as T} -> (float | T) \\ T <: (float | int)",
                                 "float x {as (float | int)} x {as float} x {as float} -> float",
-                                "{as int} x {as int} x int x int -> int",
-                                "{as int} x {as int} x int x float -> float",
-                                "{as int} x {as int} x int x {as int} -> int",
+                                "int x int x float x float -> float",
+                                "int x int x float x {as (float | int)} -> float",
+                                "int x int x float x {as float} -> float",
+                                "int x int x int x float -> float",
+                                "int x int x int x int -> int",
+                                "int x int x int x {as int} -> int",
+                                "int x int x {as (float | int)} x float -> float",
+                                "int x int x {as T} x {as T} -> (int | T) \\ T <: (float | int)",
+                                "{as (float | int)} x float x float x float -> float",
+                                "{as (float | int)} x float x float x {as (float | int)} -> float",
+                                "{as (float | int)} x float x float x {as float} -> float",
+                                "{as (float | int)} x float x int x int -> float",
+                                "{as (float | int)} x float x {as (float | int)} x float -> float",
+                                "{as (float | int)} x float x {as T} x {as T} -> (float | T) \\ T <: (float | int)",
+                                "{as (float | int)} x float x {as float} x {as float} -> float",
+                                "{as (float | int)} x {as (float | int)} x float x float -> float",
+                                "{as (float | int)} x {as (float | int)} x float x {as (float | int)} -> float",
+                                "{as (float | int)} x {as (float | int)} x float x {as float} -> float",
+                                "{as T1} x {as T1} x {as T2} x {as T2} -> (T1 | T2) "
+                                        + "\\ T1 <: (float | int), T2 <: (float | int)",
                                 "{as float} x {as float} x float x float -> float",
                                 "{as float} x {as float} x float x {as (float | int)} -> float",
                                 "{as float} x {as float} x float x {as float} -> float",
                                 "{as float} x {as float} x int x int -> float",
                                 "{as float} x {as float} x {as (float | int)} x float -> float",
                                 "{as float} x {as float} x {as float} x {as float} -> float",
-                                "{as (float | int)} x float x float x float -> float",
-                                "{as (float | int)} x float x float x {as (float | int)} -> float",
-                                "{as (float | int)} x float x float x {as float} -> float",
-                                "{as (float | int)} x float x int x int -> float",
-                                "{as (float | int)} x float x {as (float | int)} x float -> float",
-                                "{as (float | int)} x float x {as float} x {as float} -> float",
-                                "{as (float | int)} x {as (float | int)} x float x float -> float",
-                                "{as (float | int)} x {as (float | int)} x float x {as (float | int)} -> float",
-                                "{as (float | int)} x {as (float | int)} x float x {as float} -> float",
-                                "{as (float | int)} x {as (float | int)} x int x int -> int",
-                                "{as (float | int)} x {as (float | int)} x {as (float | int)} x float -> float",
-                                "{as (float | int)} x {as (float | int)} x {as int} x {as int} -> int"
+                                "{as int} x {as int} x int x float -> float",
+                                "{as int} x {as int} x int x int -> int",
+                                "{as int} x {as int} x int x {as int} -> int"
                         ), 1, 0, 2)
                 },
                 {
@@ -203,8 +246,11 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
                     stringBuilder.append(testString).append(" \n-- ").append(testStruct.astText)
                             .append(" failed (testStruct Nr ").append(counter).append("). ")
                             .append("Error for functionType ").append(i).append("\n")
-                            .append("Expected:\n").append(testStruct.signatures.get(i)).append("\n")
-                            .append("But the following signatures were defined:");
+                            .append("Expected (").append(size).append(")")
+                            .append("and the following was not part of the actual overloads:\n")
+                            .append(testStruct.signatures.get(i)).append("\n\n")
+                            .append("Actual (").append(signatures.size()).append("):");
+                    Collections.sort(signatures);
                     for (String signature : signatures) {
                         stringBuilder.append("\n").append(signature);
                     }

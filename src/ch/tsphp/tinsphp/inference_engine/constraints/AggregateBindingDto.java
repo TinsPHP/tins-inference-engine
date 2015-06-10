@@ -26,6 +26,7 @@ public class AggregateBindingDto
     public String overloadVariableId;
     public boolean needToReIterate;
     public int implicitConversionCounter;
+    public boolean hasNarrowedArguments;
 
     public AggregateBindingDto(
             IConstraint theConstraint,

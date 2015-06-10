@@ -20,14 +20,7 @@ public abstract class AInferenceTest extends AReferenceTest
 
     public AInferenceTest(String testString) {
         super(testString);
-
-        init();
     }
-
-    private void init() {
-
-    }
-
 
     protected abstract void assertsInInferencePhase();
 
