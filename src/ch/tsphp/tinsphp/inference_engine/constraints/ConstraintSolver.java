@@ -106,15 +106,20 @@ public class ConstraintSolver implements IConstraintSolver
 
         solveIteratively(worklist);
 
-        for (Set<WorklistDto> worklistDtos : unresolvedConstraints.values()) {
-            Iterator<WorklistDto> iterator = worklistDtos.iterator();
-            WorklistDto firstWorkListDto = iterator.next();
-            IMethodSymbol methodSymbol = (IMethodSymbol) firstWorkListDto.constraintCollection;
-            String absoluteName = methodSymbol.getAbsoluteName();
+        for (Map.Entry<String, Set<WorklistDto>> entry : unresolvedConstraints.entrySet()) {
+            String absoluteName = entry.getKey();
             if (directDependencies.containsKey(absoluteName)) {
-
+                Iterator<WorklistDto> iterator = entry.getValue().iterator();
+                WorklistDto firstWorkListDto = iterator.next();
+                IMethodSymbol methodSymbol = (IMethodSymbol) firstWorkListDto.constraintCollection;
                 createOverloadsForRecursiveMethod(iterator, firstWorkListDto, methodSymbol);
+            }
+        }
 
+        //solveDependencies is not in the same loop on purpose since we already filter unresolvedConstraints which
+        // have not been used as overloads
+        for (String absoluteName : unresolvedConstraints.keySet()) {
+            if (directDependencies.containsKey(absoluteName)) {
                 solveDependenciesOfRecursiveMethod(absoluteName);
             }
         }
@@ -300,17 +305,30 @@ public class ConstraintSolver implements IConstraintSolver
     private void createOverloadsForRecursiveMethod(
             Iterator<WorklistDto> iterator, WorklistDto firstWorkListDto, IMethodSymbol methodSymbol) {
 
-        List<IOverloadBindings> solvedBindings = new ArrayList<>();
-        solvedBindings.add(firstWorkListDto.overloadBindings);
-        createOverload(methodSymbol, firstWorkListDto.overloadBindings);
+        Map<IFunctionType, WorklistDto> mapping = new HashMap<>();
+        IFunctionType overload = createOverload(methodSymbol, firstWorkListDto.overloadBindings);
+        mapping.put(overload, firstWorkListDto);
         while (iterator.hasNext()) {
             WorklistDto worklistDto = iterator.next();
             IOverloadBindings overloadBindings = worklistDto.overloadBindings;
-            solvedBindings.add(overloadBindings);
-            createOverload(methodSymbol, overloadBindings);
+            overload = createOverload(methodSymbol, overloadBindings);
+            mapping.put(overload, worklistDto);
+        }
+
+        List<IOverloadBindings> solvedBindings = new ArrayList<>();
+        for (IFunctionType functionType : methodSymbol.getOverloads()) {
+            solvedBindings.add(functionType.getOverloadBindings());
+            mapping.remove(functionType);
         }
         methodSymbol.setBindings(solvedBindings);
 
+        // remove the WorklistDtos which were not chosen as overloads from the unresolved list.
+        // Otherwise the applied overloads are recalculated for them nonetheless.
+        String absoluteName = firstWorkListDto.constraintCollection.getAbsoluteName();
+        Set<WorklistDto> worklistDtos = unresolvedConstraints.get(absoluteName);
+        for (WorklistDto worklistDto : mapping.values()) {
+            worklistDtos.remove(worklistDto);
+        }
     }
 
     private void solveDependenciesOfRecursiveMethod(String absoluteName) {
@@ -320,19 +338,44 @@ public class ConstraintSolver implements IConstraintSolver
             if (!directDependencies.containsKey(refAbsoluteName)) {
                 //regular dependency solving for non recursive methods
                 solveDependency(pair);
-            } else {
-                if (unresolvedConstraints.get(refAbsoluteName).contains(worklistDto)) {
-                    //exchange applied overload, currently it is still pointing to the temp overload
-                    IConstraint constraint = worklistDto.constraintCollection.getConstraints().get(pair.second);
+            } else if (unresolvedConstraints.get(refAbsoluteName).contains(worklistDto)) {
+                //exchange applied overload, currently it is still pointing to the temp overload
+                IConstraint constraint = worklistDto.constraintCollection.getConstraints().get(pair.second);
 
-                    worklistDto.isInIterativeMode = false;
-                    addMostSpecificOverloadToWorklist(worklistDto, constraint);
-                    WorklistDto tempWorklistDto = worklistDto.workDeque.removeFirst();
-                    String lhsAbsoluteName = constraint.getLeftHandSide().getAbsoluteName();
-                    IFunctionType appliedOverload
-                            = tempWorklistDto.overloadBindings.getAppliedOverload(lhsAbsoluteName);
-                    worklistDto.overloadBindings.setAppliedOverload(lhsAbsoluteName, appliedOverload);
+                worklistDto.isInIterativeMode = false;
+                addMostSpecificOverloadToWorklist(worklistDto, constraint);
+
+                if (worklistDto.workDeque.isEmpty()) {
+                    //TODO TINS-524 erroneous overload - remove the debug info bellow
+                    for (IFunctionType functionType : constraint.getMethodSymbol().getOverloads()) {
+                        System.out.println(functionType.getSignature());
+                    }
+
+                    System.out.println("\n");
+
+                    Collection<IFunctionType> operatorOverloads
+                            = ((IMethodSymbol) worklistDto.constraintCollection).getOverloads();
+                    for (IFunctionType functionType : operatorOverloads) {
+                        System.out.println(functionType.getSignature());
+                    }
+
+                    System.out.println("\n----------- Bindings -------------\n");
+
+                    for (IFunctionType functionType : constraint.getMethodSymbol().getOverloads()) {
+                        System.out.println(functionType.getOverloadBindings().toString());
+                    }
+
+                    System.out.println("\n");
+
+                    for (IFunctionType functionType : operatorOverloads) {
+                        System.out.println(functionType.getOverloadBindings().toString());
+                    }
                 }
+                WorklistDto tempWorklistDto = worklistDto.workDeque.removeFirst();
+                String lhsAbsoluteName = constraint.getLeftHandSide().getAbsoluteName();
+                IFunctionType appliedOverload
+                        = tempWorklistDto.overloadBindings.getAppliedOverload(lhsAbsoluteName);
+                worklistDto.overloadBindings.setAppliedOverload(lhsAbsoluteName, appliedOverload);
             }
         }
     }
@@ -1177,7 +1220,7 @@ public class ConstraintSolver implements IConstraintSolver
         }
     }
 
-    private void createOverload(IMethodSymbol methodSymbol, IOverloadBindings bindings) {
+    private IFunctionType createOverload(IMethodSymbol methodSymbol, IOverloadBindings bindings) {
         List<IVariable> parameters = new ArrayList<>();
         for (IVariableSymbol parameter : methodSymbol.getParameters()) {
             String parameterId = parameter.getAbsoluteName();
@@ -1200,6 +1243,7 @@ public class ConstraintSolver implements IConstraintSolver
         IFunctionType functionType = symbolFactory.createFunctionType(methodSymbol.getName(), bindings, parameters);
         functionType.simplify();
         methodSymbol.addOverload(functionType);
+        return functionType;
     }
 
 }

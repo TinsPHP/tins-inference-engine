@@ -17,6 +17,7 @@ import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.ITSPHPErrorAst;
 import ch.tsphp.common.exceptions.ReferenceException;
 import ch.tsphp.common.exceptions.TSPHPException;
+import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.common.symbols.modifiers.IModifierSet;
 import ch.tsphp.tinsphp.common.ICore;
@@ -573,15 +574,20 @@ public class ReferencePhaseController implements IReferencePhaseController
                 returnValue = createNullLiteral();
             }
 
-            //we create two ref constraints, the first is an assignment from this return to the global return
-            IMinimalVariableSymbol returnVariable = methodSymbol.getReturnVariable();
-            returnAst.setSymbol(returnVariable);
-            constraintCreator.createRefConstraint(currentScope, returnAst, returnValue);
-
             //the second assigns the actual value (or null if it is missing) to this return statement
             IMinimalVariableSymbol expressionVariableSymbol = symbolFactory.createExpressionVariableSymbol(returnAst);
             returnAst.setSymbol(expressionVariableSymbol);
             constraintCreator.createRefConstraint(currentScope, returnAst, returnValue);
+
+            //we create two ref constraints, the first is an assignment from this return to the global return
+            IMinimalVariableSymbol returnVariable = methodSymbol.getReturnVariable();
+            returnAst.setSymbol(returnVariable);
+            ISymbol tmpReturnValueSymbol = returnValue.getSymbol();
+            returnValue.setSymbol(expressionVariableSymbol);
+            constraintCreator.createRefConstraint(currentScope, returnAst, returnValue);
+
+            returnValue.setSymbol(tmpReturnValueSymbol);
+            returnAst.setSymbol(expressionVariableSymbol);
         }
     }
 

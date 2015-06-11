@@ -154,7 +154,7 @@ public class FunctionCallTest extends AInferenceNamespaceTypeTest
                                 + "$a = foo(true, false, 2);",
                         testStructs("$a", "\\.\\.", asList("falseType", "int"), null, 1, 3, 0, 0)
                 },
-                //TODO TINS-494 ambiguous overloads calculated - check if still most specific overload is chosen in
+                //see TINS-494 ambiguous overloads calculated - check if still most specific overload is chosen in
                 // global namespace scope
                 {
                         "function foo($x, $y, $z){return $x - $y - $z;}"
