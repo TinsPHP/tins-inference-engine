@@ -608,6 +608,11 @@ public class ReferencePhaseController implements IReferencePhaseController
     }
 
     @Override
+    public List<IMethodSymbol> getMethodSymbols() {
+        return methodSymbols;
+    }
+
+    @Override
     public void solveConstraints() {
         constraintSolver.solveConstraints(methodSymbols, globalDefaultNamespace);
     }

@@ -28,7 +28,7 @@ import ch.tsphp.tinsphp.common.issues.IssueReporterHelper;
 import ch.tsphp.tinsphp.common.issues.ReferenceIssueDto;
 import ch.tsphp.tinsphp.common.issues.WrongArgumentTypeIssueDto;
 import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
-import ch.tsphp.tinsphp.common.translation.dtos.MethodDto;
+import ch.tsphp.tinsphp.common.translation.dtos.OverloadDto;
 import ch.tsphp.tinsphp.common.translation.dtos.ParameterDto;
 import ch.tsphp.tinsphp.common.translation.dtos.TypeDto;
 import ch.tsphp.tinsphp.common.translation.dtos.TypeParameterDto;
@@ -200,11 +200,11 @@ public class InferenceIssueReporter implements IInferenceIssueReporter
             String key, EIssueSeverity severity, IConstraint constraint, ITSPHPAst identifier,
             String[] actualParameterTypes) {
 
-        List<MethodDto> existingOverloads = new ArrayList<>();
+        List<OverloadDto> existingOverloads = new ArrayList<>();
         IMinimalMethodSymbol methodSymbol = constraint.getMethodSymbol();
         for (IFunctionType overload : methodSymbol.getOverloads()) {
-            MethodDto methodDto = createMethodDto(methodSymbol.getName(), overload);
-            existingOverloads.add(methodDto);
+            OverloadDto overloadDto = createMethodDto(methodSymbol.getName(), overload);
+            existingOverloads.add(overloadDto);
         }
 
         WrongArgumentTypeIssueDto issueDto = new WrongArgumentTypeIssueDto(
@@ -217,7 +217,7 @@ public class InferenceIssueReporter implements IInferenceIssueReporter
         return exception;
     }
 
-    private MethodDto createMethodDto(String name, IFunctionType overload) {
+    private OverloadDto createMethodDto(String name, IFunctionType overload) {
         IOverloadBindings bindings = overload.getOverloadBindings();
         List<IVariable> parameters = overload.getParameters();
         int numberOfParameters = parameters.size();
@@ -239,7 +239,7 @@ public class InferenceIssueReporter implements IInferenceIssueReporter
         if (typeParameters.isEmpty()) {
             typeParameters = null;
         }
-        return new MethodDto(returnType, name, typeParameters, parameterDtos, null);
+        return new OverloadDto(returnType, name, typeParameters, parameterDtos, null);
     }
 
     private TypeDto createTypeDto(

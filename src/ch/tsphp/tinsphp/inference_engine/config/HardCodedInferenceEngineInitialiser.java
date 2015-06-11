@@ -25,6 +25,7 @@ import ch.tsphp.tinsphp.common.resolving.ISymbolResolverController;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.scopes.IScopeFactory;
 import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
+import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.utils.ITypeHelper;
@@ -144,5 +145,10 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
     @Override
     public IGlobalNamespaceScope getGlobalDefaultNamespace() {
         return definitionPhaseController.getGlobalDefaultNamespace();
+    }
+
+    @Override
+    public List<IMethodSymbol> getMethodSymbols() {
+        return referencePhaseController.getMethodSymbols();
     }
 }
