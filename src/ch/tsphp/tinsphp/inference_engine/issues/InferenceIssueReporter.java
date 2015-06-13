@@ -11,8 +11,6 @@ import ch.tsphp.common.exceptions.DefinitionException;
 import ch.tsphp.common.exceptions.ReferenceException;
 import ch.tsphp.common.exceptions.TSPHPException;
 import ch.tsphp.common.symbols.ISymbol;
-import ch.tsphp.common.symbols.ITypeSymbol;
-import ch.tsphp.tinsphp.common.TinsPHPConstants;
 import ch.tsphp.tinsphp.common.gen.TokenTypes;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
@@ -28,18 +26,12 @@ import ch.tsphp.tinsphp.common.issues.IssueReporterHelper;
 import ch.tsphp.tinsphp.common.issues.ReferenceIssueDto;
 import ch.tsphp.tinsphp.common.issues.WrongArgumentTypeIssueDto;
 import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
-import ch.tsphp.tinsphp.common.translation.dtos.OverloadDto;
-import ch.tsphp.tinsphp.common.translation.dtos.ParameterDto;
-import ch.tsphp.tinsphp.common.translation.dtos.TypeDto;
-import ch.tsphp.tinsphp.common.translation.dtos.TypeParameterDto;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class InferenceIssueReporter implements IInferenceIssueReporter
 {
@@ -200,11 +192,10 @@ public class InferenceIssueReporter implements IInferenceIssueReporter
             String key, EIssueSeverity severity, IConstraint constraint, ITSPHPAst identifier,
             String[] actualParameterTypes) {
 
-        List<OverloadDto> existingOverloads = new ArrayList<>();
+        List<String> existingOverloads = new ArrayList<>();
         IMinimalMethodSymbol methodSymbol = constraint.getMethodSymbol();
         for (IFunctionType overload : methodSymbol.getOverloads()) {
-            OverloadDto overloadDto = createMethodDto(methodSymbol.getName(), overload);
-            existingOverloads.add(overloadDto);
+            existingOverloads.add(overload.getSignature());
         }
 
         WrongArgumentTypeIssueDto issueDto = new WrongArgumentTypeIssueDto(
@@ -215,84 +206,5 @@ public class InferenceIssueReporter implements IInferenceIssueReporter
         ReferenceException exception = new ReferenceException(issueMessage, identifier);
         reportIssue(exception, severity);
         return exception;
-    }
-
-    private OverloadDto createMethodDto(String name, IFunctionType overload) {
-        IOverloadBindings bindings = overload.getOverloadBindings();
-        List<IVariable> parameters = overload.getParameters();
-        int numberOfParameters = parameters.size();
-
-        Set<String> typeVariablesAdded = new HashSet<>(numberOfParameters + 1);
-        List<TypeParameterDto> typeParameters = new ArrayList<>(numberOfParameters + 1);
-        TypeDto returnType = createTypeDto(
-                TinsPHPConstants.RETURN_VARIABLE_NAME, bindings, typeParameters, typeVariablesAdded);
-
-        List<ParameterDto> parameterDtos = new ArrayList<>();
-        for (IVariable parameter : parameters) {
-            parameterDtos.add(new ParameterDto(
-                    createTypeDto(parameter.getAbsoluteName(), bindings, typeParameters, typeVariablesAdded),
-                    parameter.getName(),
-                    null,
-                    null,
-                    null
-            ));
-        }
-
-        if (typeParameters.isEmpty()) {
-            typeParameters = null;
-        }
-        return new OverloadDto(returnType, name, typeParameters, parameterDtos, null);
-    }
-
-    private TypeDto createTypeDto(
-            String variableId,
-            IOverloadBindings bindings,
-            List<TypeParameterDto> typeParameters,
-            Set<String> typeVariablesAdded) {
-
-        ITypeVariableReference reference = bindings.getTypeVariableReference(variableId);
-        TypeDto typeDto = createTypeDto(reference, bindings);
-        if (!reference.hasFixedType()) {
-            String typeVariable = typeDto.type;
-            if (!typeVariablesAdded.contains(typeVariable)) {
-                typeVariablesAdded.add(typeVariable);
-                List<String> lowerBounds = null;
-                if (bindings.hasLowerBounds(typeVariable)) {
-                    lowerBounds = new ArrayList<>();
-                    if (bindings.hasLowerTypeBounds(typeVariable)) {
-                        lowerBounds.addAll(bindings.getLowerTypeBounds(typeVariable).getTypeSymbols().keySet());
-                    }
-                    if (bindings.hasLowerRefBounds(typeVariable)) {
-                        lowerBounds.addAll(bindings.getLowerRefBounds(typeVariable));
-                    }
-                }
-                List<String> upperBounds = null;
-                if (bindings.hasUpperTypeBounds(typeVariable)) {
-                    upperBounds = new ArrayList<>();
-                    upperBounds.addAll(bindings.getUpperTypeBounds(typeVariable).getTypeSymbols().keySet());
-                }
-                typeParameters.add(new TypeParameterDto(lowerBounds, typeVariable, upperBounds));
-            }
-        }
-        return typeDto;
-    }
-
-    private TypeDto createTypeDto(ITypeVariableReference reference, IOverloadBindings bindings) {
-        String type;
-
-        String typeVariable = reference.getTypeVariable();
-        if (reference.hasFixedType()) {
-            ITypeSymbol typeSymbol;
-            if (bindings.hasUpperTypeBounds(typeVariable)) {
-                typeSymbol = bindings.getUpperTypeBounds(typeVariable);
-            } else {
-                typeSymbol = bindings.getLowerTypeBounds(typeVariable);
-            }
-            type = typeSymbol.toString();
-        } else {
-            type = typeVariable;
-        }
-
-        return new TypeDto(null, type, null);
     }
 }
