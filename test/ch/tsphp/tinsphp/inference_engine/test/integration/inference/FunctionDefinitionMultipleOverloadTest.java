@@ -182,6 +182,30 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
                                 "{as (float | int)} x {as (float | int)} -> (falseType | float | int)"
                         ), 1, 0, 2)
                 },
+                {
+                        "function foo9($x, $y){return $x + $y + 1;}",
+                        testStructs("foo9()", "\\.\\.", asList(
+                                "int x int -> int",
+                                "float x float -> float",
+                                "float x {as (float | int)} -> float",
+                                "{as (float | int)} x float -> float",
+                                //TODO TINS-531 inferred overload is not general enough
+                                //should be instead of the following
+                                //"{as T} x {as T} -> T \\ T <: num"
+                                "{as int} x {as int} -> int"
+                        ), 1, 0, 2)
+                },
+                //TODO TINS-531 inferred overload is not general enough
+//                {
+//                        "function foo9($x, $y){return $x + 1 + $y + 2;}",
+//                        testStructs("foo9()", "\\.\\.", asList(
+//                                "int x int -> int",
+//                                "float x float -> float",
+//                                "float x {as (float | int)} -> float",
+//                                "{as (float | int)} x float -> float",
+//                                "{as T} x {as T} -> T \ int <: T <: (float | int)"
+//                        ), 1, 0, 2)
+//                },
         });
     }
 

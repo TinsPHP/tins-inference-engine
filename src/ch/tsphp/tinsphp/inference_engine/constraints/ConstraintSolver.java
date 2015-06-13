@@ -553,14 +553,8 @@ public class ConstraintSolver implements IConstraintSolver
                     ++constantTypeCounter;
                     break;
                 case NotCreated:
-                    if (worklistDto.isInIterativeMode) {
+                    if (worklistDto.isInIterativeMode || !parameterVariable.getName().startsWith("$")) {
                         ++constantTypeCounter;
-                    } else {
-                        String absoluteName = parameterVariable.getAbsoluteName();
-                        ITypeVariableReference reference = overloadBindings.getTypeVariableReference(absoluteName);
-                        if (reference.hasFixedType()) {
-                            ++constantTypeCounter;
-                        }
                     }
             }
         }
@@ -1018,7 +1012,7 @@ public class ConstraintSolver implements IConstraintSolver
 
     private List<OverloadRankingDto> filterOverload(List<OverloadRankingDto> applicableOverloads) {
         //can be null since the first applicable overload will certainly not have Interger.MAX_VALUE implicit
-        // converions and hence initialise overloadRankingDtos
+        // conversions and hence initialise overloadRankingDtos
         List<OverloadRankingDto> overloadRankingDtos = null;
         int minNumberOfImplicitConversions = Integer.MAX_VALUE;
         boolean wereArgumentsNarrowed = true;
