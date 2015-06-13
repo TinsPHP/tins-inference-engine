@@ -188,8 +188,11 @@ public class ConstraintSolver implements IConstraintSolver
             }
 
             if (notYetAllBindingsCreated) {
+                IOverloadBindings tmp = overloadBindings;
                 overloadBindings = symbolFactory.createOverloadBindings(worklistDto.overloadBindings);
-                createBindingsIfNecessary(overloadBindings, returnVariable, parameterVariables);
+                worklistDto.overloadBindings = overloadBindings;
+                createBindingsIfNecessary(worklistDto, returnVariable, parameterVariables);
+                worklistDto.overloadBindings = tmp;
             }
 
             IFunctionType overload =
@@ -511,9 +514,9 @@ public class ConstraintSolver implements IConstraintSolver
 
     private void solve(WorklistDto worklistDto, IConstraint constraint) {
         boolean atLeastOneBindingCreated = createBindingsIfNecessary(
-                worklistDto.overloadBindings, constraint.getLeftHandSide(), constraint.getArguments());
+                worklistDto, constraint.getLeftHandSide(), constraint.getArguments());
 
-        if (atLeastOneBindingCreated) {
+        if (worklistDto.isSolvingMethod && atLeastOneBindingCreated) {
             addApplicableOverloadsToWorklist(worklistDto, constraint);
         } else {
             try {
@@ -534,22 +537,43 @@ public class ConstraintSolver implements IConstraintSolver
     }
 
     private boolean createBindingsIfNecessary(
-            IOverloadBindings overloadBindings, IVariable leftHandSide, List<IVariable> arguments) {
+            WorklistDto worklistDto, IVariable leftHandSide, List<IVariable> arguments) {
 
+        int constantTypeCounter = 0;
+        IOverloadBindings overloadBindings = worklistDto.overloadBindings;
         createBindingIfNecessary(overloadBindings, leftHandSide);
         boolean atLeastOneBindingCreated = false;
         for (IVariable parameterVariable : arguments) {
-            boolean neededBinding = createBindingIfNecessary(overloadBindings, parameterVariable);
-            atLeastOneBindingCreated = atLeastOneBindingCreated || neededBinding;
+            ECreateBinding status = createBindingIfNecessary(overloadBindings, parameterVariable);
+            switch (status) {
+                case Created:
+                    atLeastOneBindingCreated = true;
+                    break;
+                case ConstantType:
+                    ++constantTypeCounter;
+                    break;
+                case NotCreated:
+                    if (worklistDto.isInIterativeMode) {
+                        ++constantTypeCounter;
+                    } else {
+                        String absoluteName = parameterVariable.getAbsoluteName();
+                        ITypeVariableReference reference = overloadBindings.getTypeVariableReference(absoluteName);
+                        if (reference.hasFixedType()) {
+                            ++constantTypeCounter;
+                        }
+                    }
+            }
         }
-        return atLeastOneBindingCreated;
+
+        return atLeastOneBindingCreated || constantTypeCounter < arguments.size();
     }
 
 
-    private boolean createBindingIfNecessary(IOverloadBindings bindings, IVariable variable) {
+    private ECreateBinding createBindingIfNecessary(IOverloadBindings bindings, IVariable variable) {
         String absoluteName = variable.getAbsoluteName();
-        boolean bindingDoesNotExist = !bindings.containsVariable(absoluteName);
-        if (bindingDoesNotExist) {
+        ECreateBinding status = ECreateBinding.NotCreated;
+        if (!bindings.containsVariable(absoluteName)) {
+            status = ECreateBinding.Created;
             ITypeVariableReference reference = bindings.getNextTypeVariable();
             ITypeVariableReference typeVariableReference = reference;
             //if it is a literal then we know already the lower bound and it is a fix typed type variable
@@ -564,10 +588,10 @@ public class ConstraintSolver implements IConstraintSolver
                 //TODO rstoll TINS-407 - store fixed type only in lower bound
                 //TODO rstoll TINS-387 function application only consider upper bounds
 //                bindings.addUpperTypeBound(typeVariable, typeSymbol);
-                bindingDoesNotExist = false;
+                status = ECreateBinding.ConstantType;
             }
         }
-        return bindingDoesNotExist;
+        return status;
     }
 
     private void addApplicableOverloadsToWorklist(WorklistDto worklistDto, IConstraint constraint) {
@@ -1237,6 +1261,7 @@ public class ConstraintSolver implements IConstraintSolver
             IMinimalVariableSymbol parameterVariable = symbolFactory.createMinimalVariableSymbol(
                     parameter.getDefinitionAst(), parameter.getName());
             parameterVariable.setDefinitionScope(parameter.getDefinitionScope());
+            parameterVariable.setType(parameter.getType());
             parameters.add(parameterVariable);
         }
 
@@ -1246,4 +1271,10 @@ public class ConstraintSolver implements IConstraintSolver
         return functionType;
     }
 
+    private enum ECreateBinding
+    {
+        NotCreated,
+        ConstantType,
+        Created,
+    }
 }

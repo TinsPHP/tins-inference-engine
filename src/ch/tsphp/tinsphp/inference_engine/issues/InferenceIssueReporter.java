@@ -232,6 +232,8 @@ public class InferenceIssueReporter implements IInferenceIssueReporter
             parameterDtos.add(new ParameterDto(
                     createTypeDto(parameter.getAbsoluteName(), bindings, typeParameters, typeVariablesAdded),
                     parameter.getName(),
+                    null,
+                    null,
                     null
             ));
         }
