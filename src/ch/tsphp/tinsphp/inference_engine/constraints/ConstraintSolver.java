@@ -862,16 +862,18 @@ public class ConstraintSolver implements IConstraintSolver
                 // error in the output
             }
         } else {
+            AggregateBindingDto dto = null;
             try {
                 IFunctionType overload = overloads.iterator().next();
-                AggregateBindingDto dto = solveOverLoad(worklistDto, constraint, overload);
+                dto = solveOverLoad(worklistDto, constraint, overload);
                 if (dto != null) {
                     worklistDto.workDeque.add(nextWorklistDto(worklistDto, dto.bindings));
                 }
             } catch (BoundException ex) {
-                if (!worklistDto.isSolvingMethod) {
-                    issueReporter.constraintViolation(worklistDto.overloadBindings, constraint);
-                }
+                //that's ok, we report it below
+            }
+            if (dto == null && !worklistDto.isSolvingMethod) {
+                issueReporter.constraintViolation(worklistDto.overloadBindings, constraint);
             }
         }
     }
