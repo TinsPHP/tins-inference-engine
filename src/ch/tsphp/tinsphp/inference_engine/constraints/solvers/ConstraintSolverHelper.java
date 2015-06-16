@@ -100,6 +100,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                     if (worklistDto.isInIterativeMode || !parameterVariable.getName().startsWith("$")) {
                         ++constantTypeCounter;
                     }
+                    break;
                 default:
                     throw new IllegalStateException(status.name() + " is not yet covered by this switch");
             }
