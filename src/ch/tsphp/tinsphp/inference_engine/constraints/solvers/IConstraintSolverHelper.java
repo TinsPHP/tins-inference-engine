@@ -16,6 +16,9 @@ import ch.tsphp.tinsphp.inference_engine.constraints.WorklistDto;
 
 import java.util.List;
 
+/**
+ * Provides methods to
+ */
 public interface IConstraintSolverHelper
 {
     boolean createBindingsIfNecessary(

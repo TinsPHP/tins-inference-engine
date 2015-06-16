@@ -4,12 +4,8 @@
  * root folder or visit the project's website http://tsphp.ch/wiki/display/TINS/License
  */
 
+/**
+ * Contains classes related to constraint solving.
+ */
 package ch.tsphp.tinsphp.inference_engine.constraints.solvers;
 
-/**
- * Responsible to solve constraints of indirect recursive functions.
- */
-public interface IIterativeConstraintSolver
-{
-    void solveConstraintsIteratively();
-}

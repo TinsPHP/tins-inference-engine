@@ -9,12 +9,18 @@ package ch.tsphp.tinsphp.inference_engine.constraints.solvers;
 import ch.tsphp.tinsphp.common.utils.Pair;
 import ch.tsphp.tinsphp.inference_engine.constraints.WorklistDto;
 
+/**
+ * Responsible to solve constraints which point to a dependency which was previously unsolved.
+ */
 public interface IDependencyConstraintSolver
 {
-    void solveDependency(Pair<WorklistDto, Integer> pair);
+
 
     void setSoftTypingConstraintSolver(ISoftTypingConstraintSolver softTypingConstraintSolver);
 
     void setConstraintSolver(IConstraintSolver constraintSolver);
+
+    void solveDependency(Pair<WorklistDto, Integer> pair);
+
 }
 

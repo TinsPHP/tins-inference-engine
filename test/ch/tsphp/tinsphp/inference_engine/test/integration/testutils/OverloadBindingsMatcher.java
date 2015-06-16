@@ -58,9 +58,9 @@ public class OverloadBindingsMatcher extends BaseMatcher<IOverloadBindings>
         for (BindingMatcherDto dto : dtos) {
             ok = variableIds.contains(dto.variableId);
             if (ok) {
-                ITypeVariableReference typeVariableConstraint = bindings.getTypeVariableReference(dto.variableId);
-                ok = typeVariableConstraint.getTypeVariable().equals(dto.typeVariable)
-                        && typeVariableConstraint.hasFixedType() == dto.hasFixedType;
+                ITypeVariableReference typeVariableReference = bindings.getTypeVariableReference(dto.variableId);
+                ok = typeVariableReference.getTypeVariable().equals(dto.typeVariable)
+                        && typeVariableReference.hasFixedType() == dto.hasFixedType;
             }
             if (ok) {
                 if (dto.lowerBounds == null) {

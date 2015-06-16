@@ -8,6 +8,9 @@ package ch.tsphp.tinsphp.inference_engine.utils;
 
 import ch.tsphp.common.ITSPHPAst;
 
+/**
+ * Provides methods which shall simplify the modification of an AST.
+ */
 public interface IAstModificationHelper
 {
     ITSPHPAst createNullLiteral();

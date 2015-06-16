@@ -58,6 +58,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
     private final Map<String, List<Pair<WorklistDto, Integer>>> directDependencies;
     private final Map<String, Set<WorklistDto>> unsolvedConstraints;
 
+    @SuppressWarnings("checkstyle:parameternumber")
     public ConstraintSolverHelper(
             ISymbolFactory theSymbolFactory,
             ITypeHelper theTypeHelper,
@@ -99,6 +100,8 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                     if (worklistDto.isInIterativeMode || !parameterVariable.getName().startsWith("$")) {
                         ++constantTypeCounter;
                     }
+                default:
+                    throw new IllegalStateException(status.name() + " is not yet covered by this switch");
             }
         }
 
@@ -246,7 +249,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
             String rhsTypeVariable = bindingTypeVariableReference.getTypeVariable();
             dto.bindings.mergeFirstIntoSecond(rhsTypeVariable, lhsTypeVariable);
 
-            //TODO TINS-535 improve precision in soft typing for unconstrained parameters
+            //TINS-535 improve precision in soft typing for unconstrained parameters
 //            if (dto.worklistDto.isInSoftTypingMode
 //                    && dto.worklistDto.param2LowerParams.containsKey(rhsTypeVariable)
 //                    && !rhsTypeVariable.equals(lhsTypeVariable)) {
@@ -470,8 +473,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
         IOverloadBindings overloadBindings = worklistDto.overloadBindings;
         for (IVariable variable : arguments) {
             String argumentId = variable.getAbsoluteName();
-            ITypeVariableReference reference = overloadBindings.getTypeVariableReference(argumentId);
-            String typeVariable = reference.getTypeVariable();
+            String typeVariable = overloadBindings.getTypeVariable(argumentId);
 
             //we prefer the upper type bound and when solving methods and the lower type bound when solving global
             // namespace scope
@@ -554,8 +556,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
         for (int i = 0; i < count; ++i) {
             IVariable variable = parameters.get(i);
             String argumentId = variable.getAbsoluteName();
-            ITypeVariableReference reference = rightBindings.getTypeVariableReference(argumentId);
-            String typeVariable = reference.getTypeVariable();
+            String typeVariable = rightBindings.getTypeVariable(argumentId);
             //TODO TINS-418 function application only consider upper bounds 0.4.1
             ITypeSymbol argumentType = argumentTypes.get(i);
             if (rightBindings.hasUpperTypeBounds(typeVariable)) {

@@ -23,7 +23,6 @@ import ch.tsphp.tinsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.common.utils.ERelation;
 import ch.tsphp.tinsphp.common.utils.ITypeHelper;
-import ch.tsphp.tinsphp.common.utils.MapHelper;
 import ch.tsphp.tinsphp.common.utils.Pair;
 import ch.tsphp.tinsphp.common.utils.TypeHelperDto;
 import ch.tsphp.tinsphp.inference_engine.constraints.AggregateBindingDto;
@@ -49,6 +48,7 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
     private final IInferenceIssueReporter issueReporter;
     private final ITypeSymbol mixedTypeSymbol;
 
+    @SuppressWarnings("checkstyle:parameternumber")
     public SoftTypingConstraintSolver(
             ISymbolFactory theSymbolFactory,
             ITypeHelper theTypeHelper,
@@ -174,28 +174,28 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
                 || !constraint.getArguments().get(1).getAbsoluteName().equals(TinsPHPConstants.RETURN_VARIABLE_NAME);
     }
 
-    //TODO TINS-535 improve precision in soft typing for unconstrained parameters
-    private void propagateParameterToParameters(
-            String refTypeVariable,
-            String typeVariable,
-            Set<String> parameterTypeVariables,
-            IOverloadBindings softTypingBindings,
-            Map<String, List<String>> parameter2LowerParameters) {
-        if (softTypingBindings.hasUpperBounds(refTypeVariable)) {
-            for (String refRefTypeVariable : softTypingBindings.getUpperRefBounds(refTypeVariable)) {
-                if (!parameterTypeVariables.contains(refRefTypeVariable)) {
-                    propagateParameterToParameters(
-                            refRefTypeVariable,
-                            typeVariable,
-                            parameterTypeVariables,
-                            softTypingBindings,
-                            parameter2LowerParameters);
-                } else {
-                    MapHelper.addToListInMap(parameter2LowerParameters, refRefTypeVariable, typeVariable);
-                }
-            }
-        }
-    }
+    //TINS-535 improve precision in soft typing for unconstrained parameters
+//    private void propagateParameterToParameters(
+//            String refTypeVariable,
+//            String typeVariable,
+//            Set<String> parameterTypeVariables,
+//            IOverloadBindings softTypingBindings,
+//            Map<String, List<String>> parameter2LowerParameters) {
+//        if (softTypingBindings.hasUpperBounds(refTypeVariable)) {
+//            for (String refRefTypeVariable : softTypingBindings.getUpperRefBounds(refTypeVariable)) {
+//                if (!parameterTypeVariables.contains(refRefTypeVariable)) {
+//                    propagateParameterToParameters(
+//                            refRefTypeVariable,
+//                            typeVariable,
+//                            parameterTypeVariables,
+//                            softTypingBindings,
+//                            parameter2LowerParameters);
+//                } else {
+//                    MapHelper.addToListInMap(parameter2LowerParameters, refRefTypeVariable, typeVariable);
+//                }
+//            }
+//        }
+//    }
 
     private void solveConstraintsAfterInit(IMethodSymbol methodSymbol, WorklistDto worklistDto) {
         for (IConstraint constraint : methodSymbol.getConstraints()) {
@@ -255,7 +255,7 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
                 worklistDto, constraint, overload, leftBindings, explicitConversions);
 
         if (overloadApplies) {
-            return applyOverloadInSoftTyping(worklistDto, constraint, overload, leftBindings, explicitConversions);
+            return applyOverload(worklistDto, constraint, overload, leftBindings, explicitConversions);
         }
         return null;
     }
@@ -293,6 +293,7 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
         return overloadApplies;
     }
 
+
     private boolean doesArgumentApply(
             IOverloadBindings leftBindings,
             String argumentId,
@@ -320,6 +321,7 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
                 argumentApplies = true;
                 break;
             case HAS_NO_RELATION:
+            default:
                 Map<String, ITypeSymbol> innerTypeSymbols = argumentType.getTypeSymbols();
                 int size = innerTypeSymbols.size();
 
@@ -363,7 +365,7 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
         return argumentApplies;
     }
 
-    private OverloadRankingDto applyOverloadInSoftTyping(
+    private OverloadRankingDto applyOverload(
             WorklistDto worklistDto,
             IConstraint constraint,
             IFunctionType overload,
@@ -376,8 +378,7 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
             oldTypes = new HashMap<>(explicitConversions.size());
             for (Map.Entry<String, Pair<ITypeSymbol, List<ITypeSymbol>>> entry : explicitConversions.entrySet()) {
                 String argumentId = entry.getKey();
-                ITypeVariableReference reference = leftBindings.getTypeVariableReference(argumentId);
-                String typeVariable = reference.getTypeVariable();
+                String typeVariable = leftBindings.getTypeVariable(argumentId);
 
                 IUnionTypeSymbol lowerTypeBounds = leftBindings.getLowerTypeBounds(typeVariable);
                 oldTypes.put(argumentId, lowerTypeBounds);

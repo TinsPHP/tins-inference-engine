@@ -15,7 +15,6 @@ import ch.tsphp.tinsphp.common.gen.TokenTypes;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
-import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableReference;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import ch.tsphp.tinsphp.common.issues.DefinitionIssueDto;
 import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
@@ -180,8 +179,7 @@ public class InferenceIssueReporter implements IInferenceIssueReporter
         int numberOfArguments = arguments.size();
         String[] actualParameterTypes = new String[numberOfArguments];
         for (int i = 0; i < numberOfArguments; ++i) {
-            ITypeVariableReference reference = bindings.getTypeVariableReference(arguments.get(i).getAbsoluteName());
-            String typeVariable = reference.getTypeVariable();
+            String typeVariable = bindings.getTypeVariable(arguments.get(i).getAbsoluteName());
             actualParameterTypes[i] = bindings.getLowerTypeBounds(typeVariable).getAbsoluteName();
         }
 

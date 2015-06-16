@@ -32,6 +32,7 @@ public class ConstraintSolver implements IConstraintSolver
 
     private final Map<String, Set<WorklistDto>> unsolvedConstraints;
 
+    @SuppressWarnings("checkstyle:parameternumber")
     public ConstraintSolver(
             ISymbolFactory theSymbolFactory,
             IIterativeConstraintSolver theIterativeConstraintSolver,

@@ -9,7 +9,6 @@ package ch.tsphp.tinsphp.inference_engine.constraints;
 import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
-import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableReference;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import ch.tsphp.tinsphp.common.symbols.IIntersectionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
@@ -130,17 +129,18 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
 
 
     private OverloadRankingDto fixOverload(OverloadRankingDto dto) {
-        IFunctionType overload = dto.overload;
+        OverloadRankingDto fixedDto = dto;
 
+        IFunctionType overload = dto.overload;
         if (!overload.isFixed()) {
             Collection<String> nonFixedTypeParameters = new ArrayList<>(overload.getNonFixedTypeParameters());
             IFunctionType copyOverload = copyAndFixOverload(overload);
 
-            dto = new OverloadRankingDto(
+            fixedDto = new OverloadRankingDto(
                     copyOverload, dto.bindings, dto.numberOfImplicitConversions, dto.hasNarrowedArguments);
-            dto.numberOfTypeParameters = nonFixedTypeParameters.size();
+            fixedDto.numberOfTypeParameters = nonFixedTypeParameters.size();
         }
-        return dto;
+        return fixedDto;
     }
 
     private IFunctionType copyAndFixOverload(IFunctionType overload) {
@@ -184,8 +184,7 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
             for (OverloadRankingDto dto : fixedOverloads) {
                 IOverloadBindings bindings = dto.overload.getOverloadBindings();
                 IVariable parameter = dto.overload.getParameters().get(i);
-                ITypeVariableReference reference = bindings.getTypeVariableReference(parameter.getAbsoluteName());
-                String parameterTypeVariable = reference.getTypeVariable();
+                String parameterTypeVariable = bindings.getTypeVariable(parameter.getAbsoluteName());
                 IUnionTypeSymbol lowerBound = null;
                 IIntersectionTypeSymbol upperBound = null;
                 if (bindings.hasLowerTypeBounds(parameterTypeVariable)) {

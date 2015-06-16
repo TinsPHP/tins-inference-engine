@@ -46,6 +46,7 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
     private final Map<String, List<Pair<WorklistDto, Integer>>> directDependencies;
     private final Map<String, Set<WorklistDto>> unsolvedConstraints;
 
+    @SuppressWarnings("checkstyle:parameternumber")
     public IterativeConstraintSolver(
             ISymbolFactory theSymbolFactory,
             ITypeHelper theTypeHelper,
@@ -267,8 +268,8 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
     }
 
     private boolean hasChanged(IOverloadBindings oldBindings, IOverloadBindings newBindings, String variableName) {
-        String oldTypeVariable = oldBindings.getTypeVariableReference(variableName).getTypeVariable();
-        String newTypeVariable = oldBindings.getTypeVariableReference(variableName).getTypeVariable();
+        String oldTypeVariable = oldBindings.getTypeVariable(variableName);
+        String newTypeVariable = oldBindings.getTypeVariable(variableName);
         boolean isNotTheSame = !oldTypeVariable.equals(newTypeVariable);
         if (!isNotTheSame) {
             IUnionTypeSymbol oldLowerType = oldBindings.getLowerTypeBounds(newTypeVariable);

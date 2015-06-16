@@ -9,6 +9,10 @@ package ch.tsphp.tinsphp.inference_engine.constraints.solvers;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.inference_engine.constraints.WorklistDto;
 
+/**
+ * Responsible to solve constraints of a method which cannot be solved regularly and requires a fall back to soft
+ * typing.
+ */
 public interface ISoftTypingConstraintSolver
 {
     void fallBackToSoftTyping(IMethodSymbol methodSymbol);
