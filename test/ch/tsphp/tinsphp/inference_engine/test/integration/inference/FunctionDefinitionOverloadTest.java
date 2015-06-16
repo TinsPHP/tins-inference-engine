@@ -277,6 +277,73 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                                 varBinding(RETURN_VARIABLE_NAME, "V7", asList("int"), asList("int"), true)
                         )), 1, 0, 2),
                 },
+                //soft typing and dependencies from soft typed function to another
+                {
+                        "function foo10(array $x){ $x = bar10(); return $x + 1; }"
+                                + "function bar10(){return false;}",
+                        testStructs("foo10()", "\\.\\.", functionDtos("foo10()", 1, bindingDtos(
+                                varBinding("foo10()$x", "V3",
+                                        asList("array", "falseType"),
+                                        asList("(array | falseType)"), true),
+                                varBinding(RETURN_VARIABLE_NAME, "V7", asList("int"), asList("int"), true)
+                        )), 1, 0, 2),
+                },
+                //soft typing and dependencies to a soft typed function
+                {
+                        "function foo12(array $x){ $x = 1; return $x + 1; }"
+                                + "function test12(){return foo12([1]);}",
+                        new OverloadTestStruct[]{
+                                testStruct("foo12()", "\\.\\.", functionDtos("foo12()", 1, bindingDtos(
+                                        varBinding("foo12()$x", "V2",
+                                                asList("array", "int"), asList("(array | int)"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V7", asList("int"), asList("int"), true)
+                                )), 1, 0, 2),
+                                testStruct("test12()", "\\.\\.", functionDtos("test12()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "V4", asList("int"), asList("int"), true)
+                                )), 1, 1, 2),
+                        }
+                },
+                //needs to fall back to soft typing during dependency resolving
+                {
+                        "function foo11($x){ $x = bar11(); return $x + 1; }"
+                                + "function bar11(){return [1];}",
+                        testStructs("foo11()", "\\.\\.", functionDtos("foo11()", 1, bindingDtos(
+                                varBinding("foo11()$x", "V3",
+                                        asList("array", "{as (float | int)}"),
+                                        asList("(array | {as (float | int)})"), true),
+                                varBinding(RETURN_VARIABLE_NAME, "V7", numLower, numUpper, true)
+                        )), 1, 0, 2),
+                },
+                //soft typing and dependencies from a soft typed function to a soft typed function
+                {
+                        "function foo13(array $x){ $x = 1; return $x + 1; }"
+                                + "function test13(){return foo13([1]) + 1;}",
+                        new OverloadTestStruct[]{
+                                testStruct("foo13()", "\\.\\.", functionDtos("foo13()", 1, bindingDtos(
+                                        varBinding("foo13()$x", "V2",
+                                                asList("array", "int"), asList("(array | int)"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V7", asList("int"), asList("int"), true)
+                                )), 1, 0, 2),
+                                testStruct("test13()", "\\.\\.", functionDtos("test13()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "V6", asList("int"), asList("int"), true)
+                                )), 1, 1, 2),
+                        }
+                },
+                //needs to fall back to soft typing during dependency resolving and dependency was soft typed as well
+                {
+                        "function test13(){return foo13([1]) + 1;}"
+                                + "function foo13(array $x){ $x = 1; return $x + 1; }",
+                        new OverloadTestStruct[]{
+                                testStruct("test13()", "\\.\\.", functionDtos("test13()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "V5", asList("int"), asList("int"), true)
+                                )), 1, 0, 2),
+                                testStruct("foo13()", "\\.\\.", functionDtos("foo13()", 1, bindingDtos(
+                                        varBinding("foo13()$x", "V2",
+                                                asList("array", "int"), asList("(array | int)"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V7", asList("int"), asList("int"), true)
+                                )), 1, 1, 2),
+                        }
+                },
         });
     }
 }

@@ -93,7 +93,16 @@ public class ConstraintErrorTest extends AInferenceTest
                 {"[0] \n+ 1;", dtos("wrongOperatorUsage", "+", 2, 0)},
                 {"[0] \n- 1;", dtos("wrongOperatorUsage", "-", 2, 0)},
                 {"[0] \n* 1;", dtos("wrongOperatorUsage", "*", 2, 0)},
-                {"function foo7(array $x){ return $x \n+ 1; }", dtos("wrongOperatorUsage", "+", 2, 0)},
+                {"function foo1(array $x){ return $x \n+ 1; }", dtos("wrongOperatorUsage", "+", 2, 0)},
+                {
+                        "function foo2(array $x){ $x = bar(); return $x \n+ 1;} function bar(){return [1];}",
+                        dtos("wrongOperatorUsage", "+", 2, 0)
+                },
+                //$a does not change due to the recursive call
+                {
+                        "function endless5(array $a){ $a = endless5(); return $a \n+ 1;}",
+                        dtos("wrongOperatorUsage", "+", 2, 0)
+                }
         });
     }
 

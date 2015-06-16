@@ -63,6 +63,7 @@ public class ConstraintSolver implements IConstraintSolver
     private final Map<String, Set<WorklistDto>> unresolvedConstraints = new ConcurrentHashMap<>();
     private final Map<String, TempMethodSymbol> tempMethodSymbols = new HashMap<>();
 
+
     public ConstraintSolver(
             ISymbolFactory theSymbolFactory,
             ITypeHelper theTypeHelper,
@@ -398,22 +399,26 @@ public class ConstraintSolver implements IConstraintSolver
     private void solveMethodConstraints(IMethodSymbol methodSymbol, Deque<WorklistDto> workDeque) {
         List<IOverloadBindings> bindings = solveConstraints(workDeque);
         if (!bindings.isEmpty()) {
-            methodSymbol.setBindings(bindings);
-            createOverloads(methodSymbol, bindings);
-
-            String methodName = methodSymbol.getAbsoluteName();
-            if (directDependencies.containsKey(methodName)) {
-                dependencies.remove(methodName);
-                for (Pair<WorklistDto, Integer> element : directDependencies.remove(methodName)) {
-                    solveDependency(element);
-                }
-            }
-            unresolvedConstraints.remove(methodName);
+            finishingMethodConstraints(methodSymbol, bindings);
         } else if (!unresolvedConstraints.containsKey(methodSymbol.getAbsoluteName())) {
             //does not have any dependencies and still cannot be solved
             //need to fallback to soft typing
             fallBackToSoftTyping(methodSymbol);
         }
+    }
+
+    private void finishingMethodConstraints(IMethodSymbol methodSymbol, List<IOverloadBindings> bindings) {
+        methodSymbol.setBindings(bindings);
+        createOverloads(methodSymbol, bindings);
+
+        String methodName = methodSymbol.getAbsoluteName();
+        if (directDependencies.containsKey(methodName)) {
+            dependencies.remove(methodName);
+            for (Pair<WorklistDto, Integer> element : directDependencies.remove(methodName)) {
+                solveDependency(element);
+            }
+        }
+        unresolvedConstraints.remove(methodName);
     }
 
     private void solveDependency(Pair<WorklistDto, Integer> pair) {
@@ -422,8 +427,26 @@ public class ConstraintSolver implements IConstraintSolver
         //removing pointer not the element at index thus the cast to (Integer)
         worklistDto.unsolvedConstraints.remove((Integer) worklistDto.pointer);
         worklistDto.isSolvingDependency = true;
-        worklistDto.workDeque.add(worklistDto);
-        solveMethodConstraints((IMethodSymbol) worklistDto.constraintCollection, worklistDto.workDeque);
+        IMethodSymbol methodSymbol = (IMethodSymbol) worklistDto.constraintCollection;
+        if (!worklistDto.isInSoftTypingMode) {
+            worklistDto.workDeque.add(worklistDto);
+            solveMethodConstraints(methodSymbol, worklistDto.workDeque);
+        } else {
+            aggregateLowerBoundsSoftTyping(worklistDto);
+        }
+
+        String absoluteName = methodSymbol.getAbsoluteName();
+        if (worklistDto.unsolvedConstraints.isEmpty() && unresolvedConstraints.containsKey(absoluteName)) {
+            Set<WorklistDto> remainingUnsolved = unresolvedConstraints.get(absoluteName);
+            remainingUnsolved.remove(worklistDto);
+            if (remainingUnsolved.isEmpty()) {
+                if (worklistDto.isInSoftTypingMode) {
+                    solveConstraintsInSoftTyping(methodSymbol, worklistDto);
+                } else if (methodSymbol.getOverloads().size() == 0) {
+                    fallBackToSoftTyping(methodSymbol);
+                }
+            }
+        }
     }
 
     private List<IOverloadBindings> solveConstraints(Deque<WorklistDto> workDeque) {
@@ -1287,6 +1310,14 @@ public class ConstraintSolver implements IConstraintSolver
 
     private void fallBackToSoftTyping(IMethodSymbol methodSymbol) {
         WorklistDto worklistDto = createAndInitSoftTypingWorklistDto(methodSymbol);
+        if (worklistDto.unsolvedConstraints == null || worklistDto.unsolvedConstraints.isEmpty()) {
+            solveConstraintsInSoftTyping(methodSymbol, worklistDto);
+        } else {
+            createDependencies(worklistDto);
+        }
+    }
+
+    private void solveConstraintsInSoftTyping(IMethodSymbol methodSymbol, WorklistDto worklistDto) {
         IOverloadBindings softTypingBindings = worklistDto.overloadBindings;
         worklistDto.overloadBindings = symbolFactory.createOverloadBindings();
 
@@ -1306,7 +1337,9 @@ public class ConstraintSolver implements IConstraintSolver
             worklistDto.overloadBindings.addVariable(parameterId, new FixedTypeVariableReference(nextTypeVariable));
             if (softTypingBindings.hasLowerTypeBounds(typeVariable)) {
                 //TODO TINS-534 type hints and soft-typing
-                // we need to introduce a local variable here if a type hint was used and the inferred type is different
+                // we need to introduce a local variable here if a type hint was used and the inferred type is
+                // different
+
                 IUnionTypeSymbol lowerTypeBounds = softTypingBindings.getLowerTypeBounds(typeVariable);
                 worklistDto.overloadBindings.addLowerTypeBound(nextTypeVariable.getTypeVariable(), lowerTypeBounds);
             }
@@ -1332,13 +1365,10 @@ public class ConstraintSolver implements IConstraintSolver
         worklistDto.isInSoftTypingMode = false;
         solveConstraintsSoftTyping(methodSymbol, worklistDto);
 
+        worklistDto.overloadBindings.changeToNormalMode();
         List<IOverloadBindings> overloadBindingsList = new ArrayList<>(1);
         overloadBindingsList.add(worklistDto.overloadBindings);
-
-        methodSymbol.setBindings(overloadBindingsList);
-
-        worklistDto.overloadBindings.changeToNormalMode();
-        createOverload(methodSymbol, worklistDto.overloadBindings);
+        finishingMethodConstraints(methodSymbol, overloadBindingsList);
     }
 
     private WorklistDto createAndInitSoftTypingWorklistDto(IMethodSymbol methodSymbol) {
@@ -1347,17 +1377,34 @@ public class ConstraintSolver implements IConstraintSolver
         WorklistDto worklistDto = new WorklistDto(null, methodSymbol, 0, true, leftBindings);
         worklistDto.isInSoftTypingMode = true;
         worklistDto.param2LowerParams = new HashMap<>();
-        for (IConstraint constraint : methodSymbol.getConstraints()) {
+        List<IConstraint> constraints = methodSymbol.getConstraints();
+        int size = constraints.size();
+        for (int i = 0; i < size; ++i) {
+            worklistDto.pointer = i;
+            aggregateLowerBoundsSoftTyping(worklistDto);
+        }
+        return worklistDto;
+    }
+
+    private void aggregateLowerBoundsSoftTyping(WorklistDto worklistDto) {
+        IConstraint constraint = worklistDto.constraintCollection.getConstraints().get(worklistDto.pointer);
+        IMinimalMethodSymbol refMethodSymbol = constraint.getMethodSymbol();
+        if (refMethodSymbol.getOverloads().size() > 0) {
             createBindingsIfNecessary(worklistDto, constraint.getLeftHandSide(), constraint.getArguments());
-            for (IFunctionType overload : constraint.getMethodSymbol().getOverloads()) {
+            for (IFunctionType overload : refMethodSymbol.getOverloads()) {
                 if (constraint.getArguments().size() >= overload.getNumberOfNonOptionalParameters()) {
                     AggregateBindingDto dto = new AggregateBindingDto(
-                            constraint, overload, leftBindings, worklistDto);
+                            constraint, overload, worklistDto.overloadBindings, worklistDto);
                     aggregateBinding(dto);
                 }
             }
+        } else {
+            //add to unresolved constraints
+            if (worklistDto.unsolvedConstraints == null) {
+                worklistDto.unsolvedConstraints = new ArrayList<>();
+            }
+            worklistDto.unsolvedConstraints.add(worklistDto.pointer);
         }
-        return worklistDto;
     }
 
     //TODO TINS-535 improve precision in soft typing for unconstrained parameters
@@ -1384,7 +1431,6 @@ public class ConstraintSolver implements IConstraintSolver
     }
 
     private void solveConstraintsSoftTyping(IMethodSymbol methodSymbol, WorklistDto worklistDto) {
-
         for (IConstraint constraint : methodSymbol.getConstraints()) {
             List<IVariable> arguments = constraint.getArguments();
             int numberOfArguments = arguments.size();
