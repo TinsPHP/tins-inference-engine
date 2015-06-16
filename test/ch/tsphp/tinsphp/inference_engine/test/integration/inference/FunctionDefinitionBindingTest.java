@@ -210,7 +210,100 @@ public class FunctionDefinitionBindingTest extends AInferenceBindingTest
                                         varBinding(RETURN_VARIABLE_NAME, "V8", asList("int"), asList("int"), true)
                                 )
                         ), 1, 0, 2)
-                }
+                },
+                //TINS-420 constraint solving fall back to soft typing
+                {
+                        "function foo7(array $x){ $x \n= \n1; \nreturn $x \n+ \n1; }",
+                        testStructs("foo7()", "\\.\\.", matcherDtos(
+                                matcherDto(
+                                        varBinding("foo7()$x", "V2",
+                                                asList("int", "array"), asList("(array | int)"), true),
+                                        varBinding("foo7()=@2|0", "V2",
+                                                asList("int", "array"), asList("(array | int)"), true),
+                                        varBinding("1@3|0", "V3", asList("int"), null, true),
+                                        varBinding("foo7()+@5|0", "V4", asList("int"), asList("int"), true),
+                                        //TODO TINS-537 - most specific overload in soft typing
+                                        //varBinding("1@6|0", "V5", asList("int"), asList("int"), true),
+                                        varBinding("1@6|0", "V5", asList("int"), asList("{as int}"), true),
+                                        varBinding("return@4|0", "V6", asList("int"), asList("int"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V7", asList("int"), asList("int"), true)
+                                )
+                        ), 1, 0, 2)
+                },
+                //TINS-420 constraint solving fall back to soft typing
+                {
+                        "function foo7(array $x){ $x \n= \n1; \nreturn $x \n+ \n1.2; }",
+                        testStructs("foo7()", "\\.\\.", matcherDtos(
+                                matcherDto(
+                                        varBinding("foo7()$x", "V2",
+                                                asList("int", "array"), asList("(array | int)"), true),
+                                        varBinding("foo7()=@2|0", "V2",
+                                                asList("int", "array"), asList("(array | int)"), true),
+                                        varBinding("1@3|0", "V3", asList("int"), null, true),
+                                        varBinding("foo7()+@5|0", "V4", numLower, numUpper, true),
+                                        varBinding("1.2@6|0", "V5",
+                                                asList("float"), asList("{as (float | int)}"), true),
+                                        varBinding("return@4|0", "V6", numLower, numUpper, true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V7", numLower, numUpper, true)
+                                )
+                        ), 1, 0, 2)
+                },
+                //TODO TINS-535 improve precision in soft typing for unconstrained parameters
+//                {
+//                        "function foo7(array $x, $y){ $x = $y; return $x \n+ 1; }",
+//                        testStructs("foo7()", "\\.\\.", matcherDtos(
+//                                matcherDto(
+//                                        varBinding("foo7()+@2|0", "V1", asList("int"), asList("int"), true),
+//                                        varBinding("foo7()$x", "V2", asList("int"), asList("int"), true),
+//                                        varBinding("foo7()1@2|0", "V4", asList("int"), asList("int"), true),
+//                                        varBinding("return@4|0", "V6", asList("int"), asList("int"), true),
+//                                        varBinding(RETURN_VARIABLE_NAME, "V8", asList("int"), asList("int"), true)
+//                                )
+//                        ), 1, 0, 2)
+//                },
+                //TINS-420 constraint solving fall back to soft typing
+                {
+                        "function foo7(array $x, $y){ $x \n= $y; \nreturn $x \n+ $y \n+ \n1; }",
+                        testStructs("foo7()", "\\.\\.", matcherDtos(
+                                matcherDto(
+                                        varBinding("foo7()$x", "V3",
+                                                asList("{as (float | int)}", "array"),
+                                                asList("(array | {as (float | int)})"), true),
+                                        varBinding("foo7()=@2|0", "V3",
+                                                asList("{as (float | int)}", "array"),
+                                                asList("(array | {as (float | int)})"), true),
+                                        varBinding("foo7()$y", "V2",
+                                                asList("{as (float | int)}", "array"),
+                                                asList("(array | {as (float | int)})"), true),
+                                        varBinding("foo7()+@4|0", "V4",
+                                                asList("float", "int", "array"),
+                                                asList("(array | float | int)"), true),
+                                        varBinding("foo7()+@5|0", "V5", numLower, numUpper, true),
+                                        varBinding("1@6|0", "V6", asList("int"), asList("{as (float | int)}"), true),
+                                        varBinding("return@3|0", "V7", numLower, numUpper, true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V8", numLower, numUpper, true)
+                                )
+                        ), 1, 0, 2)
+                },
+                //TINS-420 constraint solving fall back to soft typing
+                {
+                        "function foo7(array $x){ $x \n= \n1;  $a \n= 1; \nreturn $x \n+ $a; }",
+                        testStructs("foo7()", "\\.\\.", matcherDtos(
+                                matcherDto(
+                                        varBinding("foo7()$x", "V2",
+                                                asList("int", "array"), asList("(array | int)"), true),
+                                        varBinding("foo7()=@2|0", "V2",
+                                                asList("int", "array"), asList("(array | int)"), true),
+                                        varBinding("foo7()$a", "V4", asList("int"), asList("int"), true),
+                                        varBinding("1@3|0", "V3", asList("int"), null, true),
+                                        varBinding("foo7()=@4|0", "V4", asList("int"), asList("int"), true),
+                                        varBinding("1@4|2", "V6", asList("int"), null, true),
+                                        varBinding("foo7()+@6|0", "V7", asList("int"), asList("int"), true),
+                                        varBinding("return@5|0", "V8", asList("int"), asList("int"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V9", asList("int"), asList("int"), true)
+                                )
+                        ), 1, 0, 2)
+                },
         });
     }
 }

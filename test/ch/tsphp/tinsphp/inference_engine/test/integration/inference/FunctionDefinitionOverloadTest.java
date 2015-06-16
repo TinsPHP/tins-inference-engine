@@ -252,6 +252,31 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                                 ), 1, 1, 2)
                         }
                 },
+                //TINS-420 constraint solving fall back to soft typing
+                {
+                        "function foo7(array $x){ $x = 1.2; return $x + 1; }",
+                        testStructs("foo7()", "\\.\\.", functionDtos("foo7()", 1, bindingDtos(
+                                varBinding("foo7()$x", "V2", asList("array", "float"), asList("(array | float)"), true),
+                                varBinding(RETURN_VARIABLE_NAME, "V7", numLower, numUpper, true)
+                        )), 1, 0, 2),
+                },
+                {
+                        "function foo8(array $x){ $x = 'hello'; return $x + 1; }",
+                        testStructs("foo8()", "\\.\\.", functionDtos("foo8()", 1, bindingDtos(
+                                varBinding("foo8()$x", "V2",
+                                        asList("array", "string"), asList("(array | string)"), true),
+                                varBinding(RETURN_VARIABLE_NAME, "V7", numLower, numUpper, true)
+                        )), 1, 0, 2),
+                },
+                {
+                        "function foo9(array $x){ $x = false; return $x + 1; }",
+                        testStructs("foo9()", "\\.\\.", functionDtos("foo9()", 1, bindingDtos(
+                                varBinding("foo9()$x", "V2",
+                                        asList("array", "falseType"),
+                                        asList("(array | falseType)"), true),
+                                varBinding(RETURN_VARIABLE_NAME, "V7", asList("int"), asList("int"), true)
+                        )), 1, 0, 2),
+                },
         });
     }
 }

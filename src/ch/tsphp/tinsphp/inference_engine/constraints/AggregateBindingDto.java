@@ -19,8 +19,8 @@ public class AggregateBindingDto
     public IConstraint constraint;
     public IFunctionType overload;
     public IOverloadBindings bindings;
+    public WorklistDto worklistDto;
     public int iterateCount = 0;
-    public boolean isInIterativeMode;
     public Map<String, ITypeVariableReference> mapping;
     public IVariable bindingVariable;
     public String overloadVariableId;
@@ -32,10 +32,10 @@ public class AggregateBindingDto
             IConstraint theConstraint,
             IFunctionType theOverload,
             IOverloadBindings theBindings,
-            boolean isInTheIterativeMode) {
+            WorklistDto theWorkListDto) {
         constraint = theConstraint;
         overload = theOverload;
         bindings = theBindings;
-        isInIterativeMode = isInTheIterativeMode;
+        worklistDto = theWorkListDto;
     }
 }

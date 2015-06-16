@@ -11,6 +11,7 @@ import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 
 import java.util.Deque;
 import java.util.List;
+import java.util.Map;
 
 public class WorklistDto
 {
@@ -23,6 +24,8 @@ public class WorklistDto
     public List<Integer> unsolvedConstraints;
     public boolean isInIterativeMode;
     public boolean isSolvingDependency;
+    public boolean isInSoftTypingMode;
+    Map<String, List<String>> param2LowerParams;
 
     public WorklistDto(
             Deque<WorklistDto> theWorkDeque,
@@ -47,5 +50,6 @@ public class WorklistDto
         unsolvedConstraints = dto.unsolvedConstraints;
         isInIterativeMode = dto.isInIterativeMode;
         isSolvingDependency = dto.isSolvingDependency;
+        isInSoftTypingMode = dto.isInSoftTypingMode;
     }
 }

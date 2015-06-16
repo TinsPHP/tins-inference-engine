@@ -6,6 +6,7 @@
 
 package ch.tsphp.tinsphp.inference_engine.constraints;
 
+import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.common.symbols.IIntersectionTypeSymbol;
@@ -13,6 +14,7 @@ import ch.tsphp.tinsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.tinsphp.common.utils.Pair;
 
 import java.util.List;
+import java.util.Map;
 
 public class OverloadRankingDto
 {
@@ -24,6 +26,7 @@ public class OverloadRankingDto
     public int mostGeneralLowerCount;
     public int mostSpecificUpperCount;
     public List<Pair<IUnionTypeSymbol, IIntersectionTypeSymbol>> bounds;
+    public Map<String, Pair<ITypeSymbol, List<ITypeSymbol>>> explicitConversions;
 
     public OverloadRankingDto(
             IFunctionType theOverload,
@@ -37,13 +40,12 @@ public class OverloadRankingDto
     }
 
     public String toString() {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("[hasNarrowed: ").append(hasNarrowedArguments)
-                .append(", up: ").append(mostSpecificUpperCount)
-                .append(", low: ").append(mostGeneralLowerCount)
-                .append(", tp: ").append(numberOfTypeParameters)
-                .append(", impl: ").append(numberOfImplicitConversions)
-                .append("]");
-        return stringBuilder.toString();
+        return "[hasNarrowed: " + hasNarrowedArguments
+                + ", up: " + mostSpecificUpperCount
+                + ", low: " + mostGeneralLowerCount
+                + ", tp: " + numberOfTypeParameters
+                + ", impl: " + numberOfImplicitConversions
+                + ", expl: " + (explicitConversions == null ? 0 : explicitConversions.size())
+                + "]";
     }
 }

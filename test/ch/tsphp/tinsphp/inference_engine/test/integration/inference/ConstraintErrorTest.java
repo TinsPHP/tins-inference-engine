@@ -93,6 +93,7 @@ public class ConstraintErrorTest extends AInferenceTest
                 {"[0] \n+ 1;", dtos("wrongOperatorUsage", "+", 2, 0)},
                 {"[0] \n- 1;", dtos("wrongOperatorUsage", "-", 2, 0)},
                 {"[0] \n* 1;", dtos("wrongOperatorUsage", "*", 2, 0)},
+                {"function foo7(array $x){ return $x \n+ 1; }", dtos("wrongOperatorUsage", "+", 2, 0)},
         });
     }
 
