@@ -651,6 +651,15 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
 //                                )), 1, 2, 2)
 //                        }
 //                },
+                //direct recursive functions and soft typing
+                {
+                        "function fib2(array $a){ $a = $a > 1 ? fib2($a - 1) : 0; return $a;}",
+                        testStructs("fib2()", "\\.\\.", functionDtos("fib2()", 1, bindingDtos(
+                                varBinding("fib2()$a", "V10", asList("array", "int"), asList("(array | int)"), true),
+                                varBinding(RETURN_VARIABLE_NAME, "V7",
+                                        asList("array", "int"), asList("(array | int)"), true)
+                        )), 1, 0, 2)
+                },
         });
     }
 }

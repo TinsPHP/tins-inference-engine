@@ -748,7 +748,7 @@ public class ConstraintSolver implements IConstraintSolver
                         } else if (result.hasChanged) {
                             dto.hasNarrowedArguments = true;
                         }
-                    } else {
+                    } else if (!typeHelper.areSame(copy, mixedTypeSymbol)) {
                         leftBindings.addLowerTypeBound(left, copy);
                     }
                 }
@@ -1390,12 +1390,15 @@ public class ConstraintSolver implements IConstraintSolver
         IConstraint constraint = worklistDto.constraintCollection.getConstraints().get(worklistDto.pointer);
         IMinimalMethodSymbol refMethodSymbol = constraint.getMethodSymbol();
         if (refMethodSymbol.getOverloads().size() > 0) {
-            createBindingsIfNecessary(worklistDto, constraint.getLeftHandSide(), constraint.getArguments());
-            for (IFunctionType overload : refMethodSymbol.getOverloads()) {
-                if (constraint.getArguments().size() >= overload.getNumberOfNonOptionalParameters()) {
-                    AggregateBindingDto dto = new AggregateBindingDto(
-                            constraint, overload, worklistDto.overloadBindings, worklistDto);
-                    aggregateBinding(dto);
+            if (isNotDirectRecursiveAssignment(constraint)) {
+
+                createBindingsIfNecessary(worklistDto, constraint.getLeftHandSide(), constraint.getArguments());
+                for (IFunctionType overload : refMethodSymbol.getOverloads()) {
+                    if (constraint.getArguments().size() >= overload.getNumberOfNonOptionalParameters()) {
+                        AggregateBindingDto dto = new AggregateBindingDto(
+                                constraint, overload, worklistDto.overloadBindings, worklistDto);
+                        aggregateBinding(dto);
+                    }
                 }
             }
         } else {
@@ -1405,6 +1408,11 @@ public class ConstraintSolver implements IConstraintSolver
             }
             worklistDto.unsolvedConstraints.add(worklistDto.pointer);
         }
+    }
+
+    private boolean isNotDirectRecursiveAssignment(IConstraint constraint) {
+        return !constraint.getMethodSymbol().getAbsoluteName().equals("=")
+                || !constraint.getArguments().get(1).getAbsoluteName().equals(TinsPHPConstants.RETURN_VARIABLE_NAME);
     }
 
     //TODO TINS-535 improve precision in soft typing for unconstrained parameters

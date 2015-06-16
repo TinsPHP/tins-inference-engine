@@ -102,6 +102,10 @@ public class ConstraintErrorTest extends AInferenceTest
                 {
                         "function endless5(array $a){ $a = endless5(); return $a \n+ 1;}",
                         dtos("wrongOperatorUsage", "+", 2, 0)
+                },
+                {
+                        "function fib2(array $a){ $a = $a > 1 ? fib2($a \n- 1) : [0]; return $a;}",
+                        dtos("wrongOperatorUsage", "-", 2, 0)
                 }
         });
     }
