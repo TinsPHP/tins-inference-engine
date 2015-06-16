@@ -13,7 +13,7 @@ public interface ISoftTypingConstraintSolver
 {
     void fallBackToSoftTyping(IMethodSymbol methodSymbol);
 
-    void aggregateLowerBoundsSoftTyping(WorklistDto worklistDto);
+    void aggregateLowerBounds(WorklistDto worklistDto);
 
-    void solveConstraintsInSoftTyping(IMethodSymbol methodSymbol, WorklistDto worklistDto);
+    void solveConstraints(IMethodSymbol methodSymbol, WorklistDto worklistDto);
 }

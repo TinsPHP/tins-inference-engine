@@ -40,7 +40,7 @@ public class DependencyConstraintSolver implements IDependencyConstraintSolver
             worklistDto.workDeque.add(worklistDto);
             constraintSolver.solveMethodConstraints(methodSymbol, worklistDto.workDeque);
         } else {
-            softTypingConstraintSolver.aggregateLowerBoundsSoftTyping(worklistDto);
+            softTypingConstraintSolver.aggregateLowerBounds(worklistDto);
         }
 
         String absoluteName = methodSymbol.getAbsoluteName();
@@ -49,7 +49,7 @@ public class DependencyConstraintSolver implements IDependencyConstraintSolver
             remainingUnsolved.remove(worklistDto);
             if (remainingUnsolved.isEmpty()) {
                 if (worklistDto.isInSoftTypingMode) {
-                    softTypingConstraintSolver.solveConstraintsInSoftTyping(methodSymbol, worklistDto);
+                    softTypingConstraintSolver.solveConstraints(methodSymbol, worklistDto);
                 } else if (methodSymbol.getOverloads().size() == 0) {
                     softTypingConstraintSolver.fallBackToSoftTyping(methodSymbol);
                 }

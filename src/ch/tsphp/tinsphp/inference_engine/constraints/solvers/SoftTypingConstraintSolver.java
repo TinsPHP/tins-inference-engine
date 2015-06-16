@@ -65,15 +65,15 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
 
     @Override
     public void fallBackToSoftTyping(IMethodSymbol methodSymbol) {
-        WorklistDto worklistDto = createAndInitSoftTypingWorklistDto(methodSymbol);
+        WorklistDto worklistDto = createAndInitWorklistDto(methodSymbol);
         if (worklistDto.unsolvedConstraints == null || worklistDto.unsolvedConstraints.isEmpty()) {
-            solveConstraintsInSoftTyping(methodSymbol, worklistDto);
+            solveConstraints(methodSymbol, worklistDto);
         } else {
             constraintSolverHelper.createDependencies(worklistDto);
         }
     }
 
-    private WorklistDto createAndInitSoftTypingWorklistDto(IMethodSymbol methodSymbol) {
+    private WorklistDto createAndInitWorklistDto(IMethodSymbol methodSymbol) {
         IOverloadBindings leftBindings = symbolFactory.createOverloadBindings();
         leftBindings.changeToSoftTypingMode();
         WorklistDto worklistDto = new WorklistDto(null, methodSymbol, 0, true, leftBindings);
@@ -83,13 +83,13 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
         int size = constraints.size();
         for (int i = 0; i < size; ++i) {
             worklistDto.pointer = i;
-            aggregateLowerBoundsSoftTyping(worklistDto);
+            aggregateLowerBounds(worklistDto);
         }
         return worklistDto;
     }
 
     @Override
-    public void aggregateLowerBoundsSoftTyping(WorklistDto worklistDto) {
+    public void aggregateLowerBounds(WorklistDto worklistDto) {
         IConstraint constraint = worklistDto.constraintCollection.getConstraints().get(worklistDto.pointer);
         IMinimalMethodSymbol refMethodSymbol = constraint.getMethodSymbol();
         if (refMethodSymbol.getOverloads().size() > 0) {
@@ -115,7 +115,7 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
     }
 
     @Override
-    public void solveConstraintsInSoftTyping(IMethodSymbol methodSymbol, WorklistDto worklistDto) {
+    public void solveConstraints(IMethodSymbol methodSymbol, WorklistDto worklistDto) {
         IOverloadBindings softTypingBindings = worklistDto.overloadBindings;
         worklistDto.overloadBindings = symbolFactory.createOverloadBindings();
 
@@ -161,7 +161,7 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
 
         worklistDto.overloadBindings.changeToModificationMode();
         worklistDto.isInSoftTypingMode = false;
-        solveConstraintsSoftTyping(methodSymbol, worklistDto);
+        solveConstraintsAfterInit(methodSymbol, worklistDto);
 
         worklistDto.overloadBindings.changeToNormalMode();
         List<IOverloadBindings> overloadBindingsList = new ArrayList<>(1);
@@ -197,7 +197,7 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
         }
     }
 
-    private void solveConstraintsSoftTyping(IMethodSymbol methodSymbol, WorklistDto worklistDto) {
+    private void solveConstraintsAfterInit(IMethodSymbol methodSymbol, WorklistDto worklistDto) {
         for (IConstraint constraint : methodSymbol.getConstraints()) {
             List<IVariable> arguments = constraint.getArguments();
             int numberOfArguments = arguments.size();
@@ -208,7 +208,7 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
             List<OverloadRankingDto> applicableOverloads = new ArrayList<>();
             for (IFunctionType overload : constraint.getMethodSymbol().getOverloads()) {
                 if (numberOfArguments >= overload.getNumberOfNonOptionalParameters()) {
-                    OverloadRankingDto dto = getOverloadRankingDtoInSoftTyping(
+                    OverloadRankingDto dto = getOverloadRankingDto(
                             worklistDto, constraint, overload);
                     if (dto != null) {
                         applicableOverloads.add(dto);
@@ -245,13 +245,13 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
         }
     }
 
-    private OverloadRankingDto getOverloadRankingDtoInSoftTyping(
+    private OverloadRankingDto getOverloadRankingDto(
             WorklistDto worklistDto, IConstraint constraint, IFunctionType overload) {
 
         IOverloadBindings leftBindings = symbolFactory.createOverloadBindings(worklistDto.overloadBindings);
         Map<String, Pair<ITypeSymbol, List<ITypeSymbol>>> explicitConversions = new HashMap<>();
 
-        boolean overloadApplies = isApplicableInSoftTyping(
+        boolean overloadApplies = isApplicable(
                 worklistDto, constraint, overload, leftBindings, explicitConversions);
 
         if (overloadApplies) {
@@ -260,7 +260,7 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
         return null;
     }
 
-    private boolean isApplicableInSoftTyping(
+    private boolean isApplicable(
             WorklistDto worklistDto,
             IConstraint constraint,
             IFunctionType overload,
@@ -279,74 +279,88 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
             String parameterId = parameters.get(i).getAbsoluteName();
             String typeVariable = rightBindings.getTypeVariable(parameterId);
             if (rightBindings.hasUpperTypeBounds(typeVariable)) {
-
                 String argumentId = arguments.get(i).getAbsoluteName();
-                String argumentTypeVariable = leftBindings.getTypeVariable(argumentId);
-                IUnionTypeSymbol argumentType = leftBindings.getLowerTypeBounds(argumentTypeVariable);
-                //TODO TINS-535 improve precision in soft typing for unconstrained parameters
-//                if (argumentType == null || worklistDto.param2LowerParams.containsKey(argumentTypeVariable)) {
-                if (argumentType == null) {
-                    argumentType = symbolFactory.createUnionTypeSymbol();
-                    argumentType.addTypeSymbol(mixedTypeSymbol);
-                }
 
-                boolean parameterApplies = false;
-                IIntersectionTypeSymbol parameterType = rightBindings.getUpperTypeBounds(typeVariable);
-                TypeHelperDto result = typeHelper.isFirstSameOrSubTypeOfSecond(argumentType, parameterType);
 
-                switch (result.relation) {
-                    case HAS_RELATION:
-                    case HAS_COERCIVE_RELATION:
-                        parameterApplies = true;
-                        break;
-                    case HAS_NO_RELATION:
-                        Map<String, ITypeSymbol> innerTypeSymbols = argumentType.getTypeSymbols();
-                        int size = innerTypeSymbols.size();
-
-                        List<ITypeSymbol> typeSymbols = new ArrayList<>(size);
-                        for (ITypeSymbol typeSymbol : innerTypeSymbols.values()) {
-                            result = typeHelper.isFirstSameOrSubTypeOfSecond(typeSymbol, parameterType);
-                            if (result.relation == ERelation.HAS_RELATION) {
-                                typeSymbols.add(typeSymbol);
-                            } else {
-                                result = typeHelper.isFirstSameOrSubTypeOfSecond(parameterType, typeSymbol);
-                                if (result.relation == ERelation.HAS_RELATION) {
-                                    typeSymbols.add(parameterType);
-                                }
-                            }
-                        }
-                        if (!typeSymbols.isEmpty()) {
-                            parameterApplies = true;
-                            ITypeSymbol typeSymbol;
-                            if (typeSymbols.size() == 1) {
-                                typeSymbol = typeSymbols.get(0);
-                            } else {
-                                IUnionTypeSymbol unionTypeSymbol = symbolFactory.createUnionTypeSymbol();
-                                for (ITypeSymbol innerTypeSymbol : typeSymbols) {
-                                    unionTypeSymbol.addTypeSymbol(innerTypeSymbol);
-                                }
-                                typeSymbol = unionTypeSymbol;
-                            }
-                            explicitConversions.put(argumentId, pair(typeSymbol, typeSymbols));
-                            //TODO TINS-535 improve precision in soft typing for unconstrained parameters
-//                            if (worklistDto.param2LowerParams.containsKey(argumentTypeVariable)) {
-//                                for (String refTypeVariable : worklistDto.param2LowerParams.get
-// (argumentTypeVariable)) {
-//                                    leftBindings.addLowerTypeBound(refTypeVariable, parameterType);
-//                                }
-//                            }
-                        }
-
-//                        }
-                        break;
-                }
-                if (!parameterApplies) {
+                boolean argumentApplies = doesArgumentApply(
+                        leftBindings, argumentId, rightBindings, typeVariable, explicitConversions);
+                if (!argumentApplies) {
                     overloadApplies = false;
                     break;
                 }
             }
         }
         return overloadApplies;
+    }
+
+    private boolean doesArgumentApply(
+            IOverloadBindings leftBindings,
+            String argumentId,
+            IOverloadBindings rightBindings,
+            String parameterTypeVariable,
+            Map<String, Pair<ITypeSymbol, List<ITypeSymbol>>> explicitConversions) {
+
+        String argumentTypeVariable = leftBindings.getTypeVariable(argumentId);
+        IUnionTypeSymbol argumentType = leftBindings.getLowerTypeBounds(argumentTypeVariable);
+
+        //TODO TINS-535 improve precision in soft typing for unconstrained parameters
+//                if (argumentType == null || worklistDto.param2LowerParams.containsKey(argumentTypeVariable)) {
+        if (argumentType == null) {
+            argumentType = symbolFactory.createUnionTypeSymbol();
+            argumentType.addTypeSymbol(mixedTypeSymbol);
+        }
+
+        boolean argumentApplies = false;
+        IIntersectionTypeSymbol parameterType = rightBindings.getUpperTypeBounds(parameterTypeVariable);
+        TypeHelperDto result = typeHelper.isFirstSameOrSubTypeOfSecond(argumentType, parameterType);
+
+        switch (result.relation) {
+            case HAS_RELATION:
+            case HAS_COERCIVE_RELATION:
+                argumentApplies = true;
+                break;
+            case HAS_NO_RELATION:
+                Map<String, ITypeSymbol> innerTypeSymbols = argumentType.getTypeSymbols();
+                int size = innerTypeSymbols.size();
+
+                List<ITypeSymbol> typeSymbols = new ArrayList<>(size);
+                for (ITypeSymbol typeSymbol : innerTypeSymbols.values()) {
+                    result = typeHelper.isFirstSameOrSubTypeOfSecond(typeSymbol, parameterType);
+                    if (result.relation == ERelation.HAS_RELATION) {
+                        typeSymbols.add(typeSymbol);
+                    } else {
+                        result = typeHelper.isFirstSameOrSubTypeOfSecond(parameterType, typeSymbol);
+                        if (result.relation == ERelation.HAS_RELATION) {
+                            typeSymbols.add(parameterType);
+                        }
+                    }
+                }
+                if (!typeSymbols.isEmpty()) {
+                    argumentApplies = true;
+                    ITypeSymbol typeSymbol;
+                    if (typeSymbols.size() == 1) {
+                        typeSymbol = typeSymbols.get(0);
+                    } else {
+                        IUnionTypeSymbol unionTypeSymbol = symbolFactory.createUnionTypeSymbol();
+                        for (ITypeSymbol innerTypeSymbol : typeSymbols) {
+                            unionTypeSymbol.addTypeSymbol(innerTypeSymbol);
+                        }
+                        typeSymbol = unionTypeSymbol;
+                    }
+                    explicitConversions.put(argumentId, pair(typeSymbol, typeSymbols));
+                    //TODO TINS-535 improve precision in soft typing for unconstrained parameters
+//                            if (worklistDto.param2LowerParams.containsKey(argumentTypeVariable)) {
+//                                for (String refTypeVariable : worklistDto.param2LowerParams.get
+// (argumentTypeVariable)) {
+//                                    leftBindings.addLowerTypeBound(refTypeVariable, parameterType);
+//                                }
+//                            }
+                }
+
+//                        }
+                break;
+        }
+        return argumentApplies;
     }
 
     private OverloadRankingDto applyOverloadInSoftTyping(
