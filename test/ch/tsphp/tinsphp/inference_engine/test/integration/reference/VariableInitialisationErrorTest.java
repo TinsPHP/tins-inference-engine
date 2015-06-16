@@ -53,7 +53,7 @@ public class VariableInitialisationErrorTest extends AReferenceDefinitionErrorTe
         runTest();
 
         try {
-            verifier.check(inferenceErrorReporter);
+            verifier.check(inferenceIssueReporter);
         } catch (MockitoAssertionError e) {
             System.err.println(testString + " failed.");
             throw e;

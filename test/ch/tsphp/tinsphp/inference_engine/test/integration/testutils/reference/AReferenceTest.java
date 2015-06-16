@@ -21,7 +21,6 @@ import ch.tsphp.tinsphp.common.checking.ISymbolCheckController;
 import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCreator;
-import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.resolving.ISymbolResolver;
@@ -31,10 +30,23 @@ import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.utils.ITypeHelper;
+import ch.tsphp.tinsphp.common.utils.Pair;
 import ch.tsphp.tinsphp.inference_engine.ReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPReferenceWalker;
 import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintCreator;
-import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintSolver;
+import ch.tsphp.tinsphp.inference_engine.constraints.IMostSpecificOverloadDecider;
+import ch.tsphp.tinsphp.inference_engine.constraints.MostSpecificOverloadDecider;
+import ch.tsphp.tinsphp.inference_engine.constraints.WorklistDto;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.ConstraintSolver;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.ConstraintSolverHelper;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.DependencyConstraintSolver;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.IConstraintSolver;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.IConstraintSolverHelper;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.IDependencyConstraintSolver;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.IIterativeConstraintSolver;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.ISoftTypingConstraintSolver;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.IterativeConstraintSolver;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.SoftTypingConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.resolver.SymbolCheckController;
 import ch.tsphp.tinsphp.inference_engine.resolver.SymbolResolverController;
 import ch.tsphp.tinsphp.inference_engine.resolver.UserSymbolResolver;
@@ -49,7 +61,11 @@ import org.junit.Ignore;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.Assert.assertFalse;
 
@@ -95,7 +111,7 @@ public abstract class AReferenceTest extends ADefinitionTest
                 resolvers,
                 scopeHelper,
                 symbolFactory,
-                inferenceErrorReporter
+                inferenceIssueReporter
         );
 
         symbolCheckController = createSymbolCheckController(userSymbolResolver, resolvers);
@@ -103,13 +119,60 @@ public abstract class AReferenceTest extends ADefinitionTest
         variableDeclarationCreator = createVariableDeclarationCreator(
                 symbolFactory, astModificationHelper, definitionPhaseController);
 
-        constraintSolver = createConstraintSolver(symbolFactory, typeHelper, inferenceErrorReporter);
+        IMostSpecificOverloadDecider mostSpecificOverloadDecider
+                = new MostSpecificOverloadDecider(symbolFactory, typeHelper);
 
-        constraintCreator = createConstraintCreator(symbolFactory, inferenceErrorReporter);
+        Map<String, Set<String>> dependencies = new HashMap<>();
+        Map<String, List<Pair<WorklistDto, Integer>>> directDependencies = new ConcurrentHashMap<>();
+        Map<String, Set<WorklistDto>> unsolvedConstraints = new ConcurrentHashMap<>();
+
+
+        IDependencyConstraintSolver dependencyConstraintSolver
+                = new DependencyConstraintSolver(unsolvedConstraints);
+
+        IConstraintSolverHelper constraintSolverHelper = new ConstraintSolverHelper(
+                symbolFactory,
+                typeHelper,
+                inferenceIssueReporter,
+                mostSpecificOverloadDecider,
+                dependencyConstraintSolver,
+                dependencies,
+                directDependencies,
+                unsolvedConstraints
+        );
+
+        ISoftTypingConstraintSolver softTypingConstraintSolver = new SoftTypingConstraintSolver(
+                symbolFactory,
+                typeHelper,
+                inferenceIssueReporter,
+                constraintSolverHelper,
+                mostSpecificOverloadDecider
+        );
+
+        IIterativeConstraintSolver iterativeConstraintSolver = new IterativeConstraintSolver(
+                symbolFactory,
+                typeHelper,
+                constraintSolverHelper,
+                dependencyConstraintSolver,
+                dependencies,
+                directDependencies,
+                unsolvedConstraints);
+
+        constraintSolver = createConstraintSolver(
+                symbolFactory,
+                iterativeConstraintSolver,
+                softTypingConstraintSolver,
+                constraintSolverHelper,
+                unsolvedConstraints
+        );
+        dependencyConstraintSolver.setConstraintSolver(constraintSolver);
+        dependencyConstraintSolver.setSoftTypingConstraintSolver(softTypingConstraintSolver);
+
+        constraintCreator = createConstraintCreator(symbolFactory, inferenceIssueReporter);
 
         referencePhaseController = createReferencePhaseController(
                 symbolFactory,
-                inferenceErrorReporter,
+                inferenceIssueReporter,
                 astModificationHelper,
                 symbolResolverController,
                 symbolCheckController,
@@ -161,7 +224,7 @@ public abstract class AReferenceTest extends ADefinitionTest
 
     protected void checkNoErrorsInReferencePhase() {
         assertFalse(testString + " failed. Exceptions occurred." + exceptions,
-                inferenceErrorReporter.hasFound(EnumSet.allOf(EIssueSeverity.class)));
+                inferenceIssueReporter.hasFound(EnumSet.allOf(EIssueSeverity.class)));
         assertFalse(testString + " failed. reference walker exceptions occurred.",
                 reference.hasFound(EnumSet.allOf(EIssueSeverity.class)));
     }
@@ -218,9 +281,16 @@ public abstract class AReferenceTest extends ADefinitionTest
 
     protected IConstraintSolver createConstraintSolver(
             ISymbolFactory theSymbolFactory,
-            ITypeHelper theTypeHelper,
-            IInferenceIssueReporter theInferenceIssueReport) {
-        return new ConstraintSolver(theSymbolFactory, theTypeHelper, theInferenceIssueReport);
+            IIterativeConstraintSolver theIterativeConstraintSolver,
+            ISoftTypingConstraintSolver theSoftTypingConstraintSolver,
+            IConstraintSolverHelper theConstraintSolverHelper,
+            Map<String, Set<WorklistDto>> theUnsolvedConstraints) {
+        return new ConstraintSolver(
+                theSymbolFactory,
+                theIterativeConstraintSolver,
+                theSoftTypingConstraintSolver,
+                theConstraintSolverHelper,
+                theUnsolvedConstraints);
     }
 
 

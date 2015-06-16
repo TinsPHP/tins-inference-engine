@@ -40,7 +40,7 @@ public abstract class AReferenceDefinitionErrorTest extends AReferenceTest
 
     @Override
     public void assertsInReferencePhase() {
-        verifyReferences(errorMessagePrefix, exceptions, errorDtos, inferenceErrorReporter);
+        verifyReferences(errorMessagePrefix, exceptions, errorDtos, inferenceIssueReporter);
     }
 
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")

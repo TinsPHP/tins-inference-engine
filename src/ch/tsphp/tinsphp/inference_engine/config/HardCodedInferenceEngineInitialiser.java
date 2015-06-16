@@ -18,7 +18,6 @@ import ch.tsphp.tinsphp.common.config.ISymbolsInitialiser;
 import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCreator;
-import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.resolving.ISymbolResolver;
 import ch.tsphp.tinsphp.common.resolving.ISymbolResolverController;
@@ -29,11 +28,24 @@ import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.utils.ITypeHelper;
+import ch.tsphp.tinsphp.common.utils.Pair;
 import ch.tsphp.tinsphp.inference_engine.DefinitionPhaseController;
 import ch.tsphp.tinsphp.inference_engine.InferenceEngine;
 import ch.tsphp.tinsphp.inference_engine.ReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintCreator;
-import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintSolver;
+import ch.tsphp.tinsphp.inference_engine.constraints.IMostSpecificOverloadDecider;
+import ch.tsphp.tinsphp.inference_engine.constraints.MostSpecificOverloadDecider;
+import ch.tsphp.tinsphp.inference_engine.constraints.WorklistDto;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.ConstraintSolver;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.ConstraintSolverHelper;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.DependencyConstraintSolver;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.IConstraintSolver;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.IConstraintSolverHelper;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.IDependencyConstraintSolver;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.IIterativeConstraintSolver;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.ISoftTypingConstraintSolver;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.IterativeConstraintSolver;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.SoftTypingConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.issues.HardCodedIssueMessageProvider;
 import ch.tsphp.tinsphp.inference_engine.issues.InferenceIssueReporter;
 import ch.tsphp.tinsphp.inference_engine.resolver.PutAtTopVariableDeclarationCreator;
@@ -44,7 +56,11 @@ import ch.tsphp.tinsphp.inference_engine.utils.AstModificationHelper;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInitialiser
 {
@@ -85,7 +101,53 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
         additionalSymbolResolvers = new ArrayList<>();
         additionalSymbolResolvers.add(coreInitialiser.getCoreSymbolResolver());
 
-        constraintSolver = new ConstraintSolver(symbolFactory, typeHelper, inferenceIssueReporter);
+        IMostSpecificOverloadDecider mostSpecificOverloadDecider
+                = new MostSpecificOverloadDecider(symbolFactory, typeHelper);
+
+        Map<String, Set<String>> dependencies = new HashMap<>();
+        Map<String, List<Pair<WorklistDto, Integer>>> directDependencies = new ConcurrentHashMap<>();
+        Map<String, Set<WorklistDto>> unsolvedConstraints = new ConcurrentHashMap<>();
+
+        IDependencyConstraintSolver dependencyConstraintSolver
+                = new DependencyConstraintSolver(unsolvedConstraints);
+
+        IConstraintSolverHelper constraintSolverHelper = new ConstraintSolverHelper(
+                symbolFactory,
+                typeHelper,
+                inferenceIssueReporter,
+                mostSpecificOverloadDecider,
+                dependencyConstraintSolver,
+                dependencies,
+                directDependencies,
+                unsolvedConstraints
+        );
+
+        ISoftTypingConstraintSolver softTypingConstraintSolver = new SoftTypingConstraintSolver(
+                symbolFactory,
+                typeHelper,
+                inferenceIssueReporter,
+                constraintSolverHelper,
+                mostSpecificOverloadDecider
+        );
+
+        IIterativeConstraintSolver iterativeConstraintSolver = new IterativeConstraintSolver(
+                symbolFactory,
+                typeHelper,
+                constraintSolverHelper,
+                dependencyConstraintSolver,
+                dependencies,
+                directDependencies,
+                unsolvedConstraints);
+
+        constraintSolver = new ConstraintSolver(
+                symbolFactory,
+                iterativeConstraintSolver,
+                softTypingConstraintSolver,
+                constraintSolverHelper,
+                unsolvedConstraints);
+
+        dependencyConstraintSolver.setConstraintSolver(constraintSolver);
+        dependencyConstraintSolver.setSoftTypingConstraintSolver(softTypingConstraintSolver);
 
         init();
 

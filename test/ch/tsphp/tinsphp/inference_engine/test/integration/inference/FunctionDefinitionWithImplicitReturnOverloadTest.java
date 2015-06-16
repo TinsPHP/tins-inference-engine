@@ -41,10 +41,10 @@ public class FunctionDefinitionWithImplicitReturnOverloadTest extends AInference
     @Override
     protected void checkNoErrorsInReferencePhase() {
         assertTrue(testString + " failed. no return / partial return from function expected but not reported",
-                inferenceErrorReporter.hasFound(EnumSet.allOf(EIssueSeverity.class)));
+                inferenceIssueReporter.hasFound(EnumSet.allOf(EIssueSeverity.class)));
         assertFalse(testString + " failed. reference walker exceptions occurred.",
                 reference.hasFound(EnumSet.allOf(EIssueSeverity.class)));
-        inferenceErrorReporter.reset();
+        inferenceIssueReporter.reset();
     }
 
     @Parameterized.Parameters

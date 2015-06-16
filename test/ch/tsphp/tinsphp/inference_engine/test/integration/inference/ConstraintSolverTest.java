@@ -15,11 +15,11 @@ import ch.tsphp.tinsphp.common.config.ICoreInitialiser;
 import ch.tsphp.tinsphp.common.config.ISymbolsInitialiser;
 import ch.tsphp.tinsphp.common.gen.TokenTypes;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
-import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import ch.tsphp.tinsphp.common.inference.constraints.TypeVariableReference;
+import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.symbols.IConvertibleTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
@@ -28,8 +28,21 @@ import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.PrimitiveTypeNames;
 import ch.tsphp.tinsphp.common.utils.ITypeHelper;
+import ch.tsphp.tinsphp.common.utils.Pair;
 import ch.tsphp.tinsphp.core.config.HardCodedCoreInitialiser;
-import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintSolver;
+import ch.tsphp.tinsphp.inference_engine.constraints.IMostSpecificOverloadDecider;
+import ch.tsphp.tinsphp.inference_engine.constraints.MostSpecificOverloadDecider;
+import ch.tsphp.tinsphp.inference_engine.constraints.WorklistDto;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.ConstraintSolver;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.ConstraintSolverHelper;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.DependencyConstraintSolver;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.IConstraintSolver;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.IConstraintSolverHelper;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.IDependencyConstraintSolver;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.IIterativeConstraintSolver;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.ISoftTypingConstraintSolver;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.IterativeConstraintSolver;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.SoftTypingConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.issues.HardCodedIssueMessageProvider;
 import ch.tsphp.tinsphp.inference_engine.issues.InferenceIssueReporter;
 import ch.tsphp.tinsphp.symbols.config.HardCodedSymbolsInitialiser;
@@ -37,10 +50,12 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static ch.tsphp.tinsphp.common.TinsPHPConstants.RETURN_VARIABLE_NAME;
 import static ch.tsphp.tinsphp.core.StandardConstraintAndVariables.T_LHS;
@@ -148,7 +163,8 @@ public class ConstraintSolverTest
         when(methodSymbol.getParameters()).thenReturn(asList($x, $y, $z));
         when(methodSymbol.getAbsoluteName()).thenReturn("foo");
 
-        IConstraintSolver constraintSolver = new ConstraintSolver(symbolFactory, typeHelper, issueReporter);
+
+        IConstraintSolver constraintSolver = createConstraintSolver(symbolFactory, typeHelper, issueReporter);
         constraintSolver.solveConstraints(asList(methodSymbol), mock(IGlobalNamespaceScope.class));
 
         ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
@@ -240,7 +256,7 @@ public class ConstraintSolverTest
         when(methodSymbol.getParameters()).thenReturn(asList($x, $y, $z));
         when(methodSymbol.getAbsoluteName()).thenReturn("foo");
 
-        IConstraintSolver constraintSolver = new ConstraintSolver(symbolFactory, typeHelper, issueReporter);
+        IConstraintSolver constraintSolver = createConstraintSolver(symbolFactory, typeHelper, issueReporter);
         constraintSolver.solveConstraints(asList(methodSymbol), mock(IGlobalNamespaceScope.class));
 
         ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
@@ -376,7 +392,7 @@ public class ConstraintSolverTest
         when(methodSymbol.getParameters()).thenReturn(asList($y, $z));
         when(methodSymbol.getAbsoluteName()).thenReturn("foo");
 
-        IConstraintSolver constraintSolver = new ConstraintSolver(symbolFactory, typeHelper, issueReporter);
+        IConstraintSolver constraintSolver = createConstraintSolver(symbolFactory, typeHelper, issueReporter);
         constraintSolver.solveConstraints(asList(methodSymbol), mock(IGlobalNamespaceScope.class));
 
         ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
@@ -392,6 +408,60 @@ public class ConstraintSolverTest
                 varBinding("rtn", "V5", asList("array", "@T"), null, false)
         ));
         assertThat(bindingsList.size(), is(1));
+    }
+
+    private IConstraintSolver createConstraintSolver(
+            ISymbolFactory symbolFactory, ITypeHelper typeHelper, IInferenceIssueReporter inferenceIssueReporter) {
+
+        IMostSpecificOverloadDecider mostSpecificOverloadDecider
+                = new MostSpecificOverloadDecider(symbolFactory, typeHelper);
+
+        Map<String, Set<String>> dependencies = new HashMap<>();
+        Map<String, List<Pair<WorklistDto, Integer>>> directDependencies = new ConcurrentHashMap<>();
+        Map<String, Set<WorklistDto>> unsolvedConstraints = new ConcurrentHashMap<>();
+
+        IDependencyConstraintSolver dependencyConstraintSolver
+                = new DependencyConstraintSolver(unsolvedConstraints);
+
+        IConstraintSolverHelper constraintSolverHelper = new ConstraintSolverHelper(
+                symbolFactory,
+                typeHelper,
+                inferenceIssueReporter,
+                mostSpecificOverloadDecider,
+                dependencyConstraintSolver,
+                dependencies,
+                directDependencies,
+                unsolvedConstraints
+        );
+
+        ISoftTypingConstraintSolver softTypingConstraintSolver = new SoftTypingConstraintSolver(
+                symbolFactory,
+                typeHelper,
+                inferenceIssueReporter,
+                constraintSolverHelper,
+                mostSpecificOverloadDecider
+        );
+
+        IIterativeConstraintSolver iterativeConstraintSolver = new IterativeConstraintSolver(
+                symbolFactory,
+                typeHelper,
+                constraintSolverHelper,
+                dependencyConstraintSolver,
+                dependencies,
+                directDependencies,
+                unsolvedConstraints);
+
+        IConstraintSolver constraintSolver = new ConstraintSolver(
+                symbolFactory,
+                iterativeConstraintSolver,
+                softTypingConstraintSolver,
+                constraintSolverHelper,
+                unsolvedConstraints);
+
+        dependencyConstraintSolver.setConstraintSolver(constraintSolver);
+        dependencyConstraintSolver.setSoftTypingConstraintSolver(softTypingConstraintSolver);
+
+        return constraintSolver;
     }
 
     protected TypeVariableReference reference(String name) {

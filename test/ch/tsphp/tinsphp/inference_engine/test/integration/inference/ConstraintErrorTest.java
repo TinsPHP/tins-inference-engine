@@ -76,7 +76,7 @@ public class ConstraintErrorTest extends AInferenceTest
     @Override
     protected void checkNoIssueInInferencePhase() {
         assertTrue(testString + " failed. Exceptions did not occur but we expected a wrongOperatorUsage." + exceptions,
-                inferenceErrorReporter.hasFound(EnumSet.of(EIssueSeverity.Error)));
+                inferenceIssueReporter.hasFound(EnumSet.of(EIssueSeverity.Error)));
         assertsInInferencePhase();
     }
 

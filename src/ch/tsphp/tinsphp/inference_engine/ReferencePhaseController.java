@@ -31,7 +31,6 @@ import ch.tsphp.tinsphp.common.gen.TokenTypes;
 import ch.tsphp.tinsphp.common.inference.IReferencePhaseController;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCreator;
-import ch.tsphp.tinsphp.common.inference.constraints.IConstraintSolver;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.resolving.ISymbolResolverController;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
@@ -44,6 +43,7 @@ import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.PrimitiveTypeNames;
 import ch.tsphp.tinsphp.common.symbols.erroneous.IErroneousTypeSymbol;
+import ch.tsphp.tinsphp.inference_engine.constraints.solvers.IConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 import org.antlr.runtime.RecognitionException;
 

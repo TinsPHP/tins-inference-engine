@@ -25,7 +25,7 @@ public class WorklistDto
     public boolean isInIterativeMode;
     public boolean isSolvingDependency;
     public boolean isInSoftTypingMode;
-    Map<String, List<String>> param2LowerParams;
+    public Map<String, List<String>> param2LowerParams;
 
     public WorklistDto(
             Deque<WorklistDto> theWorkDeque,

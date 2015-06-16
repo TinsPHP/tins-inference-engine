@@ -26,7 +26,7 @@ public abstract class AInferenceTest extends AReferenceTest
 
     protected void checkNoIssueInInferencePhase() {
         assertFalse(testString + " failed. Exceptions occurred." + exceptions,
-                inferenceErrorReporter.hasFound(EnumSet.allOf(EIssueSeverity.class)));
+                inferenceIssueReporter.hasFound(EnumSet.allOf(EIssueSeverity.class)));
         assertsInInferencePhase();
     }
 

@@ -35,7 +35,7 @@ public abstract class ATest implements IIssueLogger
 
     protected List<Exception> exceptions = new ArrayList<>();
     protected IParser parser;
-    protected IInferenceIssueReporter inferenceErrorReporter;
+    protected IInferenceIssueReporter inferenceIssueReporter;
     protected IIssueMessageProvider issueMessageProvider;
     protected ITSPHPAstAdaptor astAdaptor;
 
@@ -49,8 +49,8 @@ public abstract class ATest implements IIssueLogger
 
         issueMessageProvider = createIssueMessageProvider();
 
-        inferenceErrorReporter = createInferenceErrorReporter(issueMessageProvider);
-        inferenceErrorReporter.registerIssueLogger(this);
+        inferenceIssueReporter = createInferenceErrorReporter(issueMessageProvider);
+        inferenceIssueReporter.registerIssueLogger(this);
     }
 
 
