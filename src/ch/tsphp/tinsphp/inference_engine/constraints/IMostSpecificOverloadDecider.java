@@ -10,6 +10,9 @@ import ch.tsphp.common.symbols.ITypeSymbol;
 
 import java.util.List;
 
+/**
+ * Provides methods to determine a most specific overload.
+ */
 public interface IMostSpecificOverloadDecider
 {
     OverloadRankingDto inNormalMode(

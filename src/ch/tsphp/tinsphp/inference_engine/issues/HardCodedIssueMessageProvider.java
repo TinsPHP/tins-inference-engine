@@ -55,10 +55,10 @@ public class HardCodedIssueMessageProvider extends AIssueMessageProvider impleme
         map.put("wrongFunctionCall", "Line %line%|%pos% - no applicable overload found for the "
                 + "function %id%.\n"
                 + "Given argument types: %args%\n"
-                + "existing overloads: %overloads%");
+                + "existing overloads:\n %overloads%");
         map.put("wrongOperatorUsage", "Line %line%|%pos% - usage of operator %id% is wrong.\n"
                 + "It cannot be applied to the given arguments: %args%\n"
-                + "existing overloads: %overloads%");
+                + "existing overloads:\n %overloads%");
 
         return map;
     }

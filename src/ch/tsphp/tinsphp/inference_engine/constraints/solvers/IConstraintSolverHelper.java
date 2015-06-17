@@ -17,7 +17,7 @@ import ch.tsphp.tinsphp.inference_engine.constraints.WorklistDto;
 import java.util.List;
 
 /**
- * Provides methods to
+ * Provides constraint solving methods which are not directly related to a certain mode (iterative, soft typing etc.).
  */
 public interface IConstraintSolverHelper
 {

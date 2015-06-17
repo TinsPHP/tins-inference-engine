@@ -17,6 +17,7 @@ import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import ch.tsphp.tinsphp.common.inference.constraints.TypeVariableReference;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
+import ch.tsphp.tinsphp.common.symbols.IExpressionVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMinimalVariableSymbol;
@@ -93,14 +94,15 @@ public class ConstraintCreator implements IConstraintCreator
             ITSPHPAst identifierAst,
             List<IVariable> typeVariables,
             IMinimalMethodSymbol methodSymbol) {
-        IMinimalVariableSymbol expressionVariable = createExpressionVariable(parentAst, identifierAst);
+        IExpressionVariableSymbol expressionVariable = createExpressionVariable(parentAst, identifierAst);
+        expressionVariable.setMethodSymbol(methodSymbol);
         IConstraint constraint = symbolFactory.createConstraint(
                 parentAst, expressionVariable, typeVariables, methodSymbol);
         collection.addConstraint(constraint);
     }
 
-    private IMinimalVariableSymbol createExpressionVariable(ITSPHPAst parentAst, ITSPHPAst identifierAst) {
-        IMinimalVariableSymbol expressionVariable = symbolFactory.createExpressionVariableSymbol(identifierAst);
+    private IExpressionVariableSymbol createExpressionVariable(ITSPHPAst parentAst, ITSPHPAst identifierAst) {
+        IExpressionVariableSymbol expressionVariable = symbolFactory.createExpressionVariableSymbol(identifierAst);
         expressionVariable.setDefinitionScope(identifierAst.getScope());
         parentAst.setSymbol(expressionVariable);
         return expressionVariable;

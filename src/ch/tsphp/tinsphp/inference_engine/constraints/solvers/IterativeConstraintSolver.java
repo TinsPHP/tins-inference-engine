@@ -11,6 +11,7 @@ import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
+import ch.tsphp.tinsphp.common.inference.constraints.OverloadApplicationDto;
 import ch.tsphp.tinsphp.common.symbols.IIntersectionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMinimalVariableSymbol;
@@ -364,12 +365,10 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
                 }
                 WorklistDto tempWorklistDto = worklistDto.workDeque.removeFirst();
                 String lhsAbsoluteName = constraint.getLeftHandSide().getAbsoluteName();
-                IFunctionType appliedOverload
-                        = tempWorklistDto.overloadBindings.getAppliedOverload(lhsAbsoluteName);
-                worklistDto.overloadBindings.setAppliedOverload(lhsAbsoluteName, appliedOverload);
+                OverloadApplicationDto dto = tempWorklistDto.overloadBindings.getAppliedOverload(lhsAbsoluteName);
+                worklistDto.overloadBindings.setAppliedOverload(lhsAbsoluteName, dto);
             }
         }
     }
-
 
 }

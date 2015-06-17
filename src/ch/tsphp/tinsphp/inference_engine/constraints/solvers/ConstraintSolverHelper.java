@@ -16,6 +16,7 @@ import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableReference;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
+import ch.tsphp.tinsphp.common.inference.constraints.OverloadApplicationDto;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.symbols.IContainerTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IIntersectionTypeSymbol;
@@ -66,8 +67,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
             IMostSpecificOverloadDecider theMostSpecificOverloadDecider,
             IDependencyConstraintSolver theDependencyConstraintSolver,
             Map<String, Set<String>> theDependencies,
-            Map<String, List<Pair<WorklistDto,
-                    Integer>>> theDirectDependencies,
+            Map<String, List<Pair<WorklistDto, Integer>>> theDirectDependencies,
             Map<String, Set<WorklistDto>> theUnsolvedConstraints) {
         symbolFactory = theSymbolFactory;
         typeHelper = theTypeHelper;
@@ -152,7 +152,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                 AggregateBindingDto dto = solveOverLoad(worklistDto, constraint, overload);
 
                 //we do not create overloads with implicit conversions here.
-                if (dto != null && dto.implicitConversionCounter == 0) {
+                if (dto != null && dto.implicitConversions == null) {
                     worklistDto.workDeque.add(nextWorklistDto(worklistDto, dto.bindings));
                 }
             } catch (BoundException ex) {
@@ -203,6 +203,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
             IVariable leftHandSide = dto.constraint.getLeftHandSide();
             dto.bindingVariable = leftHandSide;
             dto.overloadVariableId = TinsPHPConstants.RETURN_VARIABLE_NAME;
+            dto.argumentNumber = null;
             boolean hasNarrowed = dto.hasNarrowedArguments;
             mergeTypeVariables(dto);
             //reset because we are only interested in whether an argument was narrowed
@@ -212,6 +213,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
             for (int i = 0; i < count; ++i) {
                 dto.bindingVariable = arguments.get(i);
                 dto.overloadVariableId = parameters.get(i).getAbsoluteName();
+                dto.argumentNumber = i;
                 mergeTypeVariables(dto);
                 argumentsAreAllFixed = argumentsAreAllFixed
                         && dto.bindings.getTypeVariableReference(dto.bindingVariable.getAbsoluteName()).hasFixedType();
@@ -225,7 +227,9 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                 }
                 if (!dto.worklistDto.isInIterativeMode && !dto.worklistDto.isInSoftTypingMode
                         && !lhsAbsoluteName.equals(TinsPHPConstants.RETURN_VARIABLE_NAME)) {
-                    dto.bindings.setAppliedOverload(lhsAbsoluteName, dto.overload);
+                    OverloadApplicationDto overloadApplicationDto = new OverloadApplicationDto(
+                            dto.overload, dto.implicitConversions, null);
+                    dto.bindings.setAppliedOverload(lhsAbsoluteName, overloadApplicationDto);
                 }
             }
             if (dto.iterateCount > 1) {
@@ -274,8 +278,6 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
         IOverloadBindings leftBindings = dto.bindings;
         IOverloadBindings rightBindings = dto.overload.getOverloadBindings();
 
-        boolean usedImplicitConversions = false;
-
         if (rightBindings.hasUpperTypeBounds(right)) {
             ITypeVariableReference reference
                     = dto.bindings.getTypeVariableReference(dto.bindingVariable.getAbsoluteName());
@@ -285,13 +287,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                 if (copy != null) {
                     if (!dto.worklistDto.isInSoftTypingMode) {
                         BoundResultDto result = leftBindings.addUpperTypeBound(left, copy);
-                        if (result.usedImplicitConversion) {
-                            usedImplicitConversions = true;
-                            //implicit conversions always narrow
-                            dto.hasNarrowedArguments = true;
-                        } else if (result.hasChanged) {
-                            dto.hasNarrowedArguments = true;
-                        }
+                        updateAggregateBindingDto(dto, result, copy);
                     } else if (!typeHelper.areSame(copy, mixedTypeSymbol)) {
                         leftBindings.addLowerTypeBound(left, copy);
                     }
@@ -304,21 +300,9 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
             ITypeSymbol copy = copyIfNotFixed(rightLowerTypeBounds, dto);
             if (copy != null) {
                 BoundResultDto result = leftBindings.addLowerTypeBound(left, copy);
-                if (result.usedImplicitConversion) {
-                    usedImplicitConversions = true;
-                    //implicit conversions always narrow
-                    dto.hasNarrowedArguments = true;
-                }
-                if (result.hasChanged) {
-                    dto.hasNarrowedArguments = true;
-                }
+                updateAggregateBindingDto(dto, result, copy);
             }
         }
-
-        if (usedImplicitConversions) {
-            ++dto.implicitConversionCounter;
-        }
-
 
         if (rightBindings.hasLowerRefBounds(right)) {
             for (String refTypeVariable : rightBindings.getLowerRefBounds(right)) {
@@ -334,6 +318,21 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                     break;
                 }
             }
+        }
+    }
+
+    private void updateAggregateBindingDto(AggregateBindingDto dto, BoundResultDto result, ITypeSymbol copy) {
+        if (result.usedImplicitConversion) {
+            if (dto.argumentNumber != null) {
+                if (dto.implicitConversions == null) {
+                    dto.implicitConversions = new HashMap<>();
+                }
+                dto.implicitConversions.put(dto.argumentNumber, pair(copy, result.implicitConversionProvider));
+            }
+            //implicit conversions always narrow
+            dto.hasNarrowedArguments = true;
+        } else if (result.hasChanged) {
+            dto.hasNarrowedArguments = true;
         }
     }
 
@@ -534,7 +533,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                     }
 
                     overloadBindingsList.add(new OverloadRankingDto(
-                            overload, dto.bindings, dto.implicitConversionCounter, dto.hasNarrowedArguments));
+                            overload, dto.bindings, dto.implicitConversions, null, dto.hasNarrowedArguments));
 
                     if (isOneToOne) {
                         break;

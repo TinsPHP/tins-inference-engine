@@ -21,21 +21,23 @@ public class OverloadRankingDto
     public IFunctionType overload;
     public IOverloadBindings bindings;
     public boolean hasNarrowedArguments;
-    public int numberOfImplicitConversions;
     public int numberOfTypeParameters;
     public int mostGeneralLowerCount;
     public int mostSpecificUpperCount;
     public List<Pair<IUnionTypeSymbol, IIntersectionTypeSymbol>> bounds;
-    public Map<String, Pair<ITypeSymbol, List<ITypeSymbol>>> explicitConversions;
+    public Map<Integer, Pair<ITypeSymbol, ITypeSymbol>> implicitConversions;
+    public Map<Integer, Pair<ITypeSymbol, List<ITypeSymbol>>> runtimeChecks;
 
     public OverloadRankingDto(
             IFunctionType theOverload,
             IOverloadBindings theBindings,
-            int implicitConversionsCount,
+            Map<Integer, Pair<ITypeSymbol, ITypeSymbol>> theImplicitConversions,
+            Map<Integer, Pair<ITypeSymbol, List<ITypeSymbol>>> theRuntimeChecks,
             boolean narrowedArguments) {
         overload = theOverload;
         bindings = theBindings;
-        numberOfImplicitConversions = implicitConversionsCount;
+        implicitConversions = theImplicitConversions;
+        runtimeChecks = theRuntimeChecks;
         hasNarrowedArguments = narrowedArguments;
     }
 
@@ -44,8 +46,8 @@ public class OverloadRankingDto
                 + ", up: " + mostSpecificUpperCount
                 + ", low: " + mostGeneralLowerCount
                 + ", tp: " + numberOfTypeParameters
-                + ", impl: " + numberOfImplicitConversions
-                + ", expl: " + (explicitConversions == null ? 0 : explicitConversions.size())
+                + ", impl: " + (implicitConversions == null ? 0 : implicitConversions.size())
+                + ", checks: " + (runtimeChecks == null ? 0 : runtimeChecks.size())
                 + "]";
     }
 }

@@ -14,6 +14,7 @@ import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableReference;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
+import ch.tsphp.tinsphp.common.inference.constraints.OverloadApplicationDto;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.symbols.IIntersectionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
@@ -226,21 +227,20 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
                     overloadRankingDto = mostSpecificOverloads.get(0);
                     numberOfApplicableOverloads = mostSpecificOverloads.size();
                     if (numberOfApplicableOverloads > 1) {
-                        mergeMostSpecificOverloads(overloadRankingDto, constraint, mostSpecificOverloads);
+                        mergeMostSpecificOverloadsToNewOverloadBindings(worklistDto, constraint, mostSpecificOverloads);
                     }
                 }
 
-                worklistDto.overloadBindings = overloadRankingDto.bindings;
                 if (numberOfApplicableOverloads == 1) {
-                    worklistDto.overloadBindings.setAppliedOverload(leftHandSide, overloadRankingDto.overload);
+                    worklistDto.overloadBindings = overloadRankingDto.bindings;
+                    OverloadApplicationDto dto = new OverloadApplicationDto(
+                            overloadRankingDto.overload,
+                            overloadRankingDto.implicitConversions,
+                            overloadRankingDto.runtimeChecks);
+                    worklistDto.overloadBindings.setAppliedOverload(leftHandSide, dto);
                 }
             } else {
                 issueReporter.constraintViolation(worklistDto.overloadBindings, constraint);
-                //TODO rstoll TINS-306 inference - runtime check insertion
-                //I am not sure but maybe we do not need to do anything. see
-                //TINS-399 save which overload was taken in AST
-                //I think it is enough if the symbol does not contain any overload. The translator can then insert an
-                // error in the output
             }
         }
     }
@@ -249,23 +249,22 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
             WorklistDto worklistDto, IConstraint constraint, IFunctionType overload) {
 
         IOverloadBindings leftBindings = symbolFactory.createOverloadBindings(worklistDto.overloadBindings);
-        Map<String, Pair<ITypeSymbol, List<ITypeSymbol>>> explicitConversions = new HashMap<>();
+        Map<Integer, Pair<ITypeSymbol, List<ITypeSymbol>>> runtimeChecks = new HashMap<>();
 
         boolean overloadApplies = isApplicable(
-                worklistDto, constraint, overload, leftBindings, explicitConversions);
+                constraint, overload, leftBindings, runtimeChecks);
 
         if (overloadApplies) {
-            return applyOverload(worklistDto, constraint, overload, leftBindings, explicitConversions);
+            return applyOverload(worklistDto, constraint, overload, leftBindings, runtimeChecks);
         }
         return null;
     }
 
     private boolean isApplicable(
-            WorklistDto worklistDto,
             IConstraint constraint,
             IFunctionType overload,
             IOverloadBindings leftBindings,
-            Map<String, Pair<ITypeSymbol, List<ITypeSymbol>>> explicitConversions) {
+            Map<Integer, Pair<ITypeSymbol, List<ITypeSymbol>>> runtimeChecks) {
 
         IOverloadBindings rightBindings = overload.getOverloadBindings();
         List<IVariable> parameters = overload.getParameters();
@@ -283,7 +282,7 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
 
 
                 boolean argumentApplies = doesArgumentApply(
-                        leftBindings, argumentId, rightBindings, typeVariable, explicitConversions);
+                        leftBindings, argumentId, i, rightBindings, typeVariable, runtimeChecks);
                 if (!argumentApplies) {
                     overloadApplies = false;
                     break;
@@ -297,9 +296,10 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
     private boolean doesArgumentApply(
             IOverloadBindings leftBindings,
             String argumentId,
+            int argumentNumber,
             IOverloadBindings rightBindings,
             String parameterTypeVariable,
-            Map<String, Pair<ITypeSymbol, List<ITypeSymbol>>> explicitConversions) {
+            Map<Integer, Pair<ITypeSymbol, List<ITypeSymbol>>> runtimeChecks) {
 
         String argumentTypeVariable = leftBindings.getTypeVariable(argumentId);
         IUnionTypeSymbol argumentType = leftBindings.getLowerTypeBounds(argumentTypeVariable);
@@ -349,7 +349,7 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
                         }
                         typeSymbol = unionTypeSymbol;
                     }
-                    explicitConversions.put(argumentId, pair(typeSymbol, typeSymbols));
+                    runtimeChecks.put(argumentNumber, pair(typeSymbol, typeSymbols));
                     //TODO TINS-535 improve precision in soft typing for unconstrained parameters
 //                            if (worklistDto.param2LowerParams.containsKey(argumentTypeVariable)) {
 //                                for (String refTypeVariable : worklistDto.param2LowerParams.get
@@ -370,14 +370,15 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
             IConstraint constraint,
             IFunctionType overload,
             IOverloadBindings leftBindings,
-            Map<String, Pair<ITypeSymbol, List<ITypeSymbol>>> explicitConversions) {
+            Map<Integer, Pair<ITypeSymbol, List<ITypeSymbol>>> theRuntimeChecks) {
 
+        Map<Integer, Pair<ITypeSymbol, List<ITypeSymbol>>> runtimeChecks = theRuntimeChecks;
         Map<String, IUnionTypeSymbol> oldTypes = null;
-        boolean requiresExplicit = !explicitConversions.isEmpty();
+        boolean requiresExplicit = !runtimeChecks.isEmpty();
         if (requiresExplicit) {
-            oldTypes = new HashMap<>(explicitConversions.size());
-            for (Map.Entry<String, Pair<ITypeSymbol, List<ITypeSymbol>>> entry : explicitConversions.entrySet()) {
-                String argumentId = entry.getKey();
+            oldTypes = new HashMap<>(runtimeChecks.size());
+            for (Map.Entry<Integer, Pair<ITypeSymbol, List<ITypeSymbol>>> entry : runtimeChecks.entrySet()) {
+                String argumentId = constraint.getArguments().get(entry.getKey()).getAbsoluteName();
                 String typeVariable = leftBindings.getTypeVariable(argumentId);
 
                 IUnionTypeSymbol lowerTypeBounds = leftBindings.getLowerTypeBounds(typeVariable);
@@ -387,6 +388,8 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
                 unionTypeSymbol.addTypeSymbol(entry.getValue().first);
                 leftBindings.setLowerTypeBound(typeVariable, unionTypeSymbol);
             }
+        } else {
+            runtimeChecks = null;
         }
 
         AggregateBindingDto dto =
@@ -394,11 +397,9 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
         constraintSolverHelper.aggregateBinding(dto);
 
         OverloadRankingDto overloadRankingDto = new OverloadRankingDto(
-                overload, leftBindings, dto.implicitConversionCounter, requiresExplicit);
+                overload, leftBindings, dto.implicitConversions, runtimeChecks, requiresExplicit);
 
         if (requiresExplicit) {
-            overloadRankingDto.explicitConversions = explicitConversions;
-
             for (Map.Entry<String, IUnionTypeSymbol> entry : oldTypes.entrySet()) {
                 String parameterId = entry.getKey();
                 ITypeVariableReference reference = leftBindings.getTypeVariableReference(parameterId);
@@ -433,13 +434,14 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
         return leastCommonUpperTypeBound;
     }
 
-    private void mergeMostSpecificOverloads(
-            OverloadRankingDto overloadRankingDto,
-            IConstraint constraint,
-            List<OverloadRankingDto> mostSpecificOverloads) {
+    // I am aware of that this method is longer, but for now this is ok for efficiency reasons
+    @SuppressWarnings("checkstyle:methodlength")
+    private void mergeMostSpecificOverloadsToNewOverloadBindings(
+            WorklistDto worklistDto, IConstraint constraint, List<OverloadRankingDto> mostSpecificOverloads) {
 
         IUnionTypeSymbol upperUnion = symbolFactory.createUnionTypeSymbol();
-        IOverloadBindings leftBindings = overloadRankingDto.bindings;
+
+        IOverloadBindings leftBindings = mostSpecificOverloads.get(0).bindings;
         String leftHandSide = constraint.getLeftHandSide().getAbsoluteName();
         String lhsTypeVariable = leftBindings.getTypeVariable(leftHandSide);
         leftBindings.removeUpperTypeBound(lhsTypeVariable);
@@ -449,8 +451,11 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
         List<IUnionTypeSymbol> upperArguments = new ArrayList<>(numberOfArguments);
         int numberOfApplicableOverloads = mostSpecificOverloads.size();
 
+        Map<Integer, Pair<ITypeSymbol, List<ITypeSymbol>>> runtimeChecks = new HashMap<>();
+
         for (int iMostSpecific = 0; iMostSpecific < numberOfApplicableOverloads; ++iMostSpecific) {
-            IOverloadBindings rightBindings = mostSpecificOverloads.get(iMostSpecific).bindings;
+            OverloadRankingDto overloadRankingDto = mostSpecificOverloads.get(iMostSpecific);
+            IOverloadBindings rightBindings = overloadRankingDto.bindings;
             String rankingLhsTypeVariable = rightBindings.getTypeVariable(leftHandSide);
             if (rightBindings.hasUpperTypeBounds(rankingLhsTypeVariable)) {
                 IIntersectionTypeSymbol upperTypeBounds = rightBindings.getUpperTypeBounds(rankingLhsTypeVariable);
@@ -482,6 +487,23 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
                     leftBindings.addLowerTypeBound(typeVariable, lowerTypeBounds);
                 }
             }
+
+            if (overloadRankingDto.runtimeChecks != null) {
+                for (Map.Entry<Integer, Pair<ITypeSymbol, List<ITypeSymbol>>> entry
+                        : overloadRankingDto.runtimeChecks.entrySet()) {
+                    Integer argumentNumber = entry.getKey();
+                    Pair<ITypeSymbol, List<ITypeSymbol>> pair = entry.getValue();
+                    IUnionTypeSymbol unionTypeSymbol;
+                    if (!runtimeChecks.containsKey(argumentNumber)) {
+                        unionTypeSymbol = symbolFactory.createUnionTypeSymbol();
+                        runtimeChecks.put(argumentNumber, pair((ITypeSymbol) unionTypeSymbol, pair.second));
+                    } else {
+                        unionTypeSymbol = (IUnionTypeSymbol) runtimeChecks.get(argumentNumber).first;
+                    }
+                    unionTypeSymbol.addTypeSymbol(pair.first);
+                }
+            }
+
         }
 
         leftBindings.addUpperTypeBound(lhsTypeVariable, upperUnion);
@@ -491,9 +513,14 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
             leftBindings.addUpperTypeBound(typeVariable, upperArguments.get(i));
         }
 
-        //TODO rstoll TINS-306 inference - runtime check insertion
-        //need to rewrite the AST in order that it contains the dynamic dispatch mechanism
-        //do not forget to set the applied overload for the new function calls as well
+        if (runtimeChecks.isEmpty()) {
+            runtimeChecks = null;
+        }
+
+        worklistDto.overloadBindings = leftBindings;
+        //overload = null indicates that we need to fall back to the dynamic version
+        worklistDto.overloadBindings.setAppliedOverload(
+                leftHandSide, new OverloadApplicationDto(null, null, runtimeChecks));
     }
 
 }

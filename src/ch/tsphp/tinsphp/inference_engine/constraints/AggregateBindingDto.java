@@ -6,11 +6,13 @@
 
 package ch.tsphp.tinsphp.inference_engine.constraints;
 
+import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableReference;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
+import ch.tsphp.tinsphp.common.utils.Pair;
 
 import java.util.Map;
 
@@ -25,7 +27,8 @@ public class AggregateBindingDto
     public IVariable bindingVariable;
     public String overloadVariableId;
     public boolean needToReIterate;
-    public int implicitConversionCounter;
+    public Map<Integer, Pair<ITypeSymbol, ITypeSymbol>> implicitConversions;
+    public Integer argumentNumber;
     public boolean hasNarrowedArguments;
 
     public AggregateBindingDto(

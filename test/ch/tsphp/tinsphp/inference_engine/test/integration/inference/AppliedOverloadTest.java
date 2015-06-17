@@ -13,6 +13,7 @@ import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
 import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
+import ch.tsphp.tinsphp.common.inference.constraints.OverloadApplicationDto;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.inference_engine.resolver.PutAtTopVariableDeclarationCreator;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.ScopeTestHelper;
@@ -73,8 +74,8 @@ public class AppliedOverloadTest extends AInferenceOverloadTest
                         "no type variableId defined for " + symbol.getAbsoluteName(),
                 overloadBindings.containsVariable(symbol.getAbsoluteName()));
 
-        IFunctionType overload = overloadBindings.getAppliedOverload(symbol.getAbsoluteName());
-        return asList(overload);
+        OverloadApplicationDto dto = overloadBindings.getAppliedOverload(symbol.getAbsoluteName());
+        return asList(dto.overload);
     }
 
     @Parameterized.Parameters

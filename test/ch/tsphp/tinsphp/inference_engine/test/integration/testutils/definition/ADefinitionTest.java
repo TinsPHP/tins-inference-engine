@@ -77,7 +77,7 @@ public abstract class ADefinitionTest extends ATest
             run();
         } catch (Throwable ex) {
             if (!(ex instanceof AssertionError)) {
-                System.out.println(testString + " failed - unexpected exception occurred.");
+                System.err.println(testString + " failed - unexpected exception occurred.");
             }
             throw ex;
         }

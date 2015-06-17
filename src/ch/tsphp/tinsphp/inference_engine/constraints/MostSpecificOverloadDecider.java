@@ -92,13 +92,16 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
         boolean wereArgumentsNarrowed = true;
 
         for (OverloadRankingDto dto : applicableOverloads) {
+            int numberOfImplicitConversions = (dto.implicitConversions == null ? 0 : dto.implicitConversions.size());
             if (wereArgumentsNarrowed == dto.hasNarrowedArguments
-                    && dto.numberOfImplicitConversions == minNumberOfImplicitConversions) {
+                    && numberOfImplicitConversions == minNumberOfImplicitConversions) {
+
                 overloadRankingDtos.add(dto);
+
             } else if (wereArgumentsNarrowed && !dto.hasNarrowedArguments
-                    || dto.numberOfImplicitConversions < minNumberOfImplicitConversions) {
+                    || numberOfImplicitConversions < minNumberOfImplicitConversions) {
                 wereArgumentsNarrowed = dto.hasNarrowedArguments;
-                minNumberOfImplicitConversions = dto.numberOfImplicitConversions;
+                minNumberOfImplicitConversions = numberOfImplicitConversions;
                 overloadRankingDtos = new ArrayList<>();
                 overloadRankingDtos.add(dto);
             }
@@ -137,7 +140,7 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
             IFunctionType copyOverload = copyAndFixOverload(overload);
 
             fixedDto = new OverloadRankingDto(
-                    copyOverload, dto.bindings, dto.numberOfImplicitConversions, dto.hasNarrowedArguments);
+                    copyOverload, dto.bindings, dto.implicitConversions, dto.runtimeChecks, dto.hasNarrowedArguments);
             fixedDto.numberOfTypeParameters = nonFixedTypeParameters.size();
         }
         return fixedDto;
@@ -168,7 +171,7 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
                 dto.overload.getName(), overloadBindings, dto.overload.getParameters());
 
         return new OverloadRankingDto(
-                copyOverload, dto.bindings, dto.numberOfImplicitConversions, dto.hasNarrowedArguments);
+                copyOverload, dto.bindings, dto.implicitConversions, dto.runtimeChecks, dto.hasNarrowedArguments);
     }
 
 
@@ -309,9 +312,6 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
             diff = dto.mostGeneralLowerCount - currentMostSpecific.mostGeneralLowerCount;
             if (diff == 0) {
                 diff = currentMostSpecific.numberOfTypeParameters - dto.numberOfTypeParameters;
-                if (diff == 0) {
-                    diff = currentMostSpecific.numberOfImplicitConversions - dto.numberOfImplicitConversions;
-                }
             }
         }
         return diff;
