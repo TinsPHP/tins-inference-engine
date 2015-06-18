@@ -344,6 +344,15 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                                 )), 1, 1, 2),
                         }
                 },
+                {
+                        "function test14(array $x){return $x;}",
+                        new OverloadTestStruct[]{
+                                testStruct("test14()", "\\.\\.", functionDtos("test14()", 1, bindingDtos(
+                                        varBinding("test14()$x", "T", null, asList("array"), false),
+                                        varBinding(RETURN_VARIABLE_NAME, "T", null, asList("array"), false)
+                                )), 1, 0, 2),
+                        }
+                },
         });
     }
 }

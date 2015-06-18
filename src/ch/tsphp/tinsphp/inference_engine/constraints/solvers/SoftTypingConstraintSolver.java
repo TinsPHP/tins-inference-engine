@@ -279,8 +279,6 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
             String typeVariable = rightBindings.getTypeVariable(parameterId);
             if (rightBindings.hasUpperTypeBounds(typeVariable)) {
                 String argumentId = arguments.get(i).getAbsoluteName();
-
-
                 boolean argumentApplies = doesArgumentApply(
                         leftBindings, argumentId, i, rightBindings, typeVariable, runtimeChecks);
                 if (!argumentApplies) {
@@ -387,6 +385,7 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
                 IUnionTypeSymbol unionTypeSymbol = symbolFactory.createUnionTypeSymbol();
                 unionTypeSymbol.addTypeSymbol(entry.getValue().first);
                 leftBindings.setLowerTypeBound(typeVariable, unionTypeSymbol);
+                leftBindings.removeUpperTypeBound(typeVariable);
             }
         } else {
             runtimeChecks = null;

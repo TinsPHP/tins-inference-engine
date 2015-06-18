@@ -85,10 +85,10 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
             WorklistDto worklistDto, IVariable leftHandSide, List<IVariable> arguments) {
 
         int constantTypeCounter = 0;
-        createBindingIfNecessary(worklistDto.overloadBindings, leftHandSide);
+        createBindingIfNecessary(worklistDto, leftHandSide);
         boolean atLeastOneBindingCreated = false;
         for (IVariable parameterVariable : arguments) {
-            ECreateBinding status = createBindingIfNecessary(worklistDto.overloadBindings, parameterVariable);
+            ECreateBinding status = createBindingIfNecessary(worklistDto, parameterVariable);
             switch (status) {
                 case Created:
                     atLeastOneBindingCreated = true;
@@ -109,7 +109,8 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
         return atLeastOneBindingCreated || constantTypeCounter < arguments.size();
     }
 
-    private ECreateBinding createBindingIfNecessary(IOverloadBindings bindings, IVariable variable) {
+    private ECreateBinding createBindingIfNecessary(WorklistDto worklistDto, IVariable variable) {
+        IOverloadBindings bindings = worklistDto.overloadBindings;
         String absoluteName = variable.getAbsoluteName();
         ECreateBinding status = ECreateBinding.NotCreated;
         if (!bindings.containsVariable(absoluteName)) {
@@ -118,16 +119,22 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
             ITypeVariableReference typeVariableReference = reference;
             //if it is a literal then we know already the lower bound and it is a fix typed type variable
             ITypeSymbol typeSymbol = variable.getType();
-            if (typeSymbol != null) {
+            if (typeSymbol != null &&
+                    (worklistDto.isInSoftTypingMode ||
+                            !worklistDto.isSolvingMethod || !variable.getName().startsWith("$"))) {
                 typeVariableReference = new FixedTypeVariableReference(reference);
             }
             bindings.addVariable(absoluteName, typeVariableReference);
             if (typeSymbol != null) {
                 String typeVariable = typeVariableReference.getTypeVariable();
-                bindings.addLowerTypeBound(typeVariable, typeSymbol);
                 //TODO rstoll TINS-407 - store fixed type only in lower bound
                 //TODO rstoll TINS-387 function application only consider upper bounds
-//                bindings.addUpperTypeBound(typeVariable, typeSymbol);
+                if (!worklistDto.isInSoftTypingMode && worklistDto.isSolvingMethod
+                        && variable.getName().startsWith("$")) {
+                    bindings.addUpperTypeBound(typeVariable, typeSymbol);
+                } else {
+                    bindings.addLowerTypeBound(typeVariable, typeSymbol);
+                }
                 status = ECreateBinding.ConstantType;
             }
         }
