@@ -248,6 +248,94 @@ public class FunctionDefinitionBindingTest extends AInferenceBindingTest
                                 )
                         ), 1, 0, 2)
                 },
+                //fall back to soft typing - param has lower refs
+                {
+                        "function foo13(array $x){ $a \n= \n1; $x \n= $a; \nreturn $x \n+ \n1; }",
+                        testStructs("foo13()", "\\.\\.", matcherDtos(
+                                matcherDto(
+                                        varBinding("foo13()$a", "V2", asList("int"), asList("int"), true),
+                                        varBinding("foo13()=@2|0", "V2", asList("int"), asList("int"), true),
+                                        varBinding("1@3|0", "V4", asList("int"), null, true),
+                                        varBinding("foo13()$x", "V5",
+                                                asList("int", "array"), asList("(array | int)"), true),
+                                        varBinding("foo13()=@4|0", "V5",
+                                                asList("int", "array"), asList("(array | int)"), true),
+                                        varBinding("foo13()+@6|0", "V6", asList("int"), asList("int"), true),
+                                        //TODO TINS-537 - most specific overload in soft typing
+                                        //varBinding("1@7|0", "V7", asList("int"), asList("int"), true),
+                                        varBinding("1@7|0", "V7", asList("int"), asList("{as int}"), true),
+                                        varBinding("return@5|0", "V8", asList("int"), asList("int"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V9", asList("int"), asList("int"), true)
+                                )
+                        ), 1, 0, 2)
+                },
+                //fall back to soft typing - param has lower refs with different upper bound
+                {
+                        "function foo14(array $x){ $a \n= \n1; $a \n+ \n1.2; $x \n= $a; \nreturn $x \n+ \n1; }",
+                        testStructs("foo14()", "\\.\\.", matcherDtos(
+                                matcherDto(
+                                        varBinding("foo14()$a", "V2", asList("int"), asList("int"), true),
+                                        varBinding("foo14()=@2|0", "V2", asList("int"), asList("int"), true),
+                                        varBinding("1@3|0", "V4", asList("int"), null, true),
+                                        varBinding("foo14()+@4|0", "V5", asList("float"), asList("float"), true),
+                                        varBinding("1.2@5|0", "V6", asList("float"), asList("float"), true),
+                                        varBinding("foo14()$x", "V7",
+                                                asList("{as (float | int)}", "array"),
+                                                asList("(array | {as (float | int)})"), true),
+                                        varBinding("foo14()=@6|0", "V7",
+                                                asList("{as (float | int)}", "array"),
+                                                asList("(array | {as (float | int)})"), true),
+                                        varBinding("foo14()+@8|0", "V8",
+                                                asList("int", "float"), asList("(float | int)"), true),
+                                        //TODO TINS-537 - most specific overload in soft typing
+                                        //varBinding("1@6|0", "V5", asList("int"), asList("int"), true),
+                                        varBinding("1@9|0", "V9", asList("int"), asList("{as (float | int)}"), true),
+                                        varBinding("return@7|0", "V10",
+                                                asList("int", "float"), asList("(float | int)"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V11",
+                                                asList("int", "float"), asList("(float | int)"), true)
+                                )
+                        ), 1, 0, 2)
+                },
+                //fall back to soft typing - param cyclic ref
+                {
+                        "function foo15(array $x){ "
+                                + "$a \n= \n1; $a \n+ \n1.2; $a \n= $x; $x \n= $a; \nreturn $x \n+ \n1; }",
+                        testStructs("foo15()", "\\.\\.", matcherDtos(
+                                matcherDto(
+                                        varBinding("foo15()$a", "V7",
+                                                asList("{as (float | int)}", "array"),
+                                                asList("(array | {as (float | int)})"), true),
+                                        varBinding("foo15()=@2|0", "V7",
+                                                asList("{as (float | int)}", "array"),
+                                                asList("(array | {as (float | int)})"), true),
+                                        varBinding("1@3|0", "V4", asList("int"), null, true),
+                                        varBinding("foo15()+@4|0", "V5", asList("float"), asList("float"), true),
+                                        //TODO TINS-537 - most specific overload in soft typing
+                                        //varBinding("1.2@5|0", "V6", asList("float"), asList("float"), true),
+                                        varBinding("1.2@5|0", "V6",
+                                                asList("float"), asList("{as (float | int)}"), true),
+                                        varBinding("foo15()=@6|0", "V7",
+                                                asList("{as (float | int)}", "array"),
+                                                asList("(array | {as (float | int)})"), true),
+                                        varBinding("foo15()$x", "V8",
+                                                asList("{as (float | int)}", "array"),
+                                                asList("(array | {as (float | int)})"), true),
+                                        varBinding("foo15()=@7|0", "V8",
+                                                asList("{as (float | int)}", "array"),
+                                                asList("(array | {as (float | int)})"), true),
+                                        varBinding("foo15()+@9|0", "V9",
+                                                asList("int", "float"), asList("(float | int)"), true),
+                                        //TODO TINS-537 - most specific overload in soft typing
+                                        //varBinding("1@6|0", "V5", asList("int"), asList("int"), true),
+                                        varBinding("1@10|0", "V10", asList("int"), asList("{as (float | int)}"), true),
+                                        varBinding("return@8|0", "V11",
+                                                asList("int", "float"), asList("(float | int)"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V12",
+                                                asList("int", "float"), asList("(float | int)"), true)
+                                )
+                        ), 1, 0, 2)
+                },
                 //TODO TINS-535 improve precision in soft typing for unconstrained parameters
 //                {
 //                        "function foo9(array $x, $y){ $x = $y; return $x \n+ 1; }",

@@ -117,33 +117,7 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
 
     @Override
     public void solveConstraints(IMethodSymbol methodSymbol, WorklistDto worklistDto) {
-        IOverloadBindings softTypingBindings = worklistDto.overloadBindings;
-        worklistDto.overloadBindings = symbolFactory.createOverloadBindings();
-
-        //set parameters to mixed which do not have any lower bounds
-        for (IVariableSymbol parameter : methodSymbol.getParameters()) {
-            String typeVariable = softTypingBindings.getTypeVariable(parameter.getAbsoluteName());
-            if (!softTypingBindings.hasLowerTypeBounds(typeVariable)) {
-                softTypingBindings.addLowerTypeBound(typeVariable, mixedTypeSymbol);
-            }
-        }
-
-        Set<String> parameterTypeVariables = new HashSet<>();
-        for (IVariableSymbol parameter : methodSymbol.getParameters()) {
-            String parameterId = parameter.getAbsoluteName();
-            String typeVariable = softTypingBindings.getTypeVariable(parameterId);
-            ITypeVariableReference nextTypeVariable = worklistDto.overloadBindings.getNextTypeVariable();
-            worklistDto.overloadBindings.addVariable(parameterId, new FixedTypeVariableReference(nextTypeVariable));
-            if (softTypingBindings.hasLowerTypeBounds(typeVariable)) {
-                //TODO TINS-534 type hints and soft-typing
-                // we need to introduce a local variable here if a type hint was used and the inferred type is
-                // different
-
-                IUnionTypeSymbol lowerTypeBounds = softTypingBindings.getLowerTypeBounds(typeVariable);
-                worklistDto.overloadBindings.addLowerTypeBound(nextTypeVariable.getTypeVariable(), lowerTypeBounds);
-            }
-            parameterTypeVariables.add(typeVariable);
-        }
+        initWorkListDtoOverloadBindings(methodSymbol, worklistDto);
 
         //TODO TINS-535 improve precision in soft typing for unconstrained parameters
         //idea how precision of parametric parameters could be enhanced (instead of using mixed as above)
@@ -168,6 +142,71 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
         List<IOverloadBindings> overloadBindingsList = new ArrayList<>(1);
         overloadBindingsList.add(worklistDto.overloadBindings);
         constraintSolverHelper.finishingMethodConstraints(methodSymbol, overloadBindingsList);
+    }
+
+    private void initWorkListDtoOverloadBindings(IMethodSymbol methodSymbol, WorklistDto worklistDto) {
+
+        IOverloadBindings softTypingBindings = worklistDto.overloadBindings;
+        worklistDto.overloadBindings = symbolFactory.createOverloadBindings();
+
+        Set<String> parameterTypeVariables = new HashSet<>();
+        for (IVariableSymbol parameter : methodSymbol.getParameters()) {
+            String parameterId = parameter.getAbsoluteName();
+            String typeVariable = addVariableToLeftBindings(
+                    parameterId, softTypingBindings, worklistDto.overloadBindings);
+            parameterTypeVariables.add(typeVariable);
+        }
+
+        for (IVariableSymbol parameter : methodSymbol.getParameters()) {
+            String parameterId = parameter.getAbsoluteName();
+            String typeVariable = softTypingBindings.getTypeVariable(parameterId);
+            addUpperRefBoundsToWorklistBindings(worklistDto, softTypingBindings, parameterTypeVariables, typeVariable);
+        }
+    }
+
+    private void addUpperRefBoundsToWorklistBindings(
+            WorklistDto worklistDto,
+            IOverloadBindings softTypingBindings,
+            Set<String> parameterTypeVariables,
+            String typeVariable) {
+
+        if (softTypingBindings.hasUpperRefBounds(typeVariable)) {
+            // param was probably assigned to a local variable (or a parameter), hence we need to add the local
+            // variable to the binding as well because otherwise it does not have the lower type bound we want
+            // which causes a LowerBoundException later on (see TINS-543 soft typing and cyclic variable references)
+            for (String refTypeVariable : softTypingBindings.getUpperRefBounds(typeVariable)) {
+                if (!parameterTypeVariables.contains(refTypeVariable)) {
+                    Set<String> variableIds = softTypingBindings.getVariableIds(refTypeVariable);
+                    for (String variableId : variableIds) {
+                        if (variableId.contains("$") && !worklistDto.overloadBindings.containsVariable(variableId)) {
+                            String newTypeVariable = addVariableToLeftBindings(
+                                    variableId, softTypingBindings, worklistDto.overloadBindings);
+
+                            addUpperRefBoundsToWorklistBindings(
+                                    worklistDto, softTypingBindings, parameterTypeVariables, newTypeVariable);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private String addVariableToLeftBindings(
+            String variableId,
+            IOverloadBindings softTypingBindings,
+            IOverloadBindings leftBindings) {
+
+        String typeVariable = softTypingBindings.getTypeVariable(variableId);
+        ITypeVariableReference nextTypeVariable = leftBindings.getNextTypeVariable();
+        leftBindings.addVariable(variableId, new FixedTypeVariableReference(nextTypeVariable));
+        if (softTypingBindings.hasLowerTypeBounds(typeVariable)) {
+            //TODO TINS-534 type hints and soft-typing
+            // we need to introduce a local variable here if a type hint was used and the inferred type is
+            // different
+            IUnionTypeSymbol lowerTypeBounds = softTypingBindings.getLowerTypeBounds(typeVariable);
+            leftBindings.addLowerTypeBound(nextTypeVariable.getTypeVariable(), lowerTypeBounds);
+        }
+        return typeVariable;
     }
 
     private boolean isNotDirectRecursiveAssignment(IConstraint constraint) {
@@ -371,21 +410,23 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
             Map<Integer, Pair<ITypeSymbol, List<ITypeSymbol>>> theRuntimeChecks) {
 
         Map<Integer, Pair<ITypeSymbol, List<ITypeSymbol>>> runtimeChecks = theRuntimeChecks;
-        Map<String, IUnionTypeSymbol> oldTypes = null;
+        Map<String, IUnionTypeSymbol> oldTypeBounds = null;
         boolean requiresExplicit = !runtimeChecks.isEmpty();
         if (requiresExplicit) {
-            oldTypes = new HashMap<>(runtimeChecks.size());
+            int size = runtimeChecks.size();
+            oldTypeBounds = new HashMap<>(size);
             for (Map.Entry<Integer, Pair<ITypeSymbol, List<ITypeSymbol>>> entry : runtimeChecks.entrySet()) {
                 String argumentId = constraint.getArguments().get(entry.getKey()).getAbsoluteName();
                 String typeVariable = leftBindings.getTypeVariable(argumentId);
 
                 IUnionTypeSymbol lowerTypeBounds = leftBindings.getLowerTypeBounds(typeVariable);
-                oldTypes.put(argumentId, lowerTypeBounds);
+                oldTypeBounds.put(argumentId, lowerTypeBounds);
 
                 IUnionTypeSymbol unionTypeSymbol = symbolFactory.createUnionTypeSymbol();
                 unionTypeSymbol.addTypeSymbol(entry.getValue().first);
-                leftBindings.setLowerTypeBound(typeVariable, unionTypeSymbol);
-                leftBindings.removeUpperTypeBound(typeVariable);
+                leftBindings.setLowerTypeBounds(typeVariable, unionTypeSymbol);
+                leftBindings.removeUpperTypeBounds(typeVariable);
+
             }
         } else {
             runtimeChecks = null;
@@ -399,7 +440,7 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
                 overload, leftBindings, dto.implicitConversions, runtimeChecks, requiresExplicit);
 
         if (requiresExplicit) {
-            for (Map.Entry<String, IUnionTypeSymbol> entry : oldTypes.entrySet()) {
+            for (Map.Entry<String, IUnionTypeSymbol> entry : oldTypeBounds.entrySet()) {
                 String parameterId = entry.getKey();
                 ITypeVariableReference reference = leftBindings.getTypeVariableReference(parameterId);
                 String typeVariable = reference.getTypeVariable();
@@ -409,12 +450,12 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
                     if (newUpperTypeBound != null) {
                         IIntersectionTypeSymbol leastUpperBound = getLeastCommonUpperTypeBound(
                                 oldLowerTypeBound, newUpperTypeBound);
-                        leftBindings.setUpperTypeBound(typeVariable, leastUpperBound);
+                        leftBindings.setUpperTypeBounds(typeVariable, leastUpperBound);
                     }
                 } else {
                     IIntersectionTypeSymbol intersectionTypeSymbol = symbolFactory.createIntersectionTypeSymbol();
                     intersectionTypeSymbol.addTypeSymbol(oldLowerTypeBound);
-                    leftBindings.setUpperTypeBound(typeVariable, intersectionTypeSymbol);
+                    leftBindings.setUpperTypeBounds(typeVariable, intersectionTypeSymbol);
                 }
                 leftBindings.addLowerTypeBound(typeVariable, oldLowerTypeBound);
             }
@@ -443,7 +484,7 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
         IOverloadBindings leftBindings = mostSpecificOverloads.get(0).bindings;
         String leftHandSide = constraint.getLeftHandSide().getAbsoluteName();
         String lhsTypeVariable = leftBindings.getTypeVariable(leftHandSide);
-        leftBindings.removeUpperTypeBound(lhsTypeVariable);
+        leftBindings.removeUpperTypeBounds(lhsTypeVariable);
 
         List<IVariable> arguments = constraint.getArguments();
         int numberOfArguments = arguments.size();
@@ -470,7 +511,7 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
                 String argumentId = arguments.get(iArgument).getAbsoluteName();
                 String typeVariable = leftBindings.getTypeVariable(argumentId);
                 if (iMostSpecific == 0) {
-                    leftBindings.removeUpperTypeBound(typeVariable);
+                    leftBindings.removeUpperTypeBounds(typeVariable);
                     upperArguments.add(symbolFactory.createUnionTypeSymbol());
                 }
 
