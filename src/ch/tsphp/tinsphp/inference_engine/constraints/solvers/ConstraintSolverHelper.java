@@ -119,9 +119,10 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
             ITypeVariableReference typeVariableReference = reference;
             //if it is a literal then we know already the lower bound and it is a fix typed type variable
             ITypeSymbol typeSymbol = variable.getType();
-            if (typeSymbol != null &&
-                    (worklistDto.isInSoftTypingMode ||
-                            !worklistDto.isSolvingMethod || !variable.getName().startsWith("$"))) {
+            if (typeSymbol != null
+                    && (worklistDto.isInSoftTypingMode
+                    || !worklistDto.isSolvingMethod
+                    || !variable.getName().startsWith("$"))) {
                 typeVariableReference = new FixedTypeVariableReference(reference);
             }
             bindings.addVariable(absoluteName, typeVariableReference);
