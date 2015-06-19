@@ -76,7 +76,7 @@ public class ConstraintSolver implements IConstraintSolver
             IGlobalNamespaceScope globalDefaultNamespaceScope, Deque<WorklistDto> workDeque) {
         List<IOverloadBindings> bindings = solveConstraints(workDeque);
         if (bindings.isEmpty()) {
-            //TODO rstoll TINS-306 inference - runtime check insertion
+            //TODO TINS-539 soft typing in global scope
         } else {
             globalDefaultNamespaceScope.setBindings(bindings);
             IOverloadBindings overloadBindings = bindings.get(0);

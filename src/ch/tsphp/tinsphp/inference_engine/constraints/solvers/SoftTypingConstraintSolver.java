@@ -248,9 +248,12 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
             List<OverloadRankingDto> applicableOverloads = new ArrayList<>();
             for (IFunctionType overload : constraint.getMethodSymbol().getOverloads()) {
                 if (numberOfArguments >= overload.getNumberOfNonOptionalParameters()) {
-                    OverloadRankingDto dto = getOverloadRankingDto(
-                            worklistDto, constraint, overload);
-                    if (dto != null) {
+                    IOverloadBindings leftBindings = symbolFactory.createOverloadBindings(worklistDto.overloadBindings);
+                    Map<Integer, Pair<ITypeSymbol, List<ITypeSymbol>>> runtimeChecks = new HashMap<>();
+                    boolean overloadApplies = isApplicable(constraint, overload, leftBindings, runtimeChecks);
+                    if (overloadApplies) {
+                        OverloadRankingDto dto = applyOverload(
+                                worklistDto, constraint, overload, leftBindings, runtimeChecks);
                         applicableOverloads.add(dto);
                     }
                 }
@@ -282,21 +285,6 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
                 issueReporter.constraintViolation(worklistDto.overloadBindings, constraint);
             }
         }
-    }
-
-    private OverloadRankingDto getOverloadRankingDto(
-            WorklistDto worklistDto, IConstraint constraint, IFunctionType overload) {
-
-        IOverloadBindings leftBindings = symbolFactory.createOverloadBindings(worklistDto.overloadBindings);
-        Map<Integer, Pair<ITypeSymbol, List<ITypeSymbol>>> runtimeChecks = new HashMap<>();
-
-        boolean overloadApplies = isApplicable(
-                constraint, overload, leftBindings, runtimeChecks);
-
-        if (overloadApplies) {
-            return applyOverload(worklistDto, constraint, overload, leftBindings, runtimeChecks);
-        }
-        return null;
     }
 
     private boolean isApplicable(
