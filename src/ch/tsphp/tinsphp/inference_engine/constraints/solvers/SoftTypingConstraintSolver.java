@@ -546,8 +546,6 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
 
         }
 
-        runtimeChecks.put(-1, new Pair<ITypeSymbol, List<ITypeSymbol>>(upperUnion, null));
-
         leftBindings.addUpperTypeBound(lhsTypeVariable, upperUnion);
         for (int i = 0; i < numberOfArguments; ++i) {
             String argumentId = arguments.get(i).getAbsoluteName();
