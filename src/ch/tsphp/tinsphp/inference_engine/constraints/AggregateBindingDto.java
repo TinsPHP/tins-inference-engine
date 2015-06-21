@@ -15,6 +15,7 @@ import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import ch.tsphp.tinsphp.common.utils.Pair;
 
 import java.util.Map;
+import java.util.SortedSet;
 
 public class AggregateBindingDto
 {
@@ -30,6 +31,8 @@ public class AggregateBindingDto
     public Map<Integer, Pair<ITypeSymbol, ITypeSymbol>> implicitConversions;
     public Integer argumentNumber;
     public boolean hasNarrowedArguments;
+    public Map<String, SortedSet<ITypeSymbol>> lowerConstraints;
+    public Map<String, SortedSet<ITypeSymbol>> upperConstraints;
 
     public AggregateBindingDto(
             IConstraint theConstraint,

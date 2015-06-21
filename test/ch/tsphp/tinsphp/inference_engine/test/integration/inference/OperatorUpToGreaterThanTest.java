@@ -148,6 +148,18 @@ public class OperatorUpToGreaterThanTest extends AInferenceNamespaceTypeTest
                         testStructs("(/= $x '1')", "\\.\\.", asList("falseType", "float", "int"), 1, 2, 0)
                 },
                 {
+                        "$x = false; $x /= true;",
+                        testStructs("(/= $x true)", "\\.\\.", asList("falseType", "float", "int"), 1, 2, 0)
+                },
+                {
+                        "$x = false; $x /= 1;",
+                        testStructs("(/= $x 1)", "\\.\\.", asList("falseType", "float", "int"), 1, 2, 0)
+                },
+                {
+                        "$x = false; $x /= '1';",
+                        testStructs("(/= $x '1')", "\\.\\.", asList("falseType", "float", "int"), 1, 2, 0)
+                },
+                {
                         "$x = 1; $x /= 1;",
                         testStructs("(/= $x 1)", "\\.\\.", asList("falseType", "float", "int"), 1, 2, 0)
                 },

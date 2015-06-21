@@ -47,7 +47,7 @@ public class ParameterListHelper
                 prefixExpected + scopeName + "? "
                         + scopeName + "$a" + (isDefinitionPhase ? "" : "?")
         });
-        String[] types = TypeHelper.getClassInterfaceTypes();
+        String[] types = TestTypeHelper.getClassInterfaceTypes();
         for (String type : types) {
             collection.add(new Object[]{
                     prefix + type + " $a" + appendix,

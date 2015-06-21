@@ -12,7 +12,7 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.testutils;
 
-public class TypeHelper
+public class TestTypeHelper
 {
 
     public static String[] getClassInterfaceTypes() {

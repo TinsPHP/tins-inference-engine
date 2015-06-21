@@ -165,10 +165,40 @@ public class FunctionCallTest extends AInferenceNamespaceTypeTest
                         new AbsoluteTypeNameTestStruct[]{
                                 testStruct("$a", "\\.\\.", asList("int"), null, 1, 5, 0, 0),
                                 testStruct("$b", "\\.\\.", asList("float"), null, 1, 6, 0, 0),
-                                testStruct("$c", "\\.\\.", asList("float"), null, 1, 7, 0, 0),
-                                testStruct("$d", "\\.\\.", asList("float"), null, 1, 8, 0, 0)
+                                //TODO TINS-418 function application only consider upper bounds 0.4.1 - only float
+                                testStruct("$c", "\\.\\.", asList("float", "int"), null, 1, 7, 0, 0),
+                                //TODO TINS-418 function application only consider upper bounds 0.4.1 - only float
+                                testStruct("$d", "\\.\\.", asList("int"), null, 1, 8, 0, 0)
                         }
-                }
+                },
+                {
+                        "function foo2($x){return $x + 1;} $a = foo2(1); $b = foo2(1.2); $c = foo2('1');",
+                        new AbsoluteTypeNameTestStruct[]{
+                                testStruct("$a", "\\.\\.", asList("int"), null, 1, 4, 0, 0),
+                                testStruct("$b", "\\.\\.", asList("float"), null, 1, 5, 0, 0),
+                                testStruct("$c", "\\.\\.", asList("int", "float"), null, 1, 6, 0, 0)
+                        }
+                },
+                //TINS-549 convertible type with lower to same type variable
+//                {
+//                        "function foo3($x){$x = $x + 1; return $x;} $a = foo3(1); $b = foo3(1.2); $c = foo3('1');",
+//                        new AbsoluteTypeNameTestStruct[]{
+//                                testStruct("$a", "\\.\\.", asList("int"), null, 1, 4, 0, 0),
+//                                testStruct("$b", "\\.\\.", asList("float"), null, 1, 5, 0, 0),
+//                                testStruct("$c", "\\.\\.", asList("int","float"), null, 1, 6, 0, 0)
+//                        }
+//                },
+                {
+                        "function foo4($x, $y, $z){return $x / $y / $z;}"
+                                + "$a = foo4(1, 2, 3);"
+                                + "$b = foo4(1.2, 1.5, 1.6);"
+                                + "$c = foo4(1.2, 1.3, '1');",
+                        new AbsoluteTypeNameTestStruct[]{
+                                testStruct("$a", "\\.\\.", asList("int", "float", "falseType"), null, 1, 4, 0, 0),
+                                testStruct("$b", "\\.\\.", asList("float", "falseType"), null, 1, 5, 0, 0),
+                                testStruct("$c", "\\.\\.", asList("int", "float", "falseType"), null, 1, 6, 0, 0)
+                        }
+                },
         });
     }
 }

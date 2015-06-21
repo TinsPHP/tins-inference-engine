@@ -142,6 +142,7 @@ public class OperatorFromGreaterThanTest extends AInferenceNamespaceTypeTest
                 {"'1' / 1.3;", testStructs("(/ '1' 1.3)", "\\.\\.", asList("falseType", "float"), 1, 0, 0)},
                 {"1 / 1;", testStructs("(/ 1 1)", "\\.\\.", asList("falseType", "float", "int"), 1, 0, 0)},
                 {"'1' / 1;", testStructs("(/ '1' 1)", "\\.\\.", asList("falseType", "float", "int"), 1, 0, 0)},
+                {"1 / '1';", testStructs("(/ 1 '1')", "\\.\\.", asList("falseType", "float", "int"), 1, 0, 0)},
                 {"'1' / '1.3';", testStructs("(/ '1' '1.3')", "\\.\\.", asList("falseType", "float", "int"), 1, 0, 0)},
                 {
                         "$x = (bool) 1 ? 1 : 1.5; $x / $x;",

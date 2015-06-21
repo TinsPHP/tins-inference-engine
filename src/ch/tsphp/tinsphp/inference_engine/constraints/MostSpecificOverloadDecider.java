@@ -42,30 +42,34 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
     public OverloadRankingDto inNormalMode(
             WorklistDto worklistDto, List<OverloadRankingDto> applicableOverloads, List<ITypeSymbol> argumentTypes) {
 
-        List<OverloadRankingDto> overloadRankingDtos = filterOverload(applicableOverloads);
+        List<OverloadRankingDto> overloadRankingDtos = preFilterOverloads(applicableOverloads);
         OverloadRankingDto overloadRankingDto = overloadRankingDtos.get(0);
         if (overloadRankingDtos.size() > 1) {
             overloadRankingDtos = fixOverloads(worklistDto, overloadRankingDtos);
-
-            int numberOfParameters = overloadRankingDto.overload.getParameters().size();
-            List<Pair<ITypeSymbol, ITypeSymbol>> bounds = getParameterBounds(overloadRankingDtos, numberOfParameters);
-            overloadRankingDtos = getMostSpecificApplicableOverload(overloadRankingDtos, bounds);
-
+            overloadRankingDtos = filterOverloads(overloadRankingDtos);
             overloadRankingDto = overloadRankingDtos.get(0);
-            if (overloadRankingDtos.size() != 1 && !worklistDto.isInIterativeMode) {
-                throw new AmbiguousOverloadException(argumentTypes, overloadRankingDtos);
+            if (overloadRankingDtos.size() > 1) {
+
+                int numberOfParameters = overloadRankingDto.overload.getParameters().size();
+                List<Pair<ITypeSymbol, ITypeSymbol>> bounds = getParameterBounds(overloadRankingDtos,
+                        numberOfParameters);
+
+                overloadRankingDtos = getMostSpecificApplicableOverload(overloadRankingDtos, bounds);
+                overloadRankingDto = overloadRankingDtos.get(0);
+                if (overloadRankingDtos.size() != 1 && !worklistDto.isInIterativeMode) {
+                    throw new AmbiguousOverloadException(argumentTypes, overloadRankingDtos);
+                }
             }
         }
         return overloadRankingDto;
     }
-
 
     //Warning! start code duplication, more or less the same as in inNormalMode
     @Override
     public List<OverloadRankingDto> inSoftTypingMode(
             WorklistDto worklistDto, List<OverloadRankingDto> applicableOverloads) {
 
-        List<OverloadRankingDto> overloadRankingDtos = filterOverload(applicableOverloads);
+        List<OverloadRankingDto> overloadRankingDtos = preFilterOverloads(applicableOverloads);
         if (overloadRankingDtos.size() > 1) {
             OverloadRankingDto overloadRankingDto = overloadRankingDtos.get(0);
             //comparing overloads with explicit conversions require a different ranking
@@ -84,25 +88,46 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
     //Warning! end code duplication, more or less the same as in inNormalMode
 
 
-    private List<OverloadRankingDto> filterOverload(List<OverloadRankingDto> applicableOverloads) {
-        //can be null since the first applicable overload will certainly not have Interger.MAX_VALUE implicit
-        // conversions and hence initialise overloadRankingDtos
-        List<OverloadRankingDto> overloadRankingDtos = null;
-        int minNumberOfImplicitConversions = Integer.MAX_VALUE;
-        boolean wereArgumentsNarrowed = true;
+    private List<OverloadRankingDto> preFilterOverloads(List<OverloadRankingDto> applicableOverloads) {
+        int size = applicableOverloads.size();
 
-        for (OverloadRankingDto dto : applicableOverloads) {
+        List<OverloadRankingDto> overloadRankingDtos = new ArrayList<>(size);
+        boolean wereArgumentsNarrowed = true;
+        for (int i = 0; i < size; ++i) {
+            OverloadRankingDto dto = applicableOverloads.get(i);
+            if (wereArgumentsNarrowed == dto.hasNarrowedArguments) {
+                overloadRankingDtos.add(dto);
+            } else if (wereArgumentsNarrowed) {
+                wereArgumentsNarrowed = dto.hasNarrowedArguments;
+                overloadRankingDtos = new ArrayList<>(size - i);
+                overloadRankingDtos.add(dto);
+            }
+        }
+        return overloadRankingDtos;
+    }
+
+    private List<OverloadRankingDto> filterOverloads(List<OverloadRankingDto> fixedOverloads) {
+        int size = fixedOverloads.size();
+
+        List<OverloadRankingDto> overloadRankingDtos = new ArrayList<>(size);
+
+        int minNumberOfImplicitConversions = Integer.MAX_VALUE;
+        boolean usesConvertibleTypes = true;
+
+        for (int i = 0; i < size; ++i) {
+            OverloadRankingDto dto = fixedOverloads.get(i);
             int numberOfImplicitConversions = (dto.implicitConversions == null ? 0 : dto.implicitConversions.size());
-            if (wereArgumentsNarrowed == dto.hasNarrowedArguments
+            if (usesConvertibleTypes == dto.usesConvertibleTypes
                     && numberOfImplicitConversions == minNumberOfImplicitConversions) {
 
                 overloadRankingDtos.add(dto);
 
-            } else if (wereArgumentsNarrowed && !dto.hasNarrowedArguments
-                    || numberOfImplicitConversions < minNumberOfImplicitConversions) {
-                wereArgumentsNarrowed = dto.hasNarrowedArguments;
+            } else if ((usesConvertibleTypes && !dto.usesConvertibleTypes)
+                    || (usesConvertibleTypes == dto.usesConvertibleTypes
+                    && numberOfImplicitConversions < minNumberOfImplicitConversions)) {
+                usesConvertibleTypes = dto.usesConvertibleTypes;
                 minNumberOfImplicitConversions = numberOfImplicitConversions;
-                overloadRankingDtos = new ArrayList<>();
+                overloadRankingDtos = new ArrayList<>(size - i);
                 overloadRankingDtos.add(dto);
             }
         }
@@ -143,6 +168,7 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
                     copyOverload, dto.bindings, dto.implicitConversions, dto.runtimeChecks, dto.hasNarrowedArguments);
             fixedDto.numberOfTypeParameters = nonFixedTypeParameters.size();
         }
+        fixedDto.usesConvertibleTypes = overload.hasConvertibleParameterTypes();
         return fixedDto;
     }
 
@@ -306,6 +332,10 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
                 && dto.mostSpecificUpperCount == numberOfParameters;
     }
 
+    /**
+     * Returns a number less than 0 if dto is less specific than the currentMostSpecific,
+     * 0 if they are equal and a bigger number if it is more specific.
+     */
     private int compare(OverloadRankingDto dto, OverloadRankingDto currentMostSpecific) {
         int diff = dto.mostSpecificUpperCount - currentMostSpecific.mostSpecificUpperCount;
         if (diff == 0) {

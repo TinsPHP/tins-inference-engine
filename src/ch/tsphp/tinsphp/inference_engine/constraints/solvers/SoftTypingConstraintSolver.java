@@ -8,6 +8,7 @@ package ch.tsphp.tinsphp.inference_engine.constraints.solvers;
 
 import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.TinsPHPConstants;
+import ch.tsphp.tinsphp.common.inference.constraints.EOverloadBindingsMode;
 import ch.tsphp.tinsphp.common.inference.constraints.FixedTypeVariableReference;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
@@ -76,7 +77,7 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
 
     private WorklistDto createAndInitWorklistDto(IMethodSymbol methodSymbol) {
         IOverloadBindings leftBindings = symbolFactory.createOverloadBindings();
-        leftBindings.changeToSoftTypingMode();
+        leftBindings.setMode(EOverloadBindingsMode.SoftTyping);
         WorklistDto worklistDto = new WorklistDto(null, methodSymbol, 0, true, leftBindings);
         worklistDto.isInSoftTypingMode = true;
         worklistDto.param2LowerParams = new HashMap<>();
@@ -96,8 +97,9 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
         if (refMethodSymbol.getOverloads().size() > 0) {
             if (isNotDirectRecursiveAssignment(constraint)) {
 
-                constraintSolverHelper.createBindingsIfNecessary(worklistDto, constraint.getLeftHandSide(),
-                        constraint.getArguments());
+                constraintSolverHelper.createBindingsIfNecessary(
+                        worklistDto, constraint.getLeftHandSide(), constraint.getArguments());
+
                 for (IFunctionType overload : refMethodSymbol.getOverloads()) {
                     if (constraint.getArguments().size() >= overload.getNumberOfNonOptionalParameters()) {
                         AggregateBindingDto dto = new AggregateBindingDto(
@@ -134,11 +136,11 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
 //            }
 //        }
 
-        worklistDto.overloadBindings.changeToModificationMode();
+        worklistDto.overloadBindings.setMode(EOverloadBindingsMode.Modification);
         worklistDto.isInSoftTypingMode = false;
         solveConstraintsAfterInit(methodSymbol, worklistDto);
 
-        worklistDto.overloadBindings.changeToNormalMode();
+        worklistDto.overloadBindings.setMode(EOverloadBindingsMode.Normal);
         List<IOverloadBindings> overloadBindingsList = new ArrayList<>(1);
         overloadBindingsList.add(worklistDto.overloadBindings);
         constraintSolverHelper.finishingMethodConstraints(methodSymbol, overloadBindingsList);

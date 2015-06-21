@@ -21,6 +21,7 @@ public class OverloadRankingDto
     public IFunctionType overload;
     public IOverloadBindings bindings;
     public boolean hasNarrowedArguments;
+    public boolean usesConvertibleTypes;
     public int numberOfTypeParameters;
     public int mostGeneralLowerCount;
     public int mostSpecificUpperCount;
@@ -47,6 +48,7 @@ public class OverloadRankingDto
                 + ", low: " + mostGeneralLowerCount
                 + ", tp: " + numberOfTypeParameters
                 + ", impl: " + (implicitConversions == null ? 0 : implicitConversions.size())
+                + ", conv: " + usesConvertibleTypes
                 + ", checks: " + (runtimeChecks == null ? 0 : runtimeChecks.size())
                 + "]";
     }

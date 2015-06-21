@@ -60,27 +60,13 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
                                 bool + " x falseType x falseType -> " + bool,
                                 bool + " x falseType x falseType -> falseType",
                                 bool + " x falseType x trueType -> " + bool,
-                                bool + " x falseType x " + asBool + " -> " + bool,
                                 bool + " x trueType x " + bool + " -> " + bool,
                                 bool + " x trueType x falseType -> " + bool,
                                 bool + " x trueType x trueType -> " + bool,
                                 bool + " x trueType x trueType -> trueType",
-                                bool + " x trueType x " + asBool + " -> " + bool,
-                                bool + " x " + asBool + " x falseType -> " + bool,
-                                bool + " x " + asBool + " x trueType -> " + bool,
-                                bool + " x " + asBool + " x " + asBool + " -> " + bool,
-                                asBool + " x " + bool + " x " + bool + " -> " + bool,
-                                asBool + " x " + bool + " x falseType -> " + bool,
-                                asBool + " x " + bool + " x trueType -> " + bool,
-                                asBool + " x falseType x " + bool + " -> " + bool,
-                                asBool + " x falseType x falseType -> " + bool,
-                                asBool + " x falseType x falseType -> falseType",
                                 asBool + " x falseType x trueType -> " + bool,
                                 asBool + " x falseType x " + asBool + " -> " + bool,
-                                asBool + " x trueType x " + bool + " -> " + bool,
                                 asBool + " x trueType x falseType -> " + bool,
-                                asBool + " x trueType x trueType -> " + bool,
-                                asBool + " x trueType x trueType -> trueType",
                                 asBool + " x trueType x " + asBool + " -> " + bool,
                                 asBool + " x " + asBool + " x falseType -> " + bool,
                                 asBool + " x " + asBool + " x trueType -> " + bool,
@@ -92,8 +78,6 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
                         testStructs("foo()", "\\.\\.", asList(
                                 "int x int -> int",
                                 "float x float -> float",
-                                "float x {as (float | int)} -> float",
-                                "{as (float | int)} x float -> float",
                                 "{as T} x {as T} -> T \\ T <: (float | int)",
                                 "array x array -> array"
                         ), 1, 0, 2)
@@ -102,7 +86,6 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
                         "function foo($x){return $x + 1;}",
                         testStructs("foo()", "\\.\\.", asList(
                                 "int -> int",
-                                "float -> float",
                                 "{as T} -> T \\ int <: T <: (float | int)"
                         ), 1, 0, 2)
                 },
@@ -110,21 +93,20 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
                         "function foo($x){return $x + 1.5;}",
                         testStructs("foo()", "\\.\\.", asList(
                                 "float -> float",
-                                "{as (float | int)} -> float",
                                 "{as T} -> T \\ float <: T <: (float | int)"
                         ), 1, 0, 2)
                 },
+                //TODO TINS-550 constrain type variables of convertible type
                 {
                         "function foo($x){return $x + (1 ? 1: 1.3);}",
                         testStructs("foo()", "\\.\\.", asList(
-                                "float -> float",
                                 "{as (float | int)} -> (float | int)"
                         ), 1, 0, 2)
                 },
+                //TODO TINS-550 constrain type variables of convertible type
                 {
                         "function foo($x){return $x + true;}",
                         testStructs("foo()", "\\.\\.", asList(
-                                "float -> float",
                                 "{as T} -> T \\ int <: T <: (float | int)"
                         ), 1, 0, 2)
                 },
@@ -133,44 +115,16 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
                         testStructs("foo()", "\\.\\.", asList(
                                 "array x array x array -> array",
                                 "float x float x float -> float",
-                                "float x float x {as (float | int)} -> float",
-                                "float x float x {as T} -> T \\ float <: T <: (float | int)",
-                                "float x {as (float | int)} x float -> float",
-                                "float x {as (float | int)} x {as (float | int)} -> float",
-                                "float x {as (float | int)} x {as T} -> T \\ float <: T <: (float | int)",
-                                "int x int x float -> float",
                                 "int x int x int -> int",
-                                "int x int x {as T} -> T \\ int <: T <: (float | int)",
-                                "{as (float | int)} x float x float -> float",
-                                "{as (float | int)} x float x {as (float | int)} -> float",
-                                "{as (float | int)} x float x {as T} -> T \\ float <: T <: (float | int)",
-                                "{as (float | int)} x {as (float | int)} x float -> float",
-                                "{as T2} x {as T2} x {as T1} -> T1 \\ T2 <: T1 <: (float | int), T2 <: (float | int)",
-                                "{as float} x {as float} x float -> float",
-                                "{as float} x {as float} x {as (float | int)} -> float",
-                                "{as int} x {as int} x int -> int"
+                                "{as T2} x {as T2} x {as T1} -> T1 \\ T2 <: T1 <: (float | int), T2 <: (float | int)"
                         ), 1, 0, 2)
                 },
                 {
                         "function foo($x, $y, $z){return $x - $y - $z;}",
                         testStructs("foo()", "\\.\\.", asList(
                                 "float x float x float -> float",
-                                "float x float x {as (float | int)} -> float",
-                                "float x float x {as T} -> T \\ float <: T <: (float | int)",
-                                "float x {as (float | int)} x float -> float",
-                                "float x {as (float | int)} x {as (float | int)} -> float",
-                                "float x {as (float | int)} x {as T} -> T \\ float <: T <: (float | int)",
-                                "int x int x float -> float",
                                 "int x int x int -> int",
-                                "int x int x {as T} -> T \\ int <: T <: (float | int)",
-                                "{as (float | int)} x float x float -> float",
-                                "{as (float | int)} x float x {as (float | int)} -> float",
-                                "{as (float | int)} x float x {as T} -> T \\ float <: T <: (float | int)",
-                                "{as (float | int)} x {as (float | int)} x float -> float",
-                                "{as T2} x {as T2} x {as T1} -> T1 \\ T2 <: T1 <: (float | int), T2 <: (float | int)",
-                                "{as float} x {as float} x float -> float",
-                                "{as float} x {as float} x {as (float | int)} -> float",
-                                "{as int} x {as int} x int -> int"
+                                "{as T2} x {as T2} x {as T1} -> T1 \\ T2 <: T1 <: (float | int), T2 <: (float | int)"
                         ), 1, 0, 2)
                 },
                 {
@@ -178,6 +132,7 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
                         testStructs("foo()", "\\.\\.", asList(
                                 "float x float -> (falseType | float)",
                                 "float x {as (float | int)} -> (falseType | float)",
+                                "int x int -> (falseType | float | int)",
                                 "{as (float | int)} x float -> (falseType | float)",
                                 "{as (float | int)} x {as (float | int)} -> (falseType | float | int)"
                         ), 1, 0, 2)
@@ -185,13 +140,12 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
                 {
                         "function foo9($x, $y){return $x + $y + 1;}",
                         testStructs("foo9()", "\\.\\.", asList(
+
                                 "int x int -> int",
                                 "float x float -> float",
-                                "float x {as (float | int)} -> float",
-                                "{as (float | int)} x float -> float",
                                 //TODO TINS-531 inferred overload is not general enough
                                 //should be instead of the following
-                                //"{as T} x {as T} -> T \\ T <: num"
+                                //"{as T} x {as T} -> T \\ int <: T <: num"
                                 "{as int} x {as int} -> int"
                         ), 1, 0, 2)
                 },

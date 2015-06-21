@@ -236,7 +236,7 @@ public class ConstraintSolverTest
                 mock(ITSPHPAst.class), e1, asList((IVariable) $x, $y), minimalMethodSymbol2);
 
         //e1 + $z
-        //{as T} x {as T} -> T \ T <: num
+        //regular overloads of the + operator
         IVariableSymbol $z = mock(IVariableSymbol.class);
         when($z.getAbsoluteName()).thenReturn("$z");
         when($z.getName()).thenReturn("$z");
@@ -264,38 +264,6 @@ public class ConstraintSolverTest
         List<IOverloadBindings> bindingsList = captor.getValue();
 
         assertThat(bindingsList, hasItem(withVariableBindings(
-                varBinding("$x", "V2", asList("{as int}"), asList("{as int}"), true),
-                varBinding("$y", "V3", asList("{as int}"), asList("{as int}"), true),
-                varBinding("$z", "V5", asList("int"), asList("int"), true),
-                varBinding("e1", "V1", asList("int"), asList("int"), true),
-                varBinding("e2", "V4", asList("int"), asList("int"), true),
-                varBinding("rtn", "V6", asList("int"), asList("int"), true)
-        )));
-        assertThat(bindingsList, hasItem(withVariableBindings(
-                varBinding("$x", "V2", asList("{as float}"), asList("{as float}"), true),
-                varBinding("$y", "V3", asList("{as float}"), asList("{as float}"), true),
-                varBinding("$z", "V5", asList("float"), asList("float"), true),
-                varBinding("e1", "V1", asList("float"), asList("float"), true),
-                varBinding("e2", "V4", asList("float"), asList("float"), true),
-                varBinding("rtn", "V6", asList("float"), asList("float"), true)
-        )));
-        assertThat(bindingsList, hasItem(withVariableBindings(
-                varBinding("$x", "V2", asList("{as float}"), asList("{as float}"), true),
-                varBinding("$y", "V3", asList("{as float}"), asList("{as float}"), true),
-                varBinding("$z", "V5", asList("{as (float | int)}"), asList("{as (float | int)}"), true),
-                varBinding("e1", "V1", asList("float"), asList("float"), true),
-                varBinding("e2", "V4", asList("float"), asList("float"), true),
-                varBinding("rtn", "V6", asList("float"), asList("float"), true)
-        )));
-        assertThat(bindingsList, hasItem(withVariableBindings(
-                varBinding("$x", "V2", asList("{as (float | int)}"), asList("{as (float | int)}"), true),
-                varBinding("$y", "V3", asList("{as (float | int)}"), asList("{as (float | int)}"), true),
-                varBinding("$z", "V5", asList("float"), asList("float"), true),
-                varBinding("e1", "V1", asList("int", "float"), asList("(float | int)"), true),
-                varBinding("e2", "V4", asList("float"), asList("float"), true),
-                varBinding("rtn", "V6", asList("float"), asList("float"), true)
-        )));
-        assertThat(bindingsList, hasItem(withVariableBindings(
                 varBinding("$x", "V2", asList("{as T2}"), asList("{as T2}"), true),
                 varBinding("$y", "V3", asList("{as T2}"), asList("{as T2}"), true),
                 varBinding("$z", "V5", asList("{as T1}"), asList("{as T1}"), true),
@@ -304,7 +272,7 @@ public class ConstraintSolverTest
                 varBinding("rtn", "T1", asList("@T2"), asList("(float | int)"), false)
         )));
 
-        assertThat(bindingsList.size(), is(5));
+        assertThat(bindingsList.size(), is(1));
     }
 
     private IConstraintSolver createConstraintSolver(

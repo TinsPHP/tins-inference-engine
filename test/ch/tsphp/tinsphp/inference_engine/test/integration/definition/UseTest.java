@@ -12,7 +12,7 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.definition;
 
-import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.TypeHelper;
+import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.TestTypeHelper;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.definition.ADefinitionSymbolTest;
 import org.antlr.runtime.RecognitionException;
 import org.junit.Test;
@@ -41,7 +41,7 @@ public class UseTest extends ADefinitionSymbolTest
         List<Object[]> collection = new ArrayList<>();
 
 
-        String[] types = TypeHelper.getClassInterfaceTypes();
+        String[] types = TestTypeHelper.getClassInterfaceTypes();
         for (String type : types) {
             collection.add(new Object[]{
                     "use " + type + " as c;",

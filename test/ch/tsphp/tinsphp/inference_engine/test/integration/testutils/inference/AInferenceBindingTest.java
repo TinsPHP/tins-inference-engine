@@ -63,9 +63,10 @@ public class AInferenceBindingTest extends AInferenceTest
                             testStruct.dtos.get(i)
                     )));
                 } catch (AssertionError ex) {
-                    System.out.println(testString + " -- " + testStruct.astText
-                            + " failed (testStruct Nr " + counter + "). Binding error for overloadBindings " + i);
-                    throw ex;
+                    Assert.fail(testString + " -- " + testStruct.astText
+                            + " failed (testStruct Nr " + counter + "). "
+                            + "Binding error for overloadBindings " + i + "\n"
+                            + ex.getMessage());
                 }
             }
 

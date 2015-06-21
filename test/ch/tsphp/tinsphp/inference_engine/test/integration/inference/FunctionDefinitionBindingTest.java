@@ -165,28 +165,6 @@ public class FunctionDefinitionBindingTest extends AInferenceBindingTest
                                         varBinding("1@5|0", "V7", asList("int"), null, true),
                                         varBinding(RETURN_VARIABLE_NAME, "V8", asList("int"), asList("int"), true)
                                 ),
-                                //float x {as num} -> int
-                                matcherDto(
-                                        varBinding("foo6()+@3|0", "V1", asList("float"), asList("float"), true),
-                                        varBinding("foo6()$x", "V2", asList("float"), asList("float"), true),
-                                        varBinding("foo6()$y", "V3", asNum, asNum, true),
-                                        varBinding("foo6()=@2|0", "V4", asList("float"), asList("float"), true),
-                                        varBinding("foo6()$a", "V4", asList("float"), asList("float"), true),
-                                        varBinding("return@4|0", "V6", asList("int"), asList("int"), true),
-                                        varBinding("1@5|0", "V7", asList("int"), null, true),
-                                        varBinding(RETURN_VARIABLE_NAME, "V8", asList("int"), asList("int"), true)
-                                ),
-                                //{as num} x float -> int
-                                matcherDto(
-                                        varBinding("foo6()+@3|0", "V1", asList("float"), asList("float"), true),
-                                        varBinding("foo6()$x", "V2", asNum, asNum, true),
-                                        varBinding("foo6()$y", "V3", asList("float"), asList("float"), true),
-                                        varBinding("foo6()=@2|0", "V4", asList("float"), asList("float"), true),
-                                        varBinding("foo6()$a", "V4", asList("float"), asList("float"), true),
-                                        varBinding("return@4|0", "V6", asList("int"), asList("int"), true),
-                                        varBinding("1@5|0", "V7", asList("int"), null, true),
-                                        varBinding(RETURN_VARIABLE_NAME, "V8", asList("int"), asList("int"), true)
-                                ),
                                 //{as num} x {as num} -> int
                                 matcherDto(
                                         varBinding("foo6()+@3|0", "V1", numLower, numUpper, true),
@@ -240,11 +218,11 @@ public class FunctionDefinitionBindingTest extends AInferenceBindingTest
                                         varBinding("foo8()=@2|0", "V2",
                                                 asList("int", "array"), asList("(array | int)"), true),
                                         varBinding("1@3|0", "V3", asList("int"), null, true),
-                                        varBinding("foo8()+@5|0", "V4", numLower, numUpper, true),
+                                        varBinding("foo8()+@5|0", "V4", asList("float"), asList("float"), true),
                                         varBinding("1.2@6|0", "V5",
-                                                asList("float"), asList("{as (float | int)}"), true),
-                                        varBinding("return@4|0", "V6", numLower, numUpper, true),
-                                        varBinding(RETURN_VARIABLE_NAME, "V7", numLower, numUpper, true)
+                                                asList("float"), asList("{as float}"), true),
+                                        varBinding("return@4|0", "V6", asList("float"), asList("float"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V7", asList("float"), asList("float"), true)
                                 )
                         ), 1, 0, 2)
                 },
@@ -289,7 +267,7 @@ public class FunctionDefinitionBindingTest extends AInferenceBindingTest
                                                 asList("int", "float"), asList("(float | int)"), true),
                                         //TODO TINS-537 - most specific overload in soft typing
                                         //varBinding("1@6|0", "V5", asList("int"), asList("int"), true),
-                                        varBinding("1@9|0", "V9", asList("int"), asList("{as (float | int)}"), true),
+                                        varBinding("1@9|0", "V9", asList("int"), asList("{as int}"), true),
                                         varBinding("return@7|0", "V10",
                                                 asList("int", "float"), asList("(float | int)"), true),
                                         varBinding(RETURN_VARIABLE_NAME, "V11",
@@ -313,8 +291,7 @@ public class FunctionDefinitionBindingTest extends AInferenceBindingTest
                                         varBinding("foo15()+@4|0", "V5", asList("float"), asList("float"), true),
                                         //TODO TINS-537 - most specific overload in soft typing
                                         //varBinding("1.2@5|0", "V6", asList("float"), asList("float"), true),
-                                        varBinding("1.2@5|0", "V6",
-                                                asList("float"), asList("{as (float | int)}"), true),
+                                        varBinding("1.2@5|0", "V6", asList("float"), asList("{as float}"), true),
                                         varBinding("foo15()=@6|0", "V7",
                                                 asList("{as (float | int)}", "array"),
                                                 asList("(array | {as (float | int)})"), true),
@@ -328,7 +305,7 @@ public class FunctionDefinitionBindingTest extends AInferenceBindingTest
                                                 asList("int", "float"), asList("(float | int)"), true),
                                         //TODO TINS-537 - most specific overload in soft typing
                                         //varBinding("1@6|0", "V5", asList("int"), asList("int"), true),
-                                        varBinding("1@10|0", "V10", asList("int"), asList("{as (float | int)}"), true),
+                                        varBinding("1@10|0", "V10", asList("int"), asList("{as int}"), true),
                                         varBinding("return@8|0", "V11",
                                                 asList("int", "float"), asList("(float | int)"), true),
                                         varBinding(RETURN_VARIABLE_NAME, "V12",

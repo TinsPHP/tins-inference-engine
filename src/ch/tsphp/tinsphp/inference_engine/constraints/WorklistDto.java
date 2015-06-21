@@ -15,11 +15,13 @@ import java.util.Map;
 
 public class WorklistDto
 {
+
     public Deque<WorklistDto> workDeque;
     public IConstraintCollection constraintCollection;
     public int pointer;
     public boolean isSolvingMethod;
     public IOverloadBindings overloadBindings;
+    public ConvertibleAnalysisDto convertibleAnalysisDto;
 
     public List<Integer> unsolvedConstraints;
     public boolean isInIterativeMode;
@@ -38,6 +40,7 @@ public class WorklistDto
         pointer = thePointer;
         isSolvingMethod = isItSolvingMethod;
         overloadBindings = theOverloadBindings;
+        convertibleAnalysisDto = new ConvertibleAnalysisDto();
     }
 
     public WorklistDto(WorklistDto dto, int newPointer, IOverloadBindings theOverloadBindings) {
@@ -51,5 +54,6 @@ public class WorklistDto
         isInIterativeMode = dto.isInIterativeMode;
         isSolvingDependency = dto.isSolvingDependency;
         isInSoftTypingMode = dto.isInSoftTypingMode;
+        convertibleAnalysisDto = dto.convertibleAnalysisDto;
     }
 }
