@@ -174,8 +174,8 @@ public class ConstraintSolverTest
 
         assertThat(bindings, withVariableBindings(
                 varBinding("$x", "T1", null, asList("(float | int)", "@T2"), false),
-                varBinding("$y", "V3", asList("{as T1}"), asList("{as T1}"), true),
-                varBinding("$z", "V5", asList("{as T2}"), asList("{as T2}"), true),
+                varBinding("$y", "V3", null, asList("{as T1}"), true),
+                varBinding("$z", "V5", null, asList("{as T2}"), true),
                 varBinding("e1", "T1", null, asList("(float | int)", "@T2"), false),
                 varBinding("e2", "T2", asList("@T1"), asList("(float | int)"), false),
                 varBinding("rtn", "T2", asList("@T1"), asList("(float | int)"), false)
@@ -264,9 +264,9 @@ public class ConstraintSolverTest
         List<IOverloadBindings> bindingsList = captor.getValue();
 
         assertThat(bindingsList, hasItem(withVariableBindings(
-                varBinding("$x", "V2", asList("{as T2}"), asList("{as T2}"), true),
-                varBinding("$y", "V3", asList("{as T2}"), asList("{as T2}"), true),
-                varBinding("$z", "V5", asList("{as T1}"), asList("{as T1}"), true),
+                varBinding("$x", "V2", null, asList("{as T2}"), true),
+                varBinding("$y", "V3", null, asList("{as T2}"), true),
+                varBinding("$z", "V5", null, asList("{as T1}"), true),
                 varBinding("e1", "T2", null, asList("(float | int)", "@T1"), false),
                 varBinding("e2", "T1", asList("@T2"), asList("(float | int)"), false),
                 varBinding("rtn", "T1", asList("@T2"), asList("(float | int)"), false)

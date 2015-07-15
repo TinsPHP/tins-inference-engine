@@ -46,12 +46,12 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                         "function fib($n){ return $n > 1 ? fib($n - 1) + fib($n - 2) : 1;}",
                         testStructs("fib()", "\\.\\.", functionDtos(
                                 functionDto("fib()", 1, bindingDtos(
-                                        varBinding("fib()$n", "V2", asList("int"), asList("int"), true),
-                                        varBinding(RETURN_VARIABLE_NAME, "V7", asList("int"), asList("int"), true)
+                                        varBinding("fib()$n", "V2", null, asList("int"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V7", asList("int"), null, true)
                                 )),
                                 functionDto("fib()", 1, bindingDtos(
-                                        varBinding("fib()$n", "V2", asNum, asNum, true),
-                                        varBinding(RETURN_VARIABLE_NAME, "V7", asList("int"), asList("int"), true)
+                                        varBinding("fib()$n", "V2", null, asNum, true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V7", asList("int"), null, true)
                                 ))
                         ), 1, 0, 2)
                 },
@@ -59,12 +59,12 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                         "function spaces($n){ if($n > 0){ return ' '.spaces($n-1);} return '';}",
                         testStructs("spaces()", "\\.\\.", functionDtos(
                                 functionDto("spaces()", 1, bindingDtos(
-                                        varBinding("spaces()$n", "V2", asList("int"), asList("int"), true),
-                                        varBinding(RETURN_VARIABLE_NAME, "V7", asList("string"), asList("string"), true)
+                                        varBinding("spaces()$n", "V2", null, asList("int"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V7", asList("string"), null, true)
                                 )),
                                 functionDto("spaces()", 1, bindingDtos(
-                                        varBinding("spaces()$n", "V2", asNum, asNum, true),
-                                        varBinding(RETURN_VARIABLE_NAME, "V7", asList("string"), asList("string"), true)
+                                        varBinding("spaces()$n", "V2", null, asNum, true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V7", asList("string"), null, true)
                                 ))
                         ), 1, 0, 2)
                 },
@@ -72,8 +72,8 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                         "function fac($n){ return $n > 0 ? $n * fac($n-1) : $n;}",
                         testStructs("fac()", "\\.\\.", functionDtos(
                                 functionDto("fac()", 1, bindingDtos(
-                                        varBinding("fac()$n", "V2", asList("int"), asList("int"), true),
-                                        varBinding(RETURN_VARIABLE_NAME, "V7", asList("int"), asList("int"), true)
+                                        varBinding("fac()$n", "V2", null, asList("int"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V7", asList("int"), null, true)
                                 )),
                                 functionDto("fac()", 1, bindingDtos(
                                         varBinding("fac()$n", "T", null, asList("(float | int)"), false),
@@ -84,13 +84,13 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                 {
                         "function endless(){ return endless();}",
                         testStructs("endless()", "\\.\\.", functionDtos("endless()", 0, bindingDtos(
-                                varBinding(RETURN_VARIABLE_NAME, "V2", asList("mixed"), asList("mixed"), true)
+                                varBinding(RETURN_VARIABLE_NAME, "V2", asList("mixed"), null, true)
                         )), 1, 0, 2)
                 },
                 {
                         "function endless2(){ $a = endless2(); return $a;}",
                         testStructs("endless2()", "\\.\\.", functionDtos("endless2()", 0, bindingDtos(
-                                varBinding(RETURN_VARIABLE_NAME, "V2", asList("mixed"), asList("mixed"), true)
+                                varBinding(RETURN_VARIABLE_NAME, "V2", asList("mixed"), null, true)
                         )), 1, 0, 2)
                 },
                 {
@@ -112,9 +112,9 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                         "function fac2($x, $y){ $y = $x > 0 ? $x * fac2($x-1, $y) : $x; return $y;}",
                         testStructs("fac2()", "\\.\\.", functionDtos(
                                 functionDto("fac2()", 2, bindingDtos(
-                                        varBinding("fac2()$x", "V2", asList("int"), asList("int"), true),
-                                        varBinding("fac2()$y", "V10", asList("int"), asList("int"), true),
-                                        varBinding(RETURN_VARIABLE_NAME, "V7", asList("int"), asList("int"), true)
+                                        varBinding("fac2()$x", "V2", null, asList("int"), true),
+                                        varBinding("fac2()$y", "V10", null, asList("int"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V7", asList("int"), null, true)
                                 )),
                                 functionDto("fac2()", 2, bindingDtos(
                                         varBinding("fac2()$x", "T1",
@@ -133,26 +133,22 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                         new OverloadTestStruct[]{
                                 testStruct("foo8()", "\\.\\.", functionDtos(
                                         functionDto("foo8()", 1, bindingDtos(
-                                                varBinding("foo8()$x", "V2", asList("int"), asList("int"), true),
-                                                varBinding(RETURN_VARIABLE_NAME,
-                                                        "V8", asList("int"), asList("int"), true)
+                                                varBinding("foo8()$x", "V2", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V8", asList("int"), null, true)
                                         )),
                                         functionDto("foo8()", 1, bindingDtos(
                                                 varBinding("foo8()$x", "T", null, asList("{as int}", "@V8"), false),
-                                                varBinding(RETURN_VARIABLE_NAME, "V8",
-                                                        asList("@T", "int"), null, false)
+                                                varBinding(RETURN_VARIABLE_NAME, "V8", asList("@T", "int"), null, false)
                                         ))
                                 ), 1, 0, 2),
                                 testStruct("bar8()", "\\.\\.", functionDtos(
                                         functionDto("bar8()", 1, bindingDtos(
-                                                varBinding("bar8()$x", "V2", asList("int"), asList("int"), true),
-                                                varBinding(RETURN_VARIABLE_NAME,
-                                                        "V8", asList("int"), asList("int"), true)
+                                                varBinding("bar8()$x", "V2", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V8", asList("int"), null, true)
                                         )),
                                         functionDto("bar8()", 1, bindingDtos(
                                                 varBinding("bar8()$x", "T", null, asList("{as int}", "@V8"), false),
-                                                varBinding(RETURN_VARIABLE_NAME, "V8",
-                                                        asList("@T", "int"), null, false)
+                                                varBinding(RETURN_VARIABLE_NAME, "V8", asList("@T", "int"), null, false)
                                         ))
                                 ), 1, 1, 2),
                         }
@@ -165,9 +161,8 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                         new OverloadTestStruct[]{
                                 testStruct("foo9()", "\\.\\.", functionDtos(
                                         functionDto("foo9()", 1, bindingDtos(
-                                                varBinding("foo9()$x", "V4", asList("int"), asList("int"), true),
-                                                varBinding(RETURN_VARIABLE_NAME, "V3", asList("int"), asList("int"),
-                                                        true)
+                                                varBinding("foo9()$x", "V4", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V3", asList("int"), null, true)
                                         ))
                                         //TODO TINS-418 function application only consider upper bounds 0.4.1
                                         //Should be one more overload with {as T} but since lower bounds are copied
@@ -175,14 +170,12 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                                 ), 1, 0, 2),
                                 testStruct("bar9()", "\\.\\.", functionDtos(
                                         functionDto("bar9()", 1, bindingDtos(
-                                                varBinding("bar9()$x", "V2", asList("int"), asList("int"), true),
-                                                varBinding(RETURN_VARIABLE_NAME, "V8",
-                                                        asList("int"), asList("int"), true)
+                                                varBinding("bar9()$x", "V2", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V8", asList("int"), null, true)
                                         )),
                                         functionDto("bar9()", 1, bindingDtos(
                                                 varBinding("bar9()$x", "T", null, asList("@V8", "{as int}"), false),
-                                                varBinding(RETURN_VARIABLE_NAME, "V8",
-                                                        asList("@T", "int"), null, false)
+                                                varBinding(RETURN_VARIABLE_NAME, "V8", asList("@T", "int"), null, false)
                                         ))
                                 ), 1, 1, 2)
                         }
@@ -195,18 +188,17 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                                 + "function bar($x){ if($x > 0){return foo($x-1);} return $x;}",
                         new OverloadTestStruct[]{
                                 testStruct("foo()", "\\.\\.", functionDtos("foo()", 1, bindingDtos(
-                                        varBinding("foo()$x", "V4", asList("int"), asList("int"), true),
-                                        varBinding(RETURN_VARIABLE_NAME, "V3", asList("int"), asList("int"), true)
+                                        varBinding("foo()$x", "V4", null, asList("int"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V3", asList("int"), null, true)
                                 )), 1, 0, 2),
                                 testStruct("foo2()", "\\.\\.", functionDtos("foo2()", 1, bindingDtos(
-                                        varBinding("foo2()$x", "V4", asList("int"), asList("int"), true),
-                                        varBinding(RETURN_VARIABLE_NAME, "V3", asList("int"), asList("int"), true)
+                                        varBinding("foo2()$x", "V4", null, asList("int"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V3", asList("int"), null, true)
                                 )), 1, 1, 2),
                                 testStruct("bar()", "\\.\\.", functionDtos(
                                         functionDto("bar()", 1, bindingDtos(
-                                                varBinding("bar()$x", "V2", asList("int"), asList("int"), true),
-                                                varBinding(RETURN_VARIABLE_NAME, "V8",
-                                                        asList("int"), asList("int"), true)
+                                                varBinding("bar()$x", "V2", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V8", asList("int"), null, true)
                                         )),
                                         functionDto("bar()", 1, bindingDtos(
                                                 varBinding("bar()$x", "T", null, asList("{as int}", "@V8"), false),
@@ -223,44 +215,37 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                         new OverloadTestStruct[]{
                                 testStruct("foo()", "\\.\\.", functionDtos(
                                         functionDto("foo()", 2, bindingDtos(
-                                                varBinding("foo()$x", "V2", asList("int"), asList("int"), true),
-                                                varBinding("foo()$y", "V5", asList("int"), asList("int"), true),
-                                                varBinding(RETURN_VARIABLE_NAME, "V9",
-                                                        asList("int"), asList("int"), true)
+                                                varBinding("foo()$x", "V2", null, asList("int"), true),
+                                                varBinding("foo()$y", "V5", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V9", asList("int"), null, true)
                                         )),
                                         functionDto("foo()", 2, bindingDtos(
-                                                varBinding("foo()$x", "V2", asList("float"), asList("float"), true),
-                                                varBinding("foo()$y", "V5", asList("float"), asList("float"), true),
-                                                varBinding(RETURN_VARIABLE_NAME, "V9",
-                                                        asList("float"), asList("float"), true)
+                                                varBinding("foo()$x", "V2", null, asList("float"), true),
+                                                varBinding("foo()$y", "V5", null, asList("float"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V9", asList("float"), null, true)
                                         )),
                                         functionDto("foo()", 2, bindingDtos(
                                                 varBinding("foo()$x", "T",
                                                         null, asList("{as int}", "@V8", "@V6", "@V9"), false),
-                                                varBinding("foo()$y", "V5", asList("int"), asList("int"), true),
-                                                varBinding(RETURN_VARIABLE_NAME, "V9",
-                                                        asList("int", "@T"), null, false)
+                                                varBinding("foo()$y", "V5", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V9", asList("int", "@T"), null, false)
                                         ))
                                 ), 1, 0, 2),
                                 testStruct("bar()", "\\.\\.", functionDtos(
                                         functionDto("bar()", 2, bindingDtos(
-                                                varBinding("bar()$x", "V2", asList("int"), asList("int"), true),
-                                                varBinding("bar()$y", "V5", asList("int"), asList("int"), true),
-                                                varBinding(RETURN_VARIABLE_NAME, "V9",
-                                                        asList("int"), asList("int"), true)
+                                                varBinding("bar()$x", "V2", null, asList("int"), true),
+                                                varBinding("bar()$y", "V5", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V9", asList("int"), null, true)
                                         )),
                                         functionDto("bar()", 2, bindingDtos(
-                                                varBinding("bar()$x", "V2", asList("float"), asList("float"), true),
-                                                varBinding("bar()$y", "V5", asList("float"), asList("float"), true),
-                                                varBinding(RETURN_VARIABLE_NAME, "V9",
-                                                        asList("float"), asList("float"), true)
+                                                varBinding("bar()$x", "V2", null, asList("float"), true),
+                                                varBinding("bar()$y", "V5", null, asList("float"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V9", asList("float"), null, true)
                                         )),
                                         functionDto("bar()", 2, bindingDtos(
-                                                varBinding("bar()$x", "V2",
-                                                        asList("{as int}"), asList("{as int}"), true),
-                                                varBinding("bar()$y", "V5", asList("int"), asList("int"), true),
-                                                varBinding(RETURN_VARIABLE_NAME, "V9",
-                                                        asList("int"), asList("int"), true)
+                                                varBinding("bar()$x", "V2", null, asList("{as int}"), true),
+                                                varBinding("bar()$y", "V5", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V9", asList("int"), null, true)
                                         ))
                                 ), 1, 1, 2)
                         }
@@ -273,30 +258,29 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                         new OverloadTestStruct[]{
                                 testStruct("foo()", "\\.\\.", functionDtos(
                                         functionDto("foo()", 2, bindingDtos(
-                                                varBinding("foo()$x", "V4", asList("int"), asList("int"), true),
+                                                varBinding("foo()$x", "V4", null, asList("int"), true),
                                                 varBinding("foo()$y", "T", null, asList("int"), false),
                                                 varBinding(RETURN_VARIABLE_NAME, "T", null, asList("int"), false)
                                         )),
                                         functionDto("foo()", 2, bindingDtos(
-                                                varBinding("foo()$x", "V4", asList("float"), asList("float"), true),
+                                                varBinding("foo()$x", "V4", null, asList("float"), true),
                                                 varBinding("foo()$y", "T", null, asList("float"), false),
                                                 varBinding(RETURN_VARIABLE_NAME, "T", null, asList("float"), false)
                                         ))
                                 ), 1, 0, 2),
                                 testStruct("bar()", "\\.\\.", functionDtos(
                                         functionDto("bar()", 2, bindingDtos(
-                                                varBinding("bar()$x", "V2", asList("int"), asList("int"), true),
+                                                varBinding("bar()$x", "V2", null, asList("int"), true),
                                                 varBinding("bar()$y", "T", null, asList("int"), false),
                                                 varBinding(RETURN_VARIABLE_NAME, "T", null, asList("int"), false)
                                         )),
                                         functionDto("bar()", 2, bindingDtos(
-                                                varBinding("bar()$x", "V2", asList("float"), asList("float"), true),
+                                                varBinding("bar()$x", "V2", null, asList("float"), true),
                                                 varBinding("bar()$y", "T", null, asList("float"), false),
                                                 varBinding(RETURN_VARIABLE_NAME, "T", null, asList("float"), false)
                                         )),
                                         functionDto("bar()", 2, bindingDtos(
-                                                varBinding("bar()$x", "V2",
-                                                        asList("{as int}"), asList("{as int}"), true),
+                                                varBinding("bar()$x", "V2", null, asList("{as int}"), true),
                                                 varBinding("bar()$y", "T", null, asList("int"), false),
                                                 varBinding(RETURN_VARIABLE_NAME, "T", null, asList("int"), false)
                                         ))
@@ -445,23 +429,20 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                         new OverloadTestStruct[]{
                                 testStruct("foo()", "\\.\\.", functionDtos(
                                         functionDto("foo()", 2, bindingDtos(
-                                                varBinding("foo()$x", "V5", boolLower, boolUpper, true),
-                                                varBinding("foo()$y", "V2", asList("int"), asList("int"), true),
-                                                varBinding(RETURN_VARIABLE_NAME, "V3",
-                                                        asList("int"), asList("int"), true)
+                                                varBinding("foo()$x", "V5", null, boolUpper, true),
+                                                varBinding("foo()$y", "V2", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V3", asList("int"), null, true)
                                         )),
                                         functionDto("foo()", 2, bindingDtos(
-                                                varBinding("foo()$x", "V5", asBool, asBool, true),
-                                                varBinding("foo()$y", "V2", asList("int"), asList("int"), true),
-                                                varBinding(RETURN_VARIABLE_NAME, "V3",
-                                                        asList("int"), asList("int"), true)
+                                                varBinding("foo()$x", "V5", null, asBool, true),
+                                                varBinding("foo()$y", "V2", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V3", asList("int"), null, true)
                                         ))
                                 ), 1, 0, 2),
                                 testStruct("bar()", "\\.\\.", functionDtos(
                                         functionDto("bar()", 1, bindingDtos(
-                                                varBinding("bar()$x", "V2", asList("int"), asList("int"), true),
-                                                varBinding(RETURN_VARIABLE_NAME, "V8", asList("int"), asList("int"),
-                                                        true)
+                                                varBinding("bar()$x", "V2", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V8", asList("int"), null, true)
                                         )),
                                         functionDto("bar()", 1, bindingDtos(
                                                 varBinding("bar()$x", "T", null, asList("{as int}", "@V8"), false),
@@ -469,7 +450,7 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                                         ))
                                 ), 1, 1, 2),
                                 testStruct("test()", "\\.\\.", functionDtos("test()", 0, bindingDtos(
-                                        varBinding(RETURN_VARIABLE_NAME, "V3", asList("int"), asList("int"), true)
+                                        varBinding(RETURN_VARIABLE_NAME, "V3", asList("int"), null, true)
                                 )), 1, 2, 2)
                         }
                 },
@@ -481,12 +462,12 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                         new OverloadTestStruct[]{
                                 testStruct("foo()", "\\.\\.", functionDtos(
                                         functionDto("foo()", 2, bindingDtos(
-                                                varBinding("foo()$x", "V5", boolLower, boolUpper, true),
+                                                varBinding("foo()$x", "V5", null, boolUpper, true),
                                                 varBinding("foo()$y", "T", null, asList("mixed"), false),
                                                 varBinding(RETURN_VARIABLE_NAME, "T", null, asList("mixed"), false)
                                         )),
                                         functionDto("foo()", 2, bindingDtos(
-                                                varBinding("foo()$x", "V5", asBool, asBool, true),
+                                                varBinding("foo()$x", "V5", null, asBool, true),
                                                 varBinding("foo()$y", "T", null, asList("mixed"), false),
                                                 varBinding(RETURN_VARIABLE_NAME, "T", null, asList("mixed"), false)
                                         ))
@@ -496,8 +477,7 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                                         varBinding(RETURN_VARIABLE_NAME, "T", null, asList("mixed"), false)
                                 )), 1, 1, 2),
                                 testStruct("test()", "\\.\\.", functionDtos("test()", 0, bindingDtos(
-                                        varBinding(RETURN_VARIABLE_NAME, "V3",
-                                                asList("string"), asList("string"), true)
+                                        varBinding(RETURN_VARIABLE_NAME, "V3", asList("string"), null, true)
                                 )), 1, 2, 2)
                         }
                 },
@@ -568,9 +548,8 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                 {
                         "function fib2(array $a){ $a = $a > 1 ? fib2($a - 1) : 0; return $a;}",
                         testStructs("fib2()", "\\.\\.", functionDtos("fib2()", 1, bindingDtos(
-                                varBinding("fib2()$a", "V10", asList("array", "int"), asList("(array | int)"), true),
-                                varBinding(RETURN_VARIABLE_NAME, "V7",
-                                        asList("array", "int"), asList("(array | int)"), true)
+                                varBinding("fib2()$a", "V10", null, asList("(array | int)"), true),
+                                varBinding(RETURN_VARIABLE_NAME, "V7", asList("array", "int"), null, true)
                         )), 1, 0, 2)
                 },
         });
