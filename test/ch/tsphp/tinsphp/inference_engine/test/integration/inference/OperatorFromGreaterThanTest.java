@@ -58,6 +58,10 @@ public class OperatorFromGreaterThanTest extends AInferenceNamespaceTypeTest
                 {"2 >> '1';", testStructs("(>> 2 '1')", "\\.\\.", asList("int"), 1, 0, 0)},
                 {"'2' >> '1';", testStructs("(>> '2' '1')", "\\.\\.", asList("int"), 1, 0, 0)},
                 {"$x = 1 ? 1 : 1.5; $x >> $x;", testStructs("(>> $x $x)", "\\.\\.", asList("int"), 1, 2, 0)},
+                //see TINS-551 array and bitwise operators
+                {"[1] >> 1;", testStructs("(>> (array 1) 1)", "\\.\\.", asList("int"), 1, 0, 0)},
+                {"2 >> [1];", testStructs("(>> 2 (array 1))", "\\.\\.", asList("int"), 1, 0, 0)},
+                {"[1] >> [2];", testStructs("(>> (array 1) (array 2))", "\\.\\.", asList("int"), 1, 0, 0)},
                 // <<
                 {"2 << 1;", testStructs("(<< 2 1)", "\\.\\.", asList("int"), 1, 0, 0)},
                 {"2 << 1.2;", testStructs("(<< 2 1.2)", "\\.\\.", asList("int"), 1, 0, 0)},
@@ -67,6 +71,10 @@ public class OperatorFromGreaterThanTest extends AInferenceNamespaceTypeTest
                 {"2 << '1';", testStructs("(<< 2 '1')", "\\.\\.", asList("int"), 1, 0, 0)},
                 {"'2' << '1';", testStructs("(<< '2' '1')", "\\.\\.", asList("int"), 1, 0, 0)},
                 {"$x = 1 ? 1 : 1.5; $x << $x;", testStructs("(<< $x $x)", "\\.\\.", asList("int"), 1, 2, 0)},
+                //see TINS-551 array and bitwise operators
+                {"[1] << 1;", testStructs("(<< (array 1) 1)", "\\.\\.", asList("int"), 1, 0, 0)},
+                {"2 << [1];", testStructs("(<< 2 (array 1))", "\\.\\.", asList("int"), 1, 0, 0)},
+                {"[1] << [2];", testStructs("(<< (array 1) (array 2))", "\\.\\.", asList("int"), 1, 0, 0)},
                 // +
                 {"2 + 1;", testStructs("(+ 2 1)", "\\.\\.", asList("int"), 1, 0, 0)},
                 {"2.1 + 1.5;", testStructs("(+ 2.1 1.5)", "\\.\\.", asList("float"), 1, 0, 0)},

@@ -562,7 +562,6 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
             if (typeSymbol instanceof IContainerTypeSymbol) {
                 isSingleType = ((IContainerTypeSymbol) typeSymbol).getTypeSymbols().size() == 1;
             }
-
             if (isSingleType) {
                 hasChanged = applySingleLowerTypeConstraint(
                         dto, typeParameter, currentLowerTypeBounds, typeSymbol);
@@ -603,11 +602,18 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                 hasChanged = resultDto.hasChanged;
                 break;
             case HAS_COERCIVE_RELATION:
-                dto.bindings.setMode(EOverloadBindingsMode.Modification);
-                IUnionTypeSymbol newLowerTypeBounds = symbolFactory.createUnionTypeSymbol();
-                newLowerTypeBounds.addTypeSymbol(typeSymbol);
-                dto.bindings.setLowerTypeBounds(typeParameter, newLowerTypeBounds);
-                dto.bindings.setMode(originalMode);
+                if (!dto.bindings.hasUpperRefBounds(typeParameter)) {
+                    dto.bindings.setMode(EOverloadBindingsMode.Modification);
+                    IUnionTypeSymbol newLowerTypeBounds = symbolFactory.createUnionTypeSymbol();
+                    newLowerTypeBounds.addTypeSymbol(typeSymbol);
+                    dto.bindings.setLowerTypeBounds(typeParameter, newLowerTypeBounds);
+                    dto.bindings.setMode(originalMode);
+                } else {
+                    // if type parameter has upper type bounds (it is used in by-ref semantics)
+                    // then we need to add it instead of replacing it
+                    resultDto = dto.bindings.addLowerTypeBound(typeParameter, typeSymbol);
+                    hasChanged = resultDto.hasChanged;
+                }
                 break;
             default:
                 result = typeHelper.isFirstSameOrSubTypeOfSecond(typeSymbol, currentLowerTypeBounds);

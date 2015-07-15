@@ -122,9 +122,9 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
 
                 overloadRankingDtos.add(dto);
 
-            } else if ((usesConvertibleTypes && !dto.usesConvertibleTypes)
-                    || (usesConvertibleTypes == dto.usesConvertibleTypes
-                    && numberOfImplicitConversions < minNumberOfImplicitConversions)) {
+            } else if (numberOfImplicitConversions < minNumberOfImplicitConversions ||
+                    (numberOfImplicitConversions == minNumberOfImplicitConversions &&
+                            usesConvertibleTypes && !dto.usesConvertibleTypes)) {
                 usesConvertibleTypes = dto.usesConvertibleTypes;
                 minNumberOfImplicitConversions = numberOfImplicitConversions;
                 overloadRankingDtos = new ArrayList<>(size - i);

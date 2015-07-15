@@ -118,25 +118,26 @@ public class AppliedOverloadTest extends AInferenceOverloadTest
                                 )), 1, 1, 0)
                 },
                 //overloads with implicit conversions
+
+                //overloads with convertible types
                 {
                         "1 + 1.2;",
                         testStructs("(+ 1 1.2)", "\\.\\.",
                                 functionDtos("+", 2, bindingDtos(
-                                        varBinding("$lhs", "Tlhs", null, asList("float"), true),
-                                        varBinding("$rhs", "Trhs", null, asList("float"), true),
-                                        varBinding(RETURN_VARIABLE_NAME, "Treturn", asList("float"), null, true)
+                                        varBinding("$lhs", "Tlhs", null, asList("{as T}"), true),
+                                        varBinding("$rhs", "Trhs", null, asList("{as T}"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "T", null, asList("(float | int)"), false)
                                 )), 1, 0, 0)
                 },
                 {
                         "1.2 + 1;",
                         testStructs("(+ 1.2 1)", "\\.\\.",
                                 functionDtos("+", 2, bindingDtos(
-                                        varBinding("$lhs", "Tlhs", null, asList("float"), true),
-                                        varBinding("$rhs", "Trhs", null, asList("float"), true),
-                                        varBinding(RETURN_VARIABLE_NAME, "Treturn", asList("float"), null, true)
+                                        varBinding("$lhs", "Tlhs", null, asList("{as T}"), true),
+                                        varBinding("$rhs", "Trhs", null, asList("{as T}"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "T", null, asList("(float | int)"), false)
                                 )), 1, 0, 0)
                 },
-                //overloads with convertible types
                 {
                         "'1.2' + 1;",
                         testStructs("(+ '1.2' 1)", "\\.\\.",

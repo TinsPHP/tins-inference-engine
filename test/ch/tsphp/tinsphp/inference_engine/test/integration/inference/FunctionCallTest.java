@@ -168,7 +168,7 @@ public class FunctionCallTest extends AInferenceNamespaceTypeTest
                                 //TODO TINS-418 function application only consider upper bounds 0.4.1 - only float
                                 testStruct("$c", "\\.\\.", asList("float", "int"), null, 1, 7, 0, 0),
                                 //TODO TINS-418 function application only consider upper bounds 0.4.1 - only float
-                                testStruct("$d", "\\.\\.", asList("int"), null, 1, 8, 0, 0)
+                                testStruct("$d", "\\.\\.", asList("float", "int"), null, 1, 8, 0, 0)
                         }
                 },
                 {
