@@ -6,9 +6,9 @@
 
 package ch.tsphp.tinsphp.inference_engine.constraints.solvers;
 
+import ch.tsphp.tinsphp.common.inference.constraints.IBindingCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
-import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.inference_engine.constraints.AggregateBindingDto;
@@ -32,7 +32,7 @@ public interface IConstraintSolverHelper
 
     void createDependencies(WorklistDto worklistDto);
 
-    void finishingMethodConstraints(IMethodSymbol methodSymbol, List<IOverloadBindings> bindings);
+    void finishingMethodConstraints(IMethodSymbol methodSymbol, List<IBindingCollection> bindings);
 
-    IFunctionType createOverload(IMethodSymbol methodSymbol, IOverloadBindings bindings);
+    IFunctionType createOverload(IMethodSymbol methodSymbol, IBindingCollection bindings);
 }

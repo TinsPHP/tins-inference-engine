@@ -8,8 +8,8 @@ package ch.tsphp.tinsphp.inference_engine.test.integration.testutils.inference;
 
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ISymbol;
+import ch.tsphp.tinsphp.common.inference.constraints.IBindingCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
-import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.BindingMatcherDto;
 import ch.tsphp.tinsphp.inference_engine.test.integration.testutils.ScopeTestHelper;
 import org.junit.Assert;
@@ -20,7 +20,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static ch.tsphp.tinsphp.inference_engine.test.integration.testutils.OverloadBindingsMatcher.withVariableBindings;
+import static ch.tsphp.tinsphp.inference_engine.test.integration.testutils.BindingCollectionMatcher
+        .withVariableBindings;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
 
@@ -54,7 +55,7 @@ public class AInferenceBindingTest extends AInferenceTest
                     "symbol is not a constraint collection", symbol instanceof IConstraintCollection);
 
             IConstraintCollection collection = (IConstraintCollection) symbol;
-            List<IOverloadBindings> bindings = collection.getBindings();
+            List<IBindingCollection> bindings = collection.getBindings();
             int size = testStruct.dtos.size();
 
             for (int i = 0; i < size; ++i) {
@@ -65,13 +66,13 @@ public class AInferenceBindingTest extends AInferenceTest
                 } catch (AssertionError ex) {
                     Assert.fail(testString + " -- " + testStruct.astText
                             + " failed (testStruct Nr " + counter + "). "
-                            + "Binding error for overloadBindings " + i + "\n"
+                            + "Binding error for bindingCollection " + i + "\n"
                             + ex.getMessage());
                 }
             }
 
             Assert.assertEquals(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
-                    "too many or not enough overloadBindings", size, bindings.size());
+                    "too many or not enough bindingCollection", size, bindings.size());
 
 
             ++counter;

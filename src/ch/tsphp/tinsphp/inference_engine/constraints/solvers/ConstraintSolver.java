@@ -7,9 +7,9 @@
 package ch.tsphp.tinsphp.inference_engine.constraints.solvers;
 
 
+import ch.tsphp.tinsphp.common.inference.constraints.IBindingCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
-import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
@@ -66,7 +66,7 @@ public class ConstraintSolver implements IConstraintSolver
 
     private Deque<WorklistDto> createInitialWorklist(
             IConstraintCollection constraintCollection, boolean isSolvingMethod) {
-        IOverloadBindings bindings = symbolFactory.createOverloadBindings();
+        IBindingCollection bindings = symbolFactory.createBindingCollection();
         Deque<WorklistDto> workDeque = new ArrayDeque<>();
         workDeque.add(new WorklistDto(workDeque, constraintCollection, 0, isSolvingMethod, bindings));
         return workDeque;
@@ -74,21 +74,21 @@ public class ConstraintSolver implements IConstraintSolver
 
     public void solveGlobalDefaultNamespaceConstraints(
             IGlobalNamespaceScope globalDefaultNamespaceScope, Deque<WorklistDto> workDeque) {
-        List<IOverloadBindings> bindings = solveConstraints(workDeque);
+        List<IBindingCollection> bindings = solveConstraints(workDeque);
         if (bindings.isEmpty()) {
             //TODO TINS-539 soft typing in global scope
         } else {
             globalDefaultNamespaceScope.setBindings(bindings);
-            IOverloadBindings overloadBindings = bindings.get(0);
-            for (String variableId : overloadBindings.getVariableIds()) {
-                overloadBindings.fixType(variableId);
+            IBindingCollection bindingCollection = bindings.get(0);
+            for (String variableId : bindingCollection.getVariableIds()) {
+                bindingCollection.fixType(variableId);
             }
         }
     }
 
     @Override
     public void solveMethodConstraints(IMethodSymbol methodSymbol, Deque<WorklistDto> workDeque) {
-        List<IOverloadBindings> bindings = solveConstraints(workDeque);
+        List<IBindingCollection> bindings = solveConstraints(workDeque);
         if (!bindings.isEmpty()) {
             constraintSolverHelper.finishingMethodConstraints(methodSymbol, bindings);
         } else if (!unsolvedConstraints.containsKey(methodSymbol.getAbsoluteName())) {
@@ -98,8 +98,8 @@ public class ConstraintSolver implements IConstraintSolver
         }
     }
 
-    private List<IOverloadBindings> solveConstraints(Deque<WorklistDto> workDeque) {
-        List<IOverloadBindings> solvedBindings = new ArrayList<>();
+    private List<IBindingCollection> solveConstraints(Deque<WorklistDto> workDeque) {
+        List<IBindingCollection> solvedBindings = new ArrayList<>();
 
         List<IConstraint> constraints = null;
         if (!workDeque.isEmpty()) {
@@ -114,7 +114,7 @@ public class ConstraintSolver implements IConstraintSolver
                 IConstraint constraint = constraints.get(worklistDto.pointer);
                 solveConstraint(worklistDto, constraint);
             } else if (worklistDto.unsolvedConstraints == null || worklistDto.unsolvedConstraints.isEmpty()) {
-                solvedBindings.add(worklistDto.overloadBindings);
+                solvedBindings.add(worklistDto.bindingCollection);
             } else if (!worklistDto.isSolvingDependency) {
                 constraintSolverHelper.createDependencies(worklistDto);
             }

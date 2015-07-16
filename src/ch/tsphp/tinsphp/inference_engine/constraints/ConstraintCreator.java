@@ -9,11 +9,11 @@ package ch.tsphp.tinsphp.inference_engine.constraints;
 
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.tinsphp.common.TinsPHPConstants;
+import ch.tsphp.tinsphp.common.inference.constraints.IBindingCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCreator;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
-import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import ch.tsphp.tinsphp.common.inference.constraints.TypeVariableReference;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
@@ -47,13 +47,13 @@ public class ConstraintCreator implements IConstraintCreator
         String varRhs = "$rhs";
         IVariable lhs = symbolFactory.createVariable(varLhs);
         IVariable rhs = symbolFactory.createVariable(varRhs);
-        IOverloadBindings overloadBindings = symbolFactory.createOverloadBindings();
-        overloadBindings.addVariable(varLhs, new TypeVariableReference(tLhs));
-        overloadBindings.addVariable(varRhs, new TypeVariableReference(tRhs));
-        overloadBindings.addVariable(TinsPHPConstants.RETURN_VARIABLE_NAME, new TypeVariableReference(tLhs));
-        overloadBindings.addLowerRefBound(tLhs, new TypeVariableReference(tRhs));
+        IBindingCollection bindingCollection = symbolFactory.createBindingCollection();
+        bindingCollection.addVariable(varLhs, new TypeVariableReference(tLhs));
+        bindingCollection.addVariable(varRhs, new TypeVariableReference(tRhs));
+        bindingCollection.addVariable(TinsPHPConstants.RETURN_VARIABLE_NAME, new TypeVariableReference(tLhs));
+        bindingCollection.addLowerRefBound(tLhs, new TypeVariableReference(tRhs));
         IFunctionType identityOverload = symbolFactory.createFunctionType(
-                "=", overloadBindings, Arrays.asList(lhs, rhs));
+                "=", bindingCollection, Arrays.asList(lhs, rhs));
         Set<String> nonFixedTypeParameters = new HashSet<>();
         nonFixedTypeParameters.add("Tlhs");
         nonFixedTypeParameters.add("Trhs");

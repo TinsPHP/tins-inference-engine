@@ -7,8 +7,8 @@
 package ch.tsphp.tinsphp.inference_engine.constraints;
 
 import ch.tsphp.common.symbols.ITypeSymbol;
+import ch.tsphp.tinsphp.common.inference.constraints.IBindingCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
-import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.common.symbols.IIntersectionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.tinsphp.common.utils.Pair;
@@ -19,7 +19,7 @@ import java.util.Map;
 public class OverloadRankingDto
 {
     public IFunctionType overload;
-    public IOverloadBindings bindings;
+    public IBindingCollection bindings;
     public boolean hasNarrowedArguments;
     public boolean usesConvertibleTypes;
     public int numberOfTypeParameters;
@@ -31,7 +31,7 @@ public class OverloadRankingDto
 
     public OverloadRankingDto(
             IFunctionType theOverload,
-            IOverloadBindings theBindings,
+            IBindingCollection theBindings,
             Map<Integer, Pair<ITypeSymbol, ITypeSymbol>> theImplicitConversions,
             Map<Integer, Pair<ITypeSymbol, List<ITypeSymbol>>> theRuntimeChecks,
             boolean narrowedArguments) {

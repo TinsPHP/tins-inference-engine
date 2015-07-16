@@ -12,9 +12,9 @@ import ch.tsphp.common.exceptions.ReferenceException;
 import ch.tsphp.common.exceptions.TSPHPException;
 import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.tinsphp.common.gen.TokenTypes;
+import ch.tsphp.tinsphp.common.inference.constraints.IBindingCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
-import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import ch.tsphp.tinsphp.common.issues.DefinitionIssueDto;
 import ch.tsphp.tinsphp.common.issues.EIssueSeverity;
@@ -156,7 +156,7 @@ public class InferenceIssueReporter implements IInferenceIssueReporter
     }
 
     @Override
-    public ReferenceException constraintViolation(IOverloadBindings bindings, IConstraint constraint) {
+    public ReferenceException constraintViolation(IBindingCollection bindings, IConstraint constraint) {
         ReferenceException exception;
         ITSPHPAst operator = constraint.getOperator();
         switch (operator.getType()) {
@@ -173,7 +173,7 @@ public class InferenceIssueReporter implements IInferenceIssueReporter
 
     private ReferenceException addAndGetWrongArgumentTypeException(
             String key, EIssueSeverity severity,
-            IOverloadBindings bindings, IConstraint constraint, ITSPHPAst identifier) {
+            IBindingCollection bindings, IConstraint constraint, ITSPHPAst identifier) {
 
         List<IVariable> arguments = constraint.getArguments();
         int numberOfArguments = arguments.size();

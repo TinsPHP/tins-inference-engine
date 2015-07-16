@@ -10,8 +10,8 @@ import ch.tsphp.common.IScope;
 import ch.tsphp.common.ITSPHPAst;
 import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.common.symbols.ITypeSymbol;
+import ch.tsphp.tinsphp.common.inference.constraints.IBindingCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
-import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableReference;
 import ch.tsphp.tinsphp.common.symbols.IContainerTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
@@ -64,14 +64,14 @@ public class AInferenceNamespaceTypeTest extends AInferenceTest
                 collectionScope = definitionPhaseController.getGlobalDefaultNamespace();
             }
 
-            List<IOverloadBindings> overloadBindingsList = collectionScope.getBindings();
+            List<IBindingCollection> bindingCollections = collectionScope.getBindings();
             Assert.assertEquals(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
-                    "too many or not enough overloadBindings", 1, overloadBindingsList.size());
+                    "too many or not enough bindingCollection", 1, bindingCollections.size());
 
-            IOverloadBindings overloadBindings = overloadBindingsList.get(0);
+            IBindingCollection bindingCollection = bindingCollections.get(0);
 
-            if (overloadBindings.containsVariable(symbol.getAbsoluteName())) {
-                checkBinding(counter, testStruct, symbol, overloadBindings);
+            if (bindingCollection.containsVariable(symbol.getAbsoluteName())) {
+                checkBinding(counter, testStruct, symbol, bindingCollection);
             } else {
                 ITypeSymbol typeSymbol = symbol.getType();
                 Assert.assertNotNull(testString + " -- " + testStruct.astText
@@ -110,9 +110,9 @@ public class AInferenceNamespaceTypeTest extends AInferenceTest
     }
 
     private void checkBinding(
-            int counter, AbsoluteTypeNameTestStruct testStruct, ISymbol symbol, IOverloadBindings overloadBindings) {
+            int counter, AbsoluteTypeNameTestStruct testStruct, ISymbol symbol, IBindingCollection bindingCollection) {
 
-        ITypeVariableReference reference = overloadBindings.getTypeVariableReference(symbol.getAbsoluteName());
+        ITypeVariableReference reference = bindingCollection.getTypeVariableReference(symbol.getAbsoluteName());
 
         Assert.assertTrue(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
                 " type was not fixed.", reference.hasFixedType());
@@ -120,15 +120,15 @@ public class AInferenceNamespaceTypeTest extends AInferenceTest
         String typeVariable = reference.getTypeVariable();
         Assert.assertTrue(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
                         "no lower type bound defined",
-                overloadBindings.hasLowerTypeBounds(typeVariable));
+                bindingCollection.hasLowerTypeBounds(typeVariable));
 
-        IUnionTypeSymbol lowerTypeBounds = overloadBindings.getLowerTypeBounds(typeVariable);
+        IUnionTypeSymbol lowerTypeBounds = bindingCollection.getLowerTypeBounds(typeVariable);
         assertThat(lowerTypeBounds.getTypeSymbols().keySet(),
                 describedAs(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). "
                                 + "wrong lower types. \nExpected: " + testStruct.types,
                         containsInAnyOrder(testStruct.types.toArray())));
 
-        IUnionTypeSymbol upperTypeBounds = overloadBindings.getLowerTypeBounds(typeVariable);
+        IUnionTypeSymbol upperTypeBounds = bindingCollection.getLowerTypeBounds(typeVariable);
         assertThat(upperTypeBounds.getTypeSymbols().keySet(),
                 describedAs(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). "
                                 + "wrong lower types. \nExpected: " + testStruct.types,

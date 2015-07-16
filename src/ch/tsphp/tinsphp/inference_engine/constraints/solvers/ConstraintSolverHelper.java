@@ -10,11 +10,11 @@ import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.TinsPHPConstants;
 import ch.tsphp.tinsphp.common.inference.constraints.BoundException;
 import ch.tsphp.tinsphp.common.inference.constraints.BoundResultDto;
-import ch.tsphp.tinsphp.common.inference.constraints.EOverloadBindingsMode;
+import ch.tsphp.tinsphp.common.inference.constraints.EBindingCollectionMode;
 import ch.tsphp.tinsphp.common.inference.constraints.FixedTypeVariableReference;
+import ch.tsphp.tinsphp.common.inference.constraints.IBindingCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
-import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableReference;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import ch.tsphp.tinsphp.common.inference.constraints.OverloadApplicationDto;
@@ -118,7 +118,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
     }
 
     private ECreateBinding createBindingIfNecessary(WorklistDto worklistDto, IVariable variable) {
-        IOverloadBindings bindings = worklistDto.overloadBindings;
+        IBindingCollection bindings = worklistDto.bindingCollection;
         String absoluteName = variable.getAbsoluteName();
         ECreateBinding status = ECreateBinding.NotCreated;
         if (!bindings.containsVariable(absoluteName)) {
@@ -196,7 +196,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                     worklistDto.workDeque.add(nextWorklistDto(worklistDto, dto.bindings));
                 } else {
                     int numberOfConvertibleApplications
-                            = worklistDto.overloadBindings.getNumberOfConvertibleApplications();
+                            = worklistDto.bindingCollection.getNumberOfConvertibleApplications();
                     boolean hasConvertibleParameterTypes = dto.overload.hasConvertibleParameterTypes();
                     if (numberOfConvertibleApplications > 0 && hasConvertibleParameterTypes
                             || numberOfConvertibleApplications == 0 && !hasConvertibleParameterTypes) {
@@ -207,7 +207,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
         }
     }
 
-    private WorklistDto nextWorklistDto(WorklistDto worklistDto, IOverloadBindings bindings) {
+    private WorklistDto nextWorklistDto(WorklistDto worklistDto, IBindingCollection bindings) {
         int pointer;
         if (!worklistDto.isSolvingDependency || worklistDto.isInIterativeMode) {
             pointer = worklistDto.pointer + 1;
@@ -224,7 +224,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
 
         AggregateBindingDto dto = null;
         if (constraint.getArguments().size() >= overload.getNumberOfNonOptionalParameters()) {
-            IOverloadBindings bindings = symbolFactory.createOverloadBindings(worklistDto.overloadBindings);
+            IBindingCollection bindings = symbolFactory.createBindingCollection(worklistDto.bindingCollection);
             dto = new AggregateBindingDto(constraint, overload, bindings, worklistDto);
             aggregateBinding(dto);
         }
@@ -293,7 +293,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
         String bindingVariableName = dto.bindingVariable.getAbsoluteName();
         ITypeVariableReference bindingTypeVariableReference
                 = dto.bindings.getTypeVariableReference(bindingVariableName);
-        IOverloadBindings rightBindings = dto.overload.getOverloadBindings();
+        IBindingCollection rightBindings = dto.overload.getBindingCollection();
         String overloadTypeVariable
                 = rightBindings.getTypeVariableReference(dto.overloadVariableId).getTypeVariable();
 
@@ -324,8 +324,8 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
 
     private void applyRightToLeft(AggregateBindingDto dto, String left, String right) {
 
-        IOverloadBindings leftBindings = dto.bindings;
-        IOverloadBindings rightBindings = dto.overload.getOverloadBindings();
+        IBindingCollection leftBindings = dto.bindings;
+        IBindingCollection rightBindings = dto.overload.getBindingCollection();
 
         if (rightBindings.hasUpperTypeBounds(right)) {
             ITypeVariableReference reference
@@ -376,7 +376,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
         IPolymorphicTypeSymbol copy = containerTypeSymbol;
         if (!containerTypeSymbol.isFixed()) {
 
-            IOverloadBindings leftBindings = dto.bindings;
+            IBindingCollection leftBindings = dto.bindings;
             Deque<IParametricTypeSymbol> parametricTypeSymbols = new ArrayDeque<>();
             copy = containerTypeSymbol.copy(parametricTypeSymbols);
 
@@ -404,8 +404,8 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                 if (!dto.worklistDto.isInSoftTypingMode) {
                     leftBindings.bind(parametricTypeSymbol, typeParameters);
                 } else {
-                    IOverloadBindings copyBindings
-                            = symbolFactory.createOverloadBindings(parametricTypeSymbol.getOverloadBindings());
+                    IBindingCollection copyBindings
+                            = symbolFactory.createBindingCollection(parametricTypeSymbol.getBindingCollection());
                     copyBindings.bind(parametricTypeSymbol, parametricTypeSymbol.getTypeParameters());
                     copyBindings.fixTypeParameters();
                 }
@@ -417,7 +417,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
 
     //Warning! start code duplication - very similar as in addLowerRefInIterativeMode
     private String searchTypeVariable(AggregateBindingDto dto, String typeParameter) {
-        IOverloadBindings rightBindings = dto.overload.getOverloadBindings();
+        IBindingCollection rightBindings = dto.overload.getBindingCollection();
         String typeVariable = null;
         if (rightBindings.hasLowerRefBounds(typeParameter)) {
             for (String refRefTypeVariable : rightBindings.getLowerRefBounds(typeParameter)) {
@@ -436,7 +436,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
     //Warning! start code duplication - very similar as in searchTypeVariable
     private void addLowerRefInIterativeMode(
             AggregateBindingDto dto, String left, String refTypeVariable) {
-        IOverloadBindings rightBindings = dto.overload.getOverloadBindings();
+        IBindingCollection rightBindings = dto.overload.getBindingCollection();
         if (rightBindings.hasLowerRefBounds(refTypeVariable)) {
             for (String refRefTypeVariable : rightBindings.getLowerRefBounds(refTypeVariable)) {
                 if (dto.mapping.containsKey(refRefTypeVariable)) {
@@ -593,7 +593,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
             ITypeSymbol typeSymbol) {
         boolean hasChanged = false;
 
-        EOverloadBindingsMode originalMode = dto.bindings.getMode();
+        EBindingCollectionMode originalMode = dto.bindings.getMode();
 
         TypeHelperDto result = typeHelper.isFirstSameOrSubTypeOfSecond(currentLowerTypeBounds, typeSymbol);
         switch (result.relation) {
@@ -603,7 +603,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                 break;
             case HAS_COERCIVE_RELATION:
                 if (!dto.bindings.hasUpperRefBounds(typeParameter)) {
-                    dto.bindings.setMode(EOverloadBindingsMode.Modification);
+                    dto.bindings.setMode(EBindingCollectionMode.Modification);
                     IUnionTypeSymbol newLowerTypeBounds = symbolFactory.createUnionTypeSymbol();
                     newLowerTypeBounds.addTypeSymbol(typeSymbol);
                     dto.bindings.setLowerTypeBounds(typeParameter, newLowerTypeBounds);
@@ -653,7 +653,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                 }
                 worklistDto.workDeque.add(nextWorklistDto(worklistDto, overloadRankingDto.bindings));
             } else if (!worklistDto.isSolvingMethod) {
-                issueReporter.constraintViolation(worklistDto.overloadBindings, constraint);
+                issueReporter.constraintViolation(worklistDto.bindingCollection, constraint);
                 //TODO rstoll TINS-306 inference - runtime check insertion
                 //I am not sure but maybe we do not need to do anything. see
                 //TINS-399 save which overload was taken in AST
@@ -672,7 +672,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                 //that's ok, we report it below
             }
             if (dto == null && !worklistDto.isSolvingMethod) {
-                issueReporter.constraintViolation(worklistDto.overloadBindings, constraint);
+                issueReporter.constraintViolation(worklistDto.bindingCollection, constraint);
             }
         }
     }
@@ -680,28 +680,28 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
     private List<ITypeSymbol> calculateArgumentTypes(WorklistDto worklistDto, List<IVariable> arguments) {
         List<ITypeSymbol> argumentTypes = new ArrayList<>(arguments.size());
 
-        IOverloadBindings overloadBindings = worklistDto.overloadBindings;
+        IBindingCollection bindingCollection = worklistDto.bindingCollection;
         for (IVariable variable : arguments) {
             String argumentId = variable.getAbsoluteName();
-            String typeVariable = overloadBindings.getTypeVariable(argumentId);
+            String typeVariable = bindingCollection.getTypeVariable(argumentId);
 
             //we prefer the upper type bound and when solving methods and the lower type bound when solving global
             // namespace scope
             IContainerTypeSymbol argumentType = null;
-            if (worklistDto.isSolvingMethod && overloadBindings.hasUpperTypeBounds(typeVariable)) {
-                argumentType = overloadBindings.getUpperTypeBounds(typeVariable);
-            } else if (overloadBindings.hasLowerTypeBounds(typeVariable)) {
-                argumentType = overloadBindings.getLowerTypeBounds(typeVariable);
-            } else if (!worklistDto.isSolvingMethod && overloadBindings.hasUpperTypeBounds(typeVariable)) {
-                argumentType = overloadBindings.getUpperTypeBounds(typeVariable);
+            if (worklistDto.isSolvingMethod && bindingCollection.hasUpperTypeBounds(typeVariable)) {
+                argumentType = bindingCollection.getUpperTypeBounds(typeVariable);
+            } else if (bindingCollection.hasLowerTypeBounds(typeVariable)) {
+                argumentType = bindingCollection.getLowerTypeBounds(typeVariable);
+            } else if (!worklistDto.isSolvingMethod && bindingCollection.hasUpperTypeBounds(typeVariable)) {
+                argumentType = bindingCollection.getUpperTypeBounds(typeVariable);
             }
 
             if (argumentType != null && !argumentType.isFixed()) {
                 //overload has non fixed arguments - since we manipulate it we have to copy it first...
-                overloadBindings = symbolFactory.createOverloadBindings(overloadBindings);
+                bindingCollection = symbolFactory.createBindingCollection(bindingCollection);
                 //.. then we fix all bounded types (in a brute force way - overloadBinding cannot be used for
                 // constraint solving afterwards)
-                overloadBindings.fixTypeParameters();
+                bindingCollection.fixTypeParameters();
             }
             argumentTypes.add(argumentType);
         }
@@ -714,14 +714,14 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
             Collection<IFunctionType> overloads,
             List<ITypeSymbol> argumentTypes) {
 
-        List<OverloadRankingDto> overloadBindingsList = new ArrayList<>();
+        List<OverloadRankingDto> applicableOverloads = new ArrayList<>();
         List<IVariable> arguments = constraint.getArguments();
         int numberOfArguments = arguments.size();
 
         for (IFunctionType overload : overloads) {
             if (numberOfArguments >= overload.getNumberOfNonOptionalParameters()) {
                 try {
-                    IOverloadBindings bindings = symbolFactory.createOverloadBindings(worklistDto.overloadBindings);
+                    IBindingCollection bindings = symbolFactory.createBindingCollection(worklistDto.bindingCollection);
                     AggregateBindingDto dto = new AggregateBindingDto(constraint, overload, bindings, worklistDto);
                     aggregateBinding(dto);
 
@@ -738,11 +738,11 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                         isOneToOne = isOneToOneMatch(numberOfArguments, argumentTypes, overload);
                         if (isOneToOne) {
                             //reset list, we will break bellow
-                            overloadBindingsList = new ArrayList<>(1);
+                            applicableOverloads = new ArrayList<>(1);
                         }
                     }
 
-                    overloadBindingsList.add(new OverloadRankingDto(
+                    applicableOverloads.add(new OverloadRankingDto(
                             overload, dto.bindings, dto.implicitConversions, null, dto.hasNarrowedArguments));
 
                     if (isOneToOne) {
@@ -753,12 +753,12 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                 }
             }
         }
-        return overloadBindingsList;
+        return applicableOverloads;
     }
 
     private boolean isOneToOneMatch(int numberOfArguments, List<ITypeSymbol> argumentTypes, IFunctionType overload) {
         boolean isOneToOne = true;
-        IOverloadBindings rightBindings = overload.getOverloadBindings();
+        IBindingCollection rightBindings = overload.getBindingCollection();
 
         List<IVariable> parameters = overload.getParameters();
         int numberOfParameters = parameters.size();
@@ -803,7 +803,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
     }
 
     @Override
-    public void finishingMethodConstraints(IMethodSymbol methodSymbol, List<IOverloadBindings> bindings) {
+    public void finishingMethodConstraints(IMethodSymbol methodSymbol, List<IBindingCollection> bindings) {
         methodSymbol.setBindings(bindings);
         createOverloads(methodSymbol, bindings);
 
@@ -817,14 +817,14 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
         unsolvedConstraints.remove(methodName);
     }
 
-    private void createOverloads(IMethodSymbol methodSymbol, List<IOverloadBindings> bindingsList) {
-        for (IOverloadBindings bindings : bindingsList) {
+    private void createOverloads(IMethodSymbol methodSymbol, List<IBindingCollection> bindingsList) {
+        for (IBindingCollection bindings : bindingsList) {
             createOverload(methodSymbol, bindings);
         }
     }
 
     @Override
-    public IFunctionType createOverload(IMethodSymbol methodSymbol, IOverloadBindings bindings) {
+    public IFunctionType createOverload(IMethodSymbol methodSymbol, IBindingCollection bindings) {
         List<IVariable> parameters = new ArrayList<>();
         for (IVariableSymbol parameter : methodSymbol.getParameters()) {
             String parameterId = parameter.getAbsoluteName();

@@ -7,9 +7,9 @@
 package ch.tsphp.tinsphp.inference_engine.constraints.solvers;
 
 import ch.tsphp.tinsphp.common.TinsPHPConstants;
+import ch.tsphp.tinsphp.common.inference.constraints.IBindingCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
-import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import ch.tsphp.tinsphp.common.inference.constraints.OverloadApplicationDto;
 import ch.tsphp.tinsphp.common.symbols.IIntersectionTypeSymbol;
@@ -142,11 +142,11 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
 
         List<IFunctionType> tempOverloads = new ArrayList<>();
         for (WorklistDto worklistDto : worklistDtos) {
-            IOverloadBindings overloadBindings = worklistDto.overloadBindings;
-            boolean notYetAllBindingsCreated = !overloadBindings.containsVariable(returnVariable.getAbsoluteName());
+            IBindingCollection bindingCollection = worklistDto.bindingCollection;
+            boolean notYetAllBindingsCreated = !bindingCollection.containsVariable(returnVariable.getAbsoluteName());
             if (!notYetAllBindingsCreated) {
                 for (IVariable parameterVariable : parameterVariables) {
-                    if (!overloadBindings.containsVariable(parameterVariable.getAbsoluteName())) {
+                    if (!bindingCollection.containsVariable(parameterVariable.getAbsoluteName())) {
                         notYetAllBindingsCreated = true;
                         break;
                     }
@@ -154,15 +154,15 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
             }
 
             if (notYetAllBindingsCreated) {
-                IOverloadBindings tmp = overloadBindings;
-                overloadBindings = symbolFactory.createOverloadBindings(worklistDto.overloadBindings);
-                worklistDto.overloadBindings = overloadBindings;
+                IBindingCollection tmp = bindingCollection;
+                bindingCollection = symbolFactory.createBindingCollection(worklistDto.bindingCollection);
+                worklistDto.bindingCollection = bindingCollection;
                 constraintSolverHelper.createBindingsIfNecessary(worklistDto, returnVariable, parameterVariables);
-                worklistDto.overloadBindings = tmp;
+                worklistDto.bindingCollection = tmp;
             }
 
             IFunctionType overload =
-                    symbolFactory.createFunctionType(absoluteName, overloadBindings, parameterVariables);
+                    symbolFactory.createFunctionType(absoluteName, bindingCollection, parameterVariables);
             tempOverloads.add(overload);
         }
         return tempOverloads;
@@ -198,26 +198,26 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
         while (!worklist.isEmpty()) {
             WorklistDto worklistDto = worklist.removeFirst();
             worklistDto.workDeque.add(worklistDto);
-            List<IOverloadBindings> overloadBindingsList = solveConstraintsIterativeMode(worklistDto.workDeque);
+            List<IBindingCollection> bindingCollections = solveConstraintsIterativeMode(worklistDto.workDeque);
             String absoluteName = worklistDto.constraintCollection.getAbsoluteName();
 
-            if (overloadBindingsList.size() > 1) {
+            if (bindingCollections.size() > 1) {
                 collectionsWhichChanged.add(absoluteName);
-                Iterator<IOverloadBindings> iterator = overloadBindingsList.iterator();
+                Iterator<IBindingCollection> iterator = bindingCollections.iterator();
                 //this work item will be re-added to the worklist since its collection is marked as has changed
-                worklistDto.overloadBindings = iterator.next();
+                worklistDto.bindingCollection = iterator.next();
                 while (iterator.hasNext()) {
                     //need to create more work items for the new overloads
                     WorklistDto newWorklistDto = new WorklistDto(worklistDto, 0, iterator.next());
                     constraintSolverHelper.createDependencies(newWorklistDto);
                 }
-            } else if (overloadBindingsList.size() == 1) {
-                IOverloadBindings overloadBindings = overloadBindingsList.get(0);
-                if (hasChanged(worklistDto, overloadBindings)) {
+            } else if (bindingCollections.size() == 1) {
+                IBindingCollection bindingCollection = bindingCollections.get(0);
+                if (hasChanged(worklistDto, bindingCollection)) {
                     collectionsWhichChanged.add(absoluteName);
                 }
                 //this work item will be re-added to the worklist if its collection is marked as has changed
-                worklistDto.overloadBindings = overloadBindings;
+                worklistDto.bindingCollection = bindingCollection;
             } else {
                 Set<WorklistDto> dtos = unsolvedConstraints.get(absoluteName);
                 if (dtos.remove(worklistDto)) {
@@ -230,8 +230,8 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
         }
     }
 
-    private List<IOverloadBindings> solveConstraintsIterativeMode(Deque<WorklistDto> workDeque) {
-        List<IOverloadBindings> solvedBindings = new ArrayList<>();
+    private List<IBindingCollection> solveConstraintsIterativeMode(Deque<WorklistDto> workDeque) {
+        List<IBindingCollection> solvedBindings = new ArrayList<>();
 
         List<IConstraint> constraints = null;
         if (!workDeque.isEmpty()) {
@@ -246,15 +246,15 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
                 IConstraint constraint = constraints.get(pointer);
                 constraintSolverHelper.solve(worklistDto, constraint);
             } else {
-                solvedBindings.add(worklistDto.overloadBindings);
+                solvedBindings.add(worklistDto.bindingCollection);
             }
         }
 
         return solvedBindings;
     }
 
-    private boolean hasChanged(WorklistDto worklistDto, IOverloadBindings newBindings) {
-        IOverloadBindings oldBindings = worklistDto.overloadBindings;
+    private boolean hasChanged(WorklistDto worklistDto, IBindingCollection newBindings) {
+        IBindingCollection oldBindings = worklistDto.bindingCollection;
         boolean isNotTheSame = hasChanged(oldBindings, newBindings, TinsPHPConstants.RETURN_VARIABLE_NAME);
         if (!isNotTheSame) {
             IMethodSymbol methodSymbol = (IMethodSymbol) worklistDto.constraintCollection;
@@ -268,7 +268,7 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
         return isNotTheSame;
     }
 
-    private boolean hasChanged(IOverloadBindings oldBindings, IOverloadBindings newBindings, String variableName) {
+    private boolean hasChanged(IBindingCollection oldBindings, IBindingCollection newBindings, String variableName) {
         String oldTypeVariable = oldBindings.getTypeVariable(variableName);
         String newTypeVariable = oldBindings.getTypeVariable(variableName);
         boolean isNotTheSame = !oldTypeVariable.equals(newTypeVariable);
@@ -298,18 +298,18 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
             Iterator<WorklistDto> iterator, WorklistDto firstWorkListDto, IMethodSymbol methodSymbol) {
 
         Map<IFunctionType, WorklistDto> mapping = new HashMap<>();
-        IFunctionType overload = constraintSolverHelper.createOverload(methodSymbol, firstWorkListDto.overloadBindings);
+        IFunctionType overload = constraintSolverHelper.createOverload(methodSymbol,
+                firstWorkListDto.bindingCollection);
         mapping.put(overload, firstWorkListDto);
         while (iterator.hasNext()) {
             WorklistDto worklistDto = iterator.next();
-            IOverloadBindings overloadBindings = worklistDto.overloadBindings;
-            overload = constraintSolverHelper.createOverload(methodSymbol, overloadBindings);
+            overload = constraintSolverHelper.createOverload(methodSymbol, worklistDto.bindingCollection);
             mapping.put(overload, worklistDto);
         }
 
-        List<IOverloadBindings> solvedBindings = new ArrayList<>();
+        List<IBindingCollection> solvedBindings = new ArrayList<>();
         for (IFunctionType functionType : methodSymbol.getOverloads()) {
-            solvedBindings.add(functionType.getOverloadBindings());
+            solvedBindings.add(functionType.getBindingCollection());
             mapping.remove(functionType);
         }
         methodSymbol.setBindings(solvedBindings);
@@ -354,19 +354,19 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
                     System.out.println("\n----------- Bindings -------------\n");
 
                     for (IFunctionType functionType : constraint.getMethodSymbol().getOverloads()) {
-                        System.out.println(functionType.getOverloadBindings().toString());
+                        System.out.println(functionType.getBindingCollection().toString());
                     }
 
                     System.out.println("\n");
 
                     for (IFunctionType functionType : operatorOverloads) {
-                        System.out.println(functionType.getOverloadBindings().toString());
+                        System.out.println(functionType.getBindingCollection().toString());
                     }
                 }
                 WorklistDto tempWorklistDto = worklistDto.workDeque.removeFirst();
                 String lhsAbsoluteName = constraint.getLeftHandSide().getAbsoluteName();
-                OverloadApplicationDto dto = tempWorklistDto.overloadBindings.getAppliedOverload(lhsAbsoluteName);
-                worklistDto.overloadBindings.setAppliedOverload(lhsAbsoluteName, dto);
+                OverloadApplicationDto dto = tempWorklistDto.bindingCollection.getAppliedOverload(lhsAbsoluteName);
+                worklistDto.bindingCollection.setAppliedOverload(lhsAbsoluteName, dto);
             }
         }
     }

@@ -10,9 +10,9 @@ import ch.tsphp.common.IScope;
 import ch.tsphp.common.symbols.ISymbol;
 import ch.tsphp.tinsphp.common.IVariableDeclarationCreator;
 import ch.tsphp.tinsphp.common.inference.IDefinitionPhaseController;
+import ch.tsphp.tinsphp.common.inference.constraints.IBindingCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
-import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.common.inference.constraints.OverloadApplicationDto;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.inference_engine.resolver.PutAtTopVariableDeclarationCreator;
@@ -30,7 +30,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static ch.tsphp.tinsphp.common.TinsPHPConstants.RETURN_VARIABLE_NAME;
-import static ch.tsphp.tinsphp.inference_engine.test.integration.testutils.OverloadBindingsMatcher.varBinding;
+import static ch.tsphp.tinsphp.inference_engine.test.integration.testutils.BindingCollectionMatcher.varBinding;
 import static java.util.Arrays.asList;
 
 
@@ -64,17 +64,17 @@ public class AppliedOverloadTest extends AInferenceOverloadTest
 
         IConstraintCollection collectionScope = definitionPhaseController.getGlobalDefaultNamespace();
 
-        List<IOverloadBindings> overloadBindingsList = collectionScope.getBindings();
+        List<IBindingCollection> bindingCollections = collectionScope.getBindings();
         Assert.assertEquals(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
-                "too many or not enough overloadBindings", 1, overloadBindingsList.size());
+                "too many or not enough bindingCollection", 1, bindingCollections.size());
 
-        IOverloadBindings overloadBindings = overloadBindingsList.get(0);
+        IBindingCollection bindingCollection = bindingCollections.get(0);
 
         Assert.assertTrue(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
                         "no type variableId defined for " + symbol.getAbsoluteName(),
-                overloadBindings.containsVariable(symbol.getAbsoluteName()));
+                bindingCollection.containsVariable(symbol.getAbsoluteName()));
 
-        OverloadApplicationDto dto = overloadBindings.getAppliedOverload(symbol.getAbsoluteName());
+        OverloadApplicationDto dto = bindingCollection.getAppliedOverload(symbol.getAbsoluteName());
         return asList(dto.overload);
     }
 

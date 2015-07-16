@@ -19,7 +19,7 @@ import java.util.Set;
 public class FunctionTypeMatcher extends BaseMatcher<IFunctionType>
 {
     private final FunctionMatcherDto dto;
-    private final OverloadBindingsMatcher overloadBindingsMatcher;
+    private final BindingCollectionMatcher bindingCollectionMatcher;
 
     public static Matcher<? super IFunctionType> isFunctionType(FunctionMatcherDto dto) {
         return new FunctionTypeMatcher(dto);
@@ -27,7 +27,7 @@ public class FunctionTypeMatcher extends BaseMatcher<IFunctionType>
 
     public FunctionTypeMatcher(FunctionMatcherDto functionMatcherDto) {
         dto = functionMatcherDto;
-        overloadBindingsMatcher = new OverloadBindingsMatcher(dto.bindings);
+        bindingCollectionMatcher = new BindingCollectionMatcher(dto.bindings);
     }
 
     @Override
@@ -37,7 +37,7 @@ public class FunctionTypeMatcher extends BaseMatcher<IFunctionType>
                 && functionType.getName().equals(dto.name)
                 && functionType.getParameters().size() + 1 == dto.bindings.length;
         if (ok) {
-            ok = overloadBindingsMatcher.matches(functionType.getOverloadBindings());
+            ok = bindingCollectionMatcher.matches(functionType.getBindingCollection());
         }
         return ok;
     }
@@ -68,7 +68,7 @@ public class FunctionTypeMatcher extends BaseMatcher<IFunctionType>
             description.appendText("\n").appendText(functionType.getName()).appendText("{")
                     .appendText(String.valueOf(functionType.getNumberOfNonOptionalParameters()))
                     .appendText("}");
-            overloadBindingsMatcher.describeMismatch(functionType.getOverloadBindings(), description, false, false);
+            bindingCollectionMatcher.describeMismatch(functionType.getBindingCollection(), description, false, false);
         }
     }
 
@@ -77,6 +77,6 @@ public class FunctionTypeMatcher extends BaseMatcher<IFunctionType>
         description.appendText("\n").appendText(dto.name).appendText("{")
                 .appendText(String.valueOf(dto.numberOfNonOptionalParameters))
                 .appendText("}");
-        overloadBindingsMatcher.describeTo(description, false);
+        bindingCollectionMatcher.describeTo(description, false);
     }
 }

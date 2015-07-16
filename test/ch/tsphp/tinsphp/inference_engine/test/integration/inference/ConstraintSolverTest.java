@@ -14,9 +14,9 @@ import ch.tsphp.tinsphp.common.ICore;
 import ch.tsphp.tinsphp.common.config.ICoreInitialiser;
 import ch.tsphp.tinsphp.common.config.ISymbolsInitialiser;
 import ch.tsphp.tinsphp.common.gen.TokenTypes;
+import ch.tsphp.tinsphp.common.inference.constraints.IBindingCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
-import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import ch.tsphp.tinsphp.common.inference.constraints.TypeVariableReference;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
@@ -63,8 +63,9 @@ import static ch.tsphp.tinsphp.core.StandardConstraintAndVariables.T_RETURN;
 import static ch.tsphp.tinsphp.core.StandardConstraintAndVariables.T_RHS;
 import static ch.tsphp.tinsphp.core.StandardConstraintAndVariables.VAR_LHS;
 import static ch.tsphp.tinsphp.core.StandardConstraintAndVariables.VAR_RHS;
-import static ch.tsphp.tinsphp.inference_engine.test.integration.testutils.OverloadBindingsMatcher.varBinding;
-import static ch.tsphp.tinsphp.inference_engine.test.integration.testutils.OverloadBindingsMatcher.withVariableBindings;
+import static ch.tsphp.tinsphp.inference_engine.test.integration.testutils.BindingCollectionMatcher.varBinding;
+import static ch.tsphp.tinsphp.inference_engine.test.integration.testutils.BindingCollectionMatcher
+        .withVariableBindings;
 import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -104,20 +105,20 @@ public class ConstraintSolverTest
         IVariableSymbol $y = mock(IVariableSymbol.class);
         when($y.getAbsoluteName()).thenReturn("$y");
         when($y.getName()).thenReturn("$y");
-        IOverloadBindings overloadBindings = symbolFactory.createOverloadBindings();
+        IBindingCollection bindingCollection = symbolFactory.createBindingCollection();
         String t1 = "T1";
-        overloadBindings.addVariable(VAR_LHS, reference(t1));
-        overloadBindings.addVariable(VAR_RHS, reference("T2"));
-        overloadBindings.addVariable(RETURN_VARIABLE_NAME, reference(t1));
+        bindingCollection.addVariable(VAR_LHS, reference(t1));
+        bindingCollection.addVariable(VAR_RHS, reference("T2"));
+        bindingCollection.addVariable(RETURN_VARIABLE_NAME, reference(t1));
         //bind convertible type to Tlhs
         IConvertibleTypeSymbol asT1 = symbolFactory.createConvertibleTypeSymbol();
-        overloadBindings.bind(asT1, Arrays.asList(t1));
-        overloadBindings.addUpperTypeBound(t1, primitiveTypes.get(PrimitiveTypeNames.NUM));
-        overloadBindings.addUpperTypeBound("T2", asT1);
+        bindingCollection.bind(asT1, Arrays.asList(t1));
+        bindingCollection.addUpperTypeBound(t1, primitiveTypes.get(PrimitiveTypeNames.NUM));
+        bindingCollection.addUpperTypeBound("T2", asT1);
         IVariable lhs = symbolFactory.createVariable(VAR_LHS);
         IVariable rhs = symbolFactory.createVariable(VAR_RHS);
         List<IVariable> binaryParameterIds = Arrays.asList(lhs, rhs);
-        IFunctionType function = symbolFactory.createFunctionType("+", overloadBindings, binaryParameterIds);
+        IFunctionType function = symbolFactory.createFunctionType("+", bindingCollection, binaryParameterIds);
         Set<String> set = new HashSet<>();
         set.add(t1);
         function.manuallySimplified(set, 0, true);
@@ -132,17 +133,17 @@ public class ConstraintSolverTest
         when($z.getAbsoluteName()).thenReturn("$z");
         when($z.getName()).thenReturn("$z");
         IVariable e2 = symbolFactory.createVariable("e2");
-        overloadBindings = symbolFactory.createOverloadBindings();
-        overloadBindings.addVariable(VAR_LHS, reference(T_LHS));
-        overloadBindings.addVariable(VAR_RHS, reference(T_RHS));
-        overloadBindings.addVariable(RETURN_VARIABLE_NAME, reference(T_RETURN));
+        bindingCollection = symbolFactory.createBindingCollection();
+        bindingCollection.addVariable(VAR_LHS, reference(T_LHS));
+        bindingCollection.addVariable(VAR_RHS, reference(T_RHS));
+        bindingCollection.addVariable(RETURN_VARIABLE_NAME, reference(T_RETURN));
         //bind convertible type to T2
         IConvertibleTypeSymbol asTReturn = symbolFactory.createConvertibleTypeSymbol();
-        overloadBindings.bind(asTReturn, Arrays.asList(T_RETURN));
-        overloadBindings.addUpperTypeBound(T_LHS, asTReturn);
-        overloadBindings.addUpperTypeBound(T_RHS, asTReturn);
-        overloadBindings.addUpperTypeBound(T_RETURN, primitiveTypes.get(PrimitiveTypeNames.NUM));
-        function = symbolFactory.createFunctionType("+", overloadBindings, binaryParameterIds);
+        bindingCollection.bind(asTReturn, Arrays.asList(T_RETURN));
+        bindingCollection.addUpperTypeBound(T_LHS, asTReturn);
+        bindingCollection.addUpperTypeBound(T_RHS, asTReturn);
+        bindingCollection.addUpperTypeBound(T_RETURN, primitiveTypes.get(PrimitiveTypeNames.NUM));
+        function = symbolFactory.createFunctionType("+", bindingCollection, binaryParameterIds);
         set = new HashSet<>();
         set.add(T_RETURN);
         function.manuallySimplified(set, 0, true);
@@ -169,8 +170,8 @@ public class ConstraintSolverTest
 
         ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
         verify(methodSymbol).setBindings(captor.capture());
-        List<IOverloadBindings> bindingsList = captor.getValue();
-        IOverloadBindings bindings = bindingsList.get(0);
+        List<IBindingCollection> bindingsList = captor.getValue();
+        IBindingCollection bindings = bindingsList.get(0);
 
         assertThat(bindings, withVariableBindings(
                 varBinding("$x", "T1", null, asList("(float | int)", "@T2"), false),
@@ -212,21 +213,21 @@ public class ConstraintSolverTest
         when($y.getAbsoluteName()).thenReturn("$y");
         when($y.getName()).thenReturn("$y");
 
-        IOverloadBindings overloadBindings = symbolFactory.createOverloadBindings();
-        overloadBindings.addVariable(VAR_LHS, reference(T_LHS));
-        overloadBindings.addVariable(VAR_RHS, reference(T_RHS));
-        overloadBindings.addVariable(RETURN_VARIABLE_NAME, reference(T_RETURN));
+        IBindingCollection bindingCollection = symbolFactory.createBindingCollection();
+        bindingCollection.addVariable(VAR_LHS, reference(T_LHS));
+        bindingCollection.addVariable(VAR_RHS, reference(T_RHS));
+        bindingCollection.addVariable(RETURN_VARIABLE_NAME, reference(T_RETURN));
         //bind convertible type to T2
         IConvertibleTypeSymbol asTReturn = symbolFactory.createConvertibleTypeSymbol();
-        overloadBindings.bind(asTReturn, Arrays.asList(T_RETURN));
-        overloadBindings.addUpperTypeBound(T_LHS, asTReturn);
-        overloadBindings.addUpperTypeBound(T_RHS, asTReturn);
-        overloadBindings.addUpperTypeBound(T_RETURN, primitiveTypes.get(PrimitiveTypeNames.NUM));
+        bindingCollection.bind(asTReturn, Arrays.asList(T_RETURN));
+        bindingCollection.addUpperTypeBound(T_LHS, asTReturn);
+        bindingCollection.addUpperTypeBound(T_RHS, asTReturn);
+        bindingCollection.addUpperTypeBound(T_RETURN, primitiveTypes.get(PrimitiveTypeNames.NUM));
 
         IVariable lhs = symbolFactory.createVariable(VAR_LHS);
         IVariable rhs = symbolFactory.createVariable(VAR_RHS);
         List<IVariable> binaryParameterIds = Arrays.asList(lhs, rhs);
-        IFunctionType function = symbolFactory.createFunctionType("+", overloadBindings, binaryParameterIds);
+        IFunctionType function = symbolFactory.createFunctionType("+", bindingCollection, binaryParameterIds);
         Set<String> set = new HashSet<>();
         set.add(T_RETURN);
         function.manuallySimplified(set, 0, true);
@@ -261,7 +262,7 @@ public class ConstraintSolverTest
 
         ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
         verify(methodSymbol).setBindings(captor.capture());
-        List<IOverloadBindings> bindingsList = captor.getValue();
+        List<IBindingCollection> bindingsList = captor.getValue();
 
         assertThat(bindingsList, hasItem(withVariableBindings(
                 varBinding("$x", "V2", null, asList("{as T2}"), true),

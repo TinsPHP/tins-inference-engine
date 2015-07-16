@@ -6,8 +6,8 @@
 
 package ch.tsphp.tinsphp.inference_engine.constraints;
 
+import ch.tsphp.tinsphp.common.inference.constraints.IBindingCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
-import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 
 import java.util.Deque;
 import java.util.List;
@@ -20,7 +20,7 @@ public class WorklistDto
     public IConstraintCollection constraintCollection;
     public int pointer;
     public boolean isSolvingMethod;
-    public IOverloadBindings overloadBindings;
+    public IBindingCollection bindingCollection;
     public ConvertibleAnalysisDto convertibleAnalysisDto;
 
     public List<Integer> unsolvedConstraints;
@@ -34,21 +34,21 @@ public class WorklistDto
             IConstraintCollection theConstraintCollection,
             int thePointer,
             boolean isItSolvingMethod,
-            IOverloadBindings theOverloadBindings) {
+            IBindingCollection theBindingCollection) {
         workDeque = theWorkDeque;
         constraintCollection = theConstraintCollection;
         pointer = thePointer;
         isSolvingMethod = isItSolvingMethod;
-        overloadBindings = theOverloadBindings;
+        bindingCollection = theBindingCollection;
         convertibleAnalysisDto = new ConvertibleAnalysisDto();
     }
 
-    public WorklistDto(WorklistDto dto, int newPointer, IOverloadBindings theOverloadBindings) {
+    public WorklistDto(WorklistDto dto, int newPointer, IBindingCollection theBindingCollection) {
         workDeque = dto.workDeque;
         constraintCollection = dto.constraintCollection;
         isSolvingMethod = dto.isSolvingMethod;
         pointer = newPointer;
-        overloadBindings = theOverloadBindings;
+        bindingCollection = theBindingCollection;
 
         unsolvedConstraints = dto.unsolvedConstraints;
         isInIterativeMode = dto.isInIterativeMode;

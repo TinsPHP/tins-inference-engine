@@ -6,7 +6,7 @@
 
 package ch.tsphp.tinsphp.inference_engine.test.integration.testutils;
 
-import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
+import ch.tsphp.tinsphp.common.inference.constraints.IBindingCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableReference;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -17,12 +17,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-public class OverloadBindingsMatcher extends BaseMatcher<IOverloadBindings>
+public class BindingCollectionMatcher extends BaseMatcher<IBindingCollection>
 {
     final BindingMatcherDto[] dtos;
 
-    public static Matcher<? super IOverloadBindings> withVariableBindings(BindingMatcherDto... dtos) {
-        return new OverloadBindingsMatcher(dtos);
+    public static Matcher<? super IBindingCollection> withVariableBindings(BindingMatcherDto... dtos) {
+        return new BindingCollectionMatcher(dtos);
     }
 
     public static BindingMatcherDto varBinding(
@@ -34,17 +34,17 @@ public class OverloadBindingsMatcher extends BaseMatcher<IOverloadBindings>
         return new BindingMatcherDto(theVariable, theTypeVariable, theLowerBounds, theUpperBounds, hasFixedType);
     }
 
-    public OverloadBindingsMatcher(BindingMatcherDto[] bindingDtos) {
+    public BindingCollectionMatcher(BindingMatcherDto[] bindingDtos) {
         dtos = bindingDtos;
     }
 
     //Warning! start code duplication - same as in tins-symbols
     @Override
     public boolean matches(Object o) {
-        IOverloadBindings overloadBindings = (IOverloadBindings) o;
-        boolean ok = overloadBindings.getVariableIds().size() == dtos.length;
+        IBindingCollection bindingCollection = (IBindingCollection) o;
+        boolean ok = bindingCollection.getVariableIds().size() == dtos.length;
         if (ok) {
-            ok = matches(overloadBindings);
+            ok = matches(bindingCollection);
         }
         return ok;
     }
@@ -52,7 +52,7 @@ public class OverloadBindingsMatcher extends BaseMatcher<IOverloadBindings>
 
 
     //Warning! start code duplication - same as in tins-symbols
-    public boolean matches(IOverloadBindings bindings) {
+    public boolean matches(IBindingCollection bindings) {
         Set<String> variableIds = bindings.getVariableIds();
         boolean ok = true;
         for (BindingMatcherDto dto : dtos) {
@@ -101,11 +101,11 @@ public class OverloadBindingsMatcher extends BaseMatcher<IOverloadBindings>
     //Warning! start code duplication - same as in tins-symbols
     @Override
     public void describeMismatch(Object item, org.hamcrest.Description description) {
-        describeMismatch((IOverloadBindings) item, description, true, true);
+        describeMismatch((IBindingCollection) item, description, true, true);
     }
 
     public void describeMismatch(
-            IOverloadBindings bindings, Description description,
+            IBindingCollection bindings, Description description,
             boolean withBeginningNewLine, boolean reportAdditionalBindings) {
         boolean variableMissing = false;
 
@@ -164,7 +164,7 @@ public class OverloadBindingsMatcher extends BaseMatcher<IOverloadBindings>
 
     //Warning! start code duplication - same as in tins-symbols
     private boolean appendVariable(
-            IOverloadBindings bindings, Description description, boolean notFirst, String variableId) {
+            IBindingCollection bindings, Description description, boolean notFirst, String variableId) {
         if (notFirst) {
             description.appendText(", ");
         }

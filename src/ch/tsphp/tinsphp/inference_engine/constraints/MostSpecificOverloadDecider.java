@@ -7,8 +7,8 @@
 package ch.tsphp.tinsphp.inference_engine.constraints;
 
 import ch.tsphp.common.symbols.ITypeSymbol;
+import ch.tsphp.tinsphp.common.inference.constraints.IBindingCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
-import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import ch.tsphp.tinsphp.common.symbols.IIntersectionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
@@ -174,8 +174,8 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
 
     private IFunctionType copyAndFixOverload(IFunctionType overload) {
         Collection<String> nonFixedTypeParameters = new ArrayList<>(overload.getNonFixedTypeParameters());
-        IOverloadBindings overloadBindings = overload.getOverloadBindings();
-        IOverloadBindings copyBindings = symbolFactory.createOverloadBindings(overloadBindings);
+        IBindingCollection bindingCollection = overload.getBindingCollection();
+        IBindingCollection copyBindings = symbolFactory.createBindingCollection(bindingCollection);
         IFunctionType copyOverload = symbolFactory.createFunctionType(
                 overload.getName(), copyBindings, overload.getParameters());
 
@@ -191,10 +191,11 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
     }
 
     private OverloadRankingDto fixOverloadInIterativeMode(OverloadRankingDto dto) {
-        IOverloadBindings overloadBindings = symbolFactory.createOverloadBindings(dto.overload.getOverloadBindings());
-        overloadBindings.fixTypeParameters();
+        IBindingCollection bindingCollection = symbolFactory.createBindingCollection(dto.overload
+                .getBindingCollection());
+        bindingCollection.fixTypeParameters();
         IFunctionType copyOverload = symbolFactory.createFunctionType(
-                dto.overload.getName(), overloadBindings, dto.overload.getParameters());
+                dto.overload.getName(), bindingCollection, dto.overload.getParameters());
 
         return new OverloadRankingDto(
                 copyOverload, dto.bindings, dto.implicitConversions, dto.runtimeChecks, dto.hasNarrowedArguments);
@@ -211,7 +212,7 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
             ITypeSymbol mostSpecificUpperBound = null;
 
             for (OverloadRankingDto dto : fixedOverloads) {
-                IOverloadBindings bindings = dto.overload.getOverloadBindings();
+                IBindingCollection bindings = dto.overload.getBindingCollection();
                 IVariable parameter = dto.overload.getParameters().get(i);
                 String parameterTypeVariable = bindings.getTypeVariable(parameter.getAbsoluteName());
                 IUnionTypeSymbol lowerBound = null;
@@ -268,16 +269,16 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
     }
 
     private List<OverloadRankingDto> getMostSpecificApplicableOverload(
-            List<OverloadRankingDto> overloadBindingsList,
+            List<OverloadRankingDto> applicableOverloads,
             List<Pair<ITypeSymbol, ITypeSymbol>> boundsList) {
         List<OverloadRankingDto> mostSpecificOverloads = new ArrayList<>(3);
 
         int numberOfParameters = boundsList.size();
-        OverloadRankingDto mostSpecificDto = overloadBindingsList.get(0);
+        OverloadRankingDto mostSpecificDto = applicableOverloads.get(0);
 
-        int overloadSize = overloadBindingsList.size();
+        int overloadSize = applicableOverloads.size();
         for (int i = 0; i < overloadSize; ++i) {
-            OverloadRankingDto dto = overloadBindingsList.get(i);
+            OverloadRankingDto dto = applicableOverloads.get(i);
             for (int j = 0; j < numberOfParameters; ++j) {
                 Pair<ITypeSymbol, ITypeSymbol> mostSpecificBound = boundsList.get(j);
                 Pair<IUnionTypeSymbol, IIntersectionTypeSymbol> bound = dto.bounds.get(j);

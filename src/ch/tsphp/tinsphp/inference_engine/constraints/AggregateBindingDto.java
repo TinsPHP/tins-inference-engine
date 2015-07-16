@@ -7,9 +7,9 @@
 package ch.tsphp.tinsphp.inference_engine.constraints;
 
 import ch.tsphp.common.symbols.ITypeSymbol;
+import ch.tsphp.tinsphp.common.inference.constraints.IBindingCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
-import ch.tsphp.tinsphp.common.inference.constraints.IOverloadBindings;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableReference;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import ch.tsphp.tinsphp.common.utils.Pair;
@@ -21,7 +21,7 @@ public class AggregateBindingDto
 {
     public IConstraint constraint;
     public IFunctionType overload;
-    public IOverloadBindings bindings;
+    public IBindingCollection bindings;
     public WorklistDto worklistDto;
     public int iterateCount = 0;
     public Map<String, ITypeVariableReference> mapping;
@@ -37,7 +37,7 @@ public class AggregateBindingDto
     public AggregateBindingDto(
             IConstraint theConstraint,
             IFunctionType theOverload,
-            IOverloadBindings theBindings,
+            IBindingCollection theBindings,
             WorklistDto theWorkListDto) {
         constraint = theConstraint;
         overload = theOverload;
