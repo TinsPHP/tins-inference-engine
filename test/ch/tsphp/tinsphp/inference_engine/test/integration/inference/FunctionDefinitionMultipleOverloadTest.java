@@ -160,9 +160,27 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
 //                                "{as T} x {as T} -> T \ int <: T <: (float | int)"
 //                        ), 1, 0, 2)
 //                },
+                {
+                        "function foo10($x, $y, $z){$x =+ 1; return $x + $y +$z; }",
+                        testStructs("foo10()", "\\.\\.", asList(
+                                "int x int x int -> int",
+                                //TODO TINS-531 inferred overload is not general enough
+                                //should be instead of the following
+                                //"{as T1} x {as T1} x {as T2} -> T2 \\ int <: T1 <: num, T1 <: T2 <: num"
+                                "{as (float | int)} x {as (float | int)} x {as T} -> T \\ int <: T <: (float | int)"
+                        ), 1, 0, 2)
+                },
+                //see TINS-414 fixing types and erroneous bounds
+                {
+                        "function foo15($x, $y){ if(true){return $y /= $x;} return $x + 1;}",
+                        testStructs("foo15()", "\\.\\.", asList(
+                                "float x T -> (falseType | float | int | T) "
+                                        + "\\ (falseType | float) <: T <: {as (float | int)}",
+                                "{as (float | int)} x T -> T \\ (falseType | float | int) <: T <: {as (float | int)}"
+                        ), 1, 0, 2)
+                },
         });
     }
-
 
     @Override
     protected void assertsInInferencePhase() {
