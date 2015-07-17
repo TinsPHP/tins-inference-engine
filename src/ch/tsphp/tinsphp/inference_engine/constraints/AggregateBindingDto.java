@@ -22,7 +22,7 @@ public class AggregateBindingDto
     public IConstraint constraint;
     public IFunctionType overload;
     public IBindingCollection bindings;
-    public WorklistDto worklistDto;
+    public WorkItemDto workItemDto;
     public int iterateCount = 0;
     public Map<String, ITypeVariableReference> mapping;
     public IVariable bindingVariable;
@@ -38,10 +38,10 @@ public class AggregateBindingDto
             IConstraint theConstraint,
             IFunctionType theOverload,
             IBindingCollection theBindings,
-            WorklistDto theWorkListDto) {
+            WorkItemDto theWorkItemDto) {
         constraint = theConstraint;
         overload = theOverload;
         bindings = theBindings;
-        worklistDto = theWorkListDto;
+        workItemDto = theWorkItemDto;
     }
 }

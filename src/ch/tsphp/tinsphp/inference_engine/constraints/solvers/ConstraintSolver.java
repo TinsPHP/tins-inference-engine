@@ -14,7 +14,7 @@ import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
-import ch.tsphp.tinsphp.inference_engine.constraints.WorklistDto;
+import ch.tsphp.tinsphp.inference_engine.constraints.WorkItemDto;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -30,7 +30,7 @@ public class ConstraintSolver implements IConstraintSolver
     private final ISoftTypingConstraintSolver softTypingConstraintSolver;
     private final IConstraintSolverHelper constraintSolverHelper;
 
-    private final Map<String, Set<WorklistDto>> unsolvedConstraints;
+    private final Map<String, Set<WorkItemDto>> unsolvedConstraints;
 
     @SuppressWarnings("checkstyle:parameternumber")
     public ConstraintSolver(
@@ -38,7 +38,7 @@ public class ConstraintSolver implements IConstraintSolver
             IIterativeConstraintSolver theIterativeConstraintSolver,
             ISoftTypingConstraintSolver theSoftTypingConstraintSolver,
             IConstraintSolverHelper theConstraintSolverHelper,
-            Map<String, Set<WorklistDto>> theUnsolvedConstraints) {
+            Map<String, Set<WorkItemDto>> theUnsolvedConstraints) {
 
         symbolFactory = theSymbolFactory;
         iterativeConstraintSolver = theIterativeConstraintSolver;
@@ -50,7 +50,7 @@ public class ConstraintSolver implements IConstraintSolver
     @Override
     public void solveConstraints(List<IMethodSymbol> methodSymbols, IGlobalNamespaceScope globalDefaultNamespaceScope) {
         for (IMethodSymbol methodSymbol : methodSymbols) {
-            Deque<WorklistDto> workDeque = createInitialWorklist(methodSymbol, true);
+            Deque<WorkItemDto> workDeque = createInitialWorklist(methodSymbol, true);
             solveMethodConstraints(methodSymbol, workDeque);
         }
 
@@ -59,21 +59,21 @@ public class ConstraintSolver implements IConstraintSolver
         }
 
         if (!globalDefaultNamespaceScope.getConstraints().isEmpty()) {
-            Deque<WorklistDto> workDeque = createInitialWorklist(globalDefaultNamespaceScope, false);
+            Deque<WorkItemDto> workDeque = createInitialWorklist(globalDefaultNamespaceScope, false);
             solveGlobalDefaultNamespaceConstraints(globalDefaultNamespaceScope, workDeque);
         }
     }
 
-    private Deque<WorklistDto> createInitialWorklist(
+    private Deque<WorkItemDto> createInitialWorklist(
             IConstraintCollection constraintCollection, boolean isSolvingMethod) {
         IBindingCollection bindings = symbolFactory.createBindingCollection();
-        Deque<WorklistDto> workDeque = new ArrayDeque<>();
-        workDeque.add(new WorklistDto(workDeque, constraintCollection, 0, isSolvingMethod, bindings));
+        Deque<WorkItemDto> workDeque = new ArrayDeque<>();
+        workDeque.add(new WorkItemDto(workDeque, constraintCollection, 0, isSolvingMethod, bindings));
         return workDeque;
     }
 
     public void solveGlobalDefaultNamespaceConstraints(
-            IGlobalNamespaceScope globalDefaultNamespaceScope, Deque<WorklistDto> workDeque) {
+            IGlobalNamespaceScope globalDefaultNamespaceScope, Deque<WorkItemDto> workDeque) {
         List<IBindingCollection> bindings = solveConstraints(workDeque);
         if (bindings.isEmpty()) {
             softTypingConstraintSolver.fallBackToSoftTyping(globalDefaultNamespaceScope);
@@ -89,7 +89,7 @@ public class ConstraintSolver implements IConstraintSolver
     }
 
     @Override
-    public void solveMethodConstraints(IMethodSymbol methodSymbol, Deque<WorklistDto> workDeque) {
+    public void solveMethodConstraints(IMethodSymbol methodSymbol, Deque<WorkItemDto> workDeque) {
         List<IBindingCollection> bindings = solveConstraints(workDeque);
         if (!bindings.isEmpty()) {
             constraintSolverHelper.finishingMethodConstraints(methodSymbol, bindings);
@@ -100,45 +100,45 @@ public class ConstraintSolver implements IConstraintSolver
         }
     }
 
-    private List<IBindingCollection> solveConstraints(Deque<WorklistDto> workDeque) {
+    private List<IBindingCollection> solveConstraints(Deque<WorkItemDto> workDeque) {
         List<IBindingCollection> solvedBindings = new ArrayList<>();
 
         List<IConstraint> constraints = null;
         if (!workDeque.isEmpty()) {
-            WorklistDto worklistDto = workDeque.peek();
-            constraints = worklistDto.constraintCollection.getConstraints();
+            WorkItemDto workItemDto = workDeque.peek();
+            constraints = workItemDto.constraintCollection.getConstraints();
         }
 
         while (!workDeque.isEmpty()) {
-            WorklistDto worklistDto = workDeque.removeFirst();
+            WorkItemDto workItemDto = workDeque.removeFirst();
 
-            if (worklistDto.pointer < constraints.size()) {
-                IConstraint constraint = constraints.get(worklistDto.pointer);
-                solveConstraint(worklistDto, constraint);
-            } else if (worklistDto.unsolvedConstraints == null || worklistDto.unsolvedConstraints.isEmpty()) {
-                solvedBindings.add(worklistDto.bindingCollection);
-            } else if (!worklistDto.isSolvingDependency) {
-                constraintSolverHelper.createDependencies(worklistDto);
+            if (workItemDto.pointer < constraints.size()) {
+                IConstraint constraint = constraints.get(workItemDto.pointer);
+                solveConstraint(workItemDto, constraint);
+            } else if (workItemDto.unsolvedConstraints == null || workItemDto.unsolvedConstraints.isEmpty()) {
+                solvedBindings.add(workItemDto.bindingCollection);
+            } else if (!workItemDto.isSolvingDependency) {
+                constraintSolverHelper.createDependencies(workItemDto);
             }
         }
 
         return solvedBindings;
     }
 
-    private void solveConstraint(WorklistDto worklistDto, IConstraint constraint) {
+    private void solveConstraint(WorkItemDto workItemDto, IConstraint constraint) {
         IMinimalMethodSymbol refMethodSymbol = constraint.getMethodSymbol();
         if (refMethodSymbol.getOverloads().size() != 0) {
-            constraintSolverHelper.solve(worklistDto, constraint);
+            constraintSolverHelper.solve(workItemDto, constraint);
         } else {
             //add to unresolved constraints
-            if (worklistDto.unsolvedConstraints == null) {
-                worklistDto.unsolvedConstraints = new ArrayList<>();
+            if (workItemDto.unsolvedConstraints == null) {
+                workItemDto.unsolvedConstraints = new ArrayList<>();
             }
-            worklistDto.unsolvedConstraints.add(worklistDto.pointer);
+            workItemDto.unsolvedConstraints.add(workItemDto.pointer);
 
             //proceed with the rest
-            ++worklistDto.pointer;
-            worklistDto.workDeque.add(worklistDto);
+            ++workItemDto.pointer;
+            workItemDto.workDeque.add(workItemDto);
         }
     }
 }

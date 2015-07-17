@@ -12,7 +12,7 @@ import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.inference_engine.constraints.AggregateBindingDto;
-import ch.tsphp.tinsphp.inference_engine.constraints.WorklistDto;
+import ch.tsphp.tinsphp.inference_engine.constraints.WorkItemDto;
 
 import java.util.List;
 
@@ -22,15 +22,15 @@ import java.util.List;
 public interface IConstraintSolverHelper
 {
     boolean createBindingsIfNecessary(
-            WorklistDto worklistDto, IVariable leftHandSide, List<IVariable> arguments);
+            WorkItemDto workItemDto, IVariable leftHandSide, List<IVariable> arguments);
 
-    void solve(WorklistDto worklistDto, IConstraint constraint);
+    void solve(WorkItemDto workItemDto, IConstraint constraint);
 
     void aggregateBinding(AggregateBindingDto dto);
 
-    void addMostSpecificOverloadToWorklist(WorklistDto worklistDto, IConstraint constraint);
+    void addMostSpecificOverloadToWorklist(WorkItemDto workItemDto, IConstraint constraint);
 
-    void createDependencies(WorklistDto worklistDto);
+    void createDependencies(WorkItemDto workItemDto);
 
     void finishingMethodConstraints(IMethodSymbol methodSymbol, List<IBindingCollection> bindings);
 

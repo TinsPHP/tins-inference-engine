@@ -35,7 +35,7 @@ import ch.tsphp.tinsphp.common.utils.TypeHelperDto;
 import ch.tsphp.tinsphp.inference_engine.constraints.AggregateBindingDto;
 import ch.tsphp.tinsphp.inference_engine.constraints.IMostSpecificOverloadDecider;
 import ch.tsphp.tinsphp.inference_engine.constraints.OverloadRankingDto;
-import ch.tsphp.tinsphp.inference_engine.constraints.WorklistDto;
+import ch.tsphp.tinsphp.inference_engine.constraints.WorkItemDto;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -62,8 +62,8 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
     private final ITypeSymbol mixedTypeSymbol;
 
     private final Map<String, Set<String>> dependencies;
-    private final Map<String, List<Pair<WorklistDto, Integer>>> directDependencies;
-    private final Map<String, Set<WorklistDto>> unsolvedConstraints;
+    private final Map<String, List<Pair<WorkItemDto, Integer>>> directDependencies;
+    private final Map<String, Set<WorkItemDto>> unsolvedConstraints;
     private final TypeSymbolComparator typeSymbolComparator;
 
     @SuppressWarnings("checkstyle:parameternumber")
@@ -74,8 +74,8 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
             IMostSpecificOverloadDecider theMostSpecificOverloadDecider,
             IDependencyConstraintSolver theDependencyConstraintSolver,
             Map<String, Set<String>> theDependencies,
-            Map<String, List<Pair<WorklistDto, Integer>>> theDirectDependencies,
-            Map<String, Set<WorklistDto>> theUnsolvedConstraints) {
+            Map<String, List<Pair<WorkItemDto, Integer>>> theDirectDependencies,
+            Map<String, Set<WorkItemDto>> theUnsolvedConstraints) {
         symbolFactory = theSymbolFactory;
         typeHelper = theTypeHelper;
         issueReporter = theIssueReporter;
@@ -90,13 +90,13 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
 
     @Override
     public boolean createBindingsIfNecessary(
-            WorklistDto worklistDto, IVariable leftHandSide, List<IVariable> arguments) {
+            WorkItemDto workItemDto, IVariable leftHandSide, List<IVariable> arguments) {
 
         int constantTypeCounter = 0;
-        createBindingIfNecessary(worklistDto, leftHandSide);
+        createBindingIfNecessary(workItemDto, leftHandSide);
         boolean atLeastOneBindingCreated = false;
         for (IVariable parameterVariable : arguments) {
-            ECreateBinding status = createBindingIfNecessary(worklistDto, parameterVariable);
+            ECreateBinding status = createBindingIfNecessary(workItemDto, parameterVariable);
             switch (status) {
                 case Created:
                     atLeastOneBindingCreated = true;
@@ -105,7 +105,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                     ++constantTypeCounter;
                     break;
                 case NotCreated:
-                    if (worklistDto.isInIterativeMode || !parameterVariable.getName().startsWith("$")) {
+                    if (workItemDto.isInIterativeMode || !parameterVariable.getName().startsWith("$")) {
                         ++constantTypeCounter;
                     }
                     break;
@@ -117,8 +117,8 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
         return atLeastOneBindingCreated || constantTypeCounter < arguments.size();
     }
 
-    private ECreateBinding createBindingIfNecessary(WorklistDto worklistDto, IVariable variable) {
-        IBindingCollection bindings = worklistDto.bindingCollection;
+    private ECreateBinding createBindingIfNecessary(WorkItemDto workItemDto, IVariable variable) {
+        IBindingCollection bindings = workItemDto.bindingCollection;
         String absoluteName = variable.getAbsoluteName();
         ECreateBinding status = ECreateBinding.NotCreated;
         if (!bindings.containsVariable(absoluteName)) {
@@ -128,8 +128,8 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
             //if it is a literal then we know already the lower bound and it is a fix typed type variable
             ITypeSymbol typeSymbol = variable.getType();
             if (typeSymbol != null
-                    && (worklistDto.isInSoftTypingMode
-                    || !worklistDto.isSolvingMethod
+                    && (workItemDto.isInSoftTypingMode
+                    || !workItemDto.isSolvingMethod
                     || !variable.getName().startsWith("$"))) {
                 typeVariableReference = new FixedTypeVariableReference(reference);
             }
@@ -138,7 +138,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                 String typeVariable = typeVariableReference.getTypeVariable();
                 //TODO rstoll TINS-407 - store fixed type only in lower bound
                 //TODO rstoll TINS-387 function application only consider upper bounds
-                if (!worklistDto.isInSoftTypingMode && worklistDto.isSolvingMethod
+                if (!workItemDto.isInSoftTypingMode && workItemDto.isSolvingMethod
                         && variable.getName().startsWith("$")) {
                     bindings.addUpperTypeBound(typeVariable, typeSymbol);
                 } else {
@@ -151,25 +151,25 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
     }
 
     @Override
-    public void solve(WorklistDto worklistDto, IConstraint constraint) {
+    public void solve(WorkItemDto workItemDto, IConstraint constraint) {
         boolean atLeastOneBindingCreated = createBindingsIfNecessary(
-                worklistDto, constraint.getLeftHandSide(), constraint.getArguments());
+                workItemDto, constraint.getLeftHandSide(), constraint.getArguments());
 
-        if (worklistDto.isSolvingMethod && atLeastOneBindingCreated) {
-            addApplicableOverloadsToWorklist(worklistDto, constraint);
+        if (workItemDto.isSolvingMethod && atLeastOneBindingCreated) {
+            addApplicableOverloadsToWorklist(workItemDto, constraint);
         } else {
-            addMostSpecificOverloadToWorklist(worklistDto, constraint);
+            addMostSpecificOverloadToWorklist(workItemDto, constraint);
         }
     }
 
-    private void addApplicableOverloadsToWorklist(WorklistDto worklistDto, IConstraint constraint) {
+    private void addApplicableOverloadsToWorklist(WorkItemDto workItemDto, IConstraint constraint) {
         List<AggregateBindingDto> dtos = new ArrayList<>();
 
         boolean hasConvertible = false;
         boolean hasNonConvertible = false;
         for (IFunctionType overload : constraint.getMethodSymbol().getOverloads()) {
             try {
-                AggregateBindingDto dto = solveOverLoad(worklistDto, constraint, overload);
+                AggregateBindingDto dto = solveOverLoad(workItemDto, constraint, overload);
                 if (dto != null) {
                     if (overload.wasSimplified()) {
                         if (overload.hasConvertibleParameterTypes()) {
@@ -185,47 +185,47 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
             }
         }
 
-        boolean isAlreadyAnalysingConvertible = worklistDto.convertibleAnalysisDto.isAnalysingConvertible;
+        boolean isAlreadyAnalysingConvertible = workItemDto.convertibleAnalysisDto.isAnalysingConvertible;
         for (AggregateBindingDto dto : dtos) {
             //we do not create overloads with implicit conversions here.
             if (dto != null && dto.implicitConversions == null) {
                 if (!isAlreadyAnalysingConvertible || !hasConvertible || !hasNonConvertible) {
                     if (dto.overload.wasSimplified() && dto.overload.hasConvertibleParameterTypes()) {
-                        worklistDto.convertibleAnalysisDto.isAnalysingConvertible = true;
+                        workItemDto.convertibleAnalysisDto.isAnalysingConvertible = true;
                     }
-                    worklistDto.workDeque.add(nextWorklistDto(worklistDto, dto.bindings));
+                    workItemDto.workDeque.add(nextWorkItemDto(workItemDto, dto.bindings));
                 } else {
                     int numberOfConvertibleApplications
-                            = worklistDto.bindingCollection.getNumberOfConvertibleApplications();
+                            = workItemDto.bindingCollection.getNumberOfConvertibleApplications();
                     boolean hasConvertibleParameterTypes = dto.overload.hasConvertibleParameterTypes();
                     if (numberOfConvertibleApplications > 0 && hasConvertibleParameterTypes
                             || numberOfConvertibleApplications == 0 && !hasConvertibleParameterTypes) {
-                        worklistDto.workDeque.add(nextWorklistDto(worklistDto, dto.bindings));
+                        workItemDto.workDeque.add(nextWorkItemDto(workItemDto, dto.bindings));
                     }
                 }
             }
         }
     }
 
-    private WorklistDto nextWorklistDto(WorklistDto worklistDto, IBindingCollection bindings) {
+    private WorkItemDto nextWorkItemDto(WorkItemDto workItemDto, IBindingCollection bindings) {
         int pointer;
-        if (!worklistDto.isSolvingDependency || worklistDto.isInIterativeMode) {
-            pointer = worklistDto.pointer + 1;
+        if (!workItemDto.isSolvingDependency || workItemDto.isInIterativeMode) {
+            pointer = workItemDto.pointer + 1;
         } else {
             pointer = Integer.MAX_VALUE;
         }
-        return new WorklistDto(worklistDto, pointer, bindings);
+        return new WorkItemDto(workItemDto, pointer, bindings);
     }
 
     private AggregateBindingDto solveOverLoad(
-            WorklistDto worklistDto,
+            WorkItemDto workItemDto,
             IConstraint constraint,
             IFunctionType overload) {
 
         AggregateBindingDto dto = null;
         if (constraint.getArguments().size() >= overload.getNumberOfNonOptionalParameters()) {
-            IBindingCollection bindings = symbolFactory.createBindingCollection(worklistDto.bindingCollection);
-            dto = new AggregateBindingDto(constraint, overload, bindings, worklistDto);
+            IBindingCollection bindings = symbolFactory.createBindingCollection(workItemDto.bindingCollection);
+            dto = new AggregateBindingDto(constraint, overload, bindings, workItemDto);
             aggregateBinding(dto);
         }
         return dto;
@@ -271,10 +271,10 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
 
                 String lhsAbsoluteName = leftHandSide.getAbsoluteName();
                 ITypeVariableReference reference = dto.bindings.getTypeVariableReference(lhsAbsoluteName);
-                if (!reference.hasFixedType() && argumentsAreAllFixed && !dto.worklistDto.isInSoftTypingMode) {
+                if (!reference.hasFixedType() && argumentsAreAllFixed && !dto.workItemDto.isInSoftTypingMode) {
                     dto.bindings.fixType(lhsAbsoluteName);
                 }
-                if (!dto.worklistDto.isInIterativeMode && !dto.worklistDto.isInSoftTypingMode
+                if (!dto.workItemDto.isInIterativeMode && !dto.workItemDto.isInSoftTypingMode
                         && !lhsAbsoluteName.equals(TinsPHPConstants.RETURN_VARIABLE_NAME)) {
                     OverloadApplicationDto overloadApplicationDto = new OverloadApplicationDto(
                             dto.overload, dto.implicitConversions, null);
@@ -304,14 +304,14 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
             dto.bindings.mergeFirstIntoSecond(rhsTypeVariable, lhsTypeVariable);
 
             //TINS-535 improve precision in soft typing for unconstrained parameters
-//            if (dto.worklistDto.isInSoftTypingMode
-//                    && dto.worklistDto.param2LowerParams.containsKey(rhsTypeVariable)
+//            if (dto.workItemDto.isInSoftTypingMode
+//                    && dto.workItemDto.param2LowerParams.containsKey(rhsTypeVariable)
 //                    && !rhsTypeVariable.equals(lhsTypeVariable)) {
-//                List<String> params = dto.worklistDto.param2LowerParams.remove(rhsTypeVariable);
-//                if (!dto.worklistDto.param2LowerParams.containsKey(lhsTypeVariable)) {
-//                    dto.worklistDto.param2LowerParams.put(lhsTypeVariable, params);
+//                List<String> params = dto.workItemDto.param2LowerParams.remove(rhsTypeVariable);
+//                if (!dto.workItemDto.param2LowerParams.containsKey(lhsTypeVariable)) {
+//                    dto.workItemDto.param2LowerParams.put(lhsTypeVariable, params);
 //                } else {
-//                    dto.worklistDto.param2LowerParams.get(lhsTypeVariable).addAll(params);
+//                    dto.workItemDto.param2LowerParams.get(lhsTypeVariable).addAll(params);
 //                }
 //            }
         } else {
@@ -330,11 +330,11 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
         if (rightBindings.hasUpperTypeBounds(right)) {
             ITypeVariableReference reference
                     = dto.bindings.getTypeVariableReference(dto.bindingVariable.getAbsoluteName());
-            if (!dto.worklistDto.isInSoftTypingMode || !reference.hasFixedType()) {
+            if (!dto.workItemDto.isInSoftTypingMode || !reference.hasFixedType()) {
                 IIntersectionTypeSymbol rightUpperTypeBounds = rightBindings.getUpperTypeBounds(right);
                 ITypeSymbol copy = copyIfNotFixed(rightUpperTypeBounds, dto);
                 if (copy != null) {
-                    if (!dto.worklistDto.isInSoftTypingMode) {
+                    if (!dto.workItemDto.isInSoftTypingMode) {
                         BoundResultDto result = leftBindings.addUpperTypeBound(left, copy);
                         updateAggregateBindingDto(dto, result, copy);
                     } else if (!typeHelper.areSame(copy, mixedTypeSymbol)) {
@@ -358,10 +358,10 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
             for (String refTypeVariable : rightBindings.getLowerRefBounds(right)) {
                 if (dto.mapping.containsKey(refTypeVariable)) {
                     leftBindings.addLowerRefBound(left, dto.mapping.get(refTypeVariable));
-                } else if (!dto.worklistDto.isInIterativeMode && dto.iterateCount == 1) {
+                } else if (!dto.workItemDto.isInIterativeMode && dto.iterateCount == 1) {
                     ITypeVariableReference typeVariableReference = addHelperVariable(dto, refTypeVariable);
                     leftBindings.addLowerRefBound(left, typeVariableReference);
-                } else if (dto.worklistDto.isInIterativeMode && dto.iterateCount == 1) {
+                } else if (dto.workItemDto.isInIterativeMode && dto.iterateCount == 1) {
                     addLowerRefInIterativeMode(dto, left, refTypeVariable);
                 } else {
                     dto.needToReIterate = true;
@@ -387,9 +387,9 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                     String typeVariable;
                     if (dto.mapping.containsKey(typeParameter)) {
                         typeVariable = dto.mapping.get(typeParameter).getTypeVariable();
-                    } else if (!dto.worklistDto.isInIterativeMode && dto.iterateCount == 1) {
+                    } else if (!dto.workItemDto.isInIterativeMode && dto.iterateCount == 1) {
                         typeVariable = addHelperVariable(dto, typeParameter).getTypeVariable();
-                    } else if (dto.worklistDto.isInIterativeMode && dto.iterateCount == 1) {
+                    } else if (dto.workItemDto.isInIterativeMode && dto.iterateCount == 1) {
                         typeVariable = searchTypeVariable(dto, typeParameter);
                         if (typeVariable == null) {
                             typeVariable = addHelperVariable(dto, typeParameter).getTypeVariable();
@@ -401,7 +401,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                     }
                     typeParameters.add(typeVariable);
                 }
-                if (!dto.worklistDto.isInSoftTypingMode) {
+                if (!dto.workItemDto.isInSoftTypingMode) {
                     leftBindings.bind(parametricTypeSymbol, typeParameters);
                 } else {
                     IBindingCollection copyBindings
@@ -635,30 +635,30 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
     }
 
     @Override
-    public void addMostSpecificOverloadToWorklist(WorklistDto worklistDto, IConstraint constraint) {
+    public void addMostSpecificOverloadToWorklist(WorkItemDto workItemDto, IConstraint constraint) {
         Collection<IFunctionType> overloads = constraint.getMethodSymbol().getOverloads();
         if (overloads.size() > 1) {
             List<IVariable> arguments = constraint.getArguments();
-            List<ITypeSymbol> argumentTypes = calculateArgumentTypes(worklistDto, arguments);
+            List<ITypeSymbol> argumentTypes = calculateArgumentTypes(workItemDto, arguments);
 
             List<OverloadRankingDto> applicableOverloads
-                    = getApplicableOverloads(worklistDto, constraint, overloads, argumentTypes);
+                    = getApplicableOverloads(workItemDto, constraint, overloads, argumentTypes);
 
             int numberOfApplicableOverloads = applicableOverloads.size();
             if (numberOfApplicableOverloads > 0) {
                 OverloadRankingDto overloadRankingDto = applicableOverloads.get(0);
                 if (numberOfApplicableOverloads > 1) {
                     overloadRankingDto = mostSpecificOverloadDecider.inNormalMode(
-                            worklistDto, applicableOverloads, argumentTypes);
+                            workItemDto, applicableOverloads, argumentTypes);
                 }
-                worklistDto.workDeque.add(nextWorklistDto(worklistDto, overloadRankingDto.bindings));
+                workItemDto.workDeque.add(nextWorkItemDto(workItemDto, overloadRankingDto.bindings));
             }
         } else {
             try {
                 IFunctionType overload = overloads.iterator().next();
-                AggregateBindingDto dto = solveOverLoad(worklistDto, constraint, overload);
+                AggregateBindingDto dto = solveOverLoad(workItemDto, constraint, overload);
                 if (dto != null) {
-                    worklistDto.workDeque.add(nextWorklistDto(worklistDto, dto.bindings));
+                    workItemDto.workDeque.add(nextWorkItemDto(workItemDto, dto.bindings));
                 }
             } catch (BoundException ex) {
                 //that's ok, we will report an error in soft typing if it should still exists there
@@ -666,10 +666,10 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
         }
     }
 
-    private List<ITypeSymbol> calculateArgumentTypes(WorklistDto worklistDto, List<IVariable> arguments) {
+    private List<ITypeSymbol> calculateArgumentTypes(WorkItemDto workItemDto, List<IVariable> arguments) {
         List<ITypeSymbol> argumentTypes = new ArrayList<>(arguments.size());
 
-        IBindingCollection bindingCollection = worklistDto.bindingCollection;
+        IBindingCollection bindingCollection = workItemDto.bindingCollection;
         for (IVariable variable : arguments) {
             String argumentId = variable.getAbsoluteName();
             String typeVariable = bindingCollection.getTypeVariable(argumentId);
@@ -677,11 +677,11 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
             //we prefer the upper type bound and when solving methods and the lower type bound when solving global
             // namespace scope
             IContainerTypeSymbol argumentType = null;
-            if (worklistDto.isSolvingMethod && bindingCollection.hasUpperTypeBounds(typeVariable)) {
+            if (workItemDto.isSolvingMethod && bindingCollection.hasUpperTypeBounds(typeVariable)) {
                 argumentType = bindingCollection.getUpperTypeBounds(typeVariable);
             } else if (bindingCollection.hasLowerTypeBounds(typeVariable)) {
                 argumentType = bindingCollection.getLowerTypeBounds(typeVariable);
-            } else if (!worklistDto.isSolvingMethod && bindingCollection.hasUpperTypeBounds(typeVariable)) {
+            } else if (!workItemDto.isSolvingMethod && bindingCollection.hasUpperTypeBounds(typeVariable)) {
                 argumentType = bindingCollection.getUpperTypeBounds(typeVariable);
             }
 
@@ -698,7 +698,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
     }
 
     private List<OverloadRankingDto> getApplicableOverloads(
-            WorklistDto worklistDto,
+            WorkItemDto workItemDto,
             IConstraint constraint,
             Collection<IFunctionType> overloads,
             List<ITypeSymbol> argumentTypes) {
@@ -710,8 +710,8 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
         for (IFunctionType overload : overloads) {
             if (numberOfArguments >= overload.getNumberOfNonOptionalParameters()) {
                 try {
-                    IBindingCollection bindings = symbolFactory.createBindingCollection(worklistDto.bindingCollection);
-                    AggregateBindingDto dto = new AggregateBindingDto(constraint, overload, bindings, worklistDto);
+                    IBindingCollection bindings = symbolFactory.createBindingCollection(workItemDto.bindingCollection);
+                    AggregateBindingDto dto = new AggregateBindingDto(constraint, overload, bindings, workItemDto);
                     aggregateBinding(dto);
 
                     //no need to check for one to one match if arguments were narrowed unless we solve constraints of
@@ -721,7 +721,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                     // yet which is only the case for indirect recursive functions which are still analysed (hence we
                     // are in iterative mode)
                     boolean isOneToOne = overload.wasSimplified() && overload.isFixed()
-                            && (!dto.hasNarrowedArguments || !worklistDto.isSolvingMethod);
+                            && (!dto.hasNarrowedArguments || !workItemDto.isSolvingMethod);
 
                     if (isOneToOne) {
                         isOneToOne = isOneToOneMatch(numberOfArguments, argumentTypes, overload);
@@ -777,18 +777,18 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
 
 
     @Override
-    public void createDependencies(WorklistDto worklistDto) {
-        List<IConstraint> constraints = worklistDto.constraintCollection.getConstraints();
-        String absoluteName = worklistDto.constraintCollection.getAbsoluteName();
-        for (Integer pointer : worklistDto.unsolvedConstraints) {
+    public void createDependencies(WorkItemDto workItemDto) {
+        List<IConstraint> constraints = workItemDto.constraintCollection.getConstraints();
+        String absoluteName = workItemDto.constraintCollection.getAbsoluteName();
+        for (Integer pointer : workItemDto.unsolvedConstraints) {
             String refAbsoluteName = constraints.get(pointer).getMethodSymbol().getAbsoluteName();
-            MapHelper.addToListInMap(directDependencies, refAbsoluteName, pair(worklistDto, pointer));
+            MapHelper.addToListInMap(directDependencies, refAbsoluteName, pair(workItemDto, pointer));
             MapHelper.addToSetInMap(dependencies, refAbsoluteName, absoluteName);
         }
         MapHelper.addToSetInMap(
                 unsolvedConstraints,
                 absoluteName,
-                worklistDto);
+                workItemDto);
     }
 
     @Override
@@ -799,7 +799,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
         String methodName = methodSymbol.getAbsoluteName();
         if (directDependencies.containsKey(methodName)) {
             dependencies.remove(methodName);
-            for (Pair<WorklistDto, Integer> element : directDependencies.remove(methodName)) {
+            for (Pair<WorkItemDto, Integer> element : directDependencies.remove(methodName)) {
                 dependencyConstraintSolver.solveDependency(element);
             }
         }

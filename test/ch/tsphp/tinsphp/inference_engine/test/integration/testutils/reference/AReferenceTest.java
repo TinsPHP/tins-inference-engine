@@ -36,7 +36,7 @@ import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPReference
 import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintCreator;
 import ch.tsphp.tinsphp.inference_engine.constraints.IMostSpecificOverloadDecider;
 import ch.tsphp.tinsphp.inference_engine.constraints.MostSpecificOverloadDecider;
-import ch.tsphp.tinsphp.inference_engine.constraints.WorklistDto;
+import ch.tsphp.tinsphp.inference_engine.constraints.WorkItemDto;
 import ch.tsphp.tinsphp.inference_engine.constraints.solvers.ConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.constraints.solvers.ConstraintSolverHelper;
 import ch.tsphp.tinsphp.inference_engine.constraints.solvers.DependencyConstraintSolver;
@@ -123,8 +123,8 @@ public abstract class AReferenceTest extends ADefinitionTest
                 = new MostSpecificOverloadDecider(symbolFactory, typeHelper);
 
         Map<String, Set<String>> dependencies = new HashMap<>();
-        Map<String, List<Pair<WorklistDto, Integer>>> directDependencies = new ConcurrentHashMap<>();
-        Map<String, Set<WorklistDto>> unsolvedConstraints = new ConcurrentHashMap<>();
+        Map<String, List<Pair<WorkItemDto, Integer>>> directDependencies = new ConcurrentHashMap<>();
+        Map<String, Set<WorkItemDto>> unsolvedConstraints = new ConcurrentHashMap<>();
 
 
         IDependencyConstraintSolver dependencyConstraintSolver
@@ -284,7 +284,7 @@ public abstract class AReferenceTest extends ADefinitionTest
             IIterativeConstraintSolver theIterativeConstraintSolver,
             ISoftTypingConstraintSolver theSoftTypingConstraintSolver,
             IConstraintSolverHelper theConstraintSolverHelper,
-            Map<String, Set<WorklistDto>> theUnsolvedConstraints) {
+            Map<String, Set<WorkItemDto>> theUnsolvedConstraints) {
         return new ConstraintSolver(
                 theSymbolFactory,
                 theIterativeConstraintSolver,

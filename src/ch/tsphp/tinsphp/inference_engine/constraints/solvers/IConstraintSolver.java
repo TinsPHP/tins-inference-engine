@@ -9,7 +9,7 @@ package ch.tsphp.tinsphp.inference_engine.constraints.solvers;
 
 import ch.tsphp.tinsphp.common.scopes.IGlobalNamespaceScope;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
-import ch.tsphp.tinsphp.inference_engine.constraints.WorklistDto;
+import ch.tsphp.tinsphp.inference_engine.constraints.WorkItemDto;
 
 import java.util.Deque;
 import java.util.List;
@@ -21,5 +21,5 @@ public interface IConstraintSolver
 {
     void solveConstraints(List<IMethodSymbol> methodSymbols, IGlobalNamespaceScope globalDefaultNamespaceScope);
 
-    void solveMethodConstraints(IMethodSymbol methodSymbol, Deque<WorklistDto> workDeque);
+    void solveMethodConstraints(IMethodSymbol methodSymbol, Deque<WorkItemDto> workDeque);
 }

@@ -31,7 +31,7 @@ import ch.tsphp.tinsphp.common.utils.TypeHelperDto;
 import ch.tsphp.tinsphp.inference_engine.constraints.AggregateBindingDto;
 import ch.tsphp.tinsphp.inference_engine.constraints.IMostSpecificOverloadDecider;
 import ch.tsphp.tinsphp.inference_engine.constraints.OverloadRankingDto;
-import ch.tsphp.tinsphp.inference_engine.constraints.WorklistDto;
+import ch.tsphp.tinsphp.inference_engine.constraints.WorkItemDto;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,62 +68,62 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
 
     @Override
     public void fallBackToSoftTyping(IConstraintCollection constraintCollection) {
-        WorklistDto worklistDto = createAndInitWorklistDto(constraintCollection);
-        if (worklistDto.unsolvedConstraints == null || worklistDto.unsolvedConstraints.isEmpty()) {
-            solveConstraints(constraintCollection, worklistDto);
+        WorkItemDto workItemDto = createAndInitWorklistDto(constraintCollection);
+        if (workItemDto.unsolvedConstraints == null || workItemDto.unsolvedConstraints.isEmpty()) {
+            solveConstraints(constraintCollection, workItemDto);
         } else {
-            constraintSolverHelper.createDependencies(worklistDto);
+            constraintSolverHelper.createDependencies(workItemDto);
         }
     }
 
-    private WorklistDto createAndInitWorklistDto(IConstraintCollection constraintCollection) {
-        WorklistDto worklistDto = new WorklistDto(null, constraintCollection, 0, true, null);
-        worklistDto.isInSoftTypingMode = true;
-        worklistDto.param2LowerParams = new HashMap<>();
+    private WorkItemDto createAndInitWorklistDto(IConstraintCollection constraintCollection) {
+        WorkItemDto workItemDto = new WorkItemDto(null, constraintCollection, 0, true, null);
+        workItemDto.isInSoftTypingMode = true;
+        workItemDto.param2LowerParams = new HashMap<>();
 
         if (constraintCollection instanceof IMethodSymbol) {
-            worklistDto.bindingCollection = symbolFactory.createBindingCollection();
-            worklistDto.bindingCollection.setMode(EBindingCollectionMode.SoftTyping);
+            workItemDto.bindingCollection = symbolFactory.createBindingCollection();
+            workItemDto.bindingCollection.setMode(EBindingCollectionMode.SoftTyping);
             List<IConstraint> constraints = constraintCollection.getConstraints();
             int size = constraints.size();
             for (int i = 0; i < size; ++i) {
-                worklistDto.pointer = i;
-                aggregateLowerBounds(worklistDto);
+                workItemDto.pointer = i;
+                aggregateLowerBounds(workItemDto);
             }
         }
-        return worklistDto;
+        return workItemDto;
     }
 
     @Override
-    public void aggregateLowerBounds(WorklistDto worklistDto) {
-        IConstraint constraint = worklistDto.constraintCollection.getConstraints().get(worklistDto.pointer);
+    public void aggregateLowerBounds(WorkItemDto workItemDto) {
+        IConstraint constraint = workItemDto.constraintCollection.getConstraints().get(workItemDto.pointer);
         IMinimalMethodSymbol refMethodSymbol = constraint.getMethodSymbol();
         if (refMethodSymbol.getOverloads().size() > 0) {
             if (isNotDirectRecursiveAssignment(constraint)) {
 
                 constraintSolverHelper.createBindingsIfNecessary(
-                        worklistDto, constraint.getLeftHandSide(), constraint.getArguments());
+                        workItemDto, constraint.getLeftHandSide(), constraint.getArguments());
 
                 for (IFunctionType overload : refMethodSymbol.getOverloads()) {
                     if (constraint.getArguments().size() >= overload.getNumberOfNonOptionalParameters()) {
                         AggregateBindingDto dto = new AggregateBindingDto(
-                                constraint, overload, worklistDto.bindingCollection, worklistDto);
+                                constraint, overload, workItemDto.bindingCollection, workItemDto);
                         constraintSolverHelper.aggregateBinding(dto);
                     }
                 }
             }
         } else {
             //add to unresolved constraints
-            if (worklistDto.unsolvedConstraints == null) {
-                worklistDto.unsolvedConstraints = new ArrayList<>();
+            if (workItemDto.unsolvedConstraints == null) {
+                workItemDto.unsolvedConstraints = new ArrayList<>();
             }
-            worklistDto.unsolvedConstraints.add(worklistDto.pointer);
+            workItemDto.unsolvedConstraints.add(workItemDto.pointer);
         }
     }
 
     @Override
-    public void solveConstraints(IConstraintCollection constraintCollection, WorklistDto worklistDto) {
-        initWorkListDtoBindingCollection(constraintCollection, worklistDto);
+    public void solveConstraints(IConstraintCollection constraintCollection, WorkItemDto workItemDto) {
+        initWorkListDtoBindingCollection(constraintCollection, workItemDto);
 
         //TODO TINS-535 improve precision in soft typing for unconstrained parameters
         //idea how precision of parametric parameters could be enhanced (instead of using mixed as above)
@@ -136,17 +136,17 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
 //                        typeVariable,
 //                        parameterTypeVariables,
 //                        softTypingBindings,
-//                        worklistDto.param2LowerParams);
+//                        workItemDto.param2LowerParams);
 //            }
 //        }
 
-        worklistDto.bindingCollection.setMode(EBindingCollectionMode.Modification);
-        worklistDto.isInSoftTypingMode = false;
-        solveConstraintsAfterInit(constraintCollection, worklistDto);
+        workItemDto.bindingCollection.setMode(EBindingCollectionMode.Modification);
+        workItemDto.isInSoftTypingMode = false;
+        solveConstraintsAfterInit(constraintCollection, workItemDto);
 
-        worklistDto.bindingCollection.setMode(EBindingCollectionMode.Normal);
+        workItemDto.bindingCollection.setMode(EBindingCollectionMode.Normal);
         List<IBindingCollection> bindingCollections = new ArrayList<>(1);
-        bindingCollections.add(worklistDto.bindingCollection);
+        bindingCollections.add(workItemDto.bindingCollection);
 
         if (constraintCollection instanceof IMethodSymbol) {
             IMethodSymbol methodSymbol = (IMethodSymbol) constraintCollection;
@@ -162,10 +162,10 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
         }
     }
 
-    private void initWorkListDtoBindingCollection(IConstraintCollection constraintCollection, WorklistDto worklistDto) {
+    private void initWorkListDtoBindingCollection(IConstraintCollection constraintCollection, WorkItemDto workItemDto) {
 
-        IBindingCollection softTypingBindings = worklistDto.bindingCollection;
-        worklistDto.bindingCollection = symbolFactory.createBindingCollection();
+        IBindingCollection softTypingBindings = workItemDto.bindingCollection;
+        workItemDto.bindingCollection = symbolFactory.createBindingCollection();
 
         if (constraintCollection instanceof IMethodSymbol) {
             IMethodSymbol methodSymbol = (IMethodSymbol) constraintCollection;
@@ -174,14 +174,14 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
             for (IVariableSymbol parameter : methodSymbol.getParameters()) {
                 String parameterId = parameter.getAbsoluteName();
                 String typeVariable = addVariableToLeftBindings(
-                        parameterId, softTypingBindings, worklistDto.bindingCollection);
+                        parameterId, softTypingBindings, workItemDto.bindingCollection);
                 parameterTypeVariables.add(typeVariable);
             }
 
             for (IVariableSymbol parameter : methodSymbol.getParameters()) {
                 String parameterId = parameter.getAbsoluteName();
                 String typeVariable = softTypingBindings.getTypeVariable(parameterId);
-                addUpperRefBoundsToWorklistBindings(worklistDto, softTypingBindings, parameterTypeVariables,
+                addUpperRefBoundsToWorklistBindings(workItemDto, softTypingBindings, parameterTypeVariables,
                         typeVariable);
 
             }
@@ -189,7 +189,7 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
     }
 
     private void addUpperRefBoundsToWorklistBindings(
-            WorklistDto worklistDto,
+            WorkItemDto workItemDto,
             IBindingCollection softTypingBindings,
             Set<String> parameterTypeVariables,
             String typeVariable) {
@@ -202,12 +202,12 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
                 if (!parameterTypeVariables.contains(refTypeVariable)) {
                     Set<String> variableIds = softTypingBindings.getVariableIds(refTypeVariable);
                     for (String variableId : variableIds) {
-                        if (variableId.contains("$") && !worklistDto.bindingCollection.containsVariable(variableId)) {
+                        if (variableId.contains("$") && !workItemDto.bindingCollection.containsVariable(variableId)) {
                             String newTypeVariable = addVariableToLeftBindings(
-                                    variableId, softTypingBindings, worklistDto.bindingCollection);
+                                    variableId, softTypingBindings, workItemDto.bindingCollection);
 
                             addUpperRefBoundsToWorklistBindings(
-                                    worklistDto, softTypingBindings, parameterTypeVariables, newTypeVariable);
+                                    workItemDto, softTypingBindings, parameterTypeVariables, newTypeVariable);
                         }
                     }
                 }
@@ -261,24 +261,24 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
 //        }
 //    }
 
-    private void solveConstraintsAfterInit(IConstraintCollection constraintCollection, WorklistDto worklistDto) {
+    private void solveConstraintsAfterInit(IConstraintCollection constraintCollection, WorkItemDto workItemDto) {
         for (IConstraint constraint : constraintCollection.getConstraints()) {
             List<IVariable> arguments = constraint.getArguments();
             int numberOfArguments = arguments.size();
 
             constraintSolverHelper.createBindingsIfNecessary(
-                    worklistDto, constraint.getLeftHandSide(), constraint.getArguments());
+                    workItemDto, constraint.getLeftHandSide(), constraint.getArguments());
 
             List<OverloadRankingDto> applicableOverloads = new ArrayList<>();
             for (IFunctionType overload : constraint.getMethodSymbol().getOverloads()) {
                 if (numberOfArguments >= overload.getNumberOfNonOptionalParameters()) {
                     IBindingCollection leftBindings = symbolFactory.createBindingCollection(
-                            worklistDto.bindingCollection);
+                            workItemDto.bindingCollection);
                     Map<Integer, Pair<ITypeSymbol, List<ITypeSymbol>>> runtimeChecks = new HashMap<>();
                     boolean overloadApplies = isApplicable(constraint, overload, leftBindings, runtimeChecks);
                     if (overloadApplies) {
                         OverloadRankingDto dto = applyOverload(
-                                worklistDto, constraint, overload, leftBindings, runtimeChecks);
+                                workItemDto, constraint, overload, leftBindings, runtimeChecks);
                         applicableOverloads.add(dto);
                     }
                 }
@@ -290,25 +290,25 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
                 String leftHandSide = constraint.getLeftHandSide().getAbsoluteName();
                 if (numberOfApplicableOverloads > 1) {
                     List<OverloadRankingDto> mostSpecificOverloads
-                            = mostSpecificOverloadDecider.inSoftTypingMode(worklistDto, applicableOverloads);
+                            = mostSpecificOverloadDecider.inSoftTypingMode(workItemDto, applicableOverloads);
                     overloadRankingDto = mostSpecificOverloads.get(0);
                     numberOfApplicableOverloads = mostSpecificOverloads.size();
                     if (numberOfApplicableOverloads > 1) {
                         mergeMostSpecificOverloadsToNewBindingCollection(
-                                worklistDto, constraint, mostSpecificOverloads);
+                                workItemDto, constraint, mostSpecificOverloads);
                     }
                 }
 
                 if (numberOfApplicableOverloads == 1) {
-                    worklistDto.bindingCollection = overloadRankingDto.bindings;
+                    workItemDto.bindingCollection = overloadRankingDto.bindings;
                     OverloadApplicationDto dto = new OverloadApplicationDto(
                             overloadRankingDto.overload,
                             overloadRankingDto.implicitConversions,
                             overloadRankingDto.runtimeChecks);
-                    worklistDto.bindingCollection.setAppliedOverload(leftHandSide, dto);
+                    workItemDto.bindingCollection.setAppliedOverload(leftHandSide, dto);
                 }
             } else {
-                issueReporter.constraintViolation(worklistDto.bindingCollection, constraint);
+                issueReporter.constraintViolation(workItemDto.bindingCollection, constraint);
             }
         }
     }
@@ -356,7 +356,7 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
         IUnionTypeSymbol argumentType = leftBindings.getLowerTypeBounds(argumentTypeVariable);
 
         //TODO TINS-535 improve precision in soft typing for unconstrained parameters
-//                if (argumentType == null || worklistDto.param2LowerParams.containsKey(argumentTypeVariable)) {
+//                if (argumentType == null || workItemDto.param2LowerParams.containsKey(argumentTypeVariable)) {
         if (argumentType == null) {
             argumentType = symbolFactory.createUnionTypeSymbol();
             argumentType.addTypeSymbol(mixedTypeSymbol);
@@ -403,7 +403,7 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
                     runtimeChecks.put(argumentNumber, pair(typeSymbol, typeSymbols));
                     //TODO TINS-535 improve precision in soft typing for unconstrained parameters
 //                            if (worklistDto.param2LowerParams.containsKey(argumentTypeVariable)) {
-//                                for (String refTypeVariable : worklistDto.param2LowerParams.get
+//                                for (String refTypeVariable : workItemDto.param2LowerParams.get
 // (argumentTypeVariable)) {
 //                                    leftBindings.addLowerTypeBound(refTypeVariable, parameterType);
 //                                }
@@ -417,7 +417,7 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
     }
 
     private OverloadRankingDto applyOverload(
-            WorklistDto worklistDto,
+            WorkItemDto workItemDto,
             IConstraint constraint,
             IFunctionType overload,
             IBindingCollection leftBindings,
@@ -447,7 +447,7 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
         }
 
         AggregateBindingDto dto =
-                new AggregateBindingDto(constraint, overload, leftBindings, worklistDto);
+                new AggregateBindingDto(constraint, overload, leftBindings, workItemDto);
         constraintSolverHelper.aggregateBinding(dto);
 
         OverloadRankingDto overloadRankingDto = new OverloadRankingDto(
@@ -491,7 +491,7 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
     // I am aware of that this method is longer, but for now this is ok for efficiency reasons
     @SuppressWarnings("checkstyle:methodlength")
     private void mergeMostSpecificOverloadsToNewBindingCollection(
-            WorklistDto worklistDto, IConstraint constraint, List<OverloadRankingDto> mostSpecificOverloads) {
+            WorkItemDto workItemDto, IConstraint constraint, List<OverloadRankingDto> mostSpecificOverloads) {
 
         IUnionTypeSymbol upperUnion = symbolFactory.createUnionTypeSymbol();
 
@@ -567,9 +567,9 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
             leftBindings.addUpperTypeBound(typeVariable, upperArguments.get(i));
         }
 
-        worklistDto.bindingCollection = leftBindings;
+        workItemDto.bindingCollection = leftBindings;
         //overload = null indicates that we need to fall back to the dynamic version
-        worklistDto.bindingCollection.setAppliedOverload(
+        workItemDto.bindingCollection.setAppliedOverload(
                 leftHandSide, new OverloadApplicationDto(null, null, runtimeChecks));
     }
 

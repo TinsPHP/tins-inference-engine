@@ -7,7 +7,7 @@
 package ch.tsphp.tinsphp.inference_engine.constraints.solvers;
 
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
-import ch.tsphp.tinsphp.inference_engine.constraints.WorklistDto;
+import ch.tsphp.tinsphp.inference_engine.constraints.WorkItemDto;
 
 /**
  * Responsible to solve constraints of a method which cannot be solved regularly and requires a fall back to soft
@@ -17,7 +17,7 @@ public interface ISoftTypingConstraintSolver
 {
     void fallBackToSoftTyping(IConstraintCollection constraintCollection);
 
-    void aggregateLowerBounds(WorklistDto worklistDto);
+    void aggregateLowerBounds(WorkItemDto workItemDto);
 
-    void solveConstraints(IConstraintCollection constraintCollection, WorklistDto worklistDto);
+    void solveConstraints(IConstraintCollection constraintCollection, WorkItemDto workItemDto);
 }

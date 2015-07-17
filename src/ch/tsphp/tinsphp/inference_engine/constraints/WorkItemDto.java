@@ -13,10 +13,10 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 
-public class WorklistDto
+public class WorkItemDto
 {
 
-    public Deque<WorklistDto> workDeque;
+    public Deque<WorkItemDto> workDeque;
     public IConstraintCollection constraintCollection;
     public int pointer;
     public boolean isSolvingMethod;
@@ -29,8 +29,8 @@ public class WorklistDto
     public boolean isInSoftTypingMode;
     public Map<String, List<String>> param2LowerParams;
 
-    public WorklistDto(
-            Deque<WorklistDto> theWorkDeque,
+    public WorkItemDto(
+            Deque<WorkItemDto> theWorkDeque,
             IConstraintCollection theConstraintCollection,
             int thePointer,
             boolean isItSolvingMethod,
@@ -43,7 +43,7 @@ public class WorklistDto
         convertibleAnalysisDto = new ConvertibleAnalysisDto();
     }
 
-    public WorklistDto(WorklistDto dto, int newPointer, IBindingCollection theBindingCollection) {
+    public WorkItemDto(WorkItemDto dto, int newPointer, IBindingCollection theBindingCollection) {
         workDeque = dto.workDeque;
         constraintCollection = dto.constraintCollection;
         isSolvingMethod = dto.isSolvingMethod;

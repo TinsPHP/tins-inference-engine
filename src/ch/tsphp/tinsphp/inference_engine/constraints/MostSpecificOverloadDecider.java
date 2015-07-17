@@ -40,12 +40,12 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
 
     @Override
     public OverloadRankingDto inNormalMode(
-            WorklistDto worklistDto, List<OverloadRankingDto> applicableOverloads, List<ITypeSymbol> argumentTypes) {
+            WorkItemDto workItemDto, List<OverloadRankingDto> applicableOverloads, List<ITypeSymbol> argumentTypes) {
 
         List<OverloadRankingDto> overloadRankingDtos = preFilterOverloads(applicableOverloads);
         OverloadRankingDto overloadRankingDto = overloadRankingDtos.get(0);
         if (overloadRankingDtos.size() > 1) {
-            overloadRankingDtos = fixOverloads(worklistDto, overloadRankingDtos);
+            overloadRankingDtos = fixOverloads(workItemDto, overloadRankingDtos);
             overloadRankingDtos = filterOverloads(overloadRankingDtos);
             overloadRankingDto = overloadRankingDtos.get(0);
             if (overloadRankingDtos.size() > 1) {
@@ -56,7 +56,7 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
 
                 overloadRankingDtos = getMostSpecificApplicableOverload(overloadRankingDtos, bounds);
                 overloadRankingDto = overloadRankingDtos.get(0);
-                if (overloadRankingDtos.size() != 1 && !worklistDto.isInIterativeMode) {
+                if (overloadRankingDtos.size() != 1 && !workItemDto.isInIterativeMode) {
                     throw new AmbiguousOverloadException(argumentTypes, overloadRankingDtos);
                 }
             }
@@ -67,14 +67,14 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
     //Warning! start code duplication, more or less the same as in inNormalMode
     @Override
     public List<OverloadRankingDto> inSoftTypingMode(
-            WorklistDto worklistDto, List<OverloadRankingDto> applicableOverloads) {
+            WorkItemDto workItemDto, List<OverloadRankingDto> applicableOverloads) {
 
         List<OverloadRankingDto> overloadRankingDtos = preFilterOverloads(applicableOverloads);
         if (overloadRankingDtos.size() > 1) {
             OverloadRankingDto overloadRankingDto = overloadRankingDtos.get(0);
             //comparing overloads with explicit conversions require a different ranking
             if (!overloadRankingDto.hasNarrowedArguments) {
-                overloadRankingDtos = fixOverloads(worklistDto, overloadRankingDtos);
+                overloadRankingDtos = fixOverloads(workItemDto, overloadRankingDtos);
                 int numberOfParameters = overloadRankingDto.overload.getParameters().size();
                 List<Pair<ITypeSymbol, ITypeSymbol>> bounds = getParameterBounds(overloadRankingDtos,
                         numberOfParameters);
@@ -135,14 +135,14 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
     }
 
     private List<OverloadRankingDto> fixOverloads(
-            WorklistDto worklistDto, List<OverloadRankingDto> applicableOverloads) {
+            WorkItemDto workItemDto, List<OverloadRankingDto> applicableOverloads) {
         List<OverloadRankingDto> overloadRankingDtos = new ArrayList<>(applicableOverloads.size());
 
         for (OverloadRankingDto dto : applicableOverloads) {
             OverloadRankingDto overloadRankingDto;
             if (dto.overload.wasSimplified()) {
                 overloadRankingDto = fixOverload(dto);
-            } else if (worklistDto.isInIterativeMode) {
+            } else if (workItemDto.isInIterativeMode) {
                 overloadRankingDto = fixOverloadInIterativeMode(dto);
             } else {
                 throw new IllegalStateException("function " + dto.overload.getName() + " was not simplified "

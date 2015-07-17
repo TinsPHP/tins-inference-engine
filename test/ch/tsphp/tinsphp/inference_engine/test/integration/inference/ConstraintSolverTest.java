@@ -32,7 +32,7 @@ import ch.tsphp.tinsphp.common.utils.Pair;
 import ch.tsphp.tinsphp.core.config.HardCodedCoreInitialiser;
 import ch.tsphp.tinsphp.inference_engine.constraints.IMostSpecificOverloadDecider;
 import ch.tsphp.tinsphp.inference_engine.constraints.MostSpecificOverloadDecider;
-import ch.tsphp.tinsphp.inference_engine.constraints.WorklistDto;
+import ch.tsphp.tinsphp.inference_engine.constraints.WorkItemDto;
 import ch.tsphp.tinsphp.inference_engine.constraints.solvers.ConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.constraints.solvers.ConstraintSolverHelper;
 import ch.tsphp.tinsphp.inference_engine.constraints.solvers.DependencyConstraintSolver;
@@ -283,8 +283,8 @@ public class ConstraintSolverTest
                 = new MostSpecificOverloadDecider(symbolFactory, typeHelper);
 
         Map<String, Set<String>> dependencies = new HashMap<>();
-        Map<String, List<Pair<WorklistDto, Integer>>> directDependencies = new ConcurrentHashMap<>();
-        Map<String, Set<WorklistDto>> unsolvedConstraints = new ConcurrentHashMap<>();
+        Map<String, List<Pair<WorkItemDto, Integer>>> directDependencies = new ConcurrentHashMap<>();
+        Map<String, Set<WorkItemDto>> unsolvedConstraints = new ConcurrentHashMap<>();
 
         IDependencyConstraintSolver dependencyConstraintSolver
                 = new DependencyConstraintSolver(unsolvedConstraints);

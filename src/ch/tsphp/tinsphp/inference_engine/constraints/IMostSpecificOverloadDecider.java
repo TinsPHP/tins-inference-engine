@@ -16,9 +16,9 @@ import java.util.List;
 public interface IMostSpecificOverloadDecider
 {
     OverloadRankingDto inNormalMode(
-            WorklistDto worklistDto, List<OverloadRankingDto> applicableOverloads, List<ITypeSymbol> argumentTypes);
+            WorkItemDto workItemDto, List<OverloadRankingDto> applicableOverloads, List<ITypeSymbol> argumentTypes);
 
     //Warning! start code duplication, more or less the same as in inNormalMode
     List<OverloadRankingDto> inSoftTypingMode(
-            WorklistDto worklistDto, List<OverloadRankingDto> applicableOverloads);
+            WorkItemDto workItemDto, List<OverloadRankingDto> applicableOverloads);
 }

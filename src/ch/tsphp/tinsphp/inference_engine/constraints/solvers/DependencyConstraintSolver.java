@@ -8,18 +8,18 @@ package ch.tsphp.tinsphp.inference_engine.constraints.solvers;
 
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.utils.Pair;
-import ch.tsphp.tinsphp.inference_engine.constraints.WorklistDto;
+import ch.tsphp.tinsphp.inference_engine.constraints.WorkItemDto;
 
 import java.util.Map;
 import java.util.Set;
 
 public class DependencyConstraintSolver implements IDependencyConstraintSolver
 {
-    private final Map<String, Set<WorklistDto>> unsolvedConstraints;
+    private final Map<String, Set<WorkItemDto>> unsolvedConstraints;
     private IConstraintSolver constraintSolver;
     private ISoftTypingConstraintSolver softTypingConstraintSolver;
 
-    public DependencyConstraintSolver(Map<String, Set<WorklistDto>> theUnsolvedConstraints) {
+    public DependencyConstraintSolver(Map<String, Set<WorkItemDto>> theUnsolvedConstraints) {
         unsolvedConstraints = theUnsolvedConstraints;
     }
 
@@ -29,27 +29,27 @@ public class DependencyConstraintSolver implements IDependencyConstraintSolver
     }
 
     @Override
-    public void solveDependency(Pair<WorklistDto, Integer> pair) {
-        WorklistDto worklistDto = pair.first;
-        worklistDto.pointer = pair.second;
+    public void solveDependency(Pair<WorkItemDto, Integer> pair) {
+        WorkItemDto workItemDto = pair.first;
+        workItemDto.pointer = pair.second;
         //removing pointer not the element at index thus the cast to (Integer)
-        worklistDto.unsolvedConstraints.remove((Integer) worklistDto.pointer);
-        worklistDto.isSolvingDependency = true;
-        IMethodSymbol methodSymbol = (IMethodSymbol) worklistDto.constraintCollection;
-        if (!worklistDto.isInSoftTypingMode) {
-            worklistDto.workDeque.add(worklistDto);
-            constraintSolver.solveMethodConstraints(methodSymbol, worklistDto.workDeque);
+        workItemDto.unsolvedConstraints.remove((Integer) workItemDto.pointer);
+        workItemDto.isSolvingDependency = true;
+        IMethodSymbol methodSymbol = (IMethodSymbol) workItemDto.constraintCollection;
+        if (!workItemDto.isInSoftTypingMode) {
+            workItemDto.workDeque.add(workItemDto);
+            constraintSolver.solveMethodConstraints(methodSymbol, workItemDto.workDeque);
         } else {
-            softTypingConstraintSolver.aggregateLowerBounds(worklistDto);
+            softTypingConstraintSolver.aggregateLowerBounds(workItemDto);
         }
 
         String absoluteName = methodSymbol.getAbsoluteName();
-        if (worklistDto.unsolvedConstraints.isEmpty() && unsolvedConstraints.containsKey(absoluteName)) {
-            Set<WorklistDto> remainingUnsolved = unsolvedConstraints.get(absoluteName);
-            remainingUnsolved.remove(worklistDto);
+        if (workItemDto.unsolvedConstraints.isEmpty() && unsolvedConstraints.containsKey(absoluteName)) {
+            Set<WorkItemDto> remainingUnsolved = unsolvedConstraints.get(absoluteName);
+            remainingUnsolved.remove(workItemDto);
             if (remainingUnsolved.isEmpty()) {
-                if (worklistDto.isInSoftTypingMode) {
-                    softTypingConstraintSolver.solveConstraints(methodSymbol, worklistDto);
+                if (workItemDto.isInSoftTypingMode) {
+                    softTypingConstraintSolver.solveConstraints(methodSymbol, workItemDto);
                 } else if (methodSymbol.getOverloads().size() == 0) {
                     softTypingConstraintSolver.fallBackToSoftTyping(methodSymbol);
                 }
