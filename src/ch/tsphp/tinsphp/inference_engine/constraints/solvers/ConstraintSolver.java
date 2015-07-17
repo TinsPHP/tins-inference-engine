@@ -76,13 +76,15 @@ public class ConstraintSolver implements IConstraintSolver
             IGlobalNamespaceScope globalDefaultNamespaceScope, Deque<WorklistDto> workDeque) {
         List<IBindingCollection> bindings = solveConstraints(workDeque);
         if (bindings.isEmpty()) {
-            //TODO TINS-539 soft typing in global scope
+            softTypingConstraintSolver.fallBackToSoftTyping(globalDefaultNamespaceScope);
         } else {
+            //Warning! start code duplication - same as in SoftTypingConstraintSolver
             globalDefaultNamespaceScope.setBindings(bindings);
             IBindingCollection bindingCollection = bindings.get(0);
             for (String variableId : bindingCollection.getVariableIds()) {
                 bindingCollection.fixType(variableId);
             }
+            //Warning! end code duplication - same as in SoftTypingConstraintSolver
         }
     }
 

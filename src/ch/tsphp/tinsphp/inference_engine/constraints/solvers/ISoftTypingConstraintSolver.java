@@ -6,7 +6,7 @@
 
 package ch.tsphp.tinsphp.inference_engine.constraints.solvers;
 
-import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
+import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
 import ch.tsphp.tinsphp.inference_engine.constraints.WorklistDto;
 
 /**
@@ -15,9 +15,9 @@ import ch.tsphp.tinsphp.inference_engine.constraints.WorklistDto;
  */
 public interface ISoftTypingConstraintSolver
 {
-    void fallBackToSoftTyping(IMethodSymbol methodSymbol);
+    void fallBackToSoftTyping(IConstraintCollection constraintCollection);
 
     void aggregateLowerBounds(WorklistDto worklistDto);
 
-    void solveConstraints(IMethodSymbol methodSymbol, WorklistDto worklistDto);
+    void solveConstraints(IConstraintCollection constraintCollection, WorklistDto worklistDto);
 }

@@ -652,27 +652,16 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                             worklistDto, applicableOverloads, argumentTypes);
                 }
                 worklistDto.workDeque.add(nextWorklistDto(worklistDto, overloadRankingDto.bindings));
-            } else if (!worklistDto.isSolvingMethod) {
-                issueReporter.constraintViolation(worklistDto.bindingCollection, constraint);
-                //TODO rstoll TINS-306 inference - runtime check insertion
-                //I am not sure but maybe we do not need to do anything. see
-                //TINS-399 save which overload was taken in AST
-                //I think it is enough if the symbol does not contain any overload. The translator can then insert an
-                // error in the output
             }
         } else {
-            AggregateBindingDto dto = null;
             try {
                 IFunctionType overload = overloads.iterator().next();
-                dto = solveOverLoad(worklistDto, constraint, overload);
+                AggregateBindingDto dto = solveOverLoad(worklistDto, constraint, overload);
                 if (dto != null) {
                     worklistDto.workDeque.add(nextWorklistDto(worklistDto, dto.bindings));
                 }
             } catch (BoundException ex) {
-                //that's ok, we report it below
-            }
-            if (dto == null && !worklistDto.isSolvingMethod) {
-                issueReporter.constraintViolation(worklistDto.bindingCollection, constraint);
+                //that's ok, we will report an error in soft typing if it should still exists there
             }
         }
     }
