@@ -187,8 +187,8 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
 
         boolean isAlreadyAnalysingConvertible = workItemDto.convertibleAnalysisDto.isAnalysingConvertible;
         for (AggregateBindingDto dto : dtos) {
-            //we do not create overloads with implicit conversions here.
-            if (dto != null && dto.implicitConversions == null) {
+            //we do not create overloads with implicit conversions here if an overload with convertibles exists
+            if (dto != null && (dto.implicitConversions == null || !hasConvertible)) {
                 if (!isAlreadyAnalysingConvertible || !hasConvertible || !hasNonConvertible) {
                     if (dto.overload.wasSimplified() && dto.overload.hasConvertibleParameterTypes()) {
                         workItemDto.convertibleAnalysisDto.isAnalysingConvertible = true;

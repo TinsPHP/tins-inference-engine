@@ -276,6 +276,93 @@ public class ConstraintSolverTest
         assertThat(bindingsList.size(), is(1));
     }
 
+
+    @Test
+    public void solveMethod_OverloadWithImplicitConversionWithoutConvertible_CreatesOverloads() {
+        ISymbolsInitialiser symbolsInitialiser = new HardCodedSymbolsInitialiser();
+        ISymbolFactory symbolFactory = symbolsInitialiser.getSymbolFactory();
+        ITypeHelper typeHelper = symbolsInitialiser.getTypeHelper();
+        InferenceIssueReporter issueReporter = new InferenceIssueReporter(new HardCodedIssueMessageProvider());
+        AstHelper astHelper = new AstHelper(new TSPHPAstAdaptor());
+        ICoreInitialiser coreInitialiser = new HardCodedCoreInitialiser(astHelper, symbolsInitialiser);
+        ICore core = coreInitialiser.getCore();
+        Map<String, ITypeSymbol> primitiveTypes = core.getPrimitiveTypes();
+        Map<Integer, IMinimalMethodSymbol> operators = core.getOperators();
+
+        //  function foo($x, $y){ needInt($x); return needFloat($x, $y); }
+
+        //needFloat($x)
+        IVariable e1 = symbolFactory.createVariable("e1");
+        IVariableSymbol $x = mock(IVariableSymbol.class);
+        when($x.getAbsoluteName()).thenReturn("$x");
+        when($x.getName()).thenReturn("$x");
+
+        IBindingCollection bindingCollection = symbolFactory.createBindingCollection();
+        bindingCollection.addVariable(VAR_LHS, reference(T_LHS));
+        bindingCollection.addVariable(RETURN_VARIABLE_NAME, reference(T_RETURN));
+        bindingCollection.addUpperTypeBound(T_LHS, primitiveTypes.get(PrimitiveTypeNames.INT));
+        bindingCollection.addLowerTypeBound(T_RETURN, primitiveTypes.get(PrimitiveTypeNames.INT));
+
+        IVariable lhs = symbolFactory.createVariable(VAR_LHS);
+        IFunctionType function = symbolFactory.createFunctionType("needInt", bindingCollection, Arrays.asList(lhs));
+        function.manuallySimplified(new HashSet<String>(), 0, false);
+        IMinimalMethodSymbol minimalMethodSymbol1 = symbolFactory.createMinimalMethodSymbol("needInt");
+        minimalMethodSymbol1.addOverload(function);
+        IConstraint constraint1 = symbolFactory.createConstraint(
+                mock(ITSPHPAst.class), e1, asList((IVariable) $x), minimalMethodSymbol1);
+
+        //needInt
+        IVariable e2 = symbolFactory.createVariable("e2");
+        IVariableSymbol $y = mock(IVariableSymbol.class);
+        when($y.getAbsoluteName()).thenReturn("$y");
+        when($y.getName()).thenReturn("$y");
+
+        bindingCollection = symbolFactory.createBindingCollection();
+        bindingCollection.addVariable(VAR_LHS, reference(T_LHS));
+        bindingCollection.addVariable(VAR_RHS, reference(T_RHS));
+        bindingCollection.addVariable(RETURN_VARIABLE_NAME, reference(T_RETURN));
+        bindingCollection.addUpperTypeBound(T_LHS, primitiveTypes.get(PrimitiveTypeNames.FLOAT));
+        bindingCollection.addUpperTypeBound(T_RHS, primitiveTypes.get(PrimitiveTypeNames.FLOAT));
+        bindingCollection.addLowerTypeBound(T_RETURN, primitiveTypes.get(PrimitiveTypeNames.FLOAT));
+
+        IVariable rhs = symbolFactory.createVariable(VAR_RHS);
+        function = symbolFactory.createFunctionType("needFloat", bindingCollection, Arrays.asList(lhs, rhs));
+        function.manuallySimplified(new HashSet<String>(), 0, false);
+        IMinimalMethodSymbol minimalMethodSymbol2 = symbolFactory.createMinimalMethodSymbol("needFloat");
+        minimalMethodSymbol2.addOverload(function);
+        IConstraint constraint2 = symbolFactory.createConstraint(
+                mock(ITSPHPAst.class), e2, asList((IVariable) $x, $y), minimalMethodSymbol2);
+
+        //return 1
+        //Tlhs x Trhs -> Tlhs \ Trhs <: Tlhs
+        IVariable rtn = symbolFactory.createVariable(RETURN_VARIABLE_NAME);
+        IConstraint constraint3 = symbolFactory.createConstraint(
+                mock(ITSPHPAst.class), rtn, asList(rtn, e2), operators.get(TokenTypes.Assign));
+
+        List<IConstraint> constraints = asList(constraint1, constraint2, constraint3);
+        IMethodSymbol methodSymbol = mock(IMethodSymbol.class);
+        when(methodSymbol.getConstraints()).thenReturn(constraints);
+        when(methodSymbol.getParameters()).thenReturn(asList($x, $y));
+        when(methodSymbol.getAbsoluteName()).thenReturn("foo");
+
+        IConstraintSolver constraintSolver = createConstraintSolver(symbolFactory, typeHelper, issueReporter);
+        constraintSolver.solveConstraints(asList(methodSymbol), mock(IGlobalNamespaceScope.class));
+
+        ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+        verify(methodSymbol).setBindings(captor.capture());
+        List<IBindingCollection> bindingsList = captor.getValue();
+
+        assertThat(bindingsList, hasItem(withVariableBindings(
+                varBinding("$x", "V2", null, asList("int"), true),
+                varBinding("$y", "V4", null, asList("float"), true),
+                varBinding("e1", "V1", asList("int"), null, true),
+                varBinding("e2", "V3", asList("float"), null, true),
+                varBinding("rtn", "V5", asList("float"), null, true)
+        )));
+
+        assertThat(bindingsList.size(), is(1));
+    }
+
     private IConstraintSolver createConstraintSolver(
             ISymbolFactory symbolFactory, ITypeHelper typeHelper, IInferenceIssueReporter inferenceIssueReporter) {
 
