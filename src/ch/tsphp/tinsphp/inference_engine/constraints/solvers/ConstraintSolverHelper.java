@@ -174,7 +174,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                     if (overload.wasSimplified()) {
                         if (overload.hasConvertibleParameterTypes()) {
                             hasConvertible = true;
-                        } else {
+                        } else if (dto.implicitConversions == null) {
                             hasNonConvertible = true;
                         }
                     }
