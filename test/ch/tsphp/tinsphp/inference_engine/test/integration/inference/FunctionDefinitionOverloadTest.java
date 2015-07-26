@@ -120,7 +120,7 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                                 )),
                                 functionDto("foo8()", 2, bindingDtos(
                                         varBinding("foo8()$x", "T1", asList("@T2"), asNum, false),
-                                        varBinding("foo8()$y", "T2", null, asList("(float | int)", "@T1"), false),
+                                        varBinding("foo8()$y", "T2", null, asList("{as (float | int)}", "@T1"), false),
                                         varBinding(RETURN_VARIABLE_NAME, "T1", asList("@T2"), asNum, false)
                                 ))
                         ), 1, 0, 2)
@@ -179,20 +179,20 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                         ), 1, 0, 2)
                 },
                 {
-                        "function foo($x, $y){ if($x){return $y;} return false; }"
-                                + "function bar($x){ if($x > 0){return foo(true, $x-1);} return $x;}"
-                                + "function test(){return foo(true, 'hello');}",
+                        "function foo15($x, $y){ if($x){return $y;} return false; }"
+                                + "function bar($x){ if($x > 0){return foo15(true, $x-1);} return $x;}"
+                                + "function test(){return foo15(true, 'hello');}",
                         new OverloadTestStruct[]{
-                                testStruct("foo()", "\\.\\.", functionDtos(
-                                        functionDto("foo()", 2, bindingDtos(
-                                                varBinding("foo()$x", "V5", null, boolUpper, true),
-                                                varBinding("foo()$y", "T", null, asList("@V3"), false),
+                                testStruct("foo15()", "\\.\\.", functionDtos(
+                                        functionDto("foo15()", 2, bindingDtos(
+                                                varBinding("foo15()$x", "V5", null, boolUpper, true),
+                                                varBinding("foo15()$y", "T", null, asList("@V3"), false),
                                                 varBinding(RETURN_VARIABLE_NAME, "V3",
                                                         asList("falseType", "@T"), null, false)
                                         )),
-                                        functionDto("foo()", 2, bindingDtos(
-                                                varBinding("foo()$x", "V5", null, asBool, true),
-                                                varBinding("foo()$y", "T", null, asList("@V3"), false),
+                                        functionDto("foo15()", 2, bindingDtos(
+                                                varBinding("foo15()$x", "V5", null, asBool, true),
+                                                varBinding("foo15()$y", "T", null, asList("@V3"), false),
                                                 varBinding(RETURN_VARIABLE_NAME, "V3",
                                                         asList("falseType", "@T"), null, false)
                                         ))), 1, 0, 2),
@@ -205,7 +205,11 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                                         functionDto("bar()", 1, bindingDtos(
                                                 varBinding("bar()$x", "T1", null, asList("@V9", "{as T2}"), false),
                                                 varBinding(RETURN_VARIABLE_NAME, "V9",
-                                                        asList("falseType", "int", "@T1", "@T2"), null, false)
+                                                        asList("falseType", "int", "@T1", "@T2"), null, false),
+                                                varBinding("cScope-@1|113", "T2",
+                                                        asList("int"),
+                                                        asList("(float | int)", "@V6", "@V8", "@V9"),
+                                                        false)
                                         ))
                                 ), 1, 1, 2),
                                 testStruct("test()", "\\.\\.", functionDtos("test()", 0, bindingDtos(
@@ -330,13 +334,22 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                 {
                         "function plusWithEcho($x, $y){echo $x; echo $y; return $x + $y;}",
                         new OverloadTestStruct[]{
-                                testStruct("plusWithEcho()", "\\.\\.", functionDtos("plusWithEcho()", 2, bindingDtos(
-                                        varBinding("plusWithEcho()$x", "V2",
-                                                null, asList("{as string}", "{as T}"), true),
-                                        varBinding("plusWithEcho()$y", "V4",
-                                                null, asList("{as string}", "{as T}"), true),
-                                        varBinding(RETURN_VARIABLE_NAME, "T", null, asList("(float | int)"), false)
-                                )), 1, 0, 2),
+                                testStruct("plusWithEcho()", "\\.\\.", functionDtos(
+                                        functionDto("plusWithEcho()", 2, bindingDtos(
+                                                varBinding("plusWithEcho()$x", "V2", null, asList("string"), true),
+                                                varBinding("plusWithEcho()$y", "V4", null, asList("string"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V7",
+                                                        asList("int", "float"), null, true)
+                                        )),
+                                        functionDto("plusWithEcho()", 2, bindingDtos(
+                                                varBinding("plusWithEcho()$x", "V2",
+                                                        null, asList("{as string}", "{as T}"), true),
+                                                varBinding("plusWithEcho()$y", "V4",
+                                                        null, asList("{as string}", "{as T}"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T",
+                                                        null, asList("(float | int)"), false)
+                                        ))
+                                ), 1, 0, 2),
                         }
                 },
         });

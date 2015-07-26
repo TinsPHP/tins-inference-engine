@@ -274,7 +274,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                 if (!reference.hasFixedType() && argumentsAreAllFixed && !dto.workItemDto.isInSoftTypingMode) {
                     dto.bindings.fixType(lhsAbsoluteName);
                 }
-                if (!dto.workItemDto.isInIterativeMode && !dto.workItemDto.isInSoftTypingMode
+                if (!dto.workItemDto.isInSoftTypingMode
                         && !lhsAbsoluteName.equals(TinsPHPConstants.RETURN_VARIABLE_NAME)) {
                     OverloadApplicationDto overloadApplicationDto = new OverloadApplicationDto(
                             dto.overload, dto.implicitConversions, null);
@@ -383,25 +383,33 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
             parametricTypes:
             for (IParametricTypeSymbol parametricTypeSymbol : parametricTypeSymbols) {
                 List<String> typeParameters = new ArrayList<>();
-                for (String typeParameter : parametricTypeSymbol.getTypeParameters()) {
-                    String typeVariable;
-                    if (dto.mapping.containsKey(typeParameter)) {
-                        typeVariable = dto.mapping.get(typeParameter).getTypeVariable();
-                    } else if (!dto.workItemDto.isInIterativeMode && dto.iterateCount == 1) {
-                        typeVariable = addHelperVariable(dto, typeParameter).getTypeVariable();
-                    } else if (dto.workItemDto.isInIterativeMode && dto.iterateCount == 1) {
-                        typeVariable = searchTypeVariable(dto, typeParameter);
-                        if (typeVariable == null) {
-                            typeVariable = addHelperVariable(dto, typeParameter).getTypeVariable();
-                        }
-                    } else {
-                        dto.needToReIterate = true;
-                        copy = null;
-                        break parametricTypes;
-                    }
-                    typeParameters.add(typeVariable);
-                }
                 if (!dto.workItemDto.isInSoftTypingMode) {
+                    for (String typeParameter : parametricTypeSymbol.getTypeParameters()) {
+                        String typeVariable;
+                        if (dto.mapping.containsKey(typeParameter)) {
+                            typeVariable = dto.mapping.get(typeParameter).getTypeVariable();
+                        } else if (!dto.workItemDto.isInIterativeMode && dto.iterateCount == 1) {
+                            typeVariable = addHelperVariable(dto, typeParameter).getTypeVariable();
+                        } else if (dto.workItemDto.isInIterativeMode && dto.iterateCount == 1) {
+                            typeVariable = searchTypeVariable(dto, typeParameter);
+                            if (typeVariable == null) {
+                                if (hasReturnVariableAsUpperRef(dto, typeParameter)) {
+                                    typeVariable = addHelperVariable(dto, typeParameter).getTypeVariable();
+                                } else {
+                                    IBindingCollection copyBindings = symbolFactory.createBindingCollection(
+                                            parametricTypeSymbol.getBindingCollection());
+                                    copyBindings.bind(parametricTypeSymbol, parametricTypeSymbol.getTypeParameters());
+                                    copyBindings.fixTypeParameters();
+                                    break parametricTypes;
+                                }
+                            }
+                        } else {
+                            dto.needToReIterate = true;
+                            copy = null;
+                            break parametricTypes;
+                        }
+                        typeParameters.add(typeVariable);
+                    }
                     leftBindings.bind(parametricTypeSymbol, typeParameters);
                 } else {
                     IBindingCollection copyBindings
@@ -415,17 +423,36 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
         return copy;
     }
 
+    private boolean hasReturnVariableAsUpperRef(AggregateBindingDto dto, String typeVariable) {
+        IBindingCollection rightBindings = dto.overload.getBindingCollection();
+        String returnTypeVariable = rightBindings.getTypeVariable(TinsPHPConstants.RETURN_VARIABLE_NAME);
+        return hasReturnVariableAsUpperRef(typeVariable, rightBindings, returnTypeVariable);
+
+    }
+
+    private boolean hasReturnVariableAsUpperRef(
+            String typeVariable, IBindingCollection rightBindings, String returnTypeVariable) {
+        if (rightBindings.hasUpperRefBounds(typeVariable)) {
+            for (String refTypeVariable : rightBindings.getUpperRefBounds(typeVariable)) {
+                if (refTypeVariable.equals(returnTypeVariable)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     //Warning! start code duplication - very similar as in addLowerRefInIterativeMode
     private String searchTypeVariable(AggregateBindingDto dto, String typeParameter) {
         IBindingCollection rightBindings = dto.overload.getBindingCollection();
         String typeVariable = null;
         if (rightBindings.hasLowerRefBounds(typeParameter)) {
-            for (String refRefTypeVariable : rightBindings.getLowerRefBounds(typeParameter)) {
-                if (dto.mapping.containsKey(refRefTypeVariable)) {
-                    typeVariable = dto.mapping.get(refRefTypeVariable).getTypeVariable();
+            for (String refTypeVariable : rightBindings.getLowerRefBounds(typeParameter)) {
+                if (dto.mapping.containsKey(refTypeVariable)) {
+                    typeVariable = dto.mapping.get(refTypeVariable).getTypeVariable();
                     break;
                 }
-                searchTypeVariable(dto, refRefTypeVariable);
+                searchTypeVariable(dto, refTypeVariable);
             }
         }
         return typeVariable;

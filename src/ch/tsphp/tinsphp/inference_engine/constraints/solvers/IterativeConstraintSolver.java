@@ -20,6 +20,7 @@ import ch.tsphp.tinsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.common.utils.ITypeHelper;
 import ch.tsphp.tinsphp.common.utils.Pair;
+import ch.tsphp.tinsphp.inference_engine.constraints.TempFunctionType;
 import ch.tsphp.tinsphp.inference_engine.constraints.TempMethodSymbol;
 import ch.tsphp.tinsphp.inference_engine.constraints.WorkItemDto;
 
@@ -163,7 +164,8 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
 
             IFunctionType overload =
                     symbolFactory.createFunctionType(absoluteName, bindingCollection, parameterVariables);
-            tempOverloads.add(overload);
+            TempFunctionType tempFunctionType = new TempFunctionType(overload);
+            tempOverloads.add(tempFunctionType);
         }
         return tempOverloads;
     }
@@ -198,8 +200,8 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
         while (!worklist.isEmpty()) {
             WorkItemDto workItemDto = worklist.removeFirst();
             workItemDto.workDeque.add(workItemDto);
-            List<IBindingCollection> bindingCollections = solveConstraintsIterativeMode(workItemDto.workDeque);
             String absoluteName = workItemDto.constraintCollection.getAbsoluteName();
+            List<IBindingCollection> bindingCollections = solveConstraintsIterativeMode(workItemDto.workDeque);
 
             if (bindingCollections.size() > 1) {
                 collectionsWhichChanged.add(absoluteName);
@@ -334,9 +336,7 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
                 //exchange applied overload, currently it is still pointing to the temp overload
                 IConstraint constraint = workItemDto.constraintCollection.getConstraints().get(pair.second);
 
-                workItemDto.isInIterativeMode = false;
                 constraintSolverHelper.addMostSpecificOverloadToWorklist(workItemDto, constraint);
-
                 if (workItemDto.workDeque.isEmpty()) {
                     //TODO TINS-524 erroneous overload - remove the debug info bellow
                     for (IFunctionType functionType : constraint.getMethodSymbol().getOverloads()) {
