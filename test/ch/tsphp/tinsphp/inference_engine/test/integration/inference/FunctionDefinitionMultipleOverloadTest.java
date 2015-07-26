@@ -138,15 +138,18 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
                         ), 1, 0, 2)
                 },
                 {
-                        "function foo9($x, $y){return $x + $y + 1;}",
-                        testStructs("foo9()", "\\.\\.", asList(
-
+                        "function foo9A($x, $y){return $x + ($y + 1);}",
+                        testStructs("foo9A()", "\\.\\.", asList(
+                                "int x int -> int",
+                                "{as T} x {as (float | int)} -> T \\ int <: T <: (float | int)"
+                        ), 1, 0, 2)
+                },
+                {
+                        "function foo9B($x, $y){return $x + $y + 1;}",
+                        testStructs("foo9B()", "\\.\\.", asList(
                                 "int x int -> int",
                                 "float x float -> float",
-                                //TODO TINS-531 inferred overload is not general enough
-                                //should be instead of the following
-                                //"{as T} x {as T} -> T \\ int <: T <: num"
-                                "{as int} x {as int} -> int"
+                                "{as T} x {as T} -> (int | T) \\ T <: (float | int)"
                         ), 1, 0, 2)
                 },
                 //TODO TINS-531 inferred overload is not general enough
@@ -161,7 +164,7 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
 //                        ), 1, 0, 2)
 //                },
                 {
-                        "function foo10($x, $y, $z){$x =+ 1; return $x + $y +$z; }",
+                        "function foo10($x, $y, $z){$x += 1; return $x + $y +$z; }",
                         testStructs("foo10()", "\\.\\.", asList(
                                 "int x int x int -> int",
                                 //TODO TINS-531 inferred overload is not general enough
@@ -174,11 +177,19 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
                 {
                         "function foo15($x, $y){ if(true){return $y /= $x;} return $x + 1;}",
                         testStructs("foo15()", "\\.\\.", asList(
+                                "float x (falseType | float) -> (falseType | float | int)",
                                 "float x T -> (falseType | float | int | T) "
                                         + "\\ (falseType | float) <: T <: {as (float | int)}",
                                 "{as (float | int)} x T -> T \\ (falseType | float | int) <: T <: {as (float | int)}"
                         ), 1, 0, 2)
                 },
+                {
+                        "function foo16($x){$a = $x & 1; echo $x; return $a;}",
+                        testStructs("foo16()", "\\.\\.", asList(
+                                "int -> int",
+                                "((array | {as int}) & {as string}) -> int"
+                        ), 1, 0, 2)
+                }
         });
     }
 

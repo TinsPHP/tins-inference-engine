@@ -352,6 +352,22 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                                 ), 1, 0, 2),
                         }
                 },
+                {
+                        "function foo16($x){$a = $x & 1; echo $x; return $a;}",
+                        new OverloadTestStruct[]{
+                                testStruct("foo16()", "\\.\\.", functionDtos(
+                                        functionDto("foo16()", 1, bindingDtos(
+                                                varBinding("foo16()$x", "V2", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V8", asList("int"), null, true)
+                                        )),
+                                        functionDto("foo16()", 1, bindingDtos(
+                                                varBinding("foo16()$x", "V2",
+                                                        null, asList("{as string}", "(array | {as int})"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V8", asList("int"), null, true)
+                                        ))
+                                ), 1, 0, 2),
+                        }
+                }
         });
     }
 }

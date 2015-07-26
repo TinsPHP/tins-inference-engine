@@ -42,7 +42,7 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
     public OverloadRankingDto inNormalMode(
             WorkItemDto workItemDto, List<OverloadRankingDto> applicableOverloads, List<ITypeSymbol> argumentTypes) {
 
-        List<OverloadRankingDto> overloadRankingDtos = preFilterOverloads(applicableOverloads);
+        List<OverloadRankingDto> overloadRankingDtos = preFilterOverloads(workItemDto, applicableOverloads);
         OverloadRankingDto overloadRankingDto = overloadRankingDtos.get(0);
         if (overloadRankingDtos.size() > 1) {
             overloadRankingDtos = fixOverloads(workItemDto, overloadRankingDtos);
@@ -51,8 +51,8 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
             if (overloadRankingDtos.size() > 1) {
 
                 int numberOfParameters = overloadRankingDto.overload.getParameters().size();
-                List<Pair<ITypeSymbol, ITypeSymbol>> bounds = getParameterBounds(overloadRankingDtos,
-                        numberOfParameters);
+                List<Pair<ITypeSymbol, ITypeSymbol>> bounds = getParameterBounds(
+                        overloadRankingDtos, numberOfParameters);
 
                 overloadRankingDtos = getMostSpecificApplicableOverload(overloadRankingDtos, bounds);
                 overloadRankingDto = overloadRankingDtos.get(0);
@@ -69,7 +69,7 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
     public List<OverloadRankingDto> inSoftTypingMode(
             WorkItemDto workItemDto, List<OverloadRankingDto> applicableOverloads) {
 
-        List<OverloadRankingDto> overloadRankingDtos = preFilterOverloads(applicableOverloads);
+        List<OverloadRankingDto> overloadRankingDtos = preFilterOverloads(workItemDto, applicableOverloads);
         if (overloadRankingDtos.size() > 1) {
             OverloadRankingDto overloadRankingDto = overloadRankingDtos.get(0);
             //comparing overloads with explicit conversions require a different ranking
@@ -88,17 +88,20 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
     //Warning! end code duplication, more or less the same as in inNormalMode
 
 
-    private List<OverloadRankingDto> preFilterOverloads(List<OverloadRankingDto> applicableOverloads) {
+    private List<OverloadRankingDto> preFilterOverloads(
+            WorkItemDto workItemDto, List<OverloadRankingDto> applicableOverloads) {
         int size = applicableOverloads.size();
 
         List<OverloadRankingDto> overloadRankingDtos = new ArrayList<>(size);
-        boolean wereArgumentsNarrowed = true;
+        boolean hasAlreadyConvertibles = workItemDto.bindingCollection.getNumberOfConvertibleApplications() > 0;
+        boolean hasConvertibles = false;
+
         for (int i = 0; i < size; ++i) {
             OverloadRankingDto dto = applicableOverloads.get(i);
-            if (wereArgumentsNarrowed == dto.hasNarrowedArguments) {
+            if (!hasAlreadyConvertibles || hasConvertibles == dto.overload.hasConvertibleParameterTypes()) {
                 overloadRankingDtos.add(dto);
-            } else if (wereArgumentsNarrowed) {
-                wereArgumentsNarrowed = dto.hasNarrowedArguments;
+            } else if (!hasConvertibles) {
+                hasConvertibles = true;
                 overloadRankingDtos = new ArrayList<>(size - i);
                 overloadRankingDtos.add(dto);
             }
