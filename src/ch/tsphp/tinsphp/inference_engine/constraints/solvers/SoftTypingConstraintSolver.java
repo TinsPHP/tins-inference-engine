@@ -462,8 +462,12 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
                 if (!reference.hasFixedType()) {
                     IIntersectionTypeSymbol newUpperTypeBound = leftBindings.getUpperTypeBounds(typeVariable);
                     if (newUpperTypeBound != null) {
-                        IIntersectionTypeSymbol leastUpperBound = getLeastCommonUpperTypeBound(
-                                oldLowerTypeBound, newUpperTypeBound);
+                        IIntersectionTypeSymbol leastUpperBound;
+                        if (oldLowerTypeBound != null) {
+                            leastUpperBound = getLeastCommonUpperTypeBound(oldLowerTypeBound, newUpperTypeBound);
+                        } else {
+                            leastUpperBound = newUpperTypeBound;
+                        }
                         leftBindings.setUpperTypeBounds(typeVariable, leastUpperBound);
                     }
                 } else {
@@ -471,7 +475,9 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
                     intersectionTypeSymbol.addTypeSymbol(oldLowerTypeBound);
                     leftBindings.setUpperTypeBounds(typeVariable, intersectionTypeSymbol);
                 }
-                leftBindings.addLowerTypeBound(typeVariable, oldLowerTypeBound);
+                if (oldLowerTypeBound != null) {
+                    leftBindings.addLowerTypeBound(typeVariable, oldLowerTypeBound);
+                }
             }
         }
 
@@ -560,11 +566,16 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
 
         }
 
-        leftBindings.addUpperTypeBound(lhsTypeVariable, upperUnion);
+        if (!upperUnion.getTypeSymbols().isEmpty()) {
+            leftBindings.addUpperTypeBound(lhsTypeVariable, upperUnion);
+        }
         for (int i = 0; i < numberOfArguments; ++i) {
             String argumentId = arguments.get(i).getAbsoluteName();
             String typeVariable = leftBindings.getTypeVariable(argumentId);
-            leftBindings.addUpperTypeBound(typeVariable, upperArguments.get(i));
+            IUnionTypeSymbol typeSymbol = upperArguments.get(i);
+            if (!typeSymbol.getTypeSymbols().isEmpty()) {
+                leftBindings.addUpperTypeBound(typeVariable, typeSymbol);
+            }
         }
 
         workItemDto.bindingCollection = leftBindings;
