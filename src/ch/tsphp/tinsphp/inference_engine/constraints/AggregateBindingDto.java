@@ -28,6 +28,9 @@ public class AggregateBindingDto
     public IVariable bindingVariable;
     public String overloadVariableId;
     public boolean needToReIterate;
+    /**
+     * Key equals argument number, and pair corresponds [argument type, implicit conversion provider]
+     */
     public Map<Integer, Pair<ITypeSymbol, ITypeSymbol>> implicitConversions;
     public Integer argumentNumber;
     public boolean hasNarrowedArguments;

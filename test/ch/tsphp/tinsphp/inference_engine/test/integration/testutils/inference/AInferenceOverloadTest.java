@@ -60,9 +60,8 @@ public class AInferenceOverloadTest extends AInferenceTest
                 try {
                     assertThat(overloads, hasItem(isFunctionType(testStruct.dtos.get(i))));
                 } catch (AssertionError ex) {
-                    Assert.fail(testString + " \n-- " + testStruct.astText
-                            + " failed (testStruct Nr " + counter + "). Error for functionType " + i + "\n" + ex
-                            .getMessage());
+                    Assert.fail(testString + " \n-- " + testStruct.astText + " failed (testStruct Nr " + counter + ")."
+                            + " Error for functionType " + i + "\n" + ex.getMessage());
                 }
             }
 
