@@ -113,8 +113,10 @@ public class TempFunctionType implements IFunctionType
     }
 
     @Override
-    public void manuallySimplified(Set<String> nonFixedTypeParameters, int numberOfConvertibleApplications,
-            boolean hasConvertibleParameterTypes) {
+    public void manuallySimplified(
+            Set<String> nonFixedTypeParameters,
+            int numberOfConvertibleApplications,
+            boolean hasItConvertibleParameterTypes) {
         throw new UnsupportedOperationException("You are dealing with a temp function");
     }
 
