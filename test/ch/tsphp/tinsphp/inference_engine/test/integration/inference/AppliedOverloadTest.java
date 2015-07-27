@@ -117,8 +117,6 @@ public class AppliedOverloadTest extends AInferenceOverloadTest
                                         varBinding(RETURN_VARIABLE_NAME, "Treturn", asList("mixed"), null, true)
                                 )), 1, 1, 0)
                 },
-                //overloads with implicit conversions
-
                 //overloads with convertible types
                 {
                         "1 + 1.2;",
@@ -202,7 +200,19 @@ public class AppliedOverloadTest extends AInferenceOverloadTest
                                                 asList("falseType", "int", "float"), null, true)
                                 )), 1, 2, 0)
                 },
-
+                {
+                        "function foo9($x, $y, $z){return $x - $y - $z;}"
+                                + "$c = foo9(1, 2, 3.5);",
+                        testStructs("(fCall foo9() (args 1 2 3.5))", "\\.\\.",
+                                functionDtos("foo9()", 3, bindingDtos(
+                                        varBinding("foo9()$x", "V2", null, asList("{as T2}"), true),
+                                        varBinding("foo9()$y", "V3", null, asList("{as T2}"), true),
+                                        varBinding("foo9()$z", "V5", null, asList("{as T1}"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "T1",
+                                                asList("@T2"), asList("(float | int)"), false),
+                                        varBinding("foo9()-@1|41", "T2", null, asList("@T1", "(float | int)"), false)
+                                )), 1, 2, 0, 1)
+                }
         });
     }
 }

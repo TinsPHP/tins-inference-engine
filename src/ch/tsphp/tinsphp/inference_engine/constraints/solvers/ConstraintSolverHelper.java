@@ -136,9 +136,8 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
             bindings.addVariable(absoluteName, typeVariableReference);
             if (typeSymbol != null) {
                 String typeVariable = typeVariableReference.getTypeVariable();
-                //TODO rstoll TINS-407 - store fixed type only in lower bound
-                //TODO rstoll TINS-387 function application only consider upper bounds
-                if (!workItemDto.isInSoftTypingMode && workItemDto.isSolvingMethod
+                if (!workItemDto.isInSoftTypingMode
+                        && workItemDto.isSolvingMethod
                         && variable.getName().startsWith("$")) {
                     bindings.addUpperTypeBound(typeVariable, typeSymbol);
                 } else {
@@ -556,6 +555,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                 Iterator<ITypeSymbol> iterator = typeSymbols.iterator();
                 if (!dto.bindings.hasLowerTypeBounds(typeParameter)) {
                     ITypeSymbol typeSymbol = iterator.next();
+                    //TODO rstoll TINS-600 - function instantiation with convertibles too general
                     BoundResultDto resultDto = dto.bindings.addLowerTypeBound(typeParameter, typeSymbol);
                     dto.hasNarrowedArguments = dto.hasNarrowedArguments || resultDto.hasChanged;
                 }
@@ -783,7 +783,6 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
             IVariable variable = parameters.get(i);
             String argumentId = variable.getAbsoluteName();
             String typeVariable = rightBindings.getTypeVariable(argumentId);
-            //TODO TINS-418 function application only consider upper bounds 0.4.1
             ITypeSymbol argumentType = argumentTypes.get(i);
             if (rightBindings.hasUpperTypeBounds(typeVariable)) {
                 IIntersectionTypeSymbol parameterType = rightBindings.getUpperTypeBounds(typeVariable);
@@ -848,9 +847,6 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                 //the parameter is not used at all, hence it can be mixed
                 ITypeVariableReference reference = new FixedTypeVariableReference(bindings.getNextTypeVariable());
                 bindings.addVariable(parameterId, reference);
-                //TODO rstoll TINS-407 - store fixed type only in lower bound
-                //TODO rstoll TINS-387 function application only consider upper bounds
-                bindings.addLowerTypeBound(reference.getTypeVariable(), mixedTypeSymbol);
                 bindings.addUpperTypeBound(reference.getTypeVariable(), mixedTypeSymbol);
                 //TODO could generate a warning
             }

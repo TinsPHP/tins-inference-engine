@@ -103,7 +103,6 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
                                 "{as (float | int)} -> (float | int)"
                         ), 1, 0, 2)
                 },
-                //TODO TINS-550 constrain type variables of convertible type
                 {
                         "function foo($x){return $x + true;}",
                         testStructs("foo()", "\\.\\.", asList(

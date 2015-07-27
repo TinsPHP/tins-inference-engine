@@ -157,18 +157,24 @@ public class FunctionCallTest extends AInferenceNamespaceTypeTest
                 //see TINS-494 ambiguous overloads calculated - check if still most specific overload is chosen in
                 // global namespace scope
                 {
-                        "function foo($x, $y, $z){return $x - $y - $z;}"
-                                + "$a = foo(1, 2, 3);"
-                                + "$b = foo(1.3, 2.5, 3.4);"
-                                + "$c = foo(1, 2, 3.5);"
-                                + "$d = foo(1, 2.5, 3);",
+                        "function foo9($x, $y, $z){return $x - $y - $z;}"
+                                + "$a = foo9(1, 2, 3);"
+                                + "$b = foo9(1.3, 2.5, 3.4);"
+                                + "$c = foo9(1, 2, 3.5);"
+                                + "$d = foo9(1, 2.5, 3.5);"
+                                + "$e = foo9(1, 2.5, 3);"
+                                + "$f = foo9(1.5, 2.5, 3);"
+                                + "$g = foo9(1.5, 2, 3);",
                         new AbsoluteTypeNameTestStruct[]{
-                                testStruct("$a", "\\.\\.", asList("int"), null, 1, 5, 0, 0),
-                                testStruct("$b", "\\.\\.", asList("float"), null, 1, 6, 0, 0),
-                                //TODO TINS-418 function application only consider upper bounds 0.4.1 - only float
-                                testStruct("$c", "\\.\\.", asList("float", "int"), null, 1, 7, 0, 0),
-                                //TODO TINS-418 function application only consider upper bounds 0.4.1 - only float
-                                testStruct("$d", "\\.\\.", asList("float", "int"), null, 1, 8, 0, 0)
+                                testStruct("$a", "\\.\\.", asList("int"), null, 1, 8, 0, 0),
+                                testStruct("$b", "\\.\\.", asList("float"), null, 1, 9, 0, 0),
+                                //TODO rstoll TINS-600 - function instantiation with convertibles too general
+                                // should be float only for the next five cases
+                                testStruct("$c", "\\.\\.", asList("float", "int"), null, 1, 10, 0, 0),
+                                testStruct("$d", "\\.\\.", asList("float", "int"), null, 1, 11, 0, 0),
+                                testStruct("$e", "\\.\\.", asList("float", "int"), null, 1, 12, 0, 0),
+                                testStruct("$f", "\\.\\.", asList("float", "int"), null, 1, 13, 0, 0),
+                                testStruct("$g", "\\.\\.", asList("float", "int"), null, 1, 14, 0, 0)
                         }
                 },
                 {
@@ -179,7 +185,7 @@ public class FunctionCallTest extends AInferenceNamespaceTypeTest
                                 testStruct("$c", "\\.\\.", asList("int", "float"), null, 1, 6, 0, 0)
                         }
                 },
-                //TINS-549 convertible type with lower to same type variable
+                //TODO TINS-549 convertible type with lower to same type variable
 //                {
 //                        "function foo3($x){$x = $x + 1; return $x;} $a = foo3(1); $b = foo3(1.2); $c = foo3('1');",
 //                        new AbsoluteTypeNameTestStruct[]{
