@@ -115,7 +115,7 @@ public class ConstraintSolver implements IConstraintSolver
             if (workItemDto.pointer < constraints.size()) {
                 IConstraint constraint = constraints.get(workItemDto.pointer);
                 solveConstraint(workItemDto, constraint);
-            } else if (workItemDto.unsolvedConstraints == null || workItemDto.unsolvedConstraints.isEmpty()) {
+            } else if (workItemDto.dependentConstraints == null || workItemDto.dependentConstraints.isEmpty()) {
                 solvedBindings.add(workItemDto.bindingCollection);
             } else if (!workItemDto.isSolvingDependency) {
                 constraintSolverHelper.createDependencies(workItemDto);
@@ -131,10 +131,10 @@ public class ConstraintSolver implements IConstraintSolver
             constraintSolverHelper.solve(workItemDto, constraint);
         } else {
             //add to unresolved constraints
-            if (workItemDto.unsolvedConstraints == null) {
-                workItemDto.unsolvedConstraints = new ArrayList<>();
+            if (workItemDto.dependentConstraints == null) {
+                workItemDto.dependentConstraints = new ArrayList<>();
             }
-            workItemDto.unsolvedConstraints.add(workItemDto.pointer);
+            workItemDto.dependentConstraints.add(workItemDto.pointer);
 
             //proceed with the rest
             ++workItemDto.pointer;

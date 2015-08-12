@@ -23,7 +23,7 @@ public class WorkItemDto
     public IBindingCollection bindingCollection;
     public ConvertibleAnalysisDto convertibleAnalysisDto;
 
-    public List<Integer> unsolvedConstraints;
+    public List<Integer> dependentConstraints;
     public boolean isInIterativeMode;
     public boolean isSolvingDependency;
     public boolean isInSoftTypingMode;
@@ -50,7 +50,7 @@ public class WorkItemDto
         pointer = newPointer;
         bindingCollection = theBindingCollection;
 
-        unsolvedConstraints = dto.unsolvedConstraints;
+        dependentConstraints = dto.dependentConstraints;
         isInIterativeMode = dto.isInIterativeMode;
         isSolvingDependency = dto.isSolvingDependency;
         isInSoftTypingMode = dto.isInSoftTypingMode;

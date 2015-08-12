@@ -83,7 +83,7 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
             }
         }
 
-        //solveDependencies is not in the same loop on purpose since we already filter unsolvedConstraints which
+        //solveDependencies is not in the same loop on purpose since we already filter dependentConstraints which
         // have not been used as overloads
         for (String absoluteName : unsolvedConstraints.keySet()) {
             if (directDependencies.containsKey(absoluteName)) {
@@ -243,8 +243,8 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
 
         while (!workDeque.isEmpty()) {
             WorkItemDto workItemDto = workDeque.removeFirst();
-            if (workItemDto.pointer < workItemDto.unsolvedConstraints.size()) {
-                int pointer = workItemDto.unsolvedConstraints.get(workItemDto.pointer);
+            if (workItemDto.pointer < workItemDto.dependentConstraints.size()) {
+                int pointer = workItemDto.dependentConstraints.get(workItemDto.pointer);
                 IConstraint constraint = constraints.get(pointer);
                 constraintSolverHelper.solve(workItemDto, constraint);
             } else {

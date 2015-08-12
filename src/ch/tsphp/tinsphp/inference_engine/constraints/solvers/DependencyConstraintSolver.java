@@ -33,7 +33,7 @@ public class DependencyConstraintSolver implements IDependencyConstraintSolver
         WorkItemDto workItemDto = pair.first;
         workItemDto.pointer = pair.second;
         //removing pointer not the element at index thus the cast to (Integer)
-        workItemDto.unsolvedConstraints.remove((Integer) workItemDto.pointer);
+        workItemDto.dependentConstraints.remove((Integer) workItemDto.pointer);
         workItemDto.isSolvingDependency = true;
         IMethodSymbol methodSymbol = (IMethodSymbol) workItemDto.constraintCollection;
         if (!workItemDto.isInSoftTypingMode) {
@@ -44,7 +44,7 @@ public class DependencyConstraintSolver implements IDependencyConstraintSolver
         }
 
         String absoluteName = methodSymbol.getAbsoluteName();
-        if (workItemDto.unsolvedConstraints.isEmpty() && unsolvedConstraints.containsKey(absoluteName)) {
+        if (workItemDto.dependentConstraints.isEmpty() && unsolvedConstraints.containsKey(absoluteName)) {
             Set<WorkItemDto> remainingUnsolved = unsolvedConstraints.get(absoluteName);
             remainingUnsolved.remove(workItemDto);
             if (remainingUnsolved.isEmpty()) {

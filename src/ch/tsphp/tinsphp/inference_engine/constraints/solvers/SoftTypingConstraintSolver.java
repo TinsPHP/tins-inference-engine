@@ -69,7 +69,7 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
     @Override
     public void fallBackToSoftTyping(IConstraintCollection constraintCollection) {
         WorkItemDto workItemDto = createAndInitWorklistDto(constraintCollection);
-        if (workItemDto.unsolvedConstraints == null || workItemDto.unsolvedConstraints.isEmpty()) {
+        if (workItemDto.dependentConstraints == null || workItemDto.dependentConstraints.isEmpty()) {
             solveConstraints(constraintCollection, workItemDto);
         } else {
             constraintSolverHelper.createDependencies(workItemDto);
@@ -114,10 +114,10 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
             }
         } else {
             //add to unresolved constraints
-            if (workItemDto.unsolvedConstraints == null) {
-                workItemDto.unsolvedConstraints = new ArrayList<>();
+            if (workItemDto.dependentConstraints == null) {
+                workItemDto.dependentConstraints = new ArrayList<>();
             }
-            workItemDto.unsolvedConstraints.add(workItemDto.pointer);
+            workItemDto.dependentConstraints.add(workItemDto.pointer);
         }
     }
 

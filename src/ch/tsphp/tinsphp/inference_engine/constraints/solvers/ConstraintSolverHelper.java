@@ -806,7 +806,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
     public void createDependencies(WorkItemDto workItemDto) {
         List<IConstraint> constraints = workItemDto.constraintCollection.getConstraints();
         String absoluteName = workItemDto.constraintCollection.getAbsoluteName();
-        for (Integer pointer : workItemDto.unsolvedConstraints) {
+        for (Integer pointer : workItemDto.dependentConstraints) {
             String refAbsoluteName = constraints.get(pointer).getMethodSymbol().getAbsoluteName();
             MapHelper.addToListInMap(directDependencies, refAbsoluteName, pair(workItemDto, pointer));
             MapHelper.addToSetInMap(dependencies, refAbsoluteName, absoluteName);
