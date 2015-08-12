@@ -50,34 +50,34 @@ public class OperatorUpToGreaterThanTest extends AInferenceNamespaceTypeTest
         List<String> num = asList("int", "float");
         return asList(new Object[][]{
                 // or
-                {"false or false;", testStructs("(or false false)", "\\.\\.", asList("falseType"), 1, 0, 0)},
-                {"true or true;", testStructs("(or true true)", "\\.\\.", asList("trueType"), 1, 0, 0)},
-                {"$x = (bool) true; true or $x;", testStructs("(or true $x)", "\\.\\.", asList("trueType"), 1, 2, 0)},
-                {"true or 0;", testStructs("(or true 0)", "\\.\\.", asList("trueType"), 1, 0, 0)},
-                {"$x = (bool) true; $x or true;", testStructs("(or $x true)", "\\.\\.", asList("trueType"), 1, 2, 0)},
-                {"0 or true;", testStructs("(or 0 true)", "\\.\\.", asList("trueType"), 1, 0, 0)},
+                {"false or false;", testStructs("(or false false)", "\\.\\.", bool, 1, 0, 0)},
+                {"true or true;", testStructs("(or true true)", "\\.\\.", bool, 1, 0, 0)},
+                {"$x = (bool) true; true or $x;", testStructs("(or true $x)", "\\.\\.", bool, 1, 2, 0)},
+                {"true or 0;", testStructs("(or true 0)", "\\.\\.", bool, 1, 0, 0)},
+                {"$x = (bool) true; $x or true;", testStructs("(or $x true)", "\\.\\.", bool, 1, 2, 0)},
+                {"0 or true;", testStructs("(or 0 true)", "\\.\\.", bool, 1, 0, 0)},
                 {"$x = (bool) true; $x or $x;", testStructs("(or $x $x)", "\\.\\.", bool, 1, 2, 0)},
                 {"0 or 0;", testStructs("(or 0 0)", "\\.\\.", bool, 1, 0, 0)},
                 // xor
-                {"false xor true;", testStructs("(xor false true)", "\\.\\.", asList("trueType"), 1, 0, 0)},
-                {"true xor false;", testStructs("(xor true false)", "\\.\\.", asList("trueType"), 1, 0, 0)},
-                {"false xor false;", testStructs("(xor false false)", "\\.\\.", asList("falseType"), 1, 0, 0)},
-                {"true xor true;", testStructs("(xor true true)", "\\.\\.", asList("falseType"), 1, 0, 0)},
+                {"false xor true;", testStructs("(xor false true)", "\\.\\.", bool, 1, 0, 0)},
+                {"true xor false;", testStructs("(xor true false)", "\\.\\.", bool, 1, 0, 0)},
+                {"false xor false;", testStructs("(xor false false)", "\\.\\.", bool, 1, 0, 0)},
+                {"true xor true;", testStructs("(xor true true)", "\\.\\.", bool, 1, 0, 0)},
                 {"$x = (bool) true; $x xor $x;", testStructs("(xor $x $x)", "\\.\\.", bool, 1, 2, 0)},
                 {"0 xor 0;", testStructs("(xor 0 0)", "\\.\\.", bool, 1, 0, 0)},
                 // and
-                {"false && false;", testStructs("(&& false false)", "\\.\\.", asList("falseType"), 1, 0, 0)},
+                {"false && false;", testStructs("(&& false false)", "\\.\\.", bool, 1, 0, 0)},
                 {
                         "$x = (bool) true; false and $x;",
-                        testStructs("(and false $x)", "\\.\\.", asList("falseType"), 1, 2, 0)
+                        testStructs("(and false $x)", "\\.\\.", bool, 1, 2, 0)
                 },
-                {"false and 0;", testStructs("(and false 0)", "\\.\\.", asList("falseType"), 1, 0, 0)},
+                {"false and 0;", testStructs("(and false 0)", "\\.\\.", bool, 1, 0, 0)},
                 {
                         "$x = (bool) true; $x and false;",
-                        testStructs("(and $x false)", "\\.\\.", asList("falseType"), 1, 2, 0)
+                        testStructs("(and $x false)", "\\.\\.", bool, 1, 2, 0)
                 },
-                {"0 and false;", testStructs("(and 0 false)", "\\.\\.", asList("falseType"), 1, 0, 0)},
-                {"true and true;", testStructs("(and true true)", "\\.\\.", asList("trueType"), 1, 0, 0)},
+                {"0 and false;", testStructs("(and 0 false)", "\\.\\.", bool, 1, 0, 0)},
+                {"true and true;", testStructs("(and true true)", "\\.\\.", bool, 1, 0, 0)},
                 {"$x = (bool) true; $x and $x;", testStructs("(and $x $x)", "\\.\\.", bool, 1, 2, 0)},
                 {"0 and 0;", testStructs("(and 0 0)", "\\.\\.", bool, 1, 0, 0)},
                 // +=
@@ -469,8 +469,8 @@ public class OperatorUpToGreaterThanTest extends AInferenceNamespaceTypeTest
                 {"$x = 1.2; $x .= 'b';", testStructs("(.= $x 'b')", "\\.\\.", asList("string", "float"), 1, 2, 0)},
                 {"$x = true; $x .= 'b';", testStructs("(.= $x 'b')", "\\.\\.", asList("string", "trueType"), 1, 2, 0)},
                 // ?
-                {"true ? 1 : 1.3;", testStructs("(? true 1 1.3)", "\\.\\.", asList("int"), 1, 0, 0)},
-                {"false ? 1 : 1.3;", testStructs("(? false 1 1.3)", "\\.\\.", asList("float"), 1, 0, 0)},
+                {"true ? 1 : 1.3;", testStructs("(? true 1 1.3)", "\\.\\.", asList("float", "int"), 1, 0, 0)},
+                {"false ? 1 : 1.3;", testStructs("(? false 1 1.3)", "\\.\\.", asList("float", "int"), 1, 0, 0)},
                 {"$x = (bool) 1; $x ? 1 : 1.3;", testStructs("(? $x 1 1.3)", "\\.\\.", num, 1, 2, 0)},
                 {
                         "$x = (bool) 1; $x ? [1] : 1.3;",
@@ -478,27 +478,27 @@ public class OperatorUpToGreaterThanTest extends AInferenceNamespaceTypeTest
                 },
                 {"1 ? 1 : 1.3;", testStructs("(? 1 1 1.3)", "\\.\\.", num, 1, 0, 0)},
                 // ||
-                {"false || false;", testStructs("(|| false false)", "\\.\\.", asList("falseType"), 1, 0, 0)},
-                {"true || true;", testStructs("(|| true true)", "\\.\\.", asList("trueType"), 1, 0, 0)},
-                {"$x = (bool) true; true || $x;", testStructs("(|| true $x)", "\\.\\.", asList("trueType"), 1, 2, 0)},
-                {"true || 0;", testStructs("(|| true 0)", "\\.\\.", asList("trueType"), 1, 0, 0)},
-                {"$x = (bool) true; $x || true;", testStructs("(|| $x true)", "\\.\\.", asList("trueType"), 1, 2, 0)},
-                {"0 || true;", testStructs("(|| 0 true)", "\\.\\.", asList("trueType"), 1, 0, 0)},
+                {"false || false;", testStructs("(|| false false)", "\\.\\.", bool, 1, 0, 0)},
+                {"true || true;", testStructs("(|| true true)", "\\.\\.", bool, 1, 0, 0)},
+                {"$x = (bool) true; true || $x;", testStructs("(|| true $x)", "\\.\\.", bool, 1, 2, 0)},
+                {"true || 0;", testStructs("(|| true 0)", "\\.\\.", bool, 1, 0, 0)},
+                {"$x = (bool) true; $x || true;", testStructs("(|| $x true)", "\\.\\.", bool, 1, 2, 0)},
+                {"0 || true;", testStructs("(|| 0 true)", "\\.\\.", bool, 1, 0, 0)},
                 {"$x = (bool) true; $x || $x;", testStructs("(|| $x $x)", "\\.\\.", bool, 1, 2, 0)},
                 {"0 || 0;", testStructs("(|| 0 0)", "\\.\\.", bool, 1, 0, 0)},
                 // &&
-                {"false && false;", testStructs("(&& false false)", "\\.\\.", asList("falseType"), 1, 0, 0)},
+                {"false && false;", testStructs("(&& false false)", "\\.\\.", bool, 1, 0, 0)},
                 {
                         "$x = (bool) true; false && $x;",
-                        testStructs("(&& false $x)", "\\.\\.", asList("falseType"), 1, 2, 0)
+                        testStructs("(&& false $x)", "\\.\\.", bool, 1, 2, 0)
                 },
-                {"false && 0;", testStructs("(&& false 0)", "\\.\\.", asList("falseType"), 1, 0, 0)},
+                {"false && 0;", testStructs("(&& false 0)", "\\.\\.", bool, 1, 0, 0)},
                 {
                         "$x = (bool) true; $x && false;",
-                        testStructs("(&& $x false)", "\\.\\.", asList("falseType"), 1, 2, 0)
+                        testStructs("(&& $x false)", "\\.\\.", bool, 1, 2, 0)
                 },
-                {"0 && false;", testStructs("(&& 0 false)", "\\.\\.", asList("falseType"), 1, 0, 0)},
-                {"true && true;", testStructs("(&& true true)", "\\.\\.", asList("trueType"), 1, 0, 0)},
+                {"0 && false;", testStructs("(&& 0 false)", "\\.\\.", bool, 1, 0, 0)},
+                {"true && true;", testStructs("(&& true true)", "\\.\\.", bool, 1, 0, 0)},
                 {"$x = (bool) true; $x && $x;", testStructs("(&& $x $x)", "\\.\\.", bool, 1, 2, 0)},
                 {"0 && 0;", testStructs("(&& 0 0)", "\\.\\.", bool, 1, 0, 0)},
                 // |
