@@ -329,6 +329,20 @@ public class FunctionDefinitionBindingTest extends AInferenceBindingTest
                                 )
                         ), 1, 0, 2)
                 },
+                //see TINS-623 NullPointer if parameter is not used in soft typing
+                {
+                        "function errAdd($x){\n   return 1 + 2;\n}",
+                        testStructs("errAdd()", "\\.\\.", matcherDtos(
+                                matcherDto(
+                                        varBinding("errAdd()+@2|12", "V1", asList("int"), null, true),
+                                        varBinding("1@2|10", "V2", asList("int"), null, true),
+                                        varBinding("2@2|14", "V3", asList("int"), null, true),
+                                        varBinding("return@2|3", "V4", asList("int"), null, true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V5", asList("int"), null, true),
+                                        varBinding("errAdd()$x", "V6", null, asList("mixed"), true)
+                                )
+                        ), 1, 0, 2)
+                }
         });
     }
 }
