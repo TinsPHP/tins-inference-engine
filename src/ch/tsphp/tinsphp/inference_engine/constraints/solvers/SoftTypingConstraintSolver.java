@@ -216,13 +216,23 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
     }
 
     private String addVariableToLeftBindings(
-            String variableId,
+            String parameterId,
             IBindingCollection softTypingBindings,
             IBindingCollection leftBindings) {
 
-        String typeVariable = softTypingBindings.getTypeVariable(variableId);
+        String typeVariable;
+        if (softTypingBindings.containsVariable(parameterId)) {
+            typeVariable = softTypingBindings.getTypeVariable(parameterId);
+        } else {
+            //the parameter is not used at all, hence it can be mixed
+            ITypeVariableReference reference = new FixedTypeVariableReference(softTypingBindings.getNextTypeVariable());
+            typeVariable = reference.getTypeVariable();
+            softTypingBindings.addVariable(parameterId, reference);
+            softTypingBindings.addUpperTypeBound(typeVariable, mixedTypeSymbol);
+            //TODO could generate a warning
+        }
         ITypeVariableReference nextTypeVariable = leftBindings.getNextTypeVariable();
-        leftBindings.addVariable(variableId, new FixedTypeVariableReference(nextTypeVariable));
+        leftBindings.addVariable(parameterId, new FixedTypeVariableReference(nextTypeVariable));
         if (softTypingBindings.hasLowerTypeBounds(typeVariable)) {
             //TODO TINS-534 type hints and soft-typing
             // we need to introduce a local variable here if a type hint was used and the inferred type is
