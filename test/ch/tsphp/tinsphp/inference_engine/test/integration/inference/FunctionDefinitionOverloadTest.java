@@ -36,11 +36,9 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
 
     @Parameterized.Parameters
     public static Collection<Object[]> testStrings() {
-        List<String> boolLower = asList("falseType", "trueType");
         List<String> boolUpper = asList("(falseType | trueType)");
         List<String> asBool = asList("{as (falseType | trueType)}");
         List<String> numLower = asList("float", "int");
-        List<String> numUpper = asList("(float | int)");
         List<String> asNum = asList("{as (float | int)}");
         return asList(new Object[][]{
                 {
@@ -435,6 +433,26 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                                 testStruct("test8()", "\\.\\.", functionDtos("test8()", 0, bindingDtos(
                                         varBinding(RETURN_VARIABLE_NAME, "V6", asList("float", "int"), null, true)
                                 )), 1, 9, 2),
+                        }
+                },
+                //see TINS-549 convertible type with lower to same type variable
+                {
+                        "function foo3($x){$x = $x + 1; return $x;}",
+                        new OverloadTestStruct[]{
+                                testStruct("foo3()", "\\.\\.", functionDtos(
+                                        functionDto("foo3()", 1, bindingDtos(
+                                                varBinding("foo3()$x", "V4", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V6", asList("int"), null, true)
+                                        )),
+                                        functionDto("foo3()", 1, bindingDtos(
+                                                varBinding("foo3()$x", "T1",
+                                                        asList("int", "@T2"), asList("{as T2}"), false),
+                                                varBinding(RETURN_VARIABLE_NAME, "T1",
+                                                        asList("int", "@T2"), asList("{as T2}"), false),
+                                                varBinding("foo3()+@1|31", "T2",
+                                                        asList("int"), asList("(float | int)", "@T1"), false)
+                                        ))
+                                ), 1, 0, 2)
                         }
                 }
         });
