@@ -303,7 +303,9 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                                 + "function test2(){return foo11(2.2, '1');}"
                                 + "function test3(){return foo11(1, false);}"
                                 + "function test4(){return foo11(1, '1');}"
-                                + "function test5(){return bar11(1, '1');}",
+                                + "function test5(){return bar11(1, '1');}"
+                                + "function test6(){return bar11('a', '1');}"
+                                + "function test7(){return bar11(1.2, 3.4);}",
                         new OverloadTestStruct[]{
                                 testStruct("foo11()", "\\.\\.", functionDtos(
                                         functionDto("foo11()", 2, bindingDtos(
@@ -323,10 +325,14 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                                                 varBinding("foo11()$x", "T1",
                                                         null, asList("(array | {as int})", "@V6", "@V8", "@V9"), false),
                                                 varBinding("foo11()$y", "T2",
-                                                        null, asList("(array | {as int})", "{as (float | int)}",
+                                                        null, asList("(array | {as int})", "{as T3}",
                                                                 "@V6", "@V7", "@V8", "@V9"), false),
                                                 varBinding(RETURN_VARIABLE_NAME, "V9",
-                                                        asList("int", "@T1", "@T2"), null, false)
+                                                        asList("int", "@T1", "@T2", "@T3"), null, false),
+                                                varBinding("!help0", "T3",
+                                                        asList("int"),
+                                                        asList("(float | int)", "@V6", "@V7", "@V8", "@V9"),
+                                                        false)
                                         ))
                                 ), 1, 0, 2),
                                 testStruct("bar11()", "\\.\\.", functionDtos(
@@ -344,12 +350,15 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                                         functionDto("bar11()", 2, bindingDtos(
                                                 varBinding("bar11()$x", "V2", null, asList("{as T2}"), true),
                                                 varBinding("bar11()$y", "T1",
-                                                        null, asList("(array | {as int})", "{as (float | int)}",
+                                                        null, asList("(array | {as int})", "{as T3}",
                                                                 "@V6", "@V7", "@V8", "@V9"), false),
                                                 varBinding(RETURN_VARIABLE_NAME, "V9",
-                                                        asList("int", "@T1", "@T2"), null, false),
+                                                        asList("int", "@T1", "@T2", "@T3"), null, false),
                                                 varBinding("cScope-@1|122", "T2",
                                                         null,
+                                                        asList("(float | int)", "@V6", "@V7", "@V8", "@V9"), false),
+                                                varBinding("!help0", "T3",
+                                                        asList("int"),
                                                         asList("(float | int)", "@V6", "@V7", "@V8", "@V9"), false)
                                         ))
                                 ), 1, 1, 2),
@@ -357,22 +366,30 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                                         varBinding(RETURN_VARIABLE_NAME, "V3", asList("int", "float"), null, true)
                                 )), 1, 2, 2),
                                 testStruct("test2()", "\\.\\.", functionDtos("test2()", 0, bindingDtos(
-                                        varBinding(RETURN_VARIABLE_NAME, "V3", asList("string", "int", "float"),
-                                                null, true)
+                                        varBinding(RETURN_VARIABLE_NAME, "V3",
+                                                asList("string", "int", "float"), null, true)
                                 )), 1, 3, 2),
                                 testStruct("test3()", "\\.\\.", functionDtos("test3()", 0, bindingDtos(
                                         varBinding(RETURN_VARIABLE_NAME, "V3", asList("falseType", "int"), null, true)
                                 )), 1, 4, 2),
                                 testStruct("test4()", "\\.\\.", functionDtos("test4()", 0, bindingDtos(
                                         varBinding(RETURN_VARIABLE_NAME, "V3",
-                                                asList("int", "string"), null, true)
+                                                asList("float", "int", "string"), null, true)
                                 )), 1, 5, 2),
-                                //TODO TINS-630 multiple convertible types in intersection
-                                //should be (float | int | string)
                                 testStruct("test5()", "\\.\\.", functionDtos("test5()", 0, bindingDtos(
                                         varBinding(RETURN_VARIABLE_NAME, "V3",
-                                                asList("int", "string"), null, true)
+                                                asList("float", "int", "string"), null, true)
                                 )), 1, 6, 2),
+                                testStruct("test6()", "\\.\\.", functionDtos("test6()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "V3",
+                                                asList("float", "int", "string"), null, true)
+                                )), 1, 7, 2),
+                                //TODO TINS-568 instantiating convertible types is sometimes too general
+                                //should only be float
+                                testStruct("test7()", "\\.\\.", functionDtos("test7()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "V3",
+                                                asList("int", "float"), null, true)
+                                )), 1, 8, 2),
                         }
                 },
                 //indirect recursive function which produces more overloads once the dependent function is known
