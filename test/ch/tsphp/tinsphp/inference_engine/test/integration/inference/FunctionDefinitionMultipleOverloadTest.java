@@ -136,11 +136,13 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
                                 "{as (float | int)} x {as (float | int)} -> (falseType | float | int)"
                         ), 1, 0, 2)
                 },
+                //see TINS-568 convertible types sometimes not generic
                 {
                         "function foo9A($x, $y){return $x + ($y + 1);}",
                         testStructs("foo9A()", "\\.\\.", asList(
                                 "int x int -> int",
-                                "{as T} x {as (float | int)} -> T \\ int <: T <: (float | int)"
+                                "{as T1} x {as T2} -> T1 "
+                                        + "\\ (int | T2) <: T1 <: (float | int), int <: T2 <: (float | int)"
                         ), 1, 0, 2)
                 },
                 {
@@ -151,25 +153,22 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
                                 "{as T} x {as T} -> (int | T) \\ T <: (float | int)"
                         ), 1, 0, 2)
                 },
-                //TODO TINS-531 inferred overload is not general enough
-//                {
-//                        "function foo9($x, $y){return $x + 1 + $y + 2;}",
-//                        testStructs("foo9()", "\\.\\.", asList(
-//                                "int x int -> int",
-//                                "float x float -> float",
-//                                "float x {as (float | int)} -> float",
-//                                "{as (float | int)} x float -> float",
-//                                "{as T} x {as T} -> T \ int <: T <: (float | int)"
-//                        ), 1, 0, 2)
-//                },
+                {
+                        "function foo9($x, $y){return $x + 1 + $y + 2;}",
+                        testStructs("foo9()", "\\.\\.", asList(
+                                "int x int -> int",
+                                "{as T2} x {as T1} -> T1 "
+                                        + "\\ (int | T2) <: T1 <: (float | int), int <: T2 <: (float | int)"
+                        ), 1, 0, 2)
+                },
+                //see TINS-568 convertible types sometimes not generic
                 {
                         "function foo10($x, $y, $z){$x += 1; return $x + $y +$z; }",
                         testStructs("foo10()", "\\.\\.", asList(
                                 "int x int x int -> int",
-                                //TODO TINS-531 inferred overload is not general enough
-                                //should be instead of the following
-                                //"{as T1} x {as T1} x {as T2} -> T2 \\ int <: T1 <: num, T1 <: T2 <: num"
-                                "{as (float | int)} x {as (float | int)} x {as T} -> T \\ int <: T <: (float | int)"
+                                "{as T2} x {as T2} x {as T1} -> T1 "
+                                        + "\\ (int | T2) <: T1 <: (float | int), int <: T2 <: (float | int)"
+
                         ), 1, 0, 2)
                 },
                 //see TINS-414 fixing types and erroneous bounds

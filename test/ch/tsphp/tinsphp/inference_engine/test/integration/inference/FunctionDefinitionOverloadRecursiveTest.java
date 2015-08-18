@@ -207,7 +207,7 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                                                 varBinding(RETURN_VARIABLE_NAME, "V3",
                                                         asList("falseType", "int"), null, true))
                                 ), 1, 2, 2),
-                                //TODO TINS-568 instantiating convertible types is sometimes too general
+                                //TODO TINS-600 function instantiation with convertibles too general
                                 //should only be float
                                 testStruct("test2()", "\\.\\.", functionDtos("test2()", 0, bindingDtos(
                                                 varBinding(RETURN_VARIABLE_NAME, "V3",
@@ -282,7 +282,7 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                                                 varBinding(RETURN_VARIABLE_NAME, "V3",
                                                         asList("falseType", "int"), null, true))
                                 ), 1, 4, 2),
-                                //TODO TINS-568 instantiating convertible types is sometimes too general
+                                //TODO TINS-600 function instantiation with convertibles too general
                                 //should only be float
                                 testStruct("test3()", "\\.\\.", functionDtos("test3()", 0, bindingDtos(
                                                 varBinding(RETURN_VARIABLE_NAME, "V3",
@@ -384,7 +384,7 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                                         varBinding(RETURN_VARIABLE_NAME, "V3",
                                                 asList("float", "int", "string"), null, true)
                                 )), 1, 7, 2),
-                                //TODO TINS-568 instantiating convertible types is sometimes too general
+                                //TODO TINS-600 function instantiation with convertibles too general
                                 //should only be float
                                 testStruct("test7()", "\\.\\.", functionDtos("test7()", 0, bindingDtos(
                                         varBinding(RETURN_VARIABLE_NAME, "V3",
@@ -804,7 +804,7 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                                         varBinding(RETURN_VARIABLE_NAME, "V3",
                                                 asList("float", "int", "string"), null, true)
                                 )), 1, 5, 2),
-                                //TODO TINS-568 instantiating convertible types is sometimes too general
+                                //TODO TINS-600 function instantiation with convertibles too general
                                 //should only be float
                                 testStruct("test5()", "\\.\\.", functionDtos("test5()", 0, bindingDtos(
                                         varBinding(RETURN_VARIABLE_NAME, "V3", asList("int", "float"), null, true)
@@ -816,8 +816,7 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                                         varBinding(RETURN_VARIABLE_NAME, "V3", asList("int"), null, true)
                                 )), 1, 8, 2),
                                 testStruct("test8()", "\\.\\.", functionDtos("test8()", 0, bindingDtos(
-                                        varBinding(RETURN_VARIABLE_NAME, "V3",
-                                                asList("float", "int"), null, true)
+                                        varBinding(RETURN_VARIABLE_NAME, "V3", asList("float", "int"), null, true)
                                 )), 1, 9, 2),
                         }
                 },

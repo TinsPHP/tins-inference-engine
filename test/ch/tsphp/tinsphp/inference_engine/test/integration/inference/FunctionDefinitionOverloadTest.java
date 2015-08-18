@@ -367,6 +367,75 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                                         ))
                                 ), 1, 0, 2),
                         }
+                },
+                //see TINS-568 convertible types sometimes not generic
+                {
+                        "function foo28($x){return $x + 1;}\n"
+                                + "function bar28($x, $y){return foo28($x) + $y;}"
+                                + "function test1(){return bar28(2.2, 1);}"
+                                + "function test2(){return bar28(2.2, '1');}"
+                                + "function test3(){return bar28(1, false);}"
+                                + "function test4(){return bar28(1, '1');}"
+                                + "function test5(){return bar28(1, 2.2);}"
+                                + "function test6(){return bar28('1', 2.2);}"
+                                + "function test7(){return bar28(false, 1);}"
+                                + "function test8(){return bar28('1', 1);}",
+                        new OverloadTestStruct[]{
+                                testStruct("foo28()", "\\.\\.", functionDtos(
+                                        functionDto("foo28()", 1, bindingDtos(
+                                                varBinding("foo28()$x", "V2", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V5", asList("int"), null, true)
+                                        )),
+                                        functionDto("foo28()", 1, bindingDtos(
+                                                varBinding("foo28()$x", "V2", null, asList("{as T}"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T",
+                                                        asList("int"), asList("(float | int)"), false)
+                                        ))
+                                ), 1, 0, 2),
+                                testStruct("bar28()", "\\.\\.", functionDtos(
+                                        functionDto("bar28()", 2, bindingDtos(
+                                                varBinding("bar28()$x", "V2", null, asList("int"), true),
+                                                varBinding("bar28()$y", "V4", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V6", asList("int"), null, true)
+                                        )),
+                                        functionDto("bar28()", 2, bindingDtos(
+                                                varBinding("bar28()$x", "V2",
+                                                        null, asList("{as T2}"), true),
+                                                varBinding("bar28()$y", "V4", null, asList("{as T1}"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T1",
+                                                        asList("int", "@T2"), asList("(float | int)"), false),
+                                                varBinding("bar28()foo28()@2|30", "T2",
+                                                        asList("int"), asList("(float | int)", "@T1"), false)
+                                        ))
+                                ), 1, 1, 2),
+                                //TODO TINS-600 function instantiation with convertibles too general
+                                testStruct("test1()", "\\.\\.", functionDtos("test1()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "V6", asList("float", "int"), null, true)
+                                )), 1, 2, 2),
+                                //TODO TINS-600 function instantiation with convertibles too general
+                                testStruct("test2()", "\\.\\.", functionDtos("test2()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "V6", asList("float", "int"), null, true)
+                                )), 1, 3, 2),
+                                testStruct("test3()", "\\.\\.", functionDtos("test3()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "V6", asList("int"), null, true)
+                                )), 1, 4, 2),
+                                testStruct("test4()", "\\.\\.", functionDtos("test4()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "V6", asList("float", "int"), null, true)
+                                )), 1, 5, 2),
+                                testStruct("test5()", "\\.\\.", functionDtos("test5()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "V6", asList("float"), null, true)
+                                )), 1, 6, 2),
+                                //TODO TINS-600 function instantiation with convertibles too general
+                                testStruct("test6()", "\\.\\.", functionDtos("test6()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "V6", asList("float", "int"), null, true)
+                                )), 1, 7, 2),
+                                testStruct("test7()", "\\.\\.", functionDtos("test7()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "V6", asList("int"), null, true)
+                                )), 1, 8, 2),
+                                testStruct("test8()", "\\.\\.", functionDtos("test8()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "V6", asList("float", "int"), null, true)
+                                )), 1, 9, 2),
+                        }
                 }
         });
     }
