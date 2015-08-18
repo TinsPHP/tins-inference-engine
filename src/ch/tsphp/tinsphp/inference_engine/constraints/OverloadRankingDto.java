@@ -9,6 +9,7 @@ package ch.tsphp.tinsphp.inference_engine.constraints;
 import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.inference.constraints.IBindingCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
+import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableReference;
 import ch.tsphp.tinsphp.common.symbols.IIntersectionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.tinsphp.common.utils.Pair;
@@ -28,18 +29,21 @@ public class OverloadRankingDto
     public List<Pair<IUnionTypeSymbol, IIntersectionTypeSymbol>> bounds;
     public Map<Integer, Pair<ITypeSymbol, ITypeSymbol>> implicitConversions;
     public Map<Integer, Pair<ITypeSymbol, List<ITypeSymbol>>> runtimeChecks;
+    public Map<Integer, Map<String, ITypeVariableReference>> helperVariableMapping;
 
     public OverloadRankingDto(
             IFunctionType theOverload,
             IBindingCollection theBindings,
             Map<Integer, Pair<ITypeSymbol, ITypeSymbol>> theImplicitConversions,
             Map<Integer, Pair<ITypeSymbol, List<ITypeSymbol>>> theRuntimeChecks,
+            Map<Integer, Map<String, ITypeVariableReference>> theHelperVariableMapping,
             boolean narrowedArguments) {
         overload = theOverload;
         bindings = theBindings;
         implicitConversions = theImplicitConversions;
         runtimeChecks = theRuntimeChecks;
         hasNarrowedArguments = narrowedArguments;
+        helperVariableMapping = theHelperVariableMapping;
     }
 
     public String toString() {

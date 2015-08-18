@@ -192,28 +192,33 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                     if (dto.overload.wasSimplified() && dto.overload.hasConvertibleParameterTypes()) {
                         workItemDto.convertibleAnalysisDto.isAnalysingConvertible = true;
                     }
-                    workItemDto.workDeque.add(nextWorkItemDto(workItemDto, dto.bindings));
+                    workItemDto.workDeque.add(nextWorkItemDto(
+                            workItemDto, dto.bindings, dto.helperVariableMapping));
                 } else {
                     int numberOfConvertibleApplications
                             = workItemDto.bindingCollection.getNumberOfConvertibleApplications();
                     boolean hasConvertibleParameterTypes = dto.overload.hasConvertibleParameterTypes();
                     if (numberOfConvertibleApplications > 0 && hasConvertibleParameterTypes
                             || numberOfConvertibleApplications == 0 && !hasConvertibleParameterTypes) {
-                        workItemDto.workDeque.add(nextWorkItemDto(workItemDto, dto.bindings));
+                        workItemDto.workDeque.add(nextWorkItemDto(workItemDto, dto.bindings,
+                                dto.helperVariableMapping));
                     }
                 }
             }
         }
     }
 
-    private WorkItemDto nextWorkItemDto(WorkItemDto workItemDto, IBindingCollection bindings) {
+    private WorkItemDto nextWorkItemDto(
+            WorkItemDto workItemDto,
+            IBindingCollection bindings,
+            Map<Integer, Map<String, ITypeVariableReference>> helperVariableMapping) {
         int pointer;
         if (!workItemDto.isSolvingDependency || workItemDto.isInIterativeMode) {
             pointer = workItemDto.pointer + 1;
         } else {
             pointer = Integer.MAX_VALUE;
         }
-        return new WorkItemDto(workItemDto, pointer, bindings);
+        return new WorkItemDto(workItemDto, pointer, bindings, helperVariableMapping);
     }
 
     private AggregateBindingDto solveOverLoad(
@@ -237,6 +242,9 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
         int numberOfParameters = parameters.size();
 
         dto.mapping = new HashMap<>(numberOfParameters + 1);
+        if (dto.helperVariableMapping != null && dto.helperVariableMapping.containsKey(dto.workItemDto.pointer)) {
+            dto.mapping.putAll(dto.helperVariableMapping.get(dto.workItemDto.pointer));
+        }
 
         int numberOfArguments = arguments.size();
         int count = numberOfParameters <= numberOfArguments ? numberOfParameters : numberOfArguments;
@@ -384,30 +392,45 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                 List<String> typeParameters = new ArrayList<>();
                 if (!dto.workItemDto.isInSoftTypingMode) {
                     for (String typeParameter : parametricTypeSymbol.getTypeParameters()) {
-                        String typeVariable;
+                        ITypeVariableReference reference;
                         if (dto.mapping.containsKey(typeParameter)) {
-                            typeVariable = dto.mapping.get(typeParameter).getTypeVariable();
+                            reference = dto.mapping.get(typeParameter);
                         } else if (!dto.workItemDto.isInIterativeMode && dto.iterateCount == 1) {
-                            typeVariable = addHelperVariable(dto, typeParameter).getTypeVariable();
-                        } else if (dto.workItemDto.isInIterativeMode && dto.iterateCount == 1) {
-                            typeVariable = searchTypeVariable(dto, typeParameter);
-                            if (typeVariable == null) {
-                                if (hasReturnVariableAsUpperRef(dto, typeParameter)) {
-                                    typeVariable = addHelperVariable(dto, typeParameter).getTypeVariable();
+                            reference = addHelperVariable(dto, typeParameter);
+                        } else if (dto.workItemDto.isInIterativeMode) {
+                            int key = dto.workItemDto.pointer;
+                            Map<String, ITypeVariableReference> mapping;
+                            if (dto.helperVariableMapping != null && dto.helperVariableMapping.containsKey(key)) {
+                                mapping = dto.helperVariableMapping.get(key);
+                                reference = mapping.get(typeParameter);
+                                if (reference == null) {
+                                    reference = searchTypeParameter(dto, mapping, typeParameter);
+                                    if (reference == null) {
+                                        IBindingCollection copyBindings = symbolFactory.createBindingCollection(
+                                                parametricTypeSymbol.getBindingCollection());
+                                        copyBindings.bind(parametricTypeSymbol,
+                                                parametricTypeSymbol.getTypeParameters());
+                                        copyBindings.fixTypeParameters();
+                                        break parametricTypes;
+                                    }
                                 } else {
-                                    IBindingCollection copyBindings = symbolFactory.createBindingCollection(
-                                            parametricTypeSymbol.getBindingCollection());
-                                    copyBindings.bind(parametricTypeSymbol, parametricTypeSymbol.getTypeParameters());
-                                    copyBindings.fixTypeParameters();
-                                    break parametricTypes;
+                                    applyRightToLeft(dto, reference.getTypeVariable(), typeParameter);
                                 }
+                            } else {
+                                mapping = new HashMap<>(2);
+                                reference = addHelperVariable(dto, typeParameter);
+                                mapping.put(typeParameter, reference);
+                                if (dto.helperVariableMapping == null) {
+                                    dto.helperVariableMapping = new HashMap<>();
+                                }
+                                dto.helperVariableMapping.put(key, mapping);
                             }
                         } else {
                             dto.needToReIterate = true;
                             copy = null;
                             break parametricTypes;
                         }
-                        typeParameters.add(typeVariable);
+                        typeParameters.add(reference.getTypeVariable());
                     }
                     leftBindings.bind(parametricTypeSymbol, typeParameters);
                 } else {
@@ -422,44 +445,21 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
         return copy;
     }
 
-    private boolean hasReturnVariableAsUpperRef(AggregateBindingDto dto, String typeVariable) {
+    private ITypeVariableReference searchTypeParameter(
+            AggregateBindingDto dto, Map<String, ITypeVariableReference> mapping, String typeParameter) {
+        ITypeVariableReference reference = null;
         IBindingCollection rightBindings = dto.overload.getBindingCollection();
-        String returnTypeVariable = rightBindings.getTypeVariable(TinsPHPConstants.RETURN_VARIABLE_NAME);
-        return hasReturnVariableAsUpperRef(typeVariable, rightBindings, returnTypeVariable);
-
-    }
-
-    private boolean hasReturnVariableAsUpperRef(
-            String typeVariable, IBindingCollection rightBindings, String returnTypeVariable) {
-        if (rightBindings.hasUpperRefBounds(typeVariable)) {
-            for (String refTypeVariable : rightBindings.getUpperRefBounds(typeVariable)) {
-                if (refTypeVariable.equals(returnTypeVariable)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    //Warning! start code duplication - very similar as in addLowerRefInIterativeMode
-    private String searchTypeVariable(AggregateBindingDto dto, String typeParameter) {
-        IBindingCollection rightBindings = dto.overload.getBindingCollection();
-        String typeVariable = null;
         if (rightBindings.hasLowerRefBounds(typeParameter)) {
-            for (String refTypeVariable : rightBindings.getLowerRefBounds(typeParameter)) {
-                if (dto.mapping.containsKey(refTypeVariable)) {
-                    typeVariable = dto.mapping.get(refTypeVariable).getTypeVariable();
+            for (String refTypeParameter : rightBindings.getLowerRefBounds(typeParameter)) {
+                reference = mapping.get(refTypeParameter);
+                if (reference != null) {
                     break;
                 }
-                searchTypeVariable(dto, refTypeVariable);
             }
         }
-        return typeVariable;
+        return reference;
     }
-    //Warning! end code duplication - very similar as in addLowerRefInIterativeMode
 
-
-    //Warning! start code duplication - very similar as in searchTypeVariable
     private void addLowerRefInIterativeMode(
             AggregateBindingDto dto, String left, String refTypeVariable) {
         IBindingCollection rightBindings = dto.overload.getBindingCollection();
@@ -472,7 +472,6 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
             }
         }
     }
-    //Warning! end code duplication - very similar as in searchTypeVariable
 
     private ITypeVariableReference addHelperVariable(AggregateBindingDto dto, String typeParameter) {
         ITypeVariableReference typeVariableReference = dto.bindings.createHelperVariable();
@@ -678,14 +677,15 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                     overloadRankingDto = mostSpecificOverloadDecider.inNormalMode(
                             workItemDto, applicableOverloads, argumentTypes);
                 }
-                workItemDto.workDeque.add(nextWorkItemDto(workItemDto, overloadRankingDto.bindings));
+                workItemDto.workDeque.add(nextWorkItemDto(
+                        workItemDto, overloadRankingDto.bindings, overloadRankingDto.helperVariableMapping));
             }
         } else {
             try {
                 IFunctionType overload = overloads.iterator().next();
                 AggregateBindingDto dto = solveOverLoad(workItemDto, constraint, overload);
                 if (dto != null) {
-                    workItemDto.workDeque.add(nextWorkItemDto(workItemDto, dto.bindings));
+                    workItemDto.workDeque.add(nextWorkItemDto(workItemDto, dto.bindings, dto.helperVariableMapping));
                 }
             } catch (BoundException ex) {
                 //that's ok, we will report an error in soft typing if it should still exists there
@@ -759,7 +759,12 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                     }
 
                     applicableOverloads.add(new OverloadRankingDto(
-                            overload, dto.bindings, dto.implicitConversions, null, dto.hasNarrowedArguments));
+                            overload,
+                            dto.bindings,
+                            dto.implicitConversions,
+                            null,
+                            dto.helperVariableMapping,
+                            dto.hasNarrowedArguments));
 
                     if (isOneToOne) {
                         break;

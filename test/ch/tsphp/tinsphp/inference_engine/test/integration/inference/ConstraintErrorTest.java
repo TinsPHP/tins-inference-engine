@@ -104,7 +104,7 @@ public class ConstraintErrorTest extends AInferenceTest
                         dtos("wrongOperatorUsage", "+", 2, 0)
                 },
                 {
-                        "function fib2(array $a){ $a = $a > 1 ? fib2($a \n- 1) : [0]; return $a;}",
+                        "function test(array $a){ $a = $a > 1 ? test($a \n- 1) : [0]; return $a;}",
                         dtos("wrongOperatorUsage", "-", 2, 0)
                 }
         });

@@ -168,7 +168,14 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
             IFunctionType copyOverload = copyAndFixOverload(overload);
 
             fixedDto = new OverloadRankingDto(
-                    copyOverload, dto.bindings, dto.implicitConversions, dto.runtimeChecks, dto.hasNarrowedArguments);
+                    copyOverload,
+                    dto.bindings,
+                    dto.implicitConversions,
+                    dto.runtimeChecks,
+                    dto.helperVariableMapping,
+                    dto.hasNarrowedArguments
+
+            );
             fixedDto.numberOfTypeParameters = nonFixedTypeParameters.size();
         }
         fixedDto.usesConvertibleTypes = overload.hasConvertibleParameterTypes();
@@ -201,7 +208,12 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
                 dto.overload.getName(), bindingCollection, dto.overload.getParameters());
 
         return new OverloadRankingDto(
-                copyOverload, dto.bindings, dto.implicitConversions, dto.runtimeChecks, dto.hasNarrowedArguments);
+                copyOverload,
+                dto.bindings,
+                dto.implicitConversions,
+                dto.runtimeChecks,
+                dto.helperVariableMapping,
+                dto.hasNarrowedArguments);
     }
 
 

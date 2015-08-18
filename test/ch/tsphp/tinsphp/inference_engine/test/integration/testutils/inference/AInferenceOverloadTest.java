@@ -56,15 +56,6 @@ public class AInferenceOverloadTest extends AInferenceTest
             Collection<IFunctionType> overloads = getOverloads(counter, testStruct, symbol);
             int size = testStruct.dtos.size();
 
-            for (int i = 0; i < size; ++i) {
-                try {
-                    assertThat(overloads, hasItem(isFunctionType(testStruct.dtos.get(i))));
-                } catch (AssertionError ex) {
-                    Assert.fail(testString + " \n-- " + testStruct.astText + " failed (testStruct Nr " + counter + ")."
-                            + " Error for functionType " + i + "\n" + ex.getMessage());
-                }
-            }
-
             if (size != overloads.size()) {
                 StringBuilder stringBuilder = new StringBuilder();
                 stringBuilder.append(testString).append(" -- ").append(testStruct.astText)
@@ -81,6 +72,16 @@ public class AInferenceOverloadTest extends AInferenceTest
 
                 Assert.fail(stringBuilder.toString());
             }
+
+            for (int i = 0; i < size; ++i) {
+                try {
+                    assertThat(overloads, hasItem(isFunctionType(testStruct.dtos.get(i))));
+                } catch (AssertionError ex) {
+                    Assert.fail(testString + " \n-- " + testStruct.astText + " failed (testStruct Nr " + counter + ")."
+                            + " Error for functionType " + i + "\n" + ex.getMessage());
+                }
+            }
+
 
             ++counter;
         }

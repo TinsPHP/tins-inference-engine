@@ -201,25 +201,31 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
             WorkItemDto workItemDto = worklist.removeFirst();
             workItemDto.workDeque.add(workItemDto);
             String absoluteName = workItemDto.constraintCollection.getAbsoluteName();
-            List<IBindingCollection> bindingCollections = solveConstraintsIterativeMode(workItemDto.workDeque);
+            List<WorkItemDto> workItemDtos = solveConstraintsIterativeMode(workItemDto.workDeque);
 
-            if (bindingCollections.size() > 1) {
+            if (workItemDtos.size() > 1) {
                 collectionsWhichChanged.add(absoluteName);
-                Iterator<IBindingCollection> iterator = bindingCollections.iterator();
+                Iterator<WorkItemDto> iterator = workItemDtos.iterator();
                 //this work item will be re-added to the worklist since its collection is marked as has changed
-                workItemDto.bindingCollection = iterator.next();
+                WorkItemDto newWorkItem = iterator.next();
+                workItemDto.bindingCollection = newWorkItem.bindingCollection;
+                workItemDto.helperVariableMapping = newWorkItem.helperVariableMapping;
                 while (iterator.hasNext()) {
-                    //need to create more work items for the new overloads
-                    WorkItemDto newWorkItemDto = new WorkItemDto(workItemDto, 0, iterator.next());
-                    constraintSolverHelper.createDependencies(newWorkItemDto);
+                    //need to register a dependency for the new overloads
+                    newWorkItem = iterator.next();
+                    // need to set the pointer to the constraint which needs to be solved
+                    // in order that the correct dependency is registered
+                    newWorkItem.pointer = workItemDto.pointer;
+                    constraintSolverHelper.createDependencies(newWorkItem);
                 }
-            } else if (bindingCollections.size() == 1) {
-                IBindingCollection bindingCollection = bindingCollections.get(0);
-                if (hasChanged(workItemDto, bindingCollection)) {
+            } else if (workItemDtos.size() == 1) {
+                WorkItemDto newWorkItem = workItemDtos.get(0);
+                if (hasChanged(workItemDto, newWorkItem)) {
                     collectionsWhichChanged.add(absoluteName);
                 }
                 //this work item will be re-added to the worklist if its collection is marked as has changed
-                workItemDto.bindingCollection = bindingCollection;
+                workItemDto.bindingCollection = newWorkItem.bindingCollection;
+                workItemDto.helperVariableMapping = newWorkItem.helperVariableMapping;
             } else {
                 Set<WorkItemDto> dtos = unsolvedConstraints.get(absoluteName);
                 if (dtos.remove(workItemDto)) {
@@ -232,8 +238,8 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
         }
     }
 
-    private List<IBindingCollection> solveConstraintsIterativeMode(Deque<WorkItemDto> workDeque) {
-        List<IBindingCollection> solvedBindings = new ArrayList<>();
+    private List<WorkItemDto> solveConstraintsIterativeMode(Deque<WorkItemDto> workDeque) {
+        List<WorkItemDto> solvedWorkItems = new ArrayList<>();
 
         List<IConstraint> constraints = null;
         if (!workDeque.isEmpty()) {
@@ -248,15 +254,16 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
                 IConstraint constraint = constraints.get(pointer);
                 constraintSolverHelper.solve(workItemDto, constraint);
             } else {
-                solvedBindings.add(workItemDto.bindingCollection);
+                solvedWorkItems.add(workItemDto);
             }
         }
 
-        return solvedBindings;
+        return solvedWorkItems;
     }
 
-    private boolean hasChanged(WorkItemDto workItemDto, IBindingCollection newBindings) {
+    private boolean hasChanged(WorkItemDto workItemDto, WorkItemDto newWorkItem) {
         IBindingCollection oldBindings = workItemDto.bindingCollection;
+        IBindingCollection newBindings = newWorkItem.bindingCollection;
         boolean isNotTheSame = hasChanged(oldBindings, newBindings, TinsPHPConstants.RETURN_VARIABLE_NAME);
         if (!isNotTheSame) {
             IMethodSymbol methodSymbol = (IMethodSymbol) workItemDto.constraintCollection;
@@ -300,8 +307,8 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
             Iterator<WorkItemDto> iterator, WorkItemDto firstWorkItemDto, IMethodSymbol methodSymbol) {
 
         Map<IFunctionType, WorkItemDto> mapping = new HashMap<>();
-        IFunctionType overload = constraintSolverHelper.createOverload(methodSymbol,
-                firstWorkItemDto.bindingCollection);
+        IFunctionType overload = constraintSolverHelper.createOverload(
+                methodSymbol, firstWorkItemDto.bindingCollection);
         mapping.put(overload, firstWorkItemDto);
         while (iterator.hasNext()) {
             WorkItemDto workItemDto = iterator.next();
@@ -328,6 +335,8 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
     private void solveDependenciesOfRecursiveMethod(String absoluteName) {
         for (Pair<WorkItemDto, Integer> pair : directDependencies.get(absoluteName)) {
             WorkItemDto workItemDto = pair.first;
+            workItemDto.isInIterativeMode = false;
+            workItemDto.helperVariableMapping = null;
             String refAbsoluteName = workItemDto.constraintCollection.getAbsoluteName();
             if (!directDependencies.containsKey(refAbsoluteName)) {
                 //regular dependency solving for non recursive methods

@@ -461,7 +461,12 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
         constraintSolverHelper.aggregateBinding(dto);
 
         OverloadRankingDto overloadRankingDto = new OverloadRankingDto(
-                overload, leftBindings, dto.implicitConversions, runtimeChecks, requiresExplicit);
+                overload,
+                leftBindings,
+                dto.implicitConversions,
+                runtimeChecks,
+                dto.helperVariableMapping,
+                requiresExplicit);
 
         if (requiresExplicit) {
             for (Map.Entry<String, IUnionTypeSymbol> entry : oldTypeBounds.entrySet()) {

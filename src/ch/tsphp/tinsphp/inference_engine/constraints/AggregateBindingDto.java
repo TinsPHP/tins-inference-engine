@@ -36,6 +36,7 @@ public class AggregateBindingDto
     public boolean hasNarrowedArguments;
     public Map<String, SortedSet<ITypeSymbol>> lowerConstraints;
     public Map<String, SortedSet<ITypeSymbol>> upperConstraints;
+    public Map<Integer, Map<String, ITypeVariableReference>> helperVariableMapping;
 
     public AggregateBindingDto(
             IConstraint theConstraint,
@@ -46,5 +47,6 @@ public class AggregateBindingDto
         overload = theOverload;
         bindings = theBindings;
         workItemDto = theWorkItemDto;
+        helperVariableMapping = theWorkItemDto.helperVariableMapping;
     }
 }

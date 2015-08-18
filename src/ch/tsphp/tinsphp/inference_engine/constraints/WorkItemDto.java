@@ -8,6 +8,7 @@ package ch.tsphp.tinsphp.inference_engine.constraints;
 
 import ch.tsphp.tinsphp.common.inference.constraints.IBindingCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
+import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableReference;
 
 import java.util.Deque;
 import java.util.List;
@@ -21,12 +22,13 @@ public class WorkItemDto
     public int pointer;
     public boolean isSolvingMethod;
     public IBindingCollection bindingCollection;
-    public ConvertibleAnalysisDto convertibleAnalysisDto;
-
     public List<Integer> dependentConstraints;
+
+    public Map<Integer, Map<String, ITypeVariableReference>> helperVariableMapping;
     public boolean isInIterativeMode;
     public boolean isSolvingDependency;
     public boolean isInSoftTypingMode;
+    public ConvertibleAnalysisDto convertibleAnalysisDto;
     public Map<String, List<String>> param2LowerParams;
 
     public WorkItemDto(
@@ -43,12 +45,17 @@ public class WorkItemDto
         convertibleAnalysisDto = new ConvertibleAnalysisDto();
     }
 
-    public WorkItemDto(WorkItemDto dto, int newPointer, IBindingCollection theBindingCollection) {
+    public WorkItemDto(
+            WorkItemDto dto,
+            int newPointer,
+            IBindingCollection theBindingCollection,
+            Map<Integer, Map<String, ITypeVariableReference>> theHelperVariableMapping) {
         workDeque = dto.workDeque;
         constraintCollection = dto.constraintCollection;
         isSolvingMethod = dto.isSolvingMethod;
         pointer = newPointer;
         bindingCollection = theBindingCollection;
+        helperVariableMapping = theHelperVariableMapping;
 
         dependentConstraints = dto.dependentConstraints;
         isInIterativeMode = dto.isInIterativeMode;
