@@ -187,8 +187,10 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
                 tempMethodSymbol.renewTempOverloads(tempOverloads);
 
                 for (String refAbsoluteName : dependencies.get(absoluteName)) {
-                    for (WorkItemDto dto : unsolvedConstraints.get(refAbsoluteName)) {
-                        worklist.add(dto);
+                    if (directDependencies.containsKey(refAbsoluteName)) {
+                        for (WorkItemDto dto : unsolvedConstraints.get(refAbsoluteName)) {
+                            worklist.add(dto);
+                        }
                     }
                 }
             }
