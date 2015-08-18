@@ -219,81 +219,81 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                                 ), 1, 4, 2)
                         }
                 },
-                //TODO TINS-631 indirect recursive function, not all overloads
+
                 // indirect recursive function which does not change during first iteration,
                 // dependent function changes though
-//                {
-//                        "function foo10($x){ return foo10B($x); }"
-//                                + "function foo10B($x){ return bar10($x);}"
-//                                + "function bar10($x){ if($x > 0){return foo10($x-1);} return $x;}"
-//                                + "function test1(){return foo10(1);}"
-//                                + "function test2(){return foo10(false);}"
-//                                + "function test3(){return foo10(1.2);}"
-//                                + "function test4(){return foo10('1');}",
-//                        new OverloadTestStruct[]{
-//                                testStruct("foo10()", "\\.\\.", functionDtos(
-//                                        functionDto("foo10()", 1, bindingDtos(
-//                                                varBinding("foo10()$x", "V4", null, asList("int"), true),
-//                                                varBinding(RETURN_VARIABLE_NAME, "V3", asList("int"), null, true)
-//                                        )),
-//                                        functionDto("foo10()", 1, bindingDtos(
-//                                                varBinding("foo10()$x", "T1",
-//                                                        null, asList("{as T2}", "@V1", "@V2", "@V3"), false),
-//                                                varBinding(RETURN_VARIABLE_NAME, "V3",
-//                                                        asList("int", "@T1", "@T2"), null, false),
-//                                                varBinding("!help0", "T2",
-//                                                        asList("int"), asList("(float | int)", "@V1", "@V2", "@V3"),
-//                                                        false)
-//                                        ))
-//                                ), 1, 0, 2),
-//                                testStruct("foo10B()", "\\.\\.", functionDtos(
-//                                        functionDto("foo10B()", 1, bindingDtos(
-//                                                varBinding("foo10B()$x", "V4", null, asList("int"), true),
-//                                                varBinding(RETURN_VARIABLE_NAME, "V3", asList("int"), null, true)
-//                                        )),
-//                                        functionDto("foo10B()", 1, bindingDtos(
-//                                                varBinding("foo10B()$x", "T1",
-//                                                        null, asList("{as T2}", "@V1", "@V2", "@V3"), false),
-//                                                varBinding(RETURN_VARIABLE_NAME, "V3",
-//                                                        asList("int", "@T1", "@T2"), null, false),
-//                                                varBinding("!help0", "T2",
-//                                                        asList("int"), asList("(float | int)", "@V1", "@V2", "@V3"),
-//                                                        false)
-//                                        ))
-//                                ), 1, 1, 2),
-//                                testStruct("bar10()", "\\.\\.", functionDtos(
-//                                        functionDto("bar10()", 1, bindingDtos(
-//                                                varBinding("bar10()$x", "V2", null, asList("int"), true),
-//                                                varBinding(RETURN_VARIABLE_NAME, "V8", asList("int"), null, true)
-//                                        )),
-//                                        functionDto("bar10()", 1, bindingDtos(
-//                                                varBinding("bar10()$x", "T1", null, asList("{as T2}", "@V8"), false),
-//                                                varBinding(RETURN_VARIABLE_NAME, "V8",
-//                                                        asList("int", "@T1", "@T2"), null, false),
-//                                                varBinding("cScope-@1|130", "T2",
-//                                                        asList("int"), asList("(float | int)", "@V8"), false)
-//                                        ))
-//                                ), 1, 2, 2),
-//                                testStruct("test1()", "\\.\\.", functionDtos("test1()", 0, bindingDtos(
-//                                                varBinding(RETURN_VARIABLE_NAME, "V3",
-//                                                        asList("int"), null, true))
-//                                ), 1, 3, 2),
-//                                testStruct("test2()", "\\.\\.", functionDtos("test2()", 0, bindingDtos(
-//                                                varBinding(RETURN_VARIABLE_NAME, "V3",
-//                                                        asList("falseType", "int"), null, true))
-//                                ), 1, 4, 2),
-//                                //TODO TINS-568 instantiating convertible types is sometimes too general
-//                                //should only be float
-//                                testStruct("test3()", "\\.\\.", functionDtos("test3()", 0, bindingDtos(
-//                                                varBinding(RETURN_VARIABLE_NAME, "V3",
-//                                                        asList("float", "int"), null, true))
-//                                ), 1, 5, 2),
-//                                testStruct("test4()", "\\.\\.", functionDtos("test4()", 0, bindingDtos(
-//                                                varBinding(RETURN_VARIABLE_NAME, "V3",
-//                                                        asList("int", "float", "string"), null, true))
-//                                ), 1, 6, 2)
-//                        }
-//                },
+                {
+                        "function foo10($x){ return foo10B($x); }"
+                                + "function foo10B($x){ return bar10($x);}"
+                                + "function bar10($x){ if($x > 0){return foo10($x-1);} return $x;}"
+                                + "function test1(){return foo10(1);}"
+                                + "function test2(){return foo10(false);}"
+                                + "function test3(){return foo10(1.2);}"
+                                + "function test4(){return foo10('1');}",
+                        new OverloadTestStruct[]{
+                                testStruct("foo10()", "\\.\\.", functionDtos(
+                                        functionDto("foo10()", 1, bindingDtos(
+                                                varBinding("foo10()$x", "V4", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V3", asList("int"), null, true)
+                                        )),
+                                        functionDto("foo10()", 1, bindingDtos(
+                                                varBinding("foo10()$x", "T1",
+                                                        null, asList("{as T2}", "@V1", "@V2", "@V3"), false),
+                                                varBinding(RETURN_VARIABLE_NAME, "V3",
+                                                        asList("int", "@T1", "@T2"), null, false),
+                                                varBinding("!help0", "T2",
+                                                        asList("int"), asList("(float | int)", "@V1", "@V2", "@V3"),
+                                                        false)
+                                        ))
+                                ), 1, 0, 2),
+                                testStruct("foo10B()", "\\.\\.", functionDtos(
+                                        functionDto("foo10B()", 1, bindingDtos(
+                                                varBinding("foo10B()$x", "V4", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V3", asList("int"), null, true)
+                                        )),
+                                        functionDto("foo10B()", 1, bindingDtos(
+                                                varBinding("foo10B()$x", "T1",
+                                                        null, asList("{as T2}", "@V1", "@V2", "@V3"), false),
+                                                varBinding(RETURN_VARIABLE_NAME, "V3",
+                                                        asList("int", "@T1", "@T2"), null, false),
+                                                varBinding("!help0", "T2",
+                                                        asList("int"), asList("(float | int)", "@V1", "@V2", "@V3"),
+                                                        false)
+                                        ))
+                                ), 1, 1, 2),
+                                testStruct("bar10()", "\\.\\.", functionDtos(
+                                        functionDto("bar10()", 1, bindingDtos(
+                                                varBinding("bar10()$x", "V2", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V8", asList("int"), null, true)
+                                        )),
+                                        functionDto("bar10()", 1, bindingDtos(
+                                                varBinding("bar10()$x", "T1", null, asList("{as T2}", "@V8"), false),
+                                                varBinding(RETURN_VARIABLE_NAME, "V8",
+                                                        asList("int", "@T1", "@T2"), null, false),
+                                                varBinding("cScope-@1|130", "T2",
+                                                        asList("int"), asList("(float | int)", "@V8"), false)
+                                        ))
+                                ), 1, 2, 2),
+                                testStruct("test1()", "\\.\\.", functionDtos("test1()", 0, bindingDtos(
+                                                varBinding(RETURN_VARIABLE_NAME, "V3",
+                                                        asList("int"), null, true))
+                                ), 1, 3, 2),
+                                testStruct("test2()", "\\.\\.", functionDtos("test2()", 0, bindingDtos(
+                                                varBinding(RETURN_VARIABLE_NAME, "V3",
+                                                        asList("falseType", "int"), null, true))
+                                ), 1, 4, 2),
+                                //TODO TINS-568 instantiating convertible types is sometimes too general
+                                //should only be float
+                                testStruct("test3()", "\\.\\.", functionDtos("test3()", 0, bindingDtos(
+                                                varBinding(RETURN_VARIABLE_NAME, "V3",
+                                                        asList("float", "int"), null, true))
+                                ), 1, 5, 2),
+                                testStruct("test4()", "\\.\\.", functionDtos("test4()", 0, bindingDtos(
+                                                varBinding(RETURN_VARIABLE_NAME, "V3",
+                                                        asList("int", "float", "string"), null, true))
+                                ), 1, 6, 2)
+                        }
+                },
                 //indirect recursive function with erroneous overloads ((array | {as int}) x (array | {as int}) -> int)
                 // is no longer valid if $y is restricted to Ty <: {as num}
                 {
@@ -879,103 +879,100 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
 //                                ))
 //                        ), 1, 0, 2)
 //                },
-                //TODO TINS-631 indirect recursive function, not all overloads
-//                {
-//                        "function foo16($x, $y){ return bar16($x, $y); return $x; return $y; }"
-//                                + "function bar16($x, $y){ return foo16($x, $y); return $x + $y;}"
-//                                + "function test1(){return foo16(2.2, 1);}"
-//                                + "function test2(){return foo16(2.2, '1');}"
-//                                + "function test3(){return foo16(1, false);}"
-//                                + "function test4(){return foo16(1, '1');}"
-//                                + "function test5(){return foo16(1, 2.2);}"
-//                                + "function test6(){return foo16('1', 2.2);}"
-//                                + "function test7(){return foo16(false, 1);}"
-//                                + "function test8(){return foo16('1', 1);}",
-//                        new OverloadTestStruct[]{
-//                                testStruct("foo16()", "\\.\\.", functionDtos(
-//                                        functionDto("foo16()", 2, bindingDtos(
-//                                                varBinding("foo16()$x", "V5", null, asList("int"), true),
-//                                                varBinding("foo16()$y", "V7", null, asList("int"), true),
-//                                                varBinding(RETURN_VARIABLE_NAME, "V3", asList("int"), null, true)
-//                                        )),
-//                                        functionDto("foo16()", 2, bindingDtos(
-//                                                varBinding("foo16()$x", "V5", null, asList("float"), true),
-//                                                varBinding("foo16()$y", "V7", null, asList("float"), true),
-//                                                varBinding(RETURN_VARIABLE_NAME, "V3", asList("float"), null, true)
-//                                        )),
-//                                        functionDto("foo16()", 2, bindingDtos(
-//                                                varBinding("foo16()$x", "T1",
-//                                                        null, asList("{as T3}", "@V1", "@V2", "@V3"), false),
-//                                                varBinding("foo16()$y", "T2",
-//                                                        null, asList("{as T3}", "@V1", "@V2", "@V3"), false),
-//                                                varBinding(RETURN_VARIABLE_NAME, "V3",
-//                                                        asList("@T1", "@T2", "@T3"), null, false),
-//                                                varBinding("!help0", "T3",
-//                                                        null, asList("(float | int)", "@V1", "@V2", "@V3"), false)
-//                                        )),
-//                                        functionDto("foo16()", 2, bindingDtos(
-//                                                varBinding("foo16()$x", "V5", null, asList("array"), true),
-//                                                varBinding("foo16()$y", "V7", null, asList("array"), true),
-//                                                varBinding(RETURN_VARIABLE_NAME, "V3", asList("array"), null, true)
-//                                        ))
-//                                ), 1, 0, 2),
-//                                testStruct("bar16()", "\\.\\.", functionDtos(
-//                                        functionDto("bar16()", 2, bindingDtos(
-//                                                varBinding("bar16()$x", "V5", null, asList("int"), true),
-//                                                varBinding("bar16()$y", "V6", null, asList("int"), true),
-//                                                varBinding(RETURN_VARIABLE_NAME, "V3", asList("int"), null, true)
-//                                        )),
-//                                        functionDto("bar16()", 2, bindingDtos(
-//                                                varBinding("bar16()$x", "V5", null, asList("float"), true),
-//                                                varBinding("bar16()$y", "V6", null, asList("float"), true),
-//                                                varBinding(RETURN_VARIABLE_NAME, "V3", asList("float"), null, true)
-//                                        )),
-//                                        functionDto("bar16()", 2, bindingDtos(
-//                                                varBinding("bar16()$x", "T1",
-//                                                        null, asList("{as T3}", "@V1", "@V2", "@V3"), false),
-//                                                varBinding("bar16()$y", "T2",
-//                                                        null, asList("{as T3}", "@V1", "@V2", "@V3"), false),
-//                                                varBinding(RETURN_VARIABLE_NAME, "V3",
-//                                                        asList("@T1", "@T2", "@T3"), null, false),
-//                                                varBinding("!help0", "T3",
-//                                                        null, asList("(float | int)", "@V1", "@V2", "@V3"), false)
-//                                        )),
-//                                        functionDto("bar16()", 2, bindingDtos(
-//                                                varBinding("bar16()$x", "V5", null, asList("array"), true),
-//                                                varBinding("bar16()$y", "V6", null, asList("array"), true),
-//                                                varBinding(RETURN_VARIABLE_NAME, "V3", asList("array"), null, true)
-//                                        ))
-//                                ), 1, 1, 2),
-//                                testStruct("test1()", "\\.\\.", functionDtos("test1()", 0, bindingDtos(
-//                                        varBinding(RETURN_VARIABLE_NAME, "V3", asList("int", "float"), null, true)
-//                                )), 1, 2, 2),
-//                                testStruct("test2()", "\\.\\.", functionDtos("test2()", 0, bindingDtos(
-//                                        varBinding(RETURN_VARIABLE_NAME, "V3", asList("string", "float"), null, true)
-//                                )), 1, 3, 2),
-//                                testStruct("test3()", "\\.\\.", functionDtos("test3()", 0, bindingDtos(
-//                                        varBinding(RETURN_VARIABLE_NAME, "V3", asList("falseType", "int"), null, true)
-//                                )), 1, 4, 2),
-//                                testStruct("test4()", "\\.\\.", functionDtos("test4()", 0, bindingDtos(
-//                                        varBinding(RETURN_VARIABLE_NAME, "V3",
-//                                                asList("float", "int", "string"), null, true)
-//                                )), 1, 5, 2),
-//                                //TODO TINS-568 instantiating convertible types is sometimes too general
-//                                //should only be float
-//                                testStruct("test5()", "\\.\\.", functionDtos("test5()", 0, bindingDtos(
-//                                        varBinding(RETURN_VARIABLE_NAME, "V3", asList("int","float"), null, true)
-//                                )), 1, 6, 2),
-//                                testStruct("test6()", "\\.\\.", functionDtos("test6()", 0, bindingDtos(
-//                                        varBinding(RETURN_VARIABLE_NAME, "V3", asList("float"), null, true)
-//                                )), 1, 7, 2),
-//                                testStruct("test7()", "\\.\\.", functionDtos("test7()", 0, bindingDtos(
-//                                        varBinding(RETURN_VARIABLE_NAME, "V3", asList("int"), null, true)
-//                                )), 1, 8, 2),
-//                                testStruct("test8()", "\\.\\.", functionDtos("test8()", 0, bindingDtos(
-//                                        varBinding(RETURN_VARIABLE_NAME, "V3",
-//                                                asList("float", "int"), null, true)
-//                                )), 1, 9, 2),
-//                        }
-//                }
+                {
+                        "function foo16($x, $y){ return bar16($x, $y); return $x; return $y; }"
+                                + "function bar16($x, $y){ return foo16($x, $y); return $x + $y;}"
+                                + "function test1(){return foo16(2.2, 1);}"
+                                + "function test2(){return foo16(2.2, '1');}"
+                                + "function test3(){return foo16(1, false);}"
+                                + "function test4(){return foo16(1, '1');}"
+                                + "function test5(){return foo16(1, 2.2);}"
+                                + "function test6(){return foo16('1', 2.2);}"
+                                + "function test7(){return foo16(false, 1);}"
+                                + "function test8(){return foo16('1', 1);}",
+                        new OverloadTestStruct[]{
+                                testStruct("foo16()", "\\.\\.", functionDtos(
+                                        functionDto("foo16()", 2, bindingDtos(
+                                                varBinding("foo16()$x", "V5", null, asList("int"), true),
+                                                varBinding("foo16()$y", "V7", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V3", asList("int"), null, true)
+                                        )),
+                                        functionDto("foo16()", 2, bindingDtos(
+                                                varBinding("foo16()$x", "V5", null, asList("float"), true),
+                                                varBinding("foo16()$y", "V7", null, asList("float"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V3", asList("float"), null, true)
+                                        )),
+                                        functionDto("foo16()", 2, bindingDtos(
+                                                varBinding("foo16()$x", "T1",
+                                                        null, asList("{as T3}", "@V1", "@V2", "@V3"), false),
+                                                varBinding("foo16()$y", "T2",
+                                                        null, asList("{as T3}", "@V1", "@V2", "@V3"), false),
+                                                varBinding(RETURN_VARIABLE_NAME, "V3",
+                                                        asList("@T1", "@T2", "@T3"), null, false),
+                                                varBinding("!help0", "T3",
+                                                        null, asList("(float | int)", "@V1", "@V2", "@V3"), false)
+                                        )),
+                                        functionDto("foo16()", 2, bindingDtos(
+                                                varBinding("foo16()$x", "V5", null, asList("array"), true),
+                                                varBinding("foo16()$y", "V7", null, asList("array"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V3", asList("array"), null, true)
+                                        ))
+                                ), 1, 0, 2),
+                                testStruct("bar16()", "\\.\\.", functionDtos(
+                                        functionDto("bar16()", 2, bindingDtos(
+                                                varBinding("bar16()$x", "V5", null, asList("int"), true),
+                                                varBinding("bar16()$y", "V6", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V3", asList("int"), null, true)
+                                        )),
+                                        functionDto("bar16()", 2, bindingDtos(
+                                                varBinding("bar16()$x", "V5", null, asList("float"), true),
+                                                varBinding("bar16()$y", "V6", null, asList("float"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V3", asList("float"), null, true)
+                                        )),
+                                        functionDto("bar16()", 2, bindingDtos(
+                                                varBinding("bar16()$x", "T1",
+                                                        null, asList("{as T3}", "@V1", "@V2", "@V3"), false),
+                                                varBinding("bar16()$y", "T2",
+                                                        null, asList("{as T3}", "@V1", "@V2", "@V3"), false),
+                                                varBinding(RETURN_VARIABLE_NAME, "V3",
+                                                        asList("@T1", "@T2", "@T3"), null, false),
+                                                varBinding("!help0", "T3",
+                                                        null, asList("(float | int)", "@V1", "@V2", "@V3"), false)
+                                        )),
+                                        functionDto("bar16()", 2, bindingDtos(
+                                                varBinding("bar16()$x", "V5", null, asList("array"), true),
+                                                varBinding("bar16()$y", "V6", null, asList("array"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V3", asList("array"), null, true)
+                                        ))
+                                ), 1, 1, 2),
+                                testStruct("test1()", "\\.\\.", functionDtos("test1()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "V3", asList("int", "float"), null, true)
+                                )), 1, 2, 2),
+                                testStruct("test2()", "\\.\\.", functionDtos("test2()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "V3", asList("string", "float"), null, true)
+                                )), 1, 3, 2),
+                                testStruct("test3()", "\\.\\.", functionDtos("test3()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "V3", asList("falseType", "int"), null, true)
+                                )), 1, 4, 2),
+                                testStruct("test4()", "\\.\\.", functionDtos("test4()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "V3",
+                                                asList("float", "int", "string"), null, true)
+                                )), 1, 5, 2),
+                                testStruct("test5()", "\\.\\.", functionDtos("test5()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "V3", asList("int", "float"), null, true)
+                                )), 1, 6, 2),
+                                testStruct("test6()", "\\.\\.", functionDtos("test6()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "V3", asList("string", "float"), null, true)
+                                )), 1, 7, 2),
+                                testStruct("test7()", "\\.\\.", functionDtos("test7()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "V3", asList("falseType", "int"), null, true)
+                                )), 1, 8, 2),
+                                testStruct("test8()", "\\.\\.", functionDtos("test8()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "V3",
+                                                asList("string", "float", "int"), null, true)
+                                )), 1, 9, 2),
+                        }
+                }
         });
     }
 }

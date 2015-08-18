@@ -105,7 +105,8 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                     ++constantTypeCounter;
                     break;
                 case NotCreated:
-                    if (workItemDto.isInIterativeMode || !parameterVariable.getName().startsWith("$")) {
+                    if (isIterativeAndHasType(workItemDto, parameterVariable)
+                            || !parameterVariable.getName().startsWith("$")) {
                         ++constantTypeCounter;
                     }
                     break;
@@ -115,6 +116,17 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
         }
 
         return atLeastOneBindingCreated || constantTypeCounter < arguments.size();
+    }
+
+    private boolean isIterativeAndHasType(WorkItemDto workItemDto, IVariable parameterVariable) {
+        if (workItemDto.isInIterativeMode) {
+            String absoluteName = parameterVariable.getAbsoluteName();
+            IBindingCollection bindingCollection = workItemDto.bindingCollection;
+            String typeVariable = bindingCollection.getTypeVariable(absoluteName);
+            return bindingCollection.hasLowerTypeBounds(typeVariable)
+                    || bindingCollection.hasUpperTypeBounds(typeVariable);
+        }
+        return false;
     }
 
     private ECreateBinding createBindingIfNecessary(WorkItemDto workItemDto, IVariable variable) {
