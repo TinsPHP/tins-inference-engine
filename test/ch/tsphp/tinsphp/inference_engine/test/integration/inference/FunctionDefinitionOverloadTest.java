@@ -178,8 +178,9 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                 },
                 {
                         "function foo15($x, $y){ if($x){return $y;} return false; }"
-                                + "function bar($x){ if($x > 0){return foo15(true, $x-1);} return $x;}"
-                                + "function test(){return foo15(true, 'hello');}",
+                                + "function bar15($x){ if($x > 0){return foo15(true, $x-1);} return $x;}"
+                                + "function test15A(){return foo15(true, 'hello');}"
+                                + "function test15B(){return bar15(1.2);}",
                         new OverloadTestStruct[]{
                                 testStruct("foo15()", "\\.\\.", functionDtos(
                                         functionDto("foo15()", 2, bindingDtos(
@@ -194,26 +195,32 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                                                 varBinding(RETURN_VARIABLE_NAME, "V3",
                                                         asList("falseType", "@T"), null, false)
                                         ))), 1, 0, 2),
-                                testStruct("bar()", "\\.\\.", functionDtos(
-                                        functionDto("bar()", 1, bindingDtos(
-                                                varBinding("bar()$x", "V2", null, asList("int"), true),
+                                testStruct("bar15()", "\\.\\.", functionDtos(
+                                        functionDto("bar15()", 1, bindingDtos(
+                                                varBinding("bar15()$x", "V2", null, asList("int"), true),
                                                 varBinding(RETURN_VARIABLE_NAME, "V9",
                                                         asList("falseType", "int"), null, true)
                                         )),
-                                        functionDto("bar()", 1, bindingDtos(
-                                                varBinding("bar()$x", "T1", null, asList("@V9", "{as T2}"), false),
+                                        functionDto("bar15()", 1, bindingDtos(
+                                                varBinding("bar15()$x", "T1", null, asList("@V9", "{as T2}"), false),
                                                 varBinding(RETURN_VARIABLE_NAME, "V9",
                                                         asList("falseType", "int", "@T1", "@T2"), null, false),
-                                                varBinding("cScope-@1|113", "T2",
+                                                varBinding("cScope-@1|115", "T2",
                                                         asList("int"),
                                                         asList("(float | int)", "@V6", "@V8", "@V9"),
                                                         false)
                                         ))
                                 ), 1, 1, 2),
-                                testStruct("test()", "\\.\\.", functionDtos("test()", 0, bindingDtos(
+                                testStruct("test15A()", "\\.\\.", functionDtos("test15A()", 0, bindingDtos(
                                         varBinding(RETURN_VARIABLE_NAME, "V5",
                                                 asList("string", "falseType"), null, true)
-                                )), 1, 2, 2)
+                                )), 1, 2, 2),
+                                //TINS-600 function instantiation with convertibles too general
+                                //should only be float and falseType
+                                testStruct("test15B()", "\\.\\.", functionDtos("test15B()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "V5",
+                                                asList("float", "int", "falseType"), null, true)
+                                )), 1, 3, 2)
                         }
                 },
                 //see TINS-466 - rename type variable does not promote type bounds
@@ -453,6 +460,151 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                                                         asList("int"), asList("(float | int)", "@T1"), false)
                                         ))
                                 ), 1, 0, 2)
+                        }
+                },
+                //dependency to ad-hoc polymorphic function
+                {
+                        "function foo4($x){return bar4($x); return baz4(1);} "
+                                + "function bar4($x){return $x + 1;}"
+                                + "function baz4($x){return $x;}",
+                        new OverloadTestStruct[]{
+                                testStruct("foo4()", "\\.\\.", functionDtos(
+                                        functionDto("foo4()", 1, bindingDtos(
+                                                varBinding("foo4()$x", "V6", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V3", asList("int"), null, true)
+                                        )),
+                                        functionDto("foo4()", 1, bindingDtos(
+                                                varBinding("foo4()$x", "V6", null, asList("{as T}"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T",
+                                                        asList("int"), asList("(float | int)"), false)
+                                        ))
+                                ), 1, 0, 2),
+                                testStruct("bar4()", "\\.\\.", functionDtos(
+                                        functionDto("bar4()", 1, bindingDtos(
+                                                varBinding("bar4()$x", "V2", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V5", asList("int"), null, true)
+                                        )),
+                                        functionDto("bar4()", 1, bindingDtos(
+                                                varBinding("bar4()$x", "V2", null, asList("{as T}"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T",
+                                                        asList("int"), asList("(float | int)"), false)
+                                        ))
+                                ), 1, 1, 2),
+                                testStruct("baz4()", "\\.\\.", functionDtos(
+                                        functionDto("baz4()", 1, bindingDtos(
+                                                varBinding("baz4()$x", "T", null, null, false),
+                                                varBinding(RETURN_VARIABLE_NAME, "T", null, null, false)
+                                        ))
+                                ), 1, 2, 2)
+                        }
+                },
+                //dependency to ad-hoc polymorphic function (last dependency)
+                {
+                        "function foo4B($x){return bar4B($x); return baz4B(1);} "
+                                + "function baz4B($x){return $x;}"
+                                + "function bar4B($x){return $x + 1;}",
+                        new OverloadTestStruct[]{
+                                testStruct("foo4B()", "\\.\\.", functionDtos(
+                                        functionDto("foo4B()", 1, bindingDtos(
+                                                varBinding("foo4B()$x", "V7", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V3", asList("int"), null, true)
+                                        )),
+                                        functionDto("foo4B()", 1, bindingDtos(
+                                                varBinding("foo4B()$x", "V7", null, asList("{as T}"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T",
+                                                        asList("int"), asList("(float | int)"), false)
+                                        ))
+                                ), 1, 0, 2),
+                                testStruct("baz4B()", "\\.\\.", functionDtos(
+                                        functionDto("baz4B()", 1, bindingDtos(
+                                                varBinding("baz4B()$x", "T", null, null, false),
+                                                varBinding(RETURN_VARIABLE_NAME, "T", null, null, false)
+                                        ))
+                                ), 1, 1, 2),
+                                testStruct("bar4B()", "\\.\\.", functionDtos(
+                                        functionDto("bar4B()", 1, bindingDtos(
+                                                varBinding("bar4B()$x", "V2", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V5", asList("int"), null, true)
+                                        )),
+                                        functionDto("bar4B()", 1, bindingDtos(
+                                                varBinding("bar4B()$x", "V2", null, asList("{as T}"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T",
+                                                        asList("int"), asList("(float | int)"), false)
+                                        ))
+                                ), 1, 2, 2)
+                        }
+                },
+                //dependency to ad-hoc polymorphic function (last dependency) but with constant arguments
+                {
+                        "function foo4C($x){return bar4C(4); return baz4C($x);} "
+                                + "function baz4C($x){return $x;}"
+                                + "function bar4C($x){return $x + 1;}",
+                        new OverloadTestStruct[]{
+                                testStruct("foo4C()", "\\.\\.", functionDtos(
+                                        functionDto("foo4C()", 1, bindingDtos(
+                                                varBinding("foo4C()$x", "T", null, asList("@V3"), false),
+                                                varBinding(RETURN_VARIABLE_NAME, "V3",
+                                                        asList("int", "@T"), null, false)
+                                        ))
+                                ), 1, 0, 2),
+                                testStruct("baz4C()", "\\.\\.", functionDtos(
+                                        functionDto("baz4C()", 1, bindingDtos(
+                                                varBinding("baz4C()$x", "T", null, null, false),
+                                                varBinding(RETURN_VARIABLE_NAME, "T", null, null, false)
+                                        ))
+                                ), 1, 1, 2),
+                                testStruct("bar4C()", "\\.\\.", functionDtos(
+                                        functionDto("bar4C()", 1, bindingDtos(
+                                                varBinding("bar4C()$x", "V2", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V5", asList("int"), null, true)
+                                        )),
+                                        functionDto("bar4C()", 1, bindingDtos(
+                                                varBinding("bar4C()$x", "V2", null, asList("{as T}"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T",
+                                                        asList("int"), asList("(float | int)"), false)
+                                        ))
+                                ), 1, 2, 2)
+                        }
+                },
+                //dependency to two ad-hoc polymorphic functions (last dependency)
+                {
+                        "function foo4D($x){return bar4D($x); return baz4D($x);} "
+                                + "function baz4D($x){return $x - 1;}"
+                                + "function bar4D($x){return $x + 1;}",
+                        new OverloadTestStruct[]{
+                                testStruct("foo4D()", "\\.\\.", functionDtos(
+                                        functionDto("foo4D()", 1, bindingDtos(
+                                                varBinding("foo4D()$x", "V6", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V3", asList("int"), null, true)
+                                        )),
+                                        functionDto("foo4D()", 1, bindingDtos(
+                                                varBinding("foo4D()$x", "V6", null, asList("{as T}"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T",
+                                                        asList("int"), asList("(float | int)"), false)
+                                        ))
+                                ), 1, 0, 2),
+                                testStruct("baz4D()", "\\.\\.", functionDtos(
+                                        functionDto("baz4D()", 1, bindingDtos(
+                                                varBinding("baz4D()$x", "V2", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V5", asList("int"), null, true)
+                                        )),
+                                        functionDto("baz4D()", 1, bindingDtos(
+                                                varBinding("baz4D()$x", "V2", null, asList("{as T}"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T",
+                                                        asList("int"), asList("(float | int)"), false)
+                                        ))
+                                ), 1, 1, 2),
+                                testStruct("bar4D()", "\\.\\.", functionDtos(
+                                        functionDto("bar4D()", 1, bindingDtos(
+                                                varBinding("bar4D()$x", "V2", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V5", asList("int"), null, true)
+                                        )),
+                                        functionDto("bar4D()", 1, bindingDtos(
+                                                varBinding("bar4D()$x", "V2", null, asList("{as T}"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T",
+                                                        asList("int"), asList("(float | int)"), false)
+                                        ))
+                                ), 1, 2, 2)
                         }
                 }
         });
