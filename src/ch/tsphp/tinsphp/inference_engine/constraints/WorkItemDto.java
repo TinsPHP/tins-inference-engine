@@ -30,6 +30,7 @@ public class WorkItemDto
     public boolean isInSoftTypingMode;
     public ConvertibleAnalysisDto convertibleAnalysisDto;
     public Map<String, List<String>> param2LowerParams;
+    public boolean hasChanged;
 
     public WorkItemDto(
             Deque<WorkItemDto> theWorkDeque,
@@ -49,13 +50,15 @@ public class WorkItemDto
             WorkItemDto dto,
             int newPointer,
             IBindingCollection theBindingCollection,
-            Map<Integer, Map<String, ITypeVariableReference>> theHelperVariableMapping) {
+            Map<Integer, Map<String, ITypeVariableReference>> theHelperVariableMapping,
+            boolean hasItChanged) {
         workDeque = dto.workDeque;
         constraintCollection = dto.constraintCollection;
         isSolvingMethod = dto.isSolvingMethod;
         pointer = newPointer;
         bindingCollection = theBindingCollection;
         helperVariableMapping = theHelperVariableMapping;
+        hasChanged = hasItChanged;
 
         dependentConstraints = dto.dependentConstraints;
         isInIterativeMode = dto.isInIterativeMode;

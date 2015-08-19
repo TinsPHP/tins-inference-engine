@@ -466,7 +466,8 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
                 dto.implicitConversions,
                 runtimeChecks,
                 dto.helperVariableMapping,
-                requiresExplicit);
+                requiresExplicit,
+                dto.hasChanged);
 
         if (requiresExplicit) {
             for (Map.Entry<String, IUnionTypeSymbol> entry : oldTypeBounds.entrySet()) {

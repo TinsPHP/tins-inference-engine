@@ -167,15 +167,7 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
             Collection<String> nonFixedTypeParameters = new ArrayList<>(overload.getNonFixedTypeParameters());
             IFunctionType copyOverload = copyAndFixOverload(overload);
 
-            fixedDto = new OverloadRankingDto(
-                    copyOverload,
-                    dto.bindings,
-                    dto.implicitConversions,
-                    dto.runtimeChecks,
-                    dto.helperVariableMapping,
-                    dto.hasNarrowedArguments
-
-            );
+            fixedDto = new OverloadRankingDto(dto, copyOverload);
             fixedDto.numberOfTypeParameters = nonFixedTypeParameters.size();
         }
         fixedDto.usesConvertibleTypes = overload.hasConvertibleParameterTypes();
@@ -207,13 +199,7 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
         IFunctionType copyOverload = symbolFactory.createFunctionType(
                 dto.overload.getName(), bindingCollection, dto.overload.getParameters());
 
-        return new OverloadRankingDto(
-                copyOverload,
-                dto.bindings,
-                dto.implicitConversions,
-                dto.runtimeChecks,
-                dto.helperVariableMapping,
-                dto.hasNarrowedArguments);
+        return new OverloadRankingDto(dto, copyOverload);
     }
 
 

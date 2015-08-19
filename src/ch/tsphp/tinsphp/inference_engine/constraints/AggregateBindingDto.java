@@ -37,6 +37,7 @@ public class AggregateBindingDto
     public Map<String, SortedSet<ITypeSymbol>> lowerConstraints;
     public Map<String, SortedSet<ITypeSymbol>> upperConstraints;
     public Map<Integer, Map<String, ITypeVariableReference>> helperVariableMapping;
+    public boolean hasChanged;
 
     public AggregateBindingDto(
             IConstraint theConstraint,

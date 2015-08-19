@@ -906,22 +906,36 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                                 ), 1, 1, 2)
                         }
                 },
-                //TODO TINS-559 NoSuchElement for indirect recursive function
-//                {
-//                        "function foo15($x){$x . 1; return bar15($x);}\n"
-//                                + "function bar15($x){asString($x); return $x > 10 ? foo15($x) : $x;}\n"
-//                                + "function asString($x){$x . 1; return $x;}",
-//                        testStructs("foo15()", "\\.\\.", functionDtos(
-//                                functionDto("foo15()", 1, bindingDtos(
-//                                        varBinding("foo15()$n", "V2", null, asList("int"), true),
-//                                        varBinding(RETURN_VARIABLE_NAME, "V9", asList("int"), null, true)
-//                                )),
-//                                functionDto("foo15()", 1, bindingDtos(
-//                                        varBinding("foo15()$n", "T", null, asList("(array | int)"), true),
-//                                        varBinding(RETURN_VARIABLE_NAME, "V7", asList("array", "int"), null, true)
-//                                ))
-//                        ), 1, 0, 2)
-//                },
+                //see TINS-559 NoSuchElement for indirect recursive function
+                {
+                        "function foo15($x){$x . 1; return bar15($x);}\n"
+                                + "function bar15($x){asString($x); return $x > 10 ? foo15($x) : $x;}\n"
+                                + "function asString($x){$x . 1; return $x;}",
+                        new OverloadTestStruct[]{
+                                testStruct("foo15()", "\\.\\.", functionDtos(
+                                        functionDto("foo15()", 1, bindingDtos(
+                                                varBinding("foo15()$x", "T", null, asList("{as string}"), false),
+                                                varBinding(RETURN_VARIABLE_NAME, "T",
+                                                        null, asList("{as string}"), false)
+
+                                        ))
+                                ), 1, 0, 2),
+                                testStruct("bar15()", "\\.\\.", functionDtos(
+                                        functionDto("bar15()", 1, bindingDtos(
+                                                varBinding("bar15()$x", "T", null, asList("{as string}"), false),
+                                                varBinding(RETURN_VARIABLE_NAME, "T",
+                                                        null, asList("{as string}"), false)
+                                        ))
+                                ), 1, 1, 2),
+                                testStruct("asString()", "\\.\\.", functionDtos(
+                                        functionDto("asString()", 1, bindingDtos(
+                                                varBinding("asString()$x", "T", null, asList("{as string}"), false),
+                                                varBinding(RETURN_VARIABLE_NAME, "T",
+                                                        null, asList("{as string}"), false)
+                                        ))
+                                ), 1, 2, 2)
+                        }
+                },
                 {
                         "function foo16($x, $y){ return bar16($x, $y); return $x; return $y; }"
                                 + "function bar16($x, $y){ return foo16($x, $y); return $x + $y;}"
@@ -1014,6 +1028,41 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                                         varBinding(RETURN_VARIABLE_NAME, "V3",
                                                 asList("string", "float", "int"), null, true)
                                 )), 1, 9, 2),
+                        }
+                },
+                //see TINS-559 NoSuchElement for indirect recursive function
+                {
+                        "function foo23($x, $y, $z){return bar23($x, $y, $z);}\n"
+                                + "function bar23($x, $y, $z){return foo23($x-1, $y+1, $z*2);}",
+                        new OverloadTestStruct[]{
+                                testStruct("foo23()", "\\.\\.", functionDtos(
+                                        functionDto("foo23()", 3, bindingDtos(
+                                                varBinding("foo23()$x", "V4", null, asList("int"), true),
+                                                varBinding("foo23()$y", "V5", null, asList("int"), true),
+                                                varBinding("foo23()$z", "V6", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V3", asList("mixed"), null, true)
+                                        )),
+                                        functionDto("foo23()", 3, bindingDtos(
+                                                varBinding("foo23()$x", "V4", null, asList("{as (float | int)}"), true),
+                                                varBinding("foo23()$y", "V5", null, asList("{as (float | int)}"), true),
+                                                varBinding("foo23()$z", "V6", null, asList("{as (float | int)}"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V3", asList("mixed"), null, true)
+                                        ))
+                                ), 1, 0, 2),
+                                testStruct("bar23()", "\\.\\.", functionDtos(
+                                        functionDto("bar23()", 3, bindingDtos(
+                                                varBinding("bar23()$x", "V2", null, asList("int"), true),
+                                                varBinding("bar23()$y", "V5", null, asList("int"), true),
+                                                varBinding("bar23()$z", "V8", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V12", asList("mixed"), null, true)
+                                        )),
+                                        functionDto("bar23()", 3, bindingDtos(
+                                                varBinding("bar23()$x", "V2", null, asList("{as (float | int)}"), true),
+                                                varBinding("bar23()$y", "V5", null, asList("{as (float | int)}"), true),
+                                                varBinding("bar23()$z", "V8", null, asList("{as (float | int)}"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V12", asList("mixed"), null, true)
+                                        ))
+                                ), 1, 1, 2),
                         }
                 }
         });

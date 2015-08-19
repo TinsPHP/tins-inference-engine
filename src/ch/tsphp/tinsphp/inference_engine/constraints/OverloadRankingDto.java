@@ -30,6 +30,7 @@ public class OverloadRankingDto
     public Map<Integer, Pair<ITypeSymbol, ITypeSymbol>> implicitConversions;
     public Map<Integer, Pair<ITypeSymbol, List<ITypeSymbol>>> runtimeChecks;
     public Map<Integer, Map<String, ITypeVariableReference>> helperVariableMapping;
+    public boolean hasChanged;
 
     public OverloadRankingDto(
             IFunctionType theOverload,
@@ -37,13 +38,36 @@ public class OverloadRankingDto
             Map<Integer, Pair<ITypeSymbol, ITypeSymbol>> theImplicitConversions,
             Map<Integer, Pair<ITypeSymbol, List<ITypeSymbol>>> theRuntimeChecks,
             Map<Integer, Map<String, ITypeVariableReference>> theHelperVariableMapping,
-            boolean narrowedArguments) {
+            boolean narrowedArguments,
+            boolean hasItChanged) {
         overload = theOverload;
         bindings = theBindings;
         implicitConversions = theImplicitConversions;
         runtimeChecks = theRuntimeChecks;
         hasNarrowedArguments = narrowedArguments;
         helperVariableMapping = theHelperVariableMapping;
+        hasChanged = hasItChanged;
+    }
+
+    public OverloadRankingDto(OverloadRankingDto dto, IFunctionType copyOverload) {
+        this(copyOverload,
+                dto.bindings,
+                dto.implicitConversions,
+                dto.runtimeChecks,
+                dto.helperVariableMapping,
+                dto.hasNarrowedArguments,
+                dto.hasChanged);
+
+    }
+
+    public OverloadRankingDto(AggregateBindingDto dto) {
+        this(dto.overload,
+                dto.bindings,
+                dto.implicitConversions,
+                null,
+                dto.helperVariableMapping,
+                dto.hasNarrowedArguments,
+                dto.hasChanged);
     }
 
     public String toString() {

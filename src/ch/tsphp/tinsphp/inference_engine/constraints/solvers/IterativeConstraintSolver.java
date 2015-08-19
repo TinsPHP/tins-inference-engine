@@ -6,18 +6,14 @@
 
 package ch.tsphp.tinsphp.inference_engine.constraints.solvers;
 
-import ch.tsphp.tinsphp.common.TinsPHPConstants;
 import ch.tsphp.tinsphp.common.inference.constraints.IBindingCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import ch.tsphp.tinsphp.common.inference.constraints.OverloadApplicationDto;
-import ch.tsphp.tinsphp.common.symbols.IIntersectionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMinimalVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
-import ch.tsphp.tinsphp.common.symbols.IUnionTypeSymbol;
-import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.common.utils.ITypeHelper;
 import ch.tsphp.tinsphp.common.utils.Pair;
 import ch.tsphp.tinsphp.inference_engine.constraints.TempFunctionType;
@@ -122,6 +118,7 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
                     workItemDto.pointer = 0;
                     workItemDto.isSolvingDependency = false;
                     workItemDto.isInIterativeMode = true;
+                    workItemDto.hasChanged = false;
                     worklist.add(workItemDto);
                 }
             }
@@ -189,6 +186,7 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
                 for (String refAbsoluteName : dependencies.get(absoluteName)) {
                     if (directDependencies.containsKey(refAbsoluteName)) {
                         for (WorkItemDto dto : unsolvedConstraints.get(refAbsoluteName)) {
+                            dto.hasChanged = false;
                             worklist.add(dto);
                         }
                     }
@@ -205,22 +203,17 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
             String absoluteName = workItemDto.constraintCollection.getAbsoluteName();
             List<WorkItemDto> workItemDtos = solveConstraintsIterativeMode(workItemDto.workDeque);
 
-            int size = workItemDtos.size();
-            if (size == 1) {
-                WorkItemDto newWorkItem = workItemDtos.get(0);
-                if (hasChanged(workItemDto, newWorkItem)) {
+            Iterator<WorkItemDto> iterator = workItemDtos.iterator();
+            if (iterator.hasNext()) {
+                //update the registered work item
+                WorkItemDto newWorkItem = iterator.next();
+                if (newWorkItem.hasChanged || iterator.hasNext()) {
                     collectionsWhichChanged.add(absoluteName);
                 }
-                //this work item will be re-added to the worklist if its collection is marked as has changed
+
                 workItemDto.bindingCollection = newWorkItem.bindingCollection;
                 workItemDto.helperVariableMapping = newWorkItem.helperVariableMapping;
-            } else if (size > 1) {
-                collectionsWhichChanged.add(absoluteName);
-                Iterator<WorkItemDto> iterator = workItemDtos.iterator();
-                //this work item will be re-added to the worklist since its collection is marked as has changed
-                WorkItemDto newWorkItem = iterator.next();
-                workItemDto.bindingCollection = newWorkItem.bindingCollection;
-                workItemDto.helperVariableMapping = newWorkItem.helperVariableMapping;
+
                 while (iterator.hasNext()) {
                     //need to register a dependency for the new overloads
                     newWorkItem = iterator.next();
@@ -262,48 +255,6 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
         }
 
         return solvedWorkItems;
-    }
-
-    private boolean hasChanged(WorkItemDto workItemDto, WorkItemDto newWorkItem) {
-        IBindingCollection oldBindings = workItemDto.bindingCollection;
-        IBindingCollection newBindings = newWorkItem.bindingCollection;
-        boolean isNotTheSame = hasChanged(oldBindings, newBindings, TinsPHPConstants.RETURN_VARIABLE_NAME);
-        if (!isNotTheSame) {
-            IMethodSymbol methodSymbol = (IMethodSymbol) workItemDto.constraintCollection;
-            for (IVariableSymbol parameter : methodSymbol.getParameters()) {
-                if (hasChanged(oldBindings, newBindings, parameter.getAbsoluteName())) {
-                    isNotTheSame = true;
-                    break;
-                }
-            }
-        }
-        return isNotTheSame;
-    }
-
-    private boolean hasChanged(IBindingCollection oldBindings, IBindingCollection newBindings, String variableName) {
-        String oldTypeVariable = oldBindings.getTypeVariable(variableName);
-        String newTypeVariable = oldBindings.getTypeVariable(variableName);
-        boolean isNotTheSame = !oldTypeVariable.equals(newTypeVariable);
-        if (!isNotTheSame) {
-            IUnionTypeSymbol oldLowerType = oldBindings.getLowerTypeBounds(newTypeVariable);
-            IUnionTypeSymbol newLowerType = newBindings.getLowerTypeBounds(newTypeVariable);
-            isNotTheSame = !(oldLowerType == null && newLowerType == null
-                    || oldLowerType != null && typeHelper.areSame(oldLowerType, newLowerType));
-
-            if (!isNotTheSame) {
-                IIntersectionTypeSymbol oldUpperType = oldBindings.getUpperTypeBounds(newTypeVariable);
-                IIntersectionTypeSymbol newUpperType = newBindings.getUpperTypeBounds(newTypeVariable);
-                isNotTheSame = !(oldUpperType == null && newUpperType == null
-                        || oldUpperType != null && typeHelper.areSame(oldUpperType, newUpperType));
-                if (!isNotTheSame) {
-                    Set<String> oldLowerRefBounds = oldBindings.getLowerRefBounds(newTypeVariable);
-                    Set<String> newLowerRefBounds = newBindings.getLowerRefBounds(newTypeVariable);
-                    isNotTheSame = !(oldLowerRefBounds == null && newLowerRefBounds == null
-                            || oldLowerRefBounds != null && oldLowerRefBounds.equals(newLowerRefBounds));
-                }
-            }
-        }
-        return isNotTheSame;
     }
 
     private void createOverloadsForRecursiveMethod(
