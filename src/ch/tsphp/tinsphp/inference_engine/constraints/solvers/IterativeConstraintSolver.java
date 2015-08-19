@@ -205,7 +205,16 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
             String absoluteName = workItemDto.constraintCollection.getAbsoluteName();
             List<WorkItemDto> workItemDtos = solveConstraintsIterativeMode(workItemDto.workDeque);
 
-            if (workItemDtos.size() > 1) {
+            int size = workItemDtos.size();
+            if (size == 1) {
+                WorkItemDto newWorkItem = workItemDtos.get(0);
+                if (hasChanged(workItemDto, newWorkItem)) {
+                    collectionsWhichChanged.add(absoluteName);
+                }
+                //this work item will be re-added to the worklist if its collection is marked as has changed
+                workItemDto.bindingCollection = newWorkItem.bindingCollection;
+                workItemDto.helperVariableMapping = newWorkItem.helperVariableMapping;
+            } else if (size > 1) {
                 collectionsWhichChanged.add(absoluteName);
                 Iterator<WorkItemDto> iterator = workItemDtos.iterator();
                 //this work item will be re-added to the worklist since its collection is marked as has changed
@@ -220,14 +229,6 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
                     newWorkItem.pointer = workItemDto.pointer;
                     constraintSolverHelper.createDependencies(newWorkItem);
                 }
-            } else if (workItemDtos.size() == 1) {
-                WorkItemDto newWorkItem = workItemDtos.get(0);
-                if (hasChanged(workItemDto, newWorkItem)) {
-                    collectionsWhichChanged.add(absoluteName);
-                }
-                //this work item will be re-added to the worklist if its collection is marked as has changed
-                workItemDto.bindingCollection = newWorkItem.bindingCollection;
-                workItemDto.helperVariableMapping = newWorkItem.helperVariableMapping;
             } else {
                 Set<WorkItemDto> dtos = unsolvedConstraints.get(absoluteName);
                 if (dtos.remove(workItemDto)) {

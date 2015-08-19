@@ -74,10 +74,11 @@ public class ConstraintSolver implements IConstraintSolver
 
     public void solveGlobalDefaultNamespaceConstraints(
             IGlobalNamespaceScope globalDefaultNamespaceScope, Deque<WorkItemDto> workDeque) {
-        List<IBindingCollection> bindings = solveConstraints(workDeque);
-        if (bindings.isEmpty()) {
+        List<WorkItemDto> workItemDtos = solveConstraints(workDeque);
+        if (workItemDtos.isEmpty()) {
             softTypingConstraintSolver.fallBackToSoftTyping(globalDefaultNamespaceScope);
         } else {
+            List<IBindingCollection> bindings = getBindings(workItemDtos);
             //Warning! start code duplication - same as in SoftTypingConstraintSolver
             globalDefaultNamespaceScope.setBindings(bindings);
             IBindingCollection bindingCollection = bindings.get(0);
@@ -88,10 +89,10 @@ public class ConstraintSolver implements IConstraintSolver
         }
     }
 
-    @Override
-    public void solveMethodConstraints(IMethodSymbol methodSymbol, Deque<WorkItemDto> workDeque) {
-        List<IBindingCollection> bindings = solveConstraints(workDeque);
-        if (!bindings.isEmpty()) {
+    private void solveMethodConstraints(IMethodSymbol methodSymbol, Deque<WorkItemDto> workDeque) {
+        List<WorkItemDto> workItemDtos = solveConstraints(workDeque);
+        if (!workItemDtos.isEmpty()) {
+            List<IBindingCollection> bindings = getBindings(workItemDtos);
             constraintSolverHelper.finishingMethodConstraints(methodSymbol, bindings);
         } else if (!unsolvedConstraints.containsKey(methodSymbol.getAbsoluteName())) {
             //does not have any dependencies and still cannot be solved
@@ -100,8 +101,17 @@ public class ConstraintSolver implements IConstraintSolver
         }
     }
 
-    private List<IBindingCollection> solveConstraints(Deque<WorkItemDto> workDeque) {
-        List<IBindingCollection> solvedBindings = new ArrayList<>();
+    private List<IBindingCollection> getBindings(List<WorkItemDto> workItemDtos) {
+        List<IBindingCollection> bindings = new ArrayList<>(workItemDtos.size());
+        for (WorkItemDto workItemDto : workItemDtos) {
+            bindings.add(workItemDto.bindingCollection);
+        }
+        return bindings;
+    }
+
+    @Override
+    public List<WorkItemDto> solveConstraints(Deque<WorkItemDto> workDeque) {
+        List<WorkItemDto> solvedBindings = new ArrayList<>();
 
         List<IConstraint> constraints = null;
         if (!workDeque.isEmpty()) {
@@ -115,9 +125,10 @@ public class ConstraintSolver implements IConstraintSolver
             if (workItemDto.pointer < constraints.size()) {
                 IConstraint constraint = constraints.get(workItemDto.pointer);
                 solveConstraint(workItemDto, constraint);
-            } else if (workItemDto.dependentConstraints == null || workItemDto.dependentConstraints.isEmpty()) {
-                solvedBindings.add(workItemDto.bindingCollection);
-            } else if (!workItemDto.isSolvingDependency) {
+            } else if (workItemDto.isSolvingDependency
+                    || workItemDto.dependentConstraints == null || workItemDto.dependentConstraints.isEmpty()) {
+                solvedBindings.add(workItemDto);
+            } else {
                 constraintSolverHelper.createDependencies(workItemDto);
             }
         }

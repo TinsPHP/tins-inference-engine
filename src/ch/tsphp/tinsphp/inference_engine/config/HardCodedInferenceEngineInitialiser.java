@@ -146,8 +146,8 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
                 constraintSolverHelper,
                 unsolvedConstraints);
 
-        dependencyConstraintSolver.setConstraintSolver(constraintSolver);
-        dependencyConstraintSolver.setSoftTypingConstraintSolver(softTypingConstraintSolver);
+        dependencyConstraintSolver.setDependencies(constraintSolver, constraintSolverHelper,
+                softTypingConstraintSolver);
 
         init();
 

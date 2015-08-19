@@ -15,10 +15,10 @@ import ch.tsphp.tinsphp.inference_engine.constraints.WorkItemDto;
 public interface IDependencyConstraintSolver
 {
 
-
-    void setSoftTypingConstraintSolver(ISoftTypingConstraintSolver softTypingConstraintSolver);
-
-    void setConstraintSolver(IConstraintSolver constraintSolver);
+    void setDependencies(
+            IConstraintSolver constraintSolver,
+            IConstraintSolverHelper constraintSolverHelper,
+            ISoftTypingConstraintSolver softTypingConstraintSolver);
 
     void solveDependency(Pair<WorkItemDto, Integer> pair);
 

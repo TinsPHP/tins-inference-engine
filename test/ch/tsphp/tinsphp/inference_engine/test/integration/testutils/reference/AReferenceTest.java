@@ -165,8 +165,8 @@ public abstract class AReferenceTest extends ADefinitionTest
                 constraintSolverHelper,
                 unsolvedConstraints
         );
-        dependencyConstraintSolver.setConstraintSolver(constraintSolver);
-        dependencyConstraintSolver.setSoftTypingConstraintSolver(softTypingConstraintSolver);
+        dependencyConstraintSolver.setDependencies(
+                constraintSolver, constraintSolverHelper, softTypingConstraintSolver);
 
         constraintCreator = createConstraintCreator(symbolFactory, inferenceIssueReporter);
 

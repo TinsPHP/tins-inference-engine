@@ -21,5 +21,5 @@ public interface IConstraintSolver
 {
     void solveConstraints(List<IMethodSymbol> methodSymbols, IGlobalNamespaceScope globalDefaultNamespaceScope);
 
-    void solveMethodConstraints(IMethodSymbol methodSymbol, Deque<WorkItemDto> workDeque);
+    List<WorkItemDto> solveConstraints(Deque<WorkItemDto> workDeque);
 }

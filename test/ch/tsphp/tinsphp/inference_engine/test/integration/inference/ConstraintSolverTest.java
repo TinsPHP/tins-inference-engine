@@ -496,8 +496,8 @@ public class ConstraintSolverTest
                 constraintSolverHelper,
                 unsolvedConstraints);
 
-        dependencyConstraintSolver.setConstraintSolver(constraintSolver);
-        dependencyConstraintSolver.setSoftTypingConstraintSolver(softTypingConstraintSolver);
+        dependencyConstraintSolver.setDependencies(constraintSolver, constraintSolverHelper,
+                softTypingConstraintSolver);
 
         return constraintSolver;
     }
