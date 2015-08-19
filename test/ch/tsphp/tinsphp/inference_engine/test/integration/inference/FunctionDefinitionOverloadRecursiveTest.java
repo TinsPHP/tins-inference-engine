@@ -847,38 +847,65 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                                 ))
                         ), 1, 0, 2)
                 },
-                //TODO TINS-628 More than one conversion provider
-                //parametric polymorphic indirect recursive function
-//                {
-//                        "function fibGenA($n){return $n > 0 ? fibGenB($n-1) + fibGenB($n-2) : $n;}\n"
-//                                + "function fibGenB($n){return $n > 0 ? fibGenA($n-1) + fibGenA($n-2) : $n;}",
-//                        new OverloadTestStruct[]{
-//                                testStruct("fibGenA()", "\\.\\.", functionDtos(
-//                                        functionDto("fibGenA()", 1, bindingDtos(
-//                                                varBinding("fibGenA()$n", "V2", null, asList("int"), true),
-//                                                varBinding(RETURN_VARIABLE_NAME, "V9", asList("int"), null, true)
-//                                        )),
-//                                        functionDto("fibGenA()", 1, bindingDtos(
-//                                                varBinding("fibGenA()$n", "T", null, asList("(array | int)"), true),
-//                                                varBinding(RETURN_VARIABLE_NAME, "V7",
-//                                                        asList("array", "int"), null, true)
-//
-//                                        ))
-//                                ), 1, 0, 2),
-//                                testStruct("fibGenB()", "\\.\\.", functionDtos(
-//                                        functionDto("fibGenB()", 1, bindingDtos(
-//                                                varBinding("fibGenB()$n", "V2", null, asList("int"), true),
-//                                                varBinding(RETURN_VARIABLE_NAME, "V9", asList("int"), null, true)
-//                                        )),
-//                                        functionDto("fibGenB()", 1, bindingDtos(
-//                                                varBinding("fibGenB()$n", "T", null, asList("(array | int)"), true),
-//                                                varBinding(RETURN_VARIABLE_NAME, "V7",
-//                                                        asList("array", "int"), null, true)
-//
-//                                        ))
-//                                ), 1, 1, 2)
-//                        }
-//                },
+//                parametric polymorphic indirect recursive function
+                {
+                        "function fibGenA($n){return $n > 0 ? fibGenB($n-1) + fibGenB($n-2) : $n;}\n"
+                                + "function fibGenB($n){return $n > 0 ? fibGenA($n-1) + fibGenA($n-2) : $n;}",
+                        new OverloadTestStruct[]{
+                                testStruct("fibGenA()", "\\.\\.", functionDtos(
+                                        functionDto("fibGenA()", 1, bindingDtos(
+                                                varBinding("fibGenA()$n", "V2", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V13", asList("int"), null, true)
+                                        )),
+                                        functionDto("fibGenA()", 1, bindingDtos(
+                                                varBinding("fibGenA()$n", "T1",
+                                                        null, asList("{as T2}", "@V11", "@V12", "@V13"), false),
+                                                varBinding(RETURN_VARIABLE_NAME, "V13",
+                                                        asList("int", "@T1", "@T2"), null, false),
+                                                varBinding("cScope+@1|56", "T2",
+                                                        asList("int"),
+                                                        asList("(float | int)", "@V11", "@V12", "@V13"),
+                                                        false)
+
+                                        )),
+                                        //TODO TINS-629 indirect recursive functions and application filtering
+                                        //should not be part of the results
+                                        functionDto("fibGenA()", 1, bindingDtos(
+                                                varBinding("fibGenA()$n", "T",
+                                                        null, asList("int", "@V11", "@V12", "@V13"), false),
+                                                varBinding(RETURN_VARIABLE_NAME, "V13",
+                                                        asList("float", "@T"), null, false)
+
+                                        ))
+                                ), 1, 0, 2),
+                                testStruct("fibGenB()", "\\.\\.", functionDtos(
+                                        functionDto("fibGenB()", 1, bindingDtos(
+                                                varBinding("fibGenB()$n", "V2", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V13", asList("int"), null, true)
+                                        )),
+                                        functionDto("fibGenB()", 1, bindingDtos(
+                                                varBinding("fibGenB()$n", "T1",
+                                                        null, asList("{as T2}", "@V11", "@V12", "@V13"), false),
+                                                varBinding(RETURN_VARIABLE_NAME, "V13",
+                                                        asList("int", "@T1", "@T2"), null, false),
+                                                varBinding("cScope+@2|51", "T2",
+                                                        asList("int"),
+                                                        asList("(float | int)", "@V11", "@V12", "@V13"),
+                                                        false)
+
+                                        )),
+                                        //TODO TINS-629 indirect recursive functions and application filtering
+                                        //should not be part of the results
+                                        functionDto("fibGenB()", 1, bindingDtos(
+                                                varBinding("fibGenB()$n", "T",
+                                                        null, asList("int", "@V11", "@V12", "@V13"), false),
+                                                varBinding(RETURN_VARIABLE_NAME, "V13",
+                                                        asList("float", "@T"), null, false)
+
+                                        ))
+                                ), 1, 1, 2)
+                        }
+                },
                 //TODO TINS-559 NoSuchElement for indirect recursive function
 //                {
 //                        "function foo15($x){$x . 1; return bar15($x);}\n"
