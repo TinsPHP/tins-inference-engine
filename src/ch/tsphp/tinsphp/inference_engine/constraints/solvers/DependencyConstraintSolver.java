@@ -19,13 +19,13 @@ import java.util.Set;
 
 public class DependencyConstraintSolver implements IDependencyConstraintSolver
 {
-    private final Map<String, Set<WorkItemDto>> unsolvedConstraints;
+    private final Map<String, Set<WorkItemDto>> unsolvedWorkItems;
     private IConstraintSolver constraintSolver;
     private ISoftTypingConstraintSolver softTypingConstraintSolver;
     private IConstraintSolverHelper constraintSolverHelper;
 
-    public DependencyConstraintSolver(Map<String, Set<WorkItemDto>> theUnsolvedConstraints) {
-        unsolvedConstraints = theUnsolvedConstraints;
+    public DependencyConstraintSolver(Map<String, Set<WorkItemDto>> theUnsolvedWorkItems) {
+        unsolvedWorkItems = theUnsolvedWorkItems;
     }
 
     @Override
@@ -59,8 +59,8 @@ public class DependencyConstraintSolver implements IDependencyConstraintSolver
                 workItemDto.bindingCollection = newWorkItem.bindingCollection;
             }
             boolean createDependencies = true;
-            if (workItemDto.dependentConstraints.isEmpty() && unsolvedConstraints.containsKey(absoluteName)) {
-                Set<WorkItemDto> remainingUnsolved = unsolvedConstraints.get(absoluteName);
+            if (workItemDto.dependentConstraints.isEmpty() && unsolvedWorkItems.containsKey(absoluteName)) {
+                Set<WorkItemDto> remainingUnsolved = unsolvedWorkItems.get(absoluteName);
                 remainingUnsolved.remove(workItemDto);
                 if (newWorkItem != null) {
                     List<IBindingCollection> bindings = initOrGetBindings(methodSymbol);
@@ -89,8 +89,8 @@ public class DependencyConstraintSolver implements IDependencyConstraintSolver
             }
         } else {
             softTypingConstraintSolver.aggregateLowerBounds(workItemDto);
-            if (workItemDto.dependentConstraints.isEmpty() && unsolvedConstraints.containsKey(absoluteName)) {
-                Set<WorkItemDto> remainingUnsolved = unsolvedConstraints.get(absoluteName);
+            if (workItemDto.dependentConstraints.isEmpty() && unsolvedWorkItems.containsKey(absoluteName)) {
+                Set<WorkItemDto> remainingUnsolved = unsolvedWorkItems.get(absoluteName);
                 remainingUnsolved.remove(workItemDto);
                 if (remainingUnsolved.isEmpty()) {
                     softTypingConstraintSolver.solveConstraints(methodSymbol, workItemDto);

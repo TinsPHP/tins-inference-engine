@@ -63,7 +63,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
 
     private final Map<String, Set<String>> dependencies;
     private final Map<String, List<Pair<WorkItemDto, Integer>>> directDependencies;
-    private final Map<String, Set<WorkItemDto>> unsolvedConstraints;
+    private final Map<String, Set<WorkItemDto>> unsolvedWorkItems;
     private final TypeSymbolComparator typeSymbolComparator;
 
     @SuppressWarnings("checkstyle:parameternumber")
@@ -75,7 +75,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
             IDependencyConstraintSolver theDependencyConstraintSolver,
             Map<String, Set<String>> theDependencies,
             Map<String, List<Pair<WorkItemDto, Integer>>> theDirectDependencies,
-            Map<String, Set<WorkItemDto>> theUnsolvedConstraints) {
+            Map<String, Set<WorkItemDto>> theUnsolvedWorkItems) {
         symbolFactory = theSymbolFactory;
         typeHelper = theTypeHelper;
         issueReporter = theIssueReporter;
@@ -83,7 +83,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
         dependencyConstraintSolver = theDependencyConstraintSolver;
         dependencies = theDependencies;
         directDependencies = theDirectDependencies;
-        unsolvedConstraints = theUnsolvedConstraints;
+        unsolvedWorkItems = theUnsolvedWorkItems;
         mixedTypeSymbol = symbolFactory.getMixedTypeSymbol();
         typeSymbolComparator = new TypeSymbolComparator(typeHelper);
     }
@@ -834,7 +834,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
             MapHelper.addToSetInMap(dependencies, refAbsoluteName, absoluteName);
         }
         MapHelper.addToSetInMap(
-                unsolvedConstraints,
+                unsolvedWorkItems,
                 absoluteName,
                 workItemDto);
     }
@@ -851,7 +851,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                 dependencyConstraintSolver.solveDependency(element);
             }
         }
-        unsolvedConstraints.remove(methodName);
+        unsolvedWorkItems.remove(methodName);
     }
 
     private void createOverloads(IMethodSymbol methodSymbol, List<IBindingCollection> bindingsList) {

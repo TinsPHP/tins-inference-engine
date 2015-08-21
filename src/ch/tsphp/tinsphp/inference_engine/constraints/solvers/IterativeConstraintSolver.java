@@ -42,7 +42,7 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
 
     private final Map<String, Set<String>> dependencies;
     private final Map<String, List<Pair<WorkItemDto, Integer>>> directDependencies;
-    private final Map<String, Set<WorkItemDto>> unsolvedConstraints;
+    private final Map<String, Set<WorkItemDto>> unsolvedWorkItems;
 
     @SuppressWarnings("checkstyle:parameternumber")
     public IterativeConstraintSolver(
@@ -52,14 +52,14 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
             IDependencyConstraintSolver theDependencyConstraintSolver,
             Map<String, Set<String>> theDependencies,
             Map<String, List<Pair<WorkItemDto, Integer>>> theDirectDependencies,
-            Map<String, Set<WorkItemDto>> theUnsolvedConstraints) {
+            Map<String, Set<WorkItemDto>> theUnsolvedWorkItems) {
         symbolFactory = theSymbolFactory;
         typeHelper = theTypeHelper;
         constraintSolverHelper = theConstraintSolverHelper;
         dependencyConstraintSolver = theDependencyConstraintSolver;
         dependencies = theDependencies;
         directDependencies = theDirectDependencies;
-        unsolvedConstraints = theUnsolvedConstraints;
+        unsolvedWorkItems = theUnsolvedWorkItems;
     }
 
     @Override
@@ -69,7 +69,7 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
 
         solveIteratively(worklist);
 
-        for (Map.Entry<String, Set<WorkItemDto>> entry : unsolvedConstraints.entrySet()) {
+        for (Map.Entry<String, Set<WorkItemDto>> entry : unsolvedWorkItems.entrySet()) {
             String absoluteName = entry.getKey();
             if (directDependencies.containsKey(absoluteName)) {
                 Iterator<WorkItemDto> iterator = entry.getValue().iterator();
@@ -81,7 +81,7 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
 
         //solveDependencies is not in the same loop on purpose since we already filter dependentConstraints which
         // have not been used as overloads
-        for (String absoluteName : unsolvedConstraints.keySet()) {
+        for (String absoluteName : unsolvedWorkItems.keySet()) {
             if (directDependencies.containsKey(absoluteName)) {
                 solveDependenciesOfRecursiveMethod(absoluteName);
             }
@@ -89,11 +89,11 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
 
         dependencies.clear();
         directDependencies.clear();
-        unsolvedConstraints.clear();
+        unsolvedWorkItems.clear();
     }
 
     private void createTempOverloadsAndPopulateWorklist(Deque<WorkItemDto> worklist) {
-        for (Map.Entry<String, Set<WorkItemDto>> entry : unsolvedConstraints.entrySet()) {
+        for (Map.Entry<String, Set<WorkItemDto>> entry : unsolvedWorkItems.entrySet()) {
             String absoluteName = entry.getKey();
             //we only solve recursive functions
             if (directDependencies.containsKey(absoluteName)) {
@@ -175,7 +175,7 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
             while (iterator.hasNext()) {
                 String absoluteName = iterator.next();
                 iterator.remove();
-                Set<WorkItemDto> unsolvedWorkItemDtos = unsolvedConstraints.get(absoluteName);
+                Set<WorkItemDto> unsolvedWorkItemDtos = unsolvedWorkItems.get(absoluteName);
                 IMethodSymbol methodSymbol =
                         (IMethodSymbol) unsolvedWorkItemDtos.iterator().next().constraintCollection;
 
@@ -185,7 +185,7 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
 
                 for (String refAbsoluteName : dependencies.get(absoluteName)) {
                     if (directDependencies.containsKey(refAbsoluteName)) {
-                        for (WorkItemDto dto : unsolvedConstraints.get(refAbsoluteName)) {
+                        for (WorkItemDto dto : unsolvedWorkItems.get(refAbsoluteName)) {
                             dto.hasChanged = false;
                             worklist.add(dto);
                         }
@@ -223,7 +223,7 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
                     constraintSolverHelper.createDependencies(newWorkItem);
                 }
             } else {
-                Set<WorkItemDto> dtos = unsolvedConstraints.get(absoluteName);
+                Set<WorkItemDto> dtos = unsolvedWorkItems.get(absoluteName);
                 if (dtos.remove(workItemDto)) {
                     collectionsWhichChanged.add(absoluteName);
                 }
@@ -280,7 +280,7 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
         // remove the WorklistDtos which were not chosen as overloads from the unresolved list.
         // Otherwise the applied overloads are recalculated for them nonetheless.
         String absoluteName = firstWorkItemDto.constraintCollection.getAbsoluteName();
-        Set<WorkItemDto> workItemDtos = unsolvedConstraints.get(absoluteName);
+        Set<WorkItemDto> workItemDtos = unsolvedWorkItems.get(absoluteName);
         for (WorkItemDto workItemDto : mapping.values()) {
             workItemDtos.remove(workItemDto);
         }
@@ -295,7 +295,7 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
             if (!directDependencies.containsKey(refAbsoluteName)) {
                 //regular dependency solving for non recursive methods
                 dependencyConstraintSolver.solveDependency(pair);
-            } else if (unsolvedConstraints.get(refAbsoluteName).contains(workItemDto)) {
+            } else if (unsolvedWorkItems.get(refAbsoluteName).contains(workItemDto)) {
                 //exchange applied overload, currently it is still pointing to the temp overload
                 IConstraint constraint = workItemDto.constraintCollection.getConstraints().get(pair.second);
 

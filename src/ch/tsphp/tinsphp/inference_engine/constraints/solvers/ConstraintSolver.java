@@ -30,7 +30,7 @@ public class ConstraintSolver implements IConstraintSolver
     private final ISoftTypingConstraintSolver softTypingConstraintSolver;
     private final IConstraintSolverHelper constraintSolverHelper;
 
-    private final Map<String, Set<WorkItemDto>> unsolvedConstraints;
+    private final Map<String, Set<WorkItemDto>> unsolvedWorkItems;
 
     @SuppressWarnings("checkstyle:parameternumber")
     public ConstraintSolver(
@@ -38,13 +38,13 @@ public class ConstraintSolver implements IConstraintSolver
             IIterativeConstraintSolver theIterativeConstraintSolver,
             ISoftTypingConstraintSolver theSoftTypingConstraintSolver,
             IConstraintSolverHelper theConstraintSolverHelper,
-            Map<String, Set<WorkItemDto>> theUnsolvedConstraints) {
+            Map<String, Set<WorkItemDto>> theUnsolvedWorkItems) {
 
         symbolFactory = theSymbolFactory;
         iterativeConstraintSolver = theIterativeConstraintSolver;
         softTypingConstraintSolver = theSoftTypingConstraintSolver;
         constraintSolverHelper = theConstraintSolverHelper;
-        unsolvedConstraints = theUnsolvedConstraints;
+        unsolvedWorkItems = theUnsolvedWorkItems;
     }
 
     @Override
@@ -54,7 +54,7 @@ public class ConstraintSolver implements IConstraintSolver
             solveMethodConstraints(methodSymbol, workDeque);
         }
 
-        if (!unsolvedConstraints.isEmpty()) {
+        if (!unsolvedWorkItems.isEmpty()) {
             iterativeConstraintSolver.solveConstraintsIteratively();
         }
 
@@ -94,7 +94,7 @@ public class ConstraintSolver implements IConstraintSolver
         if (!workItemDtos.isEmpty()) {
             List<IBindingCollection> bindings = getBindings(workItemDtos);
             constraintSolverHelper.finishingMethodConstraints(methodSymbol, bindings);
-        } else if (!unsolvedConstraints.containsKey(methodSymbol.getAbsoluteName())) {
+        } else if (!unsolvedWorkItems.containsKey(methodSymbol.getAbsoluteName())) {
             //does not have any dependencies and still cannot be solved
             //need to fallback to soft typing
             softTypingConstraintSolver.fallBackToSoftTyping(methodSymbol);
