@@ -250,6 +250,13 @@ public class OperatorFromGreaterThanTest extends AInferenceNamespaceTypeTest
                 {"+1;", testStructs("(uPlus 1)", "\\.\\.", asList("int"), 1, 0, 0)},
                 {"+1.5;", testStructs("(uPlus 1.5)", "\\.\\.", asList("float"), 1, 0, 0)},
                 {"+'a';", testStructs("(uPlus 'a')", "\\.\\.", asList("int"), 1, 0, 0)},
+                //[0] - array access
+                {
+                        "$x = [1]; $y = 1.2; $x[$y];", new AbsoluteTypeNameTestStruct[]{
+                        testStruct("(arrAccess $x $y)", "\\.\\.", asList("mixed"), 1, 4, 0),
+                        testStruct("$x", "\\.\\.", asList("array"), 1, 4, 0, 0),
+                        testStruct("$y", "\\.\\.", asList("float"), 1, 4, 0, 1),
+                }},
                 //if
                 {"$x = true; if($x){}", testStructs("$x", "\\.\\.", asList("trueType"), 1, 2, 0)},
                 {"$x = 1; if($x){}", testStructs("$x", "\\.\\.", asList("int"), 1, 2, 0)},
