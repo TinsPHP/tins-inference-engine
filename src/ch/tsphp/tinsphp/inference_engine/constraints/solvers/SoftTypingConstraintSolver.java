@@ -533,11 +533,11 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
             OverloadRankingDto overloadRankingDto = mostSpecificOverloads.get(iMostSpecific);
             IBindingCollection rightBindings = overloadRankingDto.bindings;
             String rankingLhsTypeVariable = rightBindings.getTypeVariable(leftHandSide);
+
             if (rightBindings.hasUpperTypeBounds(rankingLhsTypeVariable)) {
                 IIntersectionTypeSymbol upperTypeBounds = rightBindings.getUpperTypeBounds(rankingLhsTypeVariable);
                 upperUnion.addTypeSymbol(upperTypeBounds);
             }
-
             if (rightBindings.hasLowerTypeBounds(rankingLhsTypeVariable)) {
                 IUnionTypeSymbol lowerTypeBounds = rightBindings.getLowerTypeBounds(rankingLhsTypeVariable);
                 leftBindings.addLowerTypeBound(lhsTypeVariable, lowerTypeBounds);
@@ -549,37 +549,38 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
                 if (iMostSpecific == 0) {
                     leftBindings.removeUpperTypeBounds(typeVariable);
                     upperArguments.add(symbolFactory.createUnionTypeSymbol());
+                    IUnionTypeSymbol unionTypeSymbol = symbolFactory.createUnionTypeSymbol();
+                    if (runtimeChecks != null) {
+                        runtimeChecks.put(iArgument, new Pair<ITypeSymbol, List<ITypeSymbol>>(unionTypeSymbol, null));
+                    }
                 }
 
-                IUnionTypeSymbol unionTypeSymbol = upperArguments.get(iArgument);
+                IUnionTypeSymbol upperArgument = upperArguments.get(iArgument);
                 String rankingTypeVariable = rightBindings.getTypeVariable(argumentId);
                 if (rightBindings.hasUpperTypeBounds(rankingTypeVariable)) {
                     IIntersectionTypeSymbol upperTypeBounds = rightBindings.getUpperTypeBounds(rankingTypeVariable);
-                    unionTypeSymbol.addTypeSymbol(upperTypeBounds);
+                    upperArgument.addTypeSymbol(upperTypeBounds);
                 }
 
                 if (rightBindings.hasLowerTypeBounds(rankingTypeVariable)) {
                     IUnionTypeSymbol lowerTypeBounds = rightBindings.getLowerTypeBounds(rankingTypeVariable);
                     leftBindings.addLowerTypeBound(typeVariable, lowerTypeBounds);
                 }
-            }
 
-            if (overloadRankingDto.runtimeChecks != null) {
-                for (Map.Entry<Integer, Pair<ITypeSymbol, List<ITypeSymbol>>> entry
-                        : overloadRankingDto.runtimeChecks.entrySet()) {
-                    Integer argumentNumber = entry.getKey();
-                    Pair<ITypeSymbol, List<ITypeSymbol>> pair = entry.getValue();
-                    IUnionTypeSymbol unionTypeSymbol;
-                    if (!runtimeChecks.containsKey(argumentNumber)) {
-                        unionTypeSymbol = symbolFactory.createUnionTypeSymbol();
-                        runtimeChecks.put(argumentNumber, pair((ITypeSymbol) unionTypeSymbol, pair.second));
+                if (runtimeChecks != null && runtimeChecks.containsKey(iArgument)) {
+                    if (overloadRankingDto.runtimeChecks != null) {
+                        if (overloadRankingDto.runtimeChecks.containsKey(iArgument)) {
+                            Pair<ITypeSymbol, List<ITypeSymbol>> pair = overloadRankingDto.runtimeChecks.get(iArgument);
+                            IUnionTypeSymbol unionTypeSymbol = (IUnionTypeSymbol) runtimeChecks.get(iArgument).first;
+                            unionTypeSymbol.addTypeSymbol(pair.first);
+                        } else {
+                            runtimeChecks.remove(iArgument);
+                        }
                     } else {
-                        unionTypeSymbol = (IUnionTypeSymbol) runtimeChecks.get(argumentNumber).first;
+                        runtimeChecks = null;
                     }
-                    unionTypeSymbol.addTypeSymbol(pair.first);
                 }
             }
-
         }
 
         if (!upperUnion.getTypeSymbols().isEmpty()) {
