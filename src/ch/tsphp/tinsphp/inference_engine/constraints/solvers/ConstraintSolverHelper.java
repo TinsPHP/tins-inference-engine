@@ -428,7 +428,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                                         copyBindings.bind(parametricTypeSymbol,
                                                 parametricTypeSymbol.getTypeParameters());
                                         copyBindings.fixTypeParameters();
-                                        break parametricTypes;
+                                        continue parametricTypes;
                                     }
                                 } else {
                                     applyRightToLeft(dto, reference.getTypeVariable(), typeParameter);

@@ -21,6 +21,8 @@ import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.symbols.IIntersectionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
+import ch.tsphp.tinsphp.common.symbols.IParametricTypeSymbol;
+import ch.tsphp.tinsphp.common.symbols.IPolymorphicTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
@@ -33,7 +35,9 @@ import ch.tsphp.tinsphp.inference_engine.constraints.IMostSpecificOverloadDecide
 import ch.tsphp.tinsphp.inference_engine.constraints.OverloadRankingDto;
 import ch.tsphp.tinsphp.inference_engine.constraints.WorkItemDto;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -390,11 +394,11 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
                 for (ITypeSymbol typeSymbol : innerTypeSymbols.values()) {
                     result = typeHelper.isFirstSameOrSubTypeOfSecond(typeSymbol, parameterType);
                     if (result.relation == ERelation.HAS_RELATION) {
-                        typeSymbols.add(typeSymbol);
+                        typeSymbols.add(copyIfRequired(typeSymbol));
                     } else {
                         result = typeHelper.isFirstSameOrSubTypeOfSecond(parameterType, typeSymbol);
                         if (result.relation == ERelation.HAS_RELATION) {
-                            typeSymbols.add(parameterType);
+                            typeSymbols.add(copyIfRequired(parameterType));
                         }
                     }
                 }
@@ -426,6 +430,24 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
         return argumentApplies;
     }
 
+    private ITypeSymbol copyIfRequired(ITypeSymbol typeSymbol) {
+        ITypeSymbol fixedTypeSymbol = typeSymbol;
+        if (typeSymbol instanceof IPolymorphicTypeSymbol) {
+            IPolymorphicTypeSymbol polymorphicType = (IPolymorphicTypeSymbol) typeSymbol;
+            if (!polymorphicType.isFixed()) {
+                Collection<IParametricTypeSymbol> parametricTypeSymbols = new ArrayDeque<>();
+                fixedTypeSymbol = polymorphicType.copy(parametricTypeSymbols);
+                for (IParametricTypeSymbol parametricTypeSymbol : parametricTypeSymbols) {
+                    IBindingCollection copyBindings = symbolFactory.createBindingCollection(
+                            parametricTypeSymbol.getBindingCollection());
+                    copyBindings.bind(parametricTypeSymbol, parametricTypeSymbol.getTypeParameters());
+                    copyBindings.fixTypeParameters();
+                }
+            }
+        }
+        return fixedTypeSymbol;
+    }
+
     private OverloadRankingDto applyOverload(
             WorkItemDto workItemDto,
             IConstraint constraint,
@@ -450,7 +472,6 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
                 unionTypeSymbol.addTypeSymbol(entry.getValue().first);
                 leftBindings.setLowerTypeBounds(typeVariable, unionTypeSymbol);
                 leftBindings.removeUpperTypeBounds(typeVariable);
-
             }
         } else {
             runtimeChecks = null;

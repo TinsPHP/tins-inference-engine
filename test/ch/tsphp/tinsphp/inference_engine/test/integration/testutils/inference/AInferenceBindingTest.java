@@ -60,9 +60,7 @@ public class AInferenceBindingTest extends AInferenceTest
 
             for (int i = 0; i < size; ++i) {
                 try {
-                    assertThat(bindings, hasItem(withVariableBindings(
-                            testStruct.dtos.get(i)
-                    )));
+                    assertThat(bindings, hasItem(withVariableBindings(testStruct.dtos.get(i))));
                 } catch (AssertionError ex) {
                     Assert.fail(testString + " -- " + testStruct.astText
                             + " failed (testStruct Nr " + counter + "). "
