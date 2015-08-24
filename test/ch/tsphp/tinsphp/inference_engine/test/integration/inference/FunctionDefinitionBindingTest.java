@@ -342,6 +342,32 @@ public class FunctionDefinitionBindingTest extends AInferenceBindingTest
                                         varBinding("errAdd()$x", "V6", null, asList("mixed"), true)
                                 )
                         ), 1, 0, 2)
+                },
+                {
+                        "function fixConvertible($x){$a \n= $x \n+ 1; \nreturn 2;}",
+                        testStructs("fixConvertible()", "\\.\\.", matcherDtos(
+                                matcherDto(
+                                        varBinding("fixConvertible()+@3|0", "V1", asList("int"), null, true),
+                                        varBinding("fixConvertible()$x", "V2", null, asList("int"), true),
+                                        varBinding("1@3|2", "V3", asList("int"), null, true),
+                                        varBinding("fixConvertible()$a", "V4", asList("int"), null, true),
+                                        varBinding("fixConvertible()=@2|0", "V4", asList("int"), null, true),
+                                        varBinding("return@4|0", "V6", asList("int"), null, true),
+                                        varBinding("2@4|7", "V7", asList("int"), null, true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V8", asList("int"), null, true)
+                                ),
+                                matcherDto(
+                                        varBinding("fixConvertible()+@3|0", "V1", null, asList("(float | int)"), true),
+                                        varBinding("fixConvertible()$x", "V2", null,
+                                                asList("{as (float | int)}"), true),
+                                        varBinding("1@3|2", "V3", asList("int"), null, true),
+                                        varBinding("fixConvertible()$a", "V4", asList("int", "float"), null, true),
+                                        varBinding("fixConvertible()=@2|0", "V4", asList("int", "float"), null, true),
+                                        varBinding("return@4|0", "V6", asList("int"), null, true),
+                                        varBinding("2@4|7", "V7", asList("int"), null, true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V8", asList("int"), null, true)
+                                )
+                        ), 1, 0, 2)
                 }
         });
     }
