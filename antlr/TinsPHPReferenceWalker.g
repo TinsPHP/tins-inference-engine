@@ -953,7 +953,11 @@ postFixExpression
 // This rules are needed to resolve variables/function calls etc. in expression and actualParameters
     :   //TODO TINS-161 inference OOP
         //^(FIELD_ACCESS expression Identifier)
-       ^(ARRAY_ACCESS expression expression)
+        ^(op=ARRAY_ACCESS arr=expression key=expression)
+        {
+            op.setSymbol(controller.resolveOperator(op));
+            controller.createOperatorConstraint(currentScope, op, $arr.start, $key.start);
+        }
     //TODO TINS-161 inference OOP
     //|   ^(METHOD_CALL_POSTFIX expression Identifier actualParameters)
     ;
