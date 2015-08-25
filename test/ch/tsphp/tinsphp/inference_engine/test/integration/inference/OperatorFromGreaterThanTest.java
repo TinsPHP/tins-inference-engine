@@ -231,8 +231,8 @@ public class OperatorFromGreaterThanTest extends AInferenceNamespaceTypeTest
                 {"~1.2;", testStructs("(~ 1.2)", "\\.\\.", asList("int"), 1, 0, 0)},
                 {"~'a';", testStructs("(~ 'a')", "\\.\\.", asList("string"), 1, 0, 0)},
                 //!
-                {"!false;", testStructs("(! false)", "\\.\\.", asList("trueType"), 1, 0, 0)},
-                {"!true;", testStructs("(! true)", "\\.\\.", asList("falseType"), 1, 0, 0)},
+                {"!false;", testStructs("(! false)", "\\.\\.", bool, 1, 0, 0)},
+                {"!true;", testStructs("(! true)", "\\.\\.", bool, 1, 0, 0)},
                 {"!(1 ? true : false);", testStructs("(! (? 1 true false))", "\\.\\.", bool, 1, 0, 0)},
                 {"!1;", testStructs("(! 1)", "\\.\\.", bool, 1, 0, 0)},
                 {"!'a';", testStructs("(! 'a')", "\\.\\.", bool, 1, 0, 0)},
