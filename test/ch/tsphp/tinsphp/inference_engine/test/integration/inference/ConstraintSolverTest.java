@@ -464,7 +464,6 @@ public class ConstraintSolverTest
         IConstraintSolverHelper constraintSolverHelper = new ConstraintSolverHelper(
                 symbolFactory,
                 typeHelper,
-                inferenceIssueReporter,
                 mostSpecificOverloadDecider,
                 dependencyConstraintSolver,
                 dependencies,

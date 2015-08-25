@@ -133,7 +133,6 @@ public abstract class AReferenceTest extends ADefinitionTest
         IConstraintSolverHelper constraintSolverHelper = new ConstraintSolverHelper(
                 symbolFactory,
                 typeHelper,
-                inferenceIssueReporter,
                 mostSpecificOverloadDecider,
                 dependencyConstraintSolver,
                 dependencies,

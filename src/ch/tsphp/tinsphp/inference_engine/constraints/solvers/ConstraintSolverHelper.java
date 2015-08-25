@@ -18,7 +18,6 @@ import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableReference;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import ch.tsphp.tinsphp.common.inference.constraints.OverloadApplicationDto;
-import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.symbols.IContainerTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IIntersectionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
@@ -56,7 +55,6 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
 {
     private final ISymbolFactory symbolFactory;
     private final ITypeHelper typeHelper;
-    private final IInferenceIssueReporter issueReporter;
     private final IMostSpecificOverloadDecider mostSpecificOverloadDecider;
     private final IDependencyConstraintSolver dependencyConstraintSolver;
     private final ITypeSymbol mixedTypeSymbol;
@@ -70,7 +68,6 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
     public ConstraintSolverHelper(
             ISymbolFactory theSymbolFactory,
             ITypeHelper theTypeHelper,
-            IInferenceIssueReporter theIssueReporter,
             IMostSpecificOverloadDecider theMostSpecificOverloadDecider,
             IDependencyConstraintSolver theDependencyConstraintSolver,
             Map<String, Set<String>> theDependencies,
@@ -78,7 +75,6 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
             Map<String, Set<WorkItemDto>> theUnsolvedWorkItems) {
         symbolFactory = theSymbolFactory;
         typeHelper = theTypeHelper;
-        issueReporter = theIssueReporter;
         mostSpecificOverloadDecider = theMostSpecificOverloadDecider;
         dependencyConstraintSolver = theDependencyConstraintSolver;
         dependencies = theDependencies;

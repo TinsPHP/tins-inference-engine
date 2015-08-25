@@ -114,7 +114,6 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
         IConstraintSolverHelper constraintSolverHelper = new ConstraintSolverHelper(
                 symbolFactory,
                 typeHelper,
-                inferenceIssueReporter,
                 mostSpecificOverloadDecider,
                 dependencyConstraintSolver,
                 dependencies,
