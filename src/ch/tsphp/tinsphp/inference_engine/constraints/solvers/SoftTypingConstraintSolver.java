@@ -8,6 +8,7 @@ package ch.tsphp.tinsphp.inference_engine.constraints.solvers;
 
 import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.TinsPHPConstants;
+import ch.tsphp.tinsphp.common.inference.constraints.BoundException;
 import ch.tsphp.tinsphp.common.inference.constraints.EBindingCollectionMode;
 import ch.tsphp.tinsphp.common.inference.constraints.FixedTypeVariableReference;
 import ch.tsphp.tinsphp.common.inference.constraints.IBindingCollection;
@@ -291,9 +292,13 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
                     Map<Integer, Pair<ITypeSymbol, List<ITypeSymbol>>> runtimeChecks = new HashMap<>();
                     boolean overloadApplies = isApplicable(constraint, overload, leftBindings, runtimeChecks);
                     if (overloadApplies) {
-                        OverloadRankingDto dto = applyOverload(
-                                workItemDto, constraint, overload, leftBindings, runtimeChecks);
-                        applicableOverloads.add(dto);
+                        try {
+                            OverloadRankingDto dto = applyOverload(
+                                    workItemDto, constraint, overload, leftBindings, runtimeChecks);
+                            applicableOverloads.add(dto);
+                        } catch (BoundException ex) {
+                            //ok, must be a lower type exception
+                        }
                     }
                 }
             }
