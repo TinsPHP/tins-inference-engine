@@ -71,6 +71,7 @@ public class ReferencePhaseController implements IReferencePhaseController
     private final List<IMethodSymbol> methodSymbols = new ArrayList<>();
 
 
+    @SuppressWarnings("checkstyle:parameternumber")
     public ReferencePhaseController(
             ISymbolFactory theSymbolFactory,
             IInferenceIssueReporter theInferenceErrorReporter,

@@ -25,6 +25,7 @@ import ch.tsphp.tinsphp.common.issues.IssueReporterHelper;
 import ch.tsphp.tinsphp.common.issues.ReferenceIssueDto;
 import ch.tsphp.tinsphp.common.issues.WrongArgumentTypeIssueDto;
 import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
+import ch.tsphp.tinsphp.common.symbols.IUnionTypeSymbol;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -180,7 +181,12 @@ public class InferenceIssueReporter implements IInferenceIssueReporter
         String[] actualParameterTypes = new String[numberOfArguments];
         for (int i = 0; i < numberOfArguments; ++i) {
             String typeVariable = bindings.getTypeVariable(arguments.get(i).getAbsoluteName());
-            actualParameterTypes[i] = bindings.getLowerTypeBounds(typeVariable).getAbsoluteName();
+            IUnionTypeSymbol lowerTypeBounds = bindings.getLowerTypeBounds(typeVariable);
+            if (lowerTypeBounds != null) {
+                actualParameterTypes[i] = lowerTypeBounds.getAbsoluteName();
+            } else {
+                actualParameterTypes[i] = "_";
+            }
         }
 
         return addAndGetWrongArgumentTypeException(key, severity, constraint, identifier, actualParameterTypes);
