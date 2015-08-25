@@ -11,6 +11,7 @@ import ch.tsphp.common.exceptions.DefinitionException;
 import ch.tsphp.common.exceptions.ReferenceException;
 import ch.tsphp.common.exceptions.TSPHPException;
 import ch.tsphp.common.symbols.ISymbol;
+import ch.tsphp.common.symbols.ITypeSymbol;
 import ch.tsphp.tinsphp.common.gen.TokenTypes;
 import ch.tsphp.tinsphp.common.inference.constraints.IBindingCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraint;
@@ -25,7 +26,6 @@ import ch.tsphp.tinsphp.common.issues.IssueReporterHelper;
 import ch.tsphp.tinsphp.common.issues.ReferenceIssueDto;
 import ch.tsphp.tinsphp.common.issues.WrongArgumentTypeIssueDto;
 import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
-import ch.tsphp.tinsphp.common.symbols.IUnionTypeSymbol;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -181,11 +181,14 @@ public class InferenceIssueReporter implements IInferenceIssueReporter
         String[] actualParameterTypes = new String[numberOfArguments];
         for (int i = 0; i < numberOfArguments; ++i) {
             String typeVariable = bindings.getTypeVariable(arguments.get(i).getAbsoluteName());
-            IUnionTypeSymbol lowerTypeBounds = bindings.getLowerTypeBounds(typeVariable);
-            if (lowerTypeBounds != null) {
-                actualParameterTypes[i] = lowerTypeBounds.getAbsoluteName();
+            ITypeSymbol typeSymbol = bindings.getLowerTypeBounds(typeVariable);
+            if (typeSymbol == null) {
+                typeSymbol = bindings.getUpperTypeBounds(typeVariable);
+            }
+            if (typeSymbol != null) {
+                actualParameterTypes[i] = typeSymbol.getAbsoluteName();
             } else {
-                actualParameterTypes[i] = "_";
+                actualParameterTypes[i] = "mixed";
             }
         }
 
