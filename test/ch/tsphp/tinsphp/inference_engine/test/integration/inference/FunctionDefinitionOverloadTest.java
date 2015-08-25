@@ -606,6 +606,15 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                                         ))
                                 ), 1, 2, 2)
                         }
+                },
+                //see TINS-663 soft typing and increment operator
+                {
+                        "function foo5(){$a = [1]; $a = 1; ~$a; for($i = 0; $i < 10; ++$i){} return 1;}",
+                        testStructs("foo5()", "\\.\\.", functionDtos(
+                                functionDto("foo5()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "V16", asList("int"), null, true)
+                                ))
+                        ), 1, 0, 2),
                 }
         });
     }
