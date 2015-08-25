@@ -26,7 +26,6 @@ import ch.tsphp.tinsphp.common.symbols.IParametricTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IPolymorphicTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.IUnionTypeSymbol;
-import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.common.utils.ERelation;
 import ch.tsphp.tinsphp.common.utils.ITypeHelper;
 import ch.tsphp.tinsphp.common.utils.Pair;
@@ -86,16 +85,15 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
         workItemDto.isInSoftTypingMode = true;
         workItemDto.param2LowerParams = new HashMap<>();
 
-        if (constraintCollection instanceof IMethodSymbol) {
-            workItemDto.bindingCollection = symbolFactory.createBindingCollection();
-            workItemDto.bindingCollection.setMode(EBindingCollectionMode.SoftTyping);
-            List<IConstraint> constraints = constraintCollection.getConstraints();
-            int size = constraints.size();
-            for (int i = 0; i < size; ++i) {
-                workItemDto.pointer = i;
-                aggregateLowerBounds(workItemDto);
-            }
+        workItemDto.bindingCollection = symbolFactory.createBindingCollection();
+        workItemDto.bindingCollection.setMode(EBindingCollectionMode.SoftTyping);
+        List<IConstraint> constraints = constraintCollection.getConstraints();
+        int size = constraints.size();
+        for (int i = 0; i < size; ++i) {
+            workItemDto.pointer = i;
+            aggregateLowerBounds(workItemDto);
         }
+
         return workItemDto;
     }
 
@@ -128,7 +126,7 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
 
     @Override
     public void solveConstraints(IConstraintCollection constraintCollection, WorkItemDto workItemDto) {
-        initWorkListDtoBindingCollection(constraintCollection, workItemDto);
+        initWorkListDtoBindingCollection(workItemDto);
 
         //TODO TINS-535 improve precision in soft typing for unconstrained parameters
         //idea how precision of parametric parameters could be enhanced (instead of using mixed as above)
@@ -167,55 +165,17 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
         }
     }
 
-    private void initWorkListDtoBindingCollection(IConstraintCollection constraintCollection, WorkItemDto workItemDto) {
+    private void initWorkListDtoBindingCollection(WorkItemDto workItemDto) {
 
         IBindingCollection softTypingBindings = workItemDto.bindingCollection;
         workItemDto.bindingCollection = symbolFactory.createBindingCollection();
 
-        if (constraintCollection instanceof IMethodSymbol) {
-            IMethodSymbol methodSymbol = (IMethodSymbol) constraintCollection;
-
-            Set<String> parameterTypeVariables = new HashSet<>();
-            for (IVariableSymbol parameter : methodSymbol.getParameters()) {
-                String parameterId = parameter.getAbsoluteName();
+        Set<String> typeVariables = new HashSet<>();
+        for (String variableId : softTypingBindings.getVariableIds()) {
+            if (variableId.contains("$")) {
                 String typeVariable = addVariableToLeftBindings(
-                        parameterId, softTypingBindings, workItemDto.bindingCollection);
-                parameterTypeVariables.add(typeVariable);
-            }
-
-            for (IVariableSymbol parameter : methodSymbol.getParameters()) {
-                String parameterId = parameter.getAbsoluteName();
-                String typeVariable = softTypingBindings.getTypeVariable(parameterId);
-                addUpperRefBoundsToWorklistBindings(workItemDto, softTypingBindings, parameterTypeVariables,
-                        typeVariable);
-
-            }
-        }
-    }
-
-    private void addUpperRefBoundsToWorklistBindings(
-            WorkItemDto workItemDto,
-            IBindingCollection softTypingBindings,
-            Set<String> parameterTypeVariables,
-            String typeVariable) {
-
-        if (softTypingBindings.hasUpperRefBounds(typeVariable)) {
-            // param was probably assigned to a local variable (or a parameter), hence we need to add the local
-            // variable to the binding as well because otherwise it does not have the lower type bound we want
-            // which causes a LowerBoundException later on (see TINS-543 soft typing and cyclic variable references)
-            for (String refTypeVariable : softTypingBindings.getUpperRefBounds(typeVariable)) {
-                if (!parameterTypeVariables.contains(refTypeVariable)) {
-                    Set<String> variableIds = softTypingBindings.getVariableIds(refTypeVariable);
-                    for (String variableId : variableIds) {
-                        if (variableId.contains("$") && !workItemDto.bindingCollection.containsVariable(variableId)) {
-                            String newTypeVariable = addVariableToLeftBindings(
-                                    variableId, softTypingBindings, workItemDto.bindingCollection);
-
-                            addUpperRefBoundsToWorklistBindings(
-                                    workItemDto, softTypingBindings, parameterTypeVariables, newTypeVariable);
-                        }
-                    }
-                }
+                        variableId, softTypingBindings, workItemDto.bindingCollection);
+                typeVariables.add(typeVariable);
             }
         }
     }

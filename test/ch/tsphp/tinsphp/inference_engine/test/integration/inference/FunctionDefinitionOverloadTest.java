@@ -615,6 +615,14 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                                         varBinding(RETURN_VARIABLE_NAME, "V16", asList("int"), null, true)
                                 ))
                         ), 1, 0, 2),
+                },
+                {
+                        "function foo6(){foreach(['h','e','l','l','o'] as $v){echo $v;} return 1;}",
+                        testStructs("foo6()", "\\.\\.", functionDtos(
+                                functionDto("foo6()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "V8", asList("int"), null, true)
+                                ))
+                        ), 1, 0, 2),
                 }
         });
     }
