@@ -49,43 +49,11 @@ public class DependencyConstraintSolver implements IDependencyConstraintSolver
         String absoluteName = methodSymbol.getAbsoluteName();
 
         if (!workItemDto.isInSoftTypingMode) {
-            workItemDto.workDeque.add(workItemDto);
-            List<WorkItemDto> solvedWorkItems = constraintSolver.solveConstraints(workItemDto.workDeque);
-            Iterator<WorkItemDto> iterator = solvedWorkItems.iterator();
-            WorkItemDto newWorkItem = null;
-            if (iterator.hasNext()) {
-                newWorkItem = iterator.next();
-                // renew binding in order that the registered unsolved work item is up-to-date
-                workItemDto.bindingCollection = newWorkItem.bindingCollection;
-            }
-            boolean createDependencies = true;
-            if (workItemDto.dependentConstraints.isEmpty() && unsolvedWorkItems.containsKey(absoluteName)) {
-                Set<WorkItemDto> remainingUnsolved = unsolvedWorkItems.get(absoluteName);
-                remainingUnsolved.remove(workItemDto);
-                if (newWorkItem != null) {
-                    List<IBindingCollection> bindings = initOrGetBindings(methodSymbol);
-                    bindings.add(workItemDto.bindingCollection);
-
-                    // if we do not have remaining work items left which need to be solved,
-                    // then we can finalise the method.
-                    if (remainingUnsolved.isEmpty()) {
-                        createDependencies = false;
-                        while (iterator.hasNext()) {
-                            bindings.add(iterator.next().bindingCollection);
-                        }
-                        constraintSolverHelper.finishingMethodConstraints(methodSymbol, bindings);
-                    }
-                } else if (remainingUnsolved.isEmpty()) {
-                    createDependencies = false;
-                    softTypingConstraintSolver.fallBackToSoftTyping(methodSymbol);
-                }
-            }
-            if (createDependencies) {
-                while (iterator.hasNext()) {
-                    newWorkItem = iterator.next();
-                    newWorkItem.pointer = workItemDto.pointer;
-                    constraintSolverHelper.createDependencies(newWorkItem);
-                }
+            // the work item might already be invalid due to another dependency. In such a case we remove it from
+            // unsolvedWorkItems but not from directDependencies (see ConstraintSolverHelper)
+            if (unsolvedWorkItems.containsKey(absoluteName)
+                    && unsolvedWorkItems.get(absoluteName).contains(workItemDto)) {
+                solveDependency(methodSymbol, workItemDto);
             }
         } else {
             softTypingConstraintSolver.aggregateLowerBounds(workItemDto);
@@ -97,7 +65,50 @@ public class DependencyConstraintSolver implements IDependencyConstraintSolver
                 }
             }
         }
+    }
 
+    private void solveDependency(IMethodSymbol methodSymbol, WorkItemDto workItemDto) {
+        String absoluteName = methodSymbol.getAbsoluteName();
+        workItemDto.workDeque.add(workItemDto);
+        List<WorkItemDto> solvedWorkItems = constraintSolver.solveConstraints(workItemDto.workDeque);
+        Iterator<WorkItemDto> iterator = solvedWorkItems.iterator();
+        WorkItemDto newWorkItem = null;
+        if (iterator.hasNext()) {
+            newWorkItem = iterator.next();
+            // renew binding in order that the registered unsolved work item is up-to-date
+            workItemDto.bindingCollection = newWorkItem.bindingCollection;
+        } else {
+            unsolvedWorkItems.get(absoluteName).remove(workItemDto);
+        }
+        boolean createDependencies = true;
+        if (workItemDto.dependentConstraints.isEmpty()) {
+            Set<WorkItemDto> remainingUnsolved = unsolvedWorkItems.get(absoluteName);
+            remainingUnsolved.remove(workItemDto);
+            if (newWorkItem != null) {
+                List<IBindingCollection> bindings = initOrGetBindings(methodSymbol);
+                bindings.add(workItemDto.bindingCollection);
+
+                // if we do not have remaining work items left which need to be solved,
+                // then we can finalise the method.
+                if (remainingUnsolved.isEmpty()) {
+                    createDependencies = false;
+                    while (iterator.hasNext()) {
+                        bindings.add(iterator.next().bindingCollection);
+                    }
+                    constraintSolverHelper.finishingMethodConstraints(methodSymbol, bindings);
+                }
+            } else if (remainingUnsolved.isEmpty()) {
+                createDependencies = false;
+                softTypingConstraintSolver.fallBackToSoftTyping(methodSymbol);
+            }
+        }
+        if (createDependencies) {
+            while (iterator.hasNext()) {
+                newWorkItem = iterator.next();
+                newWorkItem.pointer = workItemDto.pointer;
+                constraintSolverHelper.createDependencies(newWorkItem);
+            }
+        }
     }
 
     private List<IBindingCollection> initOrGetBindings(IMethodSymbol methodSymbol) {

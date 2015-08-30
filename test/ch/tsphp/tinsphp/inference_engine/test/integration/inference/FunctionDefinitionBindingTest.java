@@ -387,6 +387,53 @@ public class FunctionDefinitionBindingTest extends AInferenceBindingTest
                                         varBinding(RETURN_VARIABLE_NAME, "V8", asList("int"), null, true)
                                 )
                         ), 1, 0, 2)
+                },
+                //see TINS-680 solving dependencies is erroneous
+                {
+                        "function force_balance_tags( $text) {\n"
+                                + "    $text = (string) myPregReplace('#<([0-9]{1})#', '&lt;$1', $text);\n"
+                                + "    $regex=[];\n"
+                                + "    while ( myPregMatch(\"/<(\\/?[\\w:]*)\\s*([^>]*)>/\", $text, $regex) ) {\n"
+                                + "    }\n"
+                                + "    return null;\n"
+                                + "}\n"
+                                + "\n"
+                                + "function myPregMatch($pattern, $subject, array $matches) {\n"
+                                + "    if ($pattern.$subject) {\n"
+                                + "        return 1;\n"
+                                + "    }\n"
+                                + "    return false;\n"
+                                + "}\n"
+                                + "\n"
+                                + "function myPregReplace($pattern, $replacement, $subject) {\n"
+                                + "    return str_replace($pattern, $replacement, $subject);\n"
+                                + "}",
+                        testStructs("force_balance_tags()", "\\.\\.", matcherDtos(
+                                matcherDto(
+                                        varBinding("force_balance_tags()casting@2|12",
+                                                "V1", asList("string"), null, true),
+                                        varBinding("string@2|13", "V2", asList("string"), null, true),
+                                        varBinding("force_balance_tags()myPregReplace()@2|21",
+                                                "V3", asList("string", "array"), null, true),
+                                        varBinding("force_balance_tags()$text", "V4",
+                                                null, asList("(array | string)"), true),
+                                        varBinding("force_balance_tags()=@2|10", "V4",
+                                                null, asList("(array | string)"), true),
+                                        varBinding("force_balance_tags()$regex", "V6", asList("array"), null, true),
+                                        varBinding("force_balance_tags()=@3|10", "V6", asList("array"), null, true),
+                                        varBinding("array@3|11", "V8", asList("array"), null, true),
+                                        varBinding("while@4|4", "V9", asList("mixed"), null, true),
+                                        varBinding("return@6|4", "V11", asList("nullType"), null, true),
+                                        varBinding("force_balance_tags()myPregMatch()@4|12",
+                                                "V10", asList("falseType", "int"), null, true),
+                                        varBinding("null@6|11", "V12", asList("nullType"), null, true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V13", asList("nullType"), null, true),
+                                        varBinding("\"/<(\\/?[\\w:]*)\\s*([^>]*)>/\"@4|24",
+                                                "V14", asList("string"), null, true),
+                                        varBinding("'#<([0-9]{1})#'@2|35", "V15", asList("string"), null, true),
+                                        varBinding("'&lt;$1'@2|52", "V16", asList("string"), null, true)
+                                )
+                        ), 1, 0, 2)
                 }
         });
     }

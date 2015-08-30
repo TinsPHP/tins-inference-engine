@@ -523,8 +523,7 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                                 )), 1, 5, 2),
                         }
                 },
-                //indirect recursive function which produces more overloads once the dependent function is known. An
-                // erroneous one (bool x bool -> int) and a valid one (array x array -> array)
+                //indirect recursive function which produces more overloads once the dependent function is known.
                 {
                         "function foo3($x, $y){ return bar3($x, $y); }"
                                 + "function bar3($x, $y){ return $x > 10 ? foo3($x + $y, $y) : $y;}",
@@ -847,7 +846,7 @@ public class FunctionDefinitionOverloadRecursiveTest extends AInferenceOverloadT
                                 ))
                         ), 1, 0, 2)
                 },
-//                parametric polymorphic indirect recursive function
+                //parametric polymorphic indirect recursive function
                 {
                         "function fibGenA($n){return $n > 0 ? fibGenB($n-1) + fibGenB($n-2) : $n;}\n"
                                 + "function fibGenB($n){return $n > 0 ? fibGenA($n-1) + fibGenA($n-2) : $n;}",
