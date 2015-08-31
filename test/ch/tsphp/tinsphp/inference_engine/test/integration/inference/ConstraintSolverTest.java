@@ -56,6 +56,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static ch.tsphp.tinsphp.common.TinsPHPConstants.RETURN_VARIABLE_NAME;
 import static ch.tsphp.tinsphp.core.StandardConstraintAndVariables.T_LHS;
@@ -68,8 +70,6 @@ import static ch.tsphp.tinsphp.inference_engine.test.integration.testutils.Bindi
         .withVariableBindings;
 import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsCollectionContaining.hasItem;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -168,20 +168,18 @@ public class ConstraintSolverTest
         IConstraintSolver constraintSolver = createConstraintSolver(symbolFactory, typeHelper, issueReporter);
         constraintSolver.solveConstraints(asList(methodSymbol), mock(IGlobalNamespaceScope.class));
 
-        ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
-        verify(methodSymbol).setBindings(captor.capture());
-        List<IBindingCollection> bindingsList = captor.getValue();
-        IBindingCollection bindings = bindingsList.get(0);
+        ArgumentCaptor<IBindingCollection> captor = ArgumentCaptor.forClass(IBindingCollection.class);
+        verify(methodSymbol).addBindingCollection(captor.capture());
+        IBindingCollection result = captor.getValue();
 
-        assertThat(bindings, withVariableBindings(
-                varBinding("$x", "T1", null, asList("(float | int)", "@T2"), false),
-                varBinding("$y", "V3", null, asList("{as T1}"), true),
-                varBinding("$z", "V5", null, asList("{as T2}"), true),
-                varBinding("e1", "T1", null, asList("(float | int)", "@T2"), false),
-                varBinding("e2", "T2", asList("@T1"), asList("(float | int)"), false),
-                varBinding("rtn", "T2", asList("@T1"), asList("(float | int)"), false)
+        assertThat(result, withVariableBindings(
+                varBinding("$x", "V1", null, asList("(float | int)", "@V4"), false),
+                varBinding("$y", "V3", null, asList("{as V1}"), false),
+                varBinding("$z", "V5", null, asList("{as V4}"), false),
+                varBinding("e1", "V1", null, asList("(float | int)", "@V4"), false),
+                varBinding("e2", "V4", asList("@V1"), asList("(float | int)", "@V6"), false),
+                varBinding("rtn", "V6", asList("@V4"), null, false)
         ));
-        assertThat(bindingsList.size(), is(1));
     }
 
     @Test
@@ -260,20 +258,18 @@ public class ConstraintSolverTest
         IConstraintSolver constraintSolver = createConstraintSolver(symbolFactory, typeHelper, issueReporter);
         constraintSolver.solveConstraints(asList(methodSymbol), mock(IGlobalNamespaceScope.class));
 
-        ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
-        verify(methodSymbol).setBindings(captor.capture());
-        List<IBindingCollection> bindingsList = captor.getValue();
+        ArgumentCaptor<IBindingCollection> captor = ArgumentCaptor.forClass(IBindingCollection.class);
+        verify(methodSymbol).addBindingCollection(captor.capture());
+        IBindingCollection result = captor.getValue();
 
-        assertThat(bindingsList, hasItem(withVariableBindings(
-                varBinding("$x", "V2", null, asList("{as T2}"), true),
-                varBinding("$y", "V3", null, asList("{as T2}"), true),
-                varBinding("$z", "V5", null, asList("{as T1}"), true),
-                varBinding("e1", "T2", null, asList("(float | int)", "@T1"), false),
-                varBinding("e2", "T1", asList("@T2"), asList("(float | int)"), false),
-                varBinding("rtn", "T1", asList("@T2"), asList("(float | int)"), false)
-        )));
-
-        assertThat(bindingsList.size(), is(1));
+        assertThat(result, withVariableBindings(
+                varBinding("$x", "V2", null, asList("{as V1}"), false),
+                varBinding("$y", "V3", null, asList("{as V1}"), false),
+                varBinding("$z", "V5", null, asList("{as V4}"), false),
+                varBinding("e1", "V1", null, asList("(float | int)", "@V4"), false),
+                varBinding("e2", "V4", asList("@V1"), asList("(float | int)", "@V6"), false),
+                varBinding("rtn", "V6", asList("@V4"), null, false)
+        ));
     }
 
     @Test
@@ -347,19 +343,17 @@ public class ConstraintSolverTest
         IConstraintSolver constraintSolver = createConstraintSolver(symbolFactory, typeHelper, issueReporter);
         constraintSolver.solveConstraints(asList(methodSymbol), mock(IGlobalNamespaceScope.class));
 
-        ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
-        verify(methodSymbol).setBindings(captor.capture());
-        List<IBindingCollection> bindingsList = captor.getValue();
+        ArgumentCaptor<IBindingCollection> captor = ArgumentCaptor.forClass(IBindingCollection.class);
+        verify(methodSymbol).addBindingCollection(captor.capture());
+        IBindingCollection result = captor.getValue();
 
-        assertThat(bindingsList, hasItem(withVariableBindings(
-                varBinding("$x", "V2", null, asList("int"), true),
-                varBinding("$y", "V4", null, asList("float"), true),
-                varBinding("e1", "V1", asList("int"), null, true),
-                varBinding("e2", "V3", asList("float"), null, true),
-                varBinding("rtn", "V5", asList("float"), null, true)
-        )));
-
-        assertThat(bindingsList.size(), is(1));
+        assertThat(result, withVariableBindings(
+                varBinding("$x", "V2", null, asList("int"), false),
+                varBinding("$y", "V4", null, asList("float"), false),
+                varBinding("e1", "V1", asList("int"), null, false),
+                varBinding("e2", "V3", asList("float"), asList("@V5"), false),
+                varBinding("rtn", "V5", asList("float", "@V3"), null, false)
+        ));
     }
 
     @Test
@@ -433,19 +427,17 @@ public class ConstraintSolverTest
         IConstraintSolver constraintSolver = createConstraintSolver(symbolFactory, typeHelper, issueReporter);
         constraintSolver.solveConstraints(asList(methodSymbol), mock(IGlobalNamespaceScope.class));
 
-        ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
-        verify(methodSymbol).setBindings(captor.capture());
-        List<IBindingCollection> bindingsList = captor.getValue();
+        ArgumentCaptor<IBindingCollection> captor = ArgumentCaptor.forClass(IBindingCollection.class);
+        verify(methodSymbol).addBindingCollection(captor.capture());
+        IBindingCollection result = captor.getValue();
 
-        assertThat(bindingsList, hasItem(withVariableBindings(
-                varBinding("$x", "V2", null, asList("int"), true),
-                varBinding("$y", "V4", null, asList("int"), true),
-                varBinding("e1", "V1", asList("float"), null, true),
-                varBinding("e2", "V3", asList("int"), null, true),
-                varBinding("rtn", "V5", asList("int"), null, true)
-        )));
-
-        assertThat(bindingsList.size(), is(1));
+        assertThat(result, withVariableBindings(
+                varBinding("$x", "V2", null, asList("int"), false),
+                varBinding("$y", "V4", null, asList("int"), false),
+                varBinding("e1", "V1", asList("float"), null, false),
+                varBinding("e2", "V3", asList("int"), asList("@V5"), false),
+                varBinding("rtn", "V5", asList("int", "@V3"), null, false)
+        ));
     }
 
     private IConstraintSolver createConstraintSolver(
@@ -488,12 +480,14 @@ public class ConstraintSolverTest
                 directDependencies,
                 unsolvedConstraints);
 
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
         IConstraintSolver constraintSolver = new ConstraintSolver(
                 symbolFactory,
                 iterativeConstraintSolver,
                 softTypingConstraintSolver,
                 constraintSolverHelper,
-                unsolvedConstraints);
+                unsolvedConstraints,
+                executorService);
 
         dependencyConstraintSolver.setDependencies(constraintSolver, constraintSolverHelper,
                 softTypingConstraintSolver);

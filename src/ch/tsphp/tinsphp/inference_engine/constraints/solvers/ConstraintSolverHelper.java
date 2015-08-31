@@ -819,11 +819,11 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
         return isOneToOne;
     }
 
-
     @Override
     public void createDependencies(WorkItemDto workItemDto) {
         List<IConstraint> constraints = workItemDto.constraintCollection.getConstraints();
         String absoluteName = workItemDto.constraintCollection.getAbsoluteName();
+
         for (Integer pointer : workItemDto.dependentConstraints) {
             String refAbsoluteName = constraints.get(pointer).getMethodSymbol().getAbsoluteName();
             MapHelper.addToListInMap(directDependencies, refAbsoluteName, pair(workItemDto, pointer));
@@ -836,10 +836,13 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
     }
 
     @Override
-    public void finishingMethodConstraints(IMethodSymbol methodSymbol, List<IBindingCollection> bindings) {
-        methodSymbol.setBindings(bindings);
-        createOverloads(methodSymbol, bindings);
+    public void finishingMethodConstraints(IMethodSymbol methodSymbol) {
+        createOverloads(methodSymbol);
+        solveDependentConstraints(methodSymbol);
+    }
 
+    @Override
+    public void solveDependentConstraints(IMethodSymbol methodSymbol) {
         String methodName = methodSymbol.getAbsoluteName();
         if (directDependencies.containsKey(methodName)) {
             dependencies.remove(methodName);
@@ -850,8 +853,8 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
         unsolvedWorkItems.remove(methodName);
     }
 
-    private void createOverloads(IMethodSymbol methodSymbol, List<IBindingCollection> bindingsList) {
-        for (IBindingCollection bindings : bindingsList) {
+    private void createOverloads(IMethodSymbol methodSymbol) {
+        for (IBindingCollection bindings : methodSymbol.getBindings()) {
             createOverload(methodSymbol, bindings);
         }
     }

@@ -32,7 +32,9 @@ public interface IConstraintSolverHelper
 
     void createDependencies(WorkItemDto workItemDto);
 
-    void finishingMethodConstraints(IMethodSymbol methodSymbol, List<IBindingCollection> bindings);
+    void finishingMethodConstraints(IMethodSymbol methodSymbol);
 
     IFunctionType createOverload(IMethodSymbol methodSymbol, IBindingCollection bindings);
+
+    void solveDependentConstraints(IMethodSymbol methodSymbol);
 }

@@ -228,7 +228,8 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
                     collectionsWhichChanged.add(absoluteName);
                 }
                 if (dtos.isEmpty()) {
-                    throw new UnsupportedOperationException("oho... indirect recursion and soft typing");
+                    throw new UnsupportedOperationException("oho... indirect recursion and soft typing detected for "
+                            + workItemDto.constraintCollection.getAbsoluteName());
                 }
             }
         }
@@ -270,12 +271,10 @@ public class IterativeConstraintSolver implements IIterativeConstraintSolver
             mapping.put(overload, workItemDto);
         }
 
-        List<IBindingCollection> solvedBindings = new ArrayList<>();
         for (IFunctionType functionType : methodSymbol.getOverloads()) {
-            solvedBindings.add(functionType.getBindingCollection());
+            methodSymbol.addBindingCollection(functionType.getBindingCollection());
             mapping.remove(functionType);
         }
-        methodSymbol.setBindings(solvedBindings);
 
         // remove the WorklistDtos which were not chosen as overloads from the unresolved list.
         // Otherwise the applied overloads are recalculated for them nonetheless.

@@ -22,9 +22,13 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 public class ConstraintSolver implements IConstraintSolver
 {
+    private final ExecutorService executorService;
     private final ISymbolFactory symbolFactory;
     private final IIterativeConstraintSolver iterativeConstraintSolver;
     private final ISoftTypingConstraintSolver softTypingConstraintSolver;
@@ -38,20 +42,40 @@ public class ConstraintSolver implements IConstraintSolver
             IIterativeConstraintSolver theIterativeConstraintSolver,
             ISoftTypingConstraintSolver theSoftTypingConstraintSolver,
             IConstraintSolverHelper theConstraintSolverHelper,
-            Map<String, Set<WorkItemDto>> theUnsolvedWorkItems) {
+            Map<String, Set<WorkItemDto>> theUnsolvedWorkItems,
+            ExecutorService theExecutorService) {
 
         symbolFactory = theSymbolFactory;
         iterativeConstraintSolver = theIterativeConstraintSolver;
         softTypingConstraintSolver = theSoftTypingConstraintSolver;
         constraintSolverHelper = theConstraintSolverHelper;
         unsolvedWorkItems = theUnsolvedWorkItems;
+        executorService = theExecutorService;
     }
 
     @Override
     public void solveConstraints(List<IMethodSymbol> methodSymbols, IGlobalNamespaceScope globalDefaultNamespaceScope) {
+        List<Future> futures = new ArrayList<>();
         for (IMethodSymbol methodSymbol : methodSymbols) {
             Deque<WorkItemDto> workDeque = createInitialWorklist(methodSymbol, true);
-            solveMethodConstraints(methodSymbol, workDeque);
+            Future<?> future = executorService.submit(new MethodConstraintSolver(methodSymbol, workDeque));
+            futures.add(future);
+        }
+
+        for (Future future : futures) {
+            try {
+                future.get();
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        //we need to reiterate the methods since we might have missed that a work item has a dependency
+        for (IMethodSymbol methodSymbol : methodSymbols) {
+            List<IBindingCollection> bindings = methodSymbol.getBindings();
+            if (!bindings.isEmpty()) {
+                constraintSolverHelper.solveDependentConstraints(methodSymbol);
+            }
         }
 
         if (!unsolvedWorkItems.isEmpty()) {
@@ -78,35 +102,14 @@ public class ConstraintSolver implements IConstraintSolver
         if (workItemDtos.isEmpty()) {
             softTypingConstraintSolver.fallBackToSoftTyping(globalDefaultNamespaceScope);
         } else {
-            List<IBindingCollection> bindings = getBindings(workItemDtos);
+            IBindingCollection bindingCollection = workItemDtos.get(0).bindingCollection;
             //Warning! start code duplication - same as in SoftTypingConstraintSolver
-            globalDefaultNamespaceScope.setBindings(bindings);
-            IBindingCollection bindingCollection = bindings.get(0);
+            globalDefaultNamespaceScope.addBindingCollection(bindingCollection);
             for (String variableId : bindingCollection.getVariableIds()) {
                 bindingCollection.fixType(variableId);
             }
             //Warning! end code duplication - same as in SoftTypingConstraintSolver
         }
-    }
-
-    private void solveMethodConstraints(IMethodSymbol methodSymbol, Deque<WorkItemDto> workDeque) {
-        List<WorkItemDto> workItemDtos = solveConstraints(workDeque);
-        if (!workItemDtos.isEmpty()) {
-            List<IBindingCollection> bindings = getBindings(workItemDtos);
-            constraintSolverHelper.finishingMethodConstraints(methodSymbol, bindings);
-        } else if (!unsolvedWorkItems.containsKey(methodSymbol.getAbsoluteName())) {
-            //does not have any dependencies and still cannot be solved
-            //need to fallback to soft typing
-            softTypingConstraintSolver.fallBackToSoftTyping(methodSymbol);
-        }
-    }
-
-    private List<IBindingCollection> getBindings(List<WorkItemDto> workItemDtos) {
-        List<IBindingCollection> bindings = new ArrayList<>(workItemDtos.size());
-        for (WorkItemDto workItemDto : workItemDtos) {
-            bindings.add(workItemDto.bindingCollection);
-        }
-        return bindings;
     }
 
     @Override
@@ -150,6 +153,34 @@ public class ConstraintSolver implements IConstraintSolver
             //proceed with the rest
             ++workItemDto.pointer;
             workItemDto.workDeque.add(workItemDto);
+        }
+    }
+
+    private class MethodConstraintSolver implements Runnable
+    {
+        private final IMethodSymbol methodSymbol;
+        private final Deque<WorkItemDto> workDeque;
+
+        public MethodConstraintSolver(
+                IMethodSymbol theMethodSymbol, Deque<WorkItemDto> theWorkDeque) {
+            methodSymbol = theMethodSymbol;
+            workDeque = theWorkDeque;
+        }
+
+        @Override
+        public void run() {
+            List<WorkItemDto> workItemDtos = solveConstraints(workDeque);
+            if (!workItemDtos.isEmpty()) {
+                for (WorkItemDto workItemDto : workItemDtos) {
+                    methodSymbol.addBindingCollection(workItemDto.bindingCollection);
+                }
+                constraintSolverHelper.finishingMethodConstraints(methodSymbol);
+            } else if (!unsolvedWorkItems.containsKey(methodSymbol.getAbsoluteName())) {
+                //does not have any dependencies and still cannot be solved
+                //need to fallback to soft typing
+                unsolvedWorkItems.remove(methodSymbol.getAbsoluteName());
+                softTypingConstraintSolver.fallBackToSoftTyping(methodSymbol);
+            }
         }
     }
 }

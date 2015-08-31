@@ -30,6 +30,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.EnumSet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -192,8 +194,9 @@ public class InferenceEngineTest
         IAstHelper astHelper = new AstHelper(astAdaptor);
         ISymbolsInitialiser symbolsInitialiser = new HardCodedSymbolsInitialiser();
         ICoreInitialiser coreInitialiser = new HardCodedCoreInitialiser(astHelper, symbolsInitialiser);
-
-        return new HardCodedInferenceEngineInitialiser(astAdaptor, astHelper, symbolsInitialiser, coreInitialiser);
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        return new HardCodedInferenceEngineInitialiser(
+                astAdaptor, astHelper, symbolsInitialiser, coreInitialiser, executorService);
     }
 
 }

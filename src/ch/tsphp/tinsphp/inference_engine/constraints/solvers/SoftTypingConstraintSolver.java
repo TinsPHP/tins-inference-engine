@@ -39,10 +39,8 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static ch.tsphp.tinsphp.common.utils.Pair.pair;
 
@@ -147,17 +145,15 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
         workItemDto.isInSoftTypingMode = false;
         solveConstraintsAfterInit(constraintCollection, workItemDto);
 
-        workItemDto.bindingCollection.setMode(EBindingCollectionMode.Normal);
-        List<IBindingCollection> bindingCollections = new ArrayList<>(1);
-        bindingCollections.add(workItemDto.bindingCollection);
-
+        //Notice! workItemDto.bindingCollection is not the same binding collection as above
+        IBindingCollection bindingCollection = workItemDto.bindingCollection;
+        bindingCollection.setMode(EBindingCollectionMode.Normal);
+        constraintCollection.addBindingCollection(bindingCollection);
         if (constraintCollection instanceof IMethodSymbol) {
             IMethodSymbol methodSymbol = (IMethodSymbol) constraintCollection;
-            constraintSolverHelper.finishingMethodConstraints(methodSymbol, bindingCollections);
+            constraintSolverHelper.finishingMethodConstraints(methodSymbol);
         } else {
             //Warning! start code duplication - same as in ConstraintSolver
-            constraintCollection.setBindings(bindingCollections);
-            IBindingCollection bindingCollection = bindingCollections.get(0);
             for (String variableId : bindingCollection.getVariableIds()) {
                 bindingCollection.fixType(variableId);
             }
@@ -170,12 +166,10 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
         IBindingCollection softTypingBindings = workItemDto.bindingCollection;
         workItemDto.bindingCollection = symbolFactory.createBindingCollection();
 
-        Set<String> typeVariables = new HashSet<>();
         for (String variableId : softTypingBindings.getVariableIds()) {
             if (variableId.contains("$")) {
                 String typeVariable = addVariableToLeftBindings(
                         variableId, softTypingBindings, workItemDto.bindingCollection);
-                typeVariables.add(typeVariable);
             }
         }
     }

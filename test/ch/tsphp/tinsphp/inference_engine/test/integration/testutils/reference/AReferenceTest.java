@@ -66,6 +66,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.junit.Assert.assertFalse;
 
@@ -157,12 +159,14 @@ public abstract class AReferenceTest extends ADefinitionTest
                 directDependencies,
                 unsolvedConstraints);
 
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
         constraintSolver = createConstraintSolver(
                 symbolFactory,
                 iterativeConstraintSolver,
                 softTypingConstraintSolver,
                 constraintSolverHelper,
-                unsolvedConstraints
+                unsolvedConstraints,
+                executorService
         );
         dependencyConstraintSolver.setDependencies(
                 constraintSolver, constraintSolverHelper, softTypingConstraintSolver);
@@ -283,13 +287,14 @@ public abstract class AReferenceTest extends ADefinitionTest
             IIterativeConstraintSolver theIterativeConstraintSolver,
             ISoftTypingConstraintSolver theSoftTypingConstraintSolver,
             IConstraintSolverHelper theConstraintSolverHelper,
-            Map<String, Set<WorkItemDto>> theUnsolvedConstraints) {
+            Map<String, Set<WorkItemDto>> theUnsolvedConstraints,
+            ExecutorService executorService) {
         return new ConstraintSolver(
                 theSymbolFactory,
                 theIterativeConstraintSolver,
                 theSoftTypingConstraintSolver,
                 theConstraintSolverHelper,
-                theUnsolvedConstraints);
+                theUnsolvedConstraints, executorService);
     }
 
 

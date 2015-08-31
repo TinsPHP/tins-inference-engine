@@ -10,6 +10,7 @@ import ch.tsphp.tinsphp.common.inference.constraints.IBindingCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCollection;
 import ch.tsphp.tinsphp.common.inference.constraints.ITypeVariableReference;
 
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
@@ -59,8 +60,10 @@ public class WorkItemDto
         bindingCollection = theBindingCollection;
         helperVariableMapping = theHelperVariableMapping;
         hasChanged = hasItChanged;
+        if (dto.dependentConstraints != null) {
+            dependentConstraints = new ArrayList<>(dto.dependentConstraints);
+        }
 
-        dependentConstraints = dto.dependentConstraints;
         isInIterativeMode = dto.isInIterativeMode;
         isSolvingDependency = dto.isSolvingDependency;
         isInSoftTypingMode = dto.isInSoftTypingMode;

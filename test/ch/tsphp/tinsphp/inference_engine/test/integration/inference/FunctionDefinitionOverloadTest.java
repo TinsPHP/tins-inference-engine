@@ -623,6 +623,28 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                                         varBinding(RETURN_VARIABLE_NAME, "V8", asList("int"), null, true)
                                 ))
                         ), 1, 0, 2),
+                },
+                {
+                        "function foo7(){$a = bar7(1); $b = bar7(2); $a + $b; return $a - 1; return $b * 2;}"
+                                + "function bar7($x){return $x + 1;}",
+                        new OverloadTestStruct[]{
+                                testStruct("foo7()", "\\.\\.", functionDtos(
+                                        functionDto("foo7()", 0, bindingDtos(
+                                                varBinding(RETURN_VARIABLE_NAME, "V11", asList("int"), null, true)
+                                        ))
+                                ), 1, 0, 2),
+                                testStruct("bar7()", "\\.\\.", functionDtos(
+                                        functionDto("bar7()", 1, bindingDtos(
+                                                varBinding("bar7()$x", "V2", null, asList("int"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "V5", asList("int"), null, true)
+                                        )),
+                                        functionDto("bar7()", 1, bindingDtos(
+                                                varBinding("bar7()$x", "V2", null, asList("{as T}"), true),
+                                                varBinding(RETURN_VARIABLE_NAME, "T",
+                                                        asList("int"), asList("(float | int)"), false)
+                                        ))
+                                ), 1, 1, 2)
+                        }
                 }
         });
     }

@@ -20,6 +20,9 @@ import ch.tsphp.tinsphp.inference_engine.config.HardCodedInferenceEngineInitiali
 import ch.tsphp.tinsphp.symbols.config.HardCodedSymbolsInitialiser;
 import org.junit.Test;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.IsNot.not;
@@ -73,7 +76,9 @@ public class HardCodedInferenceEngineInitialiserTest
         IAstHelper astHelper = new AstHelper(astAdaptor);
         ISymbolsInitialiser symbolsInitialiser = new HardCodedSymbolsInitialiser();
         ICoreInitialiser coreInitialiser = new HardCodedCoreInitialiser(astHelper, symbolsInitialiser);
-        return new HardCodedInferenceEngineInitialiser(astAdaptor, astHelper, symbolsInitialiser, coreInitialiser);
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        return new HardCodedInferenceEngineInitialiser(
+                astAdaptor, astHelper, symbolsInitialiser, coreInitialiser, executorService);
     }
 
 }

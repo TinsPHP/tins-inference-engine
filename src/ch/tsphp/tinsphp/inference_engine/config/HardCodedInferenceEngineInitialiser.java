@@ -56,14 +56,15 @@ import ch.tsphp.tinsphp.inference_engine.utils.AstModificationHelper;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 
 public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInitialiser
 {
+    private final ExecutorService executorService;
     private final IScopeHelper scopeHelper;
     private final IModifierHelper modifierHelper;
     private final ISymbolFactory symbolFactory;
@@ -83,12 +84,14 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
             ITSPHPAstAdaptor theAstAdaptor,
             IAstHelper astHelper,
             ISymbolsInitialiser symbolsInitialiser,
-            ICoreInitialiser coreInitialiser) {
+            ICoreInitialiser coreInitialiser,
+            ExecutorService theExecutorService) {
 
         scopeHelper = symbolsInitialiser.getScopeHelper();
         modifierHelper = symbolsInitialiser.getModifierHelper();
         ITypeHelper typeHelper = symbolsInitialiser.getTypeHelper();
         core = coreInitialiser.getCore();
+        executorService = theExecutorService;
 
         symbolFactory = symbolsInitialiser.getSymbolFactory();
         scopeFactory = symbolsInitialiser.getScopeFactory();
@@ -104,7 +107,7 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
         IMostSpecificOverloadDecider mostSpecificOverloadDecider
                 = new MostSpecificOverloadDecider(symbolFactory, typeHelper);
 
-        Map<String, Set<String>> dependencies = new HashMap<>();
+        Map<String, Set<String>> dependencies = new ConcurrentHashMap<>();
         Map<String, List<Pair<WorkItemDto, Integer>>> directDependencies = new ConcurrentHashMap<>();
         Map<String, Set<WorkItemDto>> unsolvedConstraints = new ConcurrentHashMap<>();
 
@@ -143,7 +146,8 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
                 iterativeConstraintSolver,
                 softTypingConstraintSolver,
                 constraintSolverHelper,
-                unsolvedConstraints);
+                unsolvedConstraints,
+                executorService);
 
         dependencyConstraintSolver.setDependencies(constraintSolver, constraintSolverHelper,
                 softTypingConstraintSolver);
