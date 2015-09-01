@@ -250,6 +250,9 @@ public class SymbolResolverController implements ISymbolResolverController
         return symbol;
     }
 
+    /**
+     * A delegate to resolve a symbol for the given identifier with the given symbolResolver.
+     */
     private interface IResolveDelegate
     {
         ISymbol resolve(ISymbolResolver symbolResolver, ITSPHPAst identifier);

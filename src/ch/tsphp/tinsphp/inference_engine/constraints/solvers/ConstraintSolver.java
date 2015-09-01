@@ -154,42 +154,46 @@ public class ConstraintSolver implements IConstraintSolver
             workItemDto.isInIterativeMode = false;
             workItemDto.helperVariableMapping = null;
             for (List<Integer> pointers : directDependencies.get(methodWithDependent).values()) {
-                for (Integer pointer : pointers) {
-                    //exchange applied overload, currently it is still pointing to the temp overload
-                    IConstraint constraint = workItemDto.constraintCollection.getConstraints().get(pointer);
-                    constraintSolverHelper.addMostSpecificOverloadToWorklist(workItemDto, constraint);
-                    if (workItemDto.workDeque.isEmpty()) {
-                        //TODO TINS-524 erroneous overload - remove the debug info bellow
-                        for (IFunctionType functionType : constraint.getMethodSymbol().getOverloads()) {
-                            System.out.println(functionType.getSignature());
-                        }
+                replaceAppliedOverload(workItemDto, pointers);
+            }
+        }
+    }
 
-                        System.out.println("\n");
+    private void replaceAppliedOverload(WorkItemDto workItemDto, List<Integer> pointers) {
+        for (Integer pointer : pointers) {
+            //exchange applied overload, currently it is still pointing to the temp overload
+            IConstraint constraint = workItemDto.constraintCollection.getConstraints().get(pointer);
+            constraintSolverHelper.addMostSpecificOverloadToWorklist(workItemDto, constraint);
+            if (workItemDto.workDeque.isEmpty()) {
+                //TODO TINS-524 erroneous overload - remove the debug info bellow
+                for (IFunctionType functionType : constraint.getMethodSymbol().getOverloads()) {
+                    System.out.println(functionType.getSignature());
+                }
 
-                        Collection<IFunctionType> operatorOverloads
-                                = ((IMethodSymbol) workItemDto.constraintCollection).getOverloads();
-                        for (IFunctionType functionType : operatorOverloads) {
-                            System.out.println(functionType.getSignature());
-                        }
+                System.out.println("\n");
 
-                        System.out.println("\n----------- Bindings -------------\n");
+                Collection<IFunctionType> operatorOverloads
+                        = ((IMethodSymbol) workItemDto.constraintCollection).getOverloads();
+                for (IFunctionType functionType : operatorOverloads) {
+                    System.out.println(functionType.getSignature());
+                }
 
-                        for (IFunctionType functionType : constraint.getMethodSymbol().getOverloads()) {
-                            System.out.println(functionType.getBindingCollection().toString());
-                        }
+                System.out.println("\n----------- Bindings -------------\n");
 
-                        System.out.println("\n");
+                for (IFunctionType functionType : constraint.getMethodSymbol().getOverloads()) {
+                    System.out.println(functionType.getBindingCollection().toString());
+                }
 
-                        for (IFunctionType functionType : operatorOverloads) {
-                            System.out.println(functionType.getBindingCollection().toString());
-                        }
-                    }
-                    WorkItemDto tempWorkItemDto = workItemDto.workDeque.removeFirst();
-                    String lhsAbsoluteName = constraint.getLeftHandSide().getAbsoluteName();
-                    OverloadApplicationDto dto = tempWorkItemDto.bindingCollection.getAppliedOverload(lhsAbsoluteName);
-                    workItemDto.bindingCollection.setAppliedOverload(lhsAbsoluteName, dto);
+                System.out.println("\n");
+
+                for (IFunctionType functionType : operatorOverloads) {
+                    System.out.println(functionType.getBindingCollection().toString());
                 }
             }
+            WorkItemDto tempWorkItemDto = workItemDto.workDeque.removeFirst();
+            String lhsAbsoluteName = constraint.getLeftHandSide().getAbsoluteName();
+            OverloadApplicationDto dto = tempWorkItemDto.bindingCollection.getAppliedOverload(lhsAbsoluteName);
+            workItemDto.bindingCollection.setAppliedOverload(lhsAbsoluteName, dto);
         }
     }
 

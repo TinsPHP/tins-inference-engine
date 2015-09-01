@@ -43,22 +43,23 @@ public class TempFunctionType implements IFunctionType
     }
 
     private boolean searchForConvertibleTypeInTypeBounds(String typeParameter) {
+        boolean found = false;
         if (bindingCollection.hasUpperTypeBounds(typeParameter)) {
             IIntersectionTypeSymbol upperTypeBounds = bindingCollection.getUpperTypeBounds(typeParameter);
             hasConvertibleParameterTypes = containsConvertibleType(upperTypeBounds);
             if (hasConvertibleParameterTypes) {
-                return true;
+                found = true;
             }
         }
 
-        if (bindingCollection.hasLowerTypeBounds(typeParameter)) {
+        if (!found && bindingCollection.hasLowerTypeBounds(typeParameter)) {
             IUnionTypeSymbol lowerTypeBounds = bindingCollection.getLowerTypeBounds(typeParameter);
             hasConvertibleParameterTypes = containsConvertibleType(lowerTypeBounds);
             if (hasConvertibleParameterTypes) {
-                return true;
+                found = true;
             }
         }
-        return false;
+        return found;
     }
 
     private boolean containsConvertibleType(IContainerTypeSymbol typeSymbol) {

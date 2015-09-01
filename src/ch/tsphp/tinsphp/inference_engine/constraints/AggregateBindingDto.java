@@ -29,7 +29,7 @@ public class AggregateBindingDto
     public String overloadVariableId;
     public boolean needToReIterate;
     /**
-     * Key equals argument number, and pair corresponds [argument type, implicit conversion provider]
+     * Key equals argument number, and pair corresponds [argument type, implicit conversion provider].
      */
     public Map<Integer, Pair<ITypeSymbol, ITypeSymbol>> implicitConversions;
     public Integer argumentNumber;

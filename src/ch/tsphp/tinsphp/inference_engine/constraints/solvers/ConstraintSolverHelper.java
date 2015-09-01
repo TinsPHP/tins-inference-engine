@@ -387,7 +387,8 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                 } else if (!dto.workItemDto.isInIterativeMode && dto.iterateCount == 1) {
                     ITypeVariableReference typeVariableReference = addHelperVariable(dto, refTypeVariable);
                     leftBindings.addLowerRefBound(left, typeVariableReference);
-                    dto.hasChanged = true; //we add a new type variable, it has changed
+                    //we add a new type variable, it has changed
+                    dto.hasChanged = true;
                 } else if (dto.workItemDto.isInIterativeMode && dto.iterateCount == 1) {
                     addLowerRefInIterativeMode(dto, left, refTypeVariable);
                 } else {
@@ -872,6 +873,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
 
         @Override
         public int compare(ITypeSymbol typeSymbolA, ITypeSymbol typeSymbolB) {
+            int diff = 0;
             if (!typeHelper.areSame(typeSymbolA, typeSymbolB)) {
                 int numberA = 1;
                 if (typeSymbolA instanceof IContainerTypeSymbol) {
@@ -882,11 +884,12 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
                     numberB = ((IContainerTypeSymbol) typeSymbolB).getTypeSymbols().size();
                 }
                 if (numberB - numberA <= 0) {
-                    return 1;
+                    diff = 1;
+                } else {
+                    diff = -1;
                 }
-                return -1;
             }
-            return 0;
+            return diff;
         }
     }
 
