@@ -712,6 +712,20 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                                         ))
                                 ), 1, 1, 2)
                         }
+                },
+                //see TINS-691 soft typing and dependency solving
+                {
+                        "function foo40(){ $a = 1; bar40($a); return bar40($a);}\n"
+                                + "function bar40(array $x){return 1;}",
+                        new OverloadTestStruct[]{
+                                testStruct("foo40()", "\\.\\.", functionDtos("foo40()", 0, bindingDtos(
+                                        varBinding(RETURN_VARIABLE_NAME, "V7", asList("int"), null, true)
+                                )), 1, 0, 2),
+                                testStruct("bar40()", "\\.\\.", functionDtos("bar40()", 1, bindingDtos(
+                                        varBinding("bar40()$x", "V4", null, asList("mixed"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V3", asList("int"), null, true)
+                                )), 1, 1, 2)
+                        }
                 }
         });
     }
