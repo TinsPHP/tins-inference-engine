@@ -68,7 +68,7 @@ import static org.junit.Assert.assertFalse;
 @Ignore
 public abstract class AReferenceTest extends ADefinitionTest
 {
-
+    public static int numberOfThreads = 1;
     protected ErrorReportingTinsPHPReferenceWalker reference;
     protected IReferencePhaseController referencePhaseController;
     protected IAstModificationHelper astModificationHelper;
@@ -137,7 +137,7 @@ public abstract class AReferenceTest extends ADefinitionTest
                 mostSpecificOverloadDecider
         );
 
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
         constraintSolver = createConstraintSolver(
                 symbolFactory,
                 softTypingConstraintSolver,
