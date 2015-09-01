@@ -30,7 +30,6 @@ import ch.tsphp.tinsphp.common.scopes.IScopeHelper;
 import ch.tsphp.tinsphp.common.symbols.IModifierHelper;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.utils.ITypeHelper;
-import ch.tsphp.tinsphp.common.utils.Pair;
 import ch.tsphp.tinsphp.inference_engine.ReferencePhaseController;
 import ch.tsphp.tinsphp.inference_engine.antlrmod.ErrorReportingTinsPHPReferenceWalker;
 import ch.tsphp.tinsphp.inference_engine.constraints.ConstraintCreator;
@@ -39,13 +38,9 @@ import ch.tsphp.tinsphp.inference_engine.constraints.MostSpecificOverloadDecider
 import ch.tsphp.tinsphp.inference_engine.constraints.WorkItemDto;
 import ch.tsphp.tinsphp.inference_engine.constraints.solvers.ConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.constraints.solvers.ConstraintSolverHelper;
-import ch.tsphp.tinsphp.inference_engine.constraints.solvers.DependencyConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.constraints.solvers.IConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.constraints.solvers.IConstraintSolverHelper;
-import ch.tsphp.tinsphp.inference_engine.constraints.solvers.IDependencyConstraintSolver;
-import ch.tsphp.tinsphp.inference_engine.constraints.solvers.IIterativeConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.constraints.solvers.ISoftTypingConstraintSolver;
-import ch.tsphp.tinsphp.inference_engine.constraints.solvers.IterativeConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.constraints.solvers.SoftTypingConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.resolver.SymbolCheckController;
 import ch.tsphp.tinsphp.inference_engine.resolver.SymbolResolverController;
@@ -61,11 +56,10 @@ import org.junit.Ignore;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -124,22 +118,15 @@ public abstract class AReferenceTest extends ADefinitionTest
         IMostSpecificOverloadDecider mostSpecificOverloadDecider
                 = new MostSpecificOverloadDecider(symbolFactory, typeHelper);
 
-        Map<String, Set<String>> dependencies = new HashMap<>();
-        Map<String, List<Pair<WorkItemDto, Integer>>> directDependencies = new ConcurrentHashMap<>();
-        Map<String, Set<WorkItemDto>> unsolvedConstraints = new ConcurrentHashMap<>();
+        ConcurrentMap<String, Set<String>> methodsWithDependents = new ConcurrentHashMap<>();
+        ConcurrentMap<String, Set<WorkItemDto>> dependentMethods = new ConcurrentHashMap<>();
+        ConcurrentMap<String, ConcurrentMap<String, List<Integer>>> directDependencies = new ConcurrentHashMap<>();
 
-
-        IDependencyConstraintSolver dependencyConstraintSolver
-                = new DependencyConstraintSolver(unsolvedConstraints);
 
         IConstraintSolverHelper constraintSolverHelper = new ConstraintSolverHelper(
                 symbolFactory,
                 typeHelper,
-                mostSpecificOverloadDecider,
-                dependencyConstraintSolver,
-                dependencies,
-                directDependencies,
-                unsolvedConstraints
+                mostSpecificOverloadDecider
         );
 
         ISoftTypingConstraintSolver softTypingConstraintSolver = new SoftTypingConstraintSolver(
@@ -150,26 +137,16 @@ public abstract class AReferenceTest extends ADefinitionTest
                 mostSpecificOverloadDecider
         );
 
-        IIterativeConstraintSolver iterativeConstraintSolver = new IterativeConstraintSolver(
-                symbolFactory,
-                typeHelper,
-                constraintSolverHelper,
-                dependencyConstraintSolver,
-                dependencies,
-                directDependencies,
-                unsolvedConstraints);
-
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         constraintSolver = createConstraintSolver(
                 symbolFactory,
-                iterativeConstraintSolver,
                 softTypingConstraintSolver,
                 constraintSolverHelper,
-                unsolvedConstraints,
-                executorService
+                executorService,
+                directDependencies,
+                methodsWithDependents,
+                dependentMethods
         );
-        dependencyConstraintSolver.setDependencies(
-                constraintSolver, constraintSolverHelper, softTypingConstraintSolver);
 
         constraintCreator = createConstraintCreator(symbolFactory, inferenceIssueReporter);
 
@@ -284,17 +261,20 @@ public abstract class AReferenceTest extends ADefinitionTest
 
     protected IConstraintSolver createConstraintSolver(
             ISymbolFactory theSymbolFactory,
-            IIterativeConstraintSolver theIterativeConstraintSolver,
             ISoftTypingConstraintSolver theSoftTypingConstraintSolver,
             IConstraintSolverHelper theConstraintSolverHelper,
-            Map<String, Set<WorkItemDto>> theUnsolvedConstraints,
-            ExecutorService executorService) {
+            ExecutorService theExecutorService,
+            ConcurrentMap<String, ConcurrentMap<String, List<Integer>>> theDirectDependencies,
+            ConcurrentMap<String, Set<String>> theMethodsWithDependents,
+            ConcurrentMap<String, Set<WorkItemDto>> theDependentMethods) {
         return new ConstraintSolver(
                 theSymbolFactory,
-                theIterativeConstraintSolver,
                 theSoftTypingConstraintSolver,
                 theConstraintSolverHelper,
-                theUnsolvedConstraints, executorService);
+                theExecutorService,
+                theDirectDependencies,
+                theMethodsWithDependents,
+                theDependentMethods);
     }
 
 

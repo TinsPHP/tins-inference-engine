@@ -7,7 +7,6 @@
 package ch.tsphp.tinsphp.inference_engine.constraints.solvers;
 
 import ch.tsphp.common.symbols.ITypeSymbol;
-import ch.tsphp.tinsphp.common.TinsPHPConstants;
 import ch.tsphp.tinsphp.common.inference.constraints.BoundException;
 import ch.tsphp.tinsphp.common.inference.constraints.EBindingCollectionMode;
 import ch.tsphp.tinsphp.common.inference.constraints.FixedTypeVariableReference;
@@ -20,8 +19,6 @@ import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import ch.tsphp.tinsphp.common.inference.constraints.OverloadApplicationDto;
 import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.symbols.IIntersectionTypeSymbol;
-import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
-import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IParametricTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IPolymorphicTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
@@ -69,60 +66,6 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
     }
 
     @Override
-    public void fallBackToSoftTyping(IConstraintCollection constraintCollection) {
-        WorkItemDto workItemDto = createAndInitWorklistDto(constraintCollection);
-        if (workItemDto.dependentConstraints == null || workItemDto.dependentConstraints.isEmpty()) {
-            solveConstraints(constraintCollection, workItemDto);
-        } else {
-            constraintSolverHelper.createDependencies(workItemDto);
-        }
-    }
-
-    private WorkItemDto createAndInitWorklistDto(IConstraintCollection constraintCollection) {
-        WorkItemDto workItemDto = new WorkItemDto(null, constraintCollection, 0, true, null);
-        workItemDto.isInSoftTypingMode = true;
-        workItemDto.param2LowerParams = new HashMap<>();
-
-        workItemDto.bindingCollection = symbolFactory.createBindingCollection();
-        workItemDto.bindingCollection.setMode(EBindingCollectionMode.SoftTyping);
-        List<IConstraint> constraints = constraintCollection.getConstraints();
-        int size = constraints.size();
-        for (int i = 0; i < size; ++i) {
-            workItemDto.pointer = i;
-            aggregateLowerBounds(workItemDto);
-        }
-
-        return workItemDto;
-    }
-
-    @Override
-    public void aggregateLowerBounds(WorkItemDto workItemDto) {
-        IConstraint constraint = workItemDto.constraintCollection.getConstraints().get(workItemDto.pointer);
-        IMinimalMethodSymbol refMethodSymbol = constraint.getMethodSymbol();
-        if (refMethodSymbol.getOverloads().size() > 0) {
-            if (isNotDirectRecursiveAssignment(constraint)) {
-
-                constraintSolverHelper.createBindingsIfNecessary(
-                        workItemDto, constraint.getLeftHandSide(), constraint.getArguments());
-
-                for (IFunctionType overload : refMethodSymbol.getOverloads()) {
-                    if (constraint.getArguments().size() >= overload.getNumberOfNonOptionalParameters()) {
-                        AggregateBindingDto dto = new AggregateBindingDto(
-                                constraint, overload, workItemDto.bindingCollection, workItemDto);
-                        constraintSolverHelper.aggregateBinding(dto);
-                    }
-                }
-            }
-        } else {
-            //add to unresolved constraints
-            if (workItemDto.dependentConstraints == null) {
-                workItemDto.dependentConstraints = new ArrayList<>();
-            }
-            workItemDto.dependentConstraints.add(workItemDto.pointer);
-        }
-    }
-
-    @Override
     public void solveConstraints(IConstraintCollection constraintCollection, WorkItemDto workItemDto) {
         initWorkListDtoBindingCollection(workItemDto);
 
@@ -148,17 +91,6 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
         //Notice! workItemDto.bindingCollection is not the same binding collection as above
         IBindingCollection bindingCollection = workItemDto.bindingCollection;
         bindingCollection.setMode(EBindingCollectionMode.Normal);
-        constraintCollection.addBindingCollection(bindingCollection);
-        if (constraintCollection instanceof IMethodSymbol) {
-            IMethodSymbol methodSymbol = (IMethodSymbol) constraintCollection;
-            constraintSolverHelper.finishingMethodConstraints(methodSymbol);
-        } else {
-            //Warning! start code duplication - same as in ConstraintSolver
-            for (String variableId : bindingCollection.getVariableIds()) {
-                bindingCollection.fixType(variableId);
-            }
-            //Warning! end code duplication - same as in ConstraintSolver
-        }
     }
 
     private void initWorkListDtoBindingCollection(WorkItemDto workItemDto) {
@@ -168,13 +100,12 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
 
         for (String variableId : softTypingBindings.getVariableIds()) {
             if (variableId.contains("$")) {
-                String typeVariable = addVariableToLeftBindings(
-                        variableId, softTypingBindings, workItemDto.bindingCollection);
+                addVariableToLeftBindings(variableId, softTypingBindings, workItemDto.bindingCollection);
             }
         }
     }
 
-    private String addVariableToLeftBindings(
+    private void addVariableToLeftBindings(
             String parameterId,
             IBindingCollection softTypingBindings,
             IBindingCollection leftBindings) {
@@ -199,13 +130,8 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
             IUnionTypeSymbol lowerTypeBounds = softTypingBindings.getLowerTypeBounds(typeVariable);
             leftBindings.addLowerTypeBound(nextTypeVariable.getTypeVariable(), lowerTypeBounds);
         }
-        return typeVariable;
     }
 
-    private boolean isNotDirectRecursiveAssignment(IConstraint constraint) {
-        return !constraint.getMethodSymbol().getAbsoluteName().equals("=")
-                || !constraint.getArguments().get(1).getAbsoluteName().equals(TinsPHPConstants.RETURN_VARIABLE_NAME);
-    }
 
     //TINS-535 improve precision in soft typing for unconstrained parameters
 //    private void propagateParameterToParameters(

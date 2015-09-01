@@ -30,11 +30,5 @@ public interface IConstraintSolverHelper
 
     void addMostSpecificOverloadToWorklist(WorkItemDto workItemDto, IConstraint constraint);
 
-    void createDependencies(WorkItemDto workItemDto);
-
-    void finishingMethodConstraints(IMethodSymbol methodSymbol);
-
     IFunctionType createOverload(IMethodSymbol methodSymbol, IBindingCollection bindings);
-
-    void solveDependentConstraints(IMethodSymbol methodSymbol);
 }

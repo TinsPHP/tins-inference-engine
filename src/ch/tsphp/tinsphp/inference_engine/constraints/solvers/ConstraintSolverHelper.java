@@ -21,6 +21,7 @@ import ch.tsphp.tinsphp.common.inference.constraints.OverloadApplicationDto;
 import ch.tsphp.tinsphp.common.symbols.IContainerTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IIntersectionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
+import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMinimalVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.IParametricTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IPolymorphicTypeSymbol;
@@ -28,8 +29,6 @@ import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.IUnionTypeSymbol;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.common.utils.ITypeHelper;
-import ch.tsphp.tinsphp.common.utils.MapHelper;
-import ch.tsphp.tinsphp.common.utils.Pair;
 import ch.tsphp.tinsphp.common.utils.TypeHelperDto;
 import ch.tsphp.tinsphp.inference_engine.constraints.AggregateBindingDto;
 import ch.tsphp.tinsphp.inference_engine.constraints.IMostSpecificOverloadDecider;
@@ -56,31 +55,20 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
     private final ISymbolFactory symbolFactory;
     private final ITypeHelper typeHelper;
     private final IMostSpecificOverloadDecider mostSpecificOverloadDecider;
-    private final IDependencyConstraintSolver dependencyConstraintSolver;
     private final ITypeSymbol mixedTypeSymbol;
-
-    private final Map<String, Set<String>> dependencies;
-    private final Map<String, List<Pair<WorkItemDto, Integer>>> directDependencies;
-    private final Map<String, Set<WorkItemDto>> unsolvedWorkItems;
     private final TypeSymbolComparator typeSymbolComparator;
+
 
     @SuppressWarnings("checkstyle:parameternumber")
     public ConstraintSolverHelper(
             ISymbolFactory theSymbolFactory,
             ITypeHelper theTypeHelper,
-            IMostSpecificOverloadDecider theMostSpecificOverloadDecider,
-            IDependencyConstraintSolver theDependencyConstraintSolver,
-            Map<String, Set<String>> theDependencies,
-            Map<String, List<Pair<WorkItemDto, Integer>>> theDirectDependencies,
-            Map<String, Set<WorkItemDto>> theUnsolvedWorkItems) {
+            IMostSpecificOverloadDecider theMostSpecificOverloadDecider) {
         symbolFactory = theSymbolFactory;
         typeHelper = theTypeHelper;
         mostSpecificOverloadDecider = theMostSpecificOverloadDecider;
-        dependencyConstraintSolver = theDependencyConstraintSolver;
-        dependencies = theDependencies;
-        directDependencies = theDirectDependencies;
-        unsolvedWorkItems = theUnsolvedWorkItems;
         mixedTypeSymbol = symbolFactory.getMixedTypeSymbol();
+
         typeSymbolComparator = new TypeSymbolComparator(typeHelper);
     }
 
@@ -162,11 +150,31 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
         boolean atLeastOneBindingCreated = createBindingsIfNecessary(
                 workItemDto, constraint.getLeftHandSide(), constraint.getArguments());
 
-        if (workItemDto.isSolvingMethod && atLeastOneBindingCreated) {
-            addApplicableOverloadsToWorklist(workItemDto, constraint);
+        if (!workItemDto.isInSoftTypingMode) {
+            if (workItemDto.isSolvingMethod && atLeastOneBindingCreated) {
+                addApplicableOverloadsToWorklist(workItemDto, constraint);
+            } else {
+                addMostSpecificOverloadToWorklist(workItemDto, constraint);
+            }
         } else {
-            addMostSpecificOverloadToWorklist(workItemDto, constraint);
+            if (isNotDirectRecursiveAssignment(constraint)) {
+                IMinimalMethodSymbol refMethodSymbol = constraint.getMethodSymbol();
+                for (IFunctionType overload : refMethodSymbol.getOverloads()) {
+                    if (constraint.getArguments().size() >= overload.getNumberOfNonOptionalParameters()) {
+                        AggregateBindingDto dto = new AggregateBindingDto(
+                                constraint, overload, workItemDto.bindingCollection, workItemDto);
+                        aggregateBinding(dto);
+                    }
+                }
+            }
+            ++workItemDto.pointer;
+            workItemDto.workDeque.add(workItemDto);
         }
+    }
+
+    private boolean isNotDirectRecursiveAssignment(IConstraint constraint) {
+        return !constraint.getMethodSymbol().getAbsoluteName().equals("=")
+                || !constraint.getArguments().get(1).getAbsoluteName().equals(TinsPHPConstants.RETURN_VARIABLE_NAME);
     }
 
     private void addApplicableOverloadsToWorklist(WorkItemDto workItemDto, IConstraint constraint) {
@@ -223,10 +231,9 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
             IBindingCollection bindings,
             Map<Integer, Map<String, ITypeVariableReference>> helperVariableMapping,
             boolean hasChanged) {
-        int pointer;
-        if (!workItemDto.isSolvingDependency || workItemDto.isInIterativeMode) {
-            pointer = workItemDto.pointer + 1;
-        } else {
+        int pointer = workItemDto.pointer + 1;
+        if (workItemDto.isInIterativeMode && workItemDto.isSolvingDependency
+                && workItemDto.dependentConstraints.size() <= pointer) {
             pointer = Integer.MAX_VALUE;
         }
         return new WorkItemDto(workItemDto, pointer, bindings, helperVariableMapping, hasChanged);
@@ -817,46 +824,6 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
             }
         }
         return isOneToOne;
-    }
-
-    @Override
-    public void createDependencies(WorkItemDto workItemDto) {
-        List<IConstraint> constraints = workItemDto.constraintCollection.getConstraints();
-        String absoluteName = workItemDto.constraintCollection.getAbsoluteName();
-
-        for (Integer pointer : workItemDto.dependentConstraints) {
-            String refAbsoluteName = constraints.get(pointer).getMethodSymbol().getAbsoluteName();
-            MapHelper.addToListInMap(directDependencies, refAbsoluteName, pair(workItemDto, pointer));
-            MapHelper.addToSetInMap(dependencies, refAbsoluteName, absoluteName);
-        }
-        MapHelper.addToSetInMap(
-                unsolvedWorkItems,
-                absoluteName,
-                workItemDto);
-    }
-
-    @Override
-    public void finishingMethodConstraints(IMethodSymbol methodSymbol) {
-        createOverloads(methodSymbol);
-        solveDependentConstraints(methodSymbol);
-    }
-
-    @Override
-    public void solveDependentConstraints(IMethodSymbol methodSymbol) {
-        String methodName = methodSymbol.getAbsoluteName();
-        if (directDependencies.containsKey(methodName)) {
-            dependencies.remove(methodName);
-            for (Pair<WorkItemDto, Integer> element : directDependencies.remove(methodName)) {
-                dependencyConstraintSolver.solveDependency(element);
-            }
-        }
-        unsolvedWorkItems.remove(methodName);
-    }
-
-    private void createOverloads(IMethodSymbol methodSymbol) {
-        for (IBindingCollection bindings : methodSymbol.getBindings()) {
-            createOverload(methodSymbol, bindings);
-        }
     }
 
     @Override

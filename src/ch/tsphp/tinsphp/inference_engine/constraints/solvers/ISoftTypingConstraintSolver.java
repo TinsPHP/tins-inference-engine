@@ -15,9 +15,5 @@ import ch.tsphp.tinsphp.inference_engine.constraints.WorkItemDto;
  */
 public interface ISoftTypingConstraintSolver
 {
-    void fallBackToSoftTyping(IConstraintCollection constraintCollection);
-
-    void aggregateLowerBounds(WorkItemDto workItemDto);
-
     void solveConstraints(IConstraintCollection constraintCollection, WorkItemDto workItemDto);
 }

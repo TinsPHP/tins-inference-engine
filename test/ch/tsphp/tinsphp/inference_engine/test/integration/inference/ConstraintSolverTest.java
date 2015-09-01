@@ -28,20 +28,15 @@ import ch.tsphp.tinsphp.common.symbols.ISymbolFactory;
 import ch.tsphp.tinsphp.common.symbols.IVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.PrimitiveTypeNames;
 import ch.tsphp.tinsphp.common.utils.ITypeHelper;
-import ch.tsphp.tinsphp.common.utils.Pair;
 import ch.tsphp.tinsphp.core.config.HardCodedCoreInitialiser;
 import ch.tsphp.tinsphp.inference_engine.constraints.IMostSpecificOverloadDecider;
 import ch.tsphp.tinsphp.inference_engine.constraints.MostSpecificOverloadDecider;
 import ch.tsphp.tinsphp.inference_engine.constraints.WorkItemDto;
 import ch.tsphp.tinsphp.inference_engine.constraints.solvers.ConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.constraints.solvers.ConstraintSolverHelper;
-import ch.tsphp.tinsphp.inference_engine.constraints.solvers.DependencyConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.constraints.solvers.IConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.constraints.solvers.IConstraintSolverHelper;
-import ch.tsphp.tinsphp.inference_engine.constraints.solvers.IDependencyConstraintSolver;
-import ch.tsphp.tinsphp.inference_engine.constraints.solvers.IIterativeConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.constraints.solvers.ISoftTypingConstraintSolver;
-import ch.tsphp.tinsphp.inference_engine.constraints.solvers.IterativeConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.constraints.solvers.SoftTypingConstraintSolver;
 import ch.tsphp.tinsphp.inference_engine.issues.HardCodedIssueMessageProvider;
 import ch.tsphp.tinsphp.inference_engine.issues.InferenceIssueReporter;
@@ -50,12 +45,12 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -173,12 +168,12 @@ public class ConstraintSolverTest
         IBindingCollection result = captor.getValue();
 
         assertThat(result, withVariableBindings(
-                varBinding("$x", "V1", null, asList("(float | int)", "@V4"), false),
-                varBinding("$y", "V3", null, asList("{as V1}"), false),
-                varBinding("$z", "V5", null, asList("{as V4}"), false),
-                varBinding("e1", "V1", null, asList("(float | int)", "@V4"), false),
-                varBinding("e2", "V4", asList("@V1"), asList("(float | int)", "@V6"), false),
-                varBinding("rtn", "V6", asList("@V4"), null, false)
+                varBinding("$x", "T1", null, asList("(float | int)", "@T2"), false),
+                varBinding("$y", "V3", null, asList("{as T1}"), true),
+                varBinding("$z", "V5", null, asList("{as T2}"), true),
+                varBinding("e1", "T1", null, asList("(float | int)", "@T2"), false),
+                varBinding("e2", "T2", asList("@T1"), asList("(float | int)"), false),
+                varBinding("rtn", "T2", asList("@T1"), asList("(float | int)"), false)
         ));
     }
 
@@ -263,12 +258,12 @@ public class ConstraintSolverTest
         IBindingCollection result = captor.getValue();
 
         assertThat(result, withVariableBindings(
-                varBinding("$x", "V2", null, asList("{as V1}"), false),
-                varBinding("$y", "V3", null, asList("{as V1}"), false),
-                varBinding("$z", "V5", null, asList("{as V4}"), false),
-                varBinding("e1", "V1", null, asList("(float | int)", "@V4"), false),
-                varBinding("e2", "V4", asList("@V1"), asList("(float | int)", "@V6"), false),
-                varBinding("rtn", "V6", asList("@V4"), null, false)
+                varBinding("$x", "V2", null, asList("{as T2}"), true),
+                varBinding("$y", "V3", null, asList("{as T2}"), true),
+                varBinding("$z", "V5", null, asList("{as T1}"), true),
+                varBinding("e1", "T2", null, asList("(float | int)", "@T1"), false),
+                varBinding("e2", "T1", asList("@T2"), asList("(float | int)"), false),
+                varBinding("rtn", "T1", asList("@T2"), asList("(float | int)"), false)
         ));
     }
 
@@ -348,11 +343,11 @@ public class ConstraintSolverTest
         IBindingCollection result = captor.getValue();
 
         assertThat(result, withVariableBindings(
-                varBinding("$x", "V2", null, asList("int"), false),
-                varBinding("$y", "V4", null, asList("float"), false),
-                varBinding("e1", "V1", asList("int"), null, false),
-                varBinding("e2", "V3", asList("float"), asList("@V5"), false),
-                varBinding("rtn", "V5", asList("float", "@V3"), null, false)
+                varBinding("$x", "V2", null, asList("int"), true),
+                varBinding("$y", "V4", null, asList("float"), true),
+                varBinding("e1", "V1", asList("int"), null, true),
+                varBinding("e2", "V3", asList("float"), null, true),
+                varBinding("rtn", "V5", asList("float"), null, true)
         ));
     }
 
@@ -432,11 +427,11 @@ public class ConstraintSolverTest
         IBindingCollection result = captor.getValue();
 
         assertThat(result, withVariableBindings(
-                varBinding("$x", "V2", null, asList("int"), false),
-                varBinding("$y", "V4", null, asList("int"), false),
-                varBinding("e1", "V1", asList("float"), null, false),
-                varBinding("e2", "V3", asList("int"), asList("@V5"), false),
-                varBinding("rtn", "V5", asList("int", "@V3"), null, false)
+                varBinding("$x", "V2", null, asList("int"), true),
+                varBinding("$y", "V4", null, asList("int"), true),
+                varBinding("e1", "V1", asList("float"), null, true),
+                varBinding("e2", "V3", asList("int"), null, true),
+                varBinding("rtn", "V5", asList("int"), null, true)
         ));
     }
 
@@ -446,21 +441,14 @@ public class ConstraintSolverTest
         IMostSpecificOverloadDecider mostSpecificOverloadDecider
                 = new MostSpecificOverloadDecider(symbolFactory, typeHelper);
 
-        Map<String, Set<String>> dependencies = new HashMap<>();
-        Map<String, List<Pair<WorkItemDto, Integer>>> directDependencies = new ConcurrentHashMap<>();
-        Map<String, Set<WorkItemDto>> unsolvedConstraints = new ConcurrentHashMap<>();
-
-        IDependencyConstraintSolver dependencyConstraintSolver
-                = new DependencyConstraintSolver(unsolvedConstraints);
+        ConcurrentMap<String, Set<String>> methodsWithDependents = new ConcurrentHashMap<>();
+        ConcurrentMap<String, Set<WorkItemDto>> dependentMethods = new ConcurrentHashMap<>();
+        ConcurrentMap<String, ConcurrentMap<String, List<Integer>>> directDependencies = new ConcurrentHashMap<>();
 
         IConstraintSolverHelper constraintSolverHelper = new ConstraintSolverHelper(
                 symbolFactory,
                 typeHelper,
-                mostSpecificOverloadDecider,
-                dependencyConstraintSolver,
-                dependencies,
-                directDependencies,
-                unsolvedConstraints
+                mostSpecificOverloadDecider
         );
 
         ISoftTypingConstraintSolver softTypingConstraintSolver = new SoftTypingConstraintSolver(
@@ -471,26 +459,15 @@ public class ConstraintSolverTest
                 mostSpecificOverloadDecider
         );
 
-        IIterativeConstraintSolver iterativeConstraintSolver = new IterativeConstraintSolver(
-                symbolFactory,
-                typeHelper,
-                constraintSolverHelper,
-                dependencyConstraintSolver,
-                dependencies,
-                directDependencies,
-                unsolvedConstraints);
-
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         IConstraintSolver constraintSolver = new ConstraintSolver(
                 symbolFactory,
-                iterativeConstraintSolver,
                 softTypingConstraintSolver,
                 constraintSolverHelper,
-                unsolvedConstraints,
-                executorService);
-
-        dependencyConstraintSolver.setDependencies(constraintSolver, constraintSolverHelper,
-                softTypingConstraintSolver);
+                executorService,
+                directDependencies,
+                methodsWithDependents,
+                dependentMethods);
 
         return constraintSolver;
     }
