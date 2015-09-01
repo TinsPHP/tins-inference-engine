@@ -186,8 +186,7 @@ public class ConstraintSolver implements IConstraintSolver
                     }
                     WorkItemDto tempWorkItemDto = workItemDto.workDeque.removeFirst();
                     String lhsAbsoluteName = constraint.getLeftHandSide().getAbsoluteName();
-                    OverloadApplicationDto dto = tempWorkItemDto.bindingCollection.getAppliedOverload
-                            (lhsAbsoluteName);
+                    OverloadApplicationDto dto = tempWorkItemDto.bindingCollection.getAppliedOverload(lhsAbsoluteName);
                     workItemDto.bindingCollection.setAppliedOverload(lhsAbsoluteName, dto);
                 }
             }
@@ -498,8 +497,8 @@ public class ConstraintSolver implements IConstraintSolver
     }
 
 
-    private <K, V> V getOrInitAtomically(ConcurrentMap<K, V> map, K key, V initValue) {
-        V value = map.get(key);
+    private <Tk, Tv> Tv getOrInitAtomically(ConcurrentMap<Tk, Tv> map, Tk key, Tv initValue) {
+        Tv value = map.get(key);
         if (value == null) {
             value = map.putIfAbsent(key, initValue);
             if (value == null) {
