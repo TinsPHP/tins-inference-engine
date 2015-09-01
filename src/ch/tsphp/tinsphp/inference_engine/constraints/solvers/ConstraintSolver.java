@@ -497,8 +497,8 @@ public class ConstraintSolver implements IConstraintSolver
     }
 
 
-    private <Tk, Tv> Tv getOrInitAtomically(ConcurrentMap<Tk, Tv> map, Tk key, Tv initValue) {
-        Tv value = map.get(key);
+    private <TKey, TValue> TValue getOrInitAtomically(ConcurrentMap<TKey, TValue> map, TKey key, TValue initValue) {
+        TValue value = map.get(key);
         if (value == null) {
             value = map.putIfAbsent(key, initValue);
             if (value == null) {
