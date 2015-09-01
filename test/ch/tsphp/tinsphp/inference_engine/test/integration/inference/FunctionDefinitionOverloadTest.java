@@ -722,7 +722,7 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                                         varBinding(RETURN_VARIABLE_NAME, "V7", asList("int"), null, true)
                                 )), 1, 0, 2),
                                 testStruct("bar40()", "\\.\\.", functionDtos("bar40()", 1, bindingDtos(
-                                        varBinding("bar40()$x", "V4", null, asList("mixed"), true),
+                                        varBinding("bar40()$x", "V4", null, asList("array"), true),
                                         varBinding(RETURN_VARIABLE_NAME, "V3", asList("int"), null, true)
                                 )), 1, 1, 2)
                         }

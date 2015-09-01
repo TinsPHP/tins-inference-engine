@@ -832,10 +832,14 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
         for (IVariableSymbol parameter : methodSymbol.getParameters()) {
             String parameterId = parameter.getAbsoluteName();
             if (!bindings.containsVariable(parameterId)) {
-                //the parameter is not used at all, hence it can be mixed
                 ITypeVariableReference reference = new FixedTypeVariableReference(bindings.getNextTypeVariable());
                 bindings.addVariable(parameterId, reference);
-                bindings.addUpperTypeBound(reference.getTypeVariable(), mixedTypeSymbol);
+                ITypeSymbol typeSymbol = parameter.getType();
+                if (typeSymbol == null) {
+                    //the parameter is not used at all and does not have a type hint,  hence it can be mixed
+                    typeSymbol = mixedTypeSymbol;
+                }
+                bindings.addUpperTypeBound(reference.getTypeVariable(), typeSymbol);
                 //TODO could generate a warning
             }
             IMinimalVariableSymbol parameterVariable = symbolFactory.createMinimalVariableSymbol(
