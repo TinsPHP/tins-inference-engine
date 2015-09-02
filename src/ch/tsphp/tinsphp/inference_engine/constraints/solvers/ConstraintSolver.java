@@ -460,45 +460,60 @@ public class ConstraintSolver implements IConstraintSolver
         IConstraint constraint = theConstraint;
         IMinimalMethodSymbol refMethodSymbol = constraint.getMethodSymbol();
 
-        boolean wasCreated = refMethodSymbol.getOverloads().size() != 0;
-        if (!wasCreated) {
+        boolean refMethodWasSolved = refMethodSymbol.getOverloads().size() != 0;
+        if (!refMethodWasSolved) {
             String dependentMethodName = workItemDto.constraintCollection.getAbsoluteName();
             String methodWithDependent = refMethodSymbol.getAbsoluteName();
             if (!workItemDto.isInIterativeMode) {
-                //need to prevent that a dependency is created if the method is already solved
-                synchronized (refMethodSymbol) {
-                    //could be solved by now
-                    if (refMethodSymbol.getOverloads().size() != 0) {
-                        wasCreated = true;
-                    } else {
-                        registerDependency(workItemDto, dependentMethodName, methodWithDependent);
-                    }
-                }
+                refMethodWasSolved = registerDependencyIfRequired(
+                        workItemDto, refMethodSymbol, dependentMethodName, methodWithDependent);
+
             } else {
                 TempMethodSymbol tempMethodSymbol = tempMethodSymbols.get(methodWithDependent);
                 replaceWithTempMethodSymbol(workItemDto, dependentMethodName, methodWithDependent, tempMethodSymbol);
                 constraint = workItemDto.constraintCollection.getConstraints().get(workItemDto.pointer);
-                wasCreated = true;
+                refMethodWasSolved = true;
             }
         }
-        if (wasCreated) {
+        if (refMethodWasSolved) {
             constraintSolverHelper.solve(workItemDto, constraint);
         }
     }
 
-    private void registerDependency(WorkItemDto workItemDto, String methodName, String refMethodName) {
-        Set<String> dependentMethodNames = getOrInitAtomically(
-                methodsWithDependents,
-                refMethodName,
-                new ConcurrentSkipListSet<String>());
-        dependentMethodNames.add(methodName);
-        Collection<WorkItemDto> workItemDtos = getOrInitAtomically(
-                dependentMethods,
-                methodName,
-                Collections.synchronizedSet(new HashSet<WorkItemDto>()));
-        workItemDtos.add(workItemDto);
-    }
+    private boolean registerDependencyIfRequired(
+            WorkItemDto workItemDto, IMinimalMethodSymbol refMethodSymbol, String dependentMethodName,
+            String methodWithDependent) {
 
+        boolean refMethodWasSolved = false;
+
+        //need to prevent that a dependency is created if the method is already solved
+        synchronized (refMethodSymbol) {
+            //could be solved by now
+            if (refMethodSymbol.getOverloads().size() != 0) {
+                refMethodWasSolved = true;
+            } else {
+                Set<String> dependentMethodNames = getOrInitAtomically(
+                        methodsWithDependents,
+                        methodWithDependent,
+                        new ConcurrentSkipListSet<String>());
+                dependentMethodNames.add(dependentMethodName);
+                Collection<WorkItemDto> workItemDtos = getOrInitAtomically(
+                        dependentMethods,
+                        dependentMethodName,
+                        Collections.synchronizedSet(new HashSet<WorkItemDto>()));
+                workItemDtos.add(workItemDto);
+                // also register the remaining work items, otherwise it could happen that we register the dependency
+                // not for all work items -- one (or more) work items would already see the overloads -- and as a
+                // consequence, we mess up constraint solving since two MethodConstraintSolver will then
+                // deal with solving the same method -> ConcurrentModificationException could happen
+                while (!workItemDto.workDeque.isEmpty()) {
+                    WorkItemDto next = workItemDto.workDeque.remove();
+                    workItemDtos.add(next);
+                }
+            }
+        }
+        return refMethodWasSolved;
+    }
 
     private <TKey, TValue> TValue getOrInitAtomically(ConcurrentMap<TKey, TValue> map, TKey key, TValue initValue) {
         TValue value = map.get(key);
@@ -524,9 +539,10 @@ public class ConstraintSolver implements IConstraintSolver
 
         @Override
         public void run() {
+            String methodName = methodSymbol.getAbsoluteName();
+            System.out.println("solve dependency for " + methodName);
             int numberOfWorkItems = workDeque.size();
             List<WorkItemDto> workItemDtos = solveConstraints(workDeque);
-            String methodName = methodSymbol.getAbsoluteName();
             if (!workItemDtos.isEmpty()) {
                 WorkItemDto firstWorkItem = workItemDtos.get(0);
                 if (firstWorkItem.isInSoftTypingMode) {
@@ -543,7 +559,7 @@ public class ConstraintSolver implements IConstraintSolver
                         }
                     }
 
-                    Collection<String> dependentMethodNames = methodsWithDependents.remove(methodName);
+                    Set<String> dependentMethodNames = methodsWithDependents.remove(methodName);
                     if (dependentMethodNames != null) {
                         for (String dependentMethodName : dependentMethodNames) {
                             Set<WorkItemDto> dependentWorkItems = dependentMethods.remove(dependentMethodName);
