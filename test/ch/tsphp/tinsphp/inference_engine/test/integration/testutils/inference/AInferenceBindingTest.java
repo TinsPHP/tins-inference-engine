@@ -62,9 +62,12 @@ public class AInferenceBindingTest extends AInferenceTest
                 try {
                     assertThat(bindings, hasItem(withVariableBindings(testStruct.dtos.get(i))));
                 } catch (AssertionError ex) {
+
                     Assert.fail(testString + " -- " + testStruct.astText
                             + " failed (testStruct Nr " + counter + "). "
-                            + "Binding error for bindingCollection " + i + "\n"
+                            + "Binding error for bindingCollection " + i
+                            + (size != bindings.size() ? "(not the same number of bindings, expected: "
+                            + size + " actual: " + bindings.size() + ")" : "") + "\n"
                             + ex.getMessage());
                 }
             }

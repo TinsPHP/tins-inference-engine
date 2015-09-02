@@ -724,6 +724,57 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                                         varBinding(RETURN_VARIABLE_NAME, "V3", asList("int"), null, true)
                                 )), 1, 1, 2)
                         }
+                },
+                //see TINS-668 AmbiguousOverloadException
+                {
+                        "function arithmetic1($x, $y, $z){ return ($x + $y) * $z / 1.2; }",
+                        testStructs("arithmetic1()", "\\.\\.", functionDtos(
+                                functionDto("arithmetic1()", 3, bindingDtos(
+                                        varBinding("arithmetic1()$x", "V2", null, asList("int"), true),
+                                        varBinding("arithmetic1()$y", "V3", null, asList("int"), true),
+                                        varBinding("arithmetic1()$z", "V5", null, asList("int"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V9", asList("falseType", "float"), null, true)
+                                )),
+                                functionDto("arithmetic1()", 3, bindingDtos(
+                                        varBinding("arithmetic1()$x", "V2", null, asList("float"), true),
+                                        varBinding("arithmetic1()$y", "V3", null, asList("float"), true),
+                                        varBinding("arithmetic1()$z", "V5", null, asList("float"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V9", asList("falseType", "float"), null, true)
+                                )),
+                                functionDto("arithmetic1()", 3, bindingDtos(
+                                        varBinding("arithmetic1()$x", "V2", null, asList("{as (float | int)}"), true),
+                                        varBinding("arithmetic1()$y", "V3", null, asList("{as (float | int)}"), true),
+                                        varBinding("arithmetic1()$z", "V5", null, asList("{as (float | int)}"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V9", asList("falseType", "float"), null, true)
+                                ))
+                        ), 1, 0, 2),
+                },
+                //TODO TINS-697 - division results in {as float} instead of {as num}
+                {
+                        "function arithmetic1B($x, $y, $z){ return ($x + $y) * $z / 2;}",
+                        testStructs("arithmetic1B()", "\\.\\.", functionDtos(
+                                functionDto("arithmetic1B()", 3, bindingDtos(
+                                        varBinding("arithmetic1B()$x", "V2", null, asList("int"), true),
+                                        varBinding("arithmetic1B()$y", "V3", null, asList("int"), true),
+                                        varBinding("arithmetic1B()$z", "V5", null, asList("int"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V9",
+                                                asList("falseType", "int", "float"), null, true)
+                                )),
+                                functionDto("arithmetic1B()", 3, bindingDtos(
+                                        varBinding("arithmetic1B()$x", "V2", null, asList("float"), true),
+                                        varBinding("arithmetic1B()$y", "V3", null, asList("float"), true),
+                                        varBinding("arithmetic1B()$z", "V5", null, asList("float"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V9",
+                                                asList("falseType", "float"), null, true)
+                                )),
+                                functionDto("arithmetic1B()", 3, bindingDtos(
+                                        varBinding("arithmetic1B()$x", "V2", null, asList("{as float}"), true),
+                                        varBinding("arithmetic1B()$y", "V3", null, asList("{as float}"), true),
+                                        varBinding("arithmetic1B()$z", "V5", null, asList("{as float}"), true),
+                                        varBinding(RETURN_VARIABLE_NAME, "V9",
+                                                asList("falseType", "float"), null, true)
+                                ))
+                        ), 1, 0, 2),
                 }
         });
     }

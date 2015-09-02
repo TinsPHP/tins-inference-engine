@@ -51,6 +51,7 @@ import ch.tsphp.tinsphp.inference_engine.utils.AstModificationHelper;
 import ch.tsphp.tinsphp.inference_engine.utils.IAstModificationHelper;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Ignore;
 
@@ -78,7 +79,12 @@ public abstract class AReferenceTest extends ADefinitionTest
     protected IVariableDeclarationCreator variableDeclarationCreator;
     protected IConstraintCreator constraintCreator;
     protected IConstraintSolver constraintSolver;
+    private ExecutorService executorService;
 
+    @After
+    public void tearDown() {
+        executorService.shutdown();
+    }
 
     public AReferenceTest(String testString) {
         super(testString);
@@ -137,7 +143,7 @@ public abstract class AReferenceTest extends ADefinitionTest
                 mostSpecificOverloadDecider
         );
 
-        ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
+        executorService = Executors.newFixedThreadPool(numberOfThreads);
         constraintSolver = createConstraintSolver(
                 symbolFactory,
                 softTypingConstraintSolver,

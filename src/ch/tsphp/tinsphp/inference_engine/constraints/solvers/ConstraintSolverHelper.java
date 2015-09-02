@@ -506,7 +506,8 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
     }
 
     private void updateAggregateBindingDto(AggregateBindingDto dto, BoundResultDto resultDto, ITypeSymbol copy) {
-        dto.hasChanged = dto.hasChanged || resultDto.hasChanged;
+        boolean isNotConstant = dto.bindingVariable.getType() == null;
+        dto.hasChanged = dto.hasChanged || isNotConstant && resultDto.hasChanged;
 
         if (resultDto.usedImplicitConversion) {
             if (dto.argumentNumber != null) {
@@ -517,7 +518,7 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
             }
             //implicit conversions always narrow
             dto.hasNarrowedArguments = true;
-        } else if (resultDto.hasChanged) {
+        } else if (resultDto.hasChanged && isNotConstantOrLowerEqualsUpper(isNotConstant, dto)) {
             dto.hasNarrowedArguments = true;
         }
 
@@ -534,6 +535,17 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
             }
             aggregateConstraintsFromTo(resultDto.upperConstraints, dto.upperConstraints);
         }
+    }
+
+    private boolean isNotConstantOrLowerEqualsUpper(boolean isNotConstant, AggregateBindingDto dto) {
+        boolean hasNarrowed = isNotConstant;
+        if (!hasNarrowed) {
+            String typeVariable = dto.bindings.getTypeVariable(dto.bindingVariable.getAbsoluteName());
+            hasNarrowed = !dto.bindings.hasUpperTypeBounds(typeVariable)
+                    || !typeHelper.areSame(
+                    dto.bindings.getLowerTypeBounds(typeVariable), dto.bindings.getUpperTypeBounds(typeVariable));
+        }
+        return hasNarrowed;
     }
 
     private void aggregateConstraintsFromTo(

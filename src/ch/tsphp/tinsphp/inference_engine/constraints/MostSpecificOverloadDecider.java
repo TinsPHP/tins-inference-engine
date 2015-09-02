@@ -116,18 +116,21 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
 
         int minNumberOfImplicitConversions = Integer.MAX_VALUE;
         boolean usesConvertibleTypes = true;
+        boolean hasNarrowed = true;
 
         for (int i = 0; i < size; ++i) {
             OverloadRankingDto dto = fixedOverloads.get(i);
             int numberOfImplicitConversions = (dto.implicitConversions == null ? 0 : dto.implicitConversions.size());
-            if (usesConvertibleTypes == dto.usesConvertibleTypes
+            if (hasNarrowed == dto.hasNarrowedArguments && usesConvertibleTypes == dto.usesConvertibleTypes
                     && numberOfImplicitConversions == minNumberOfImplicitConversions) {
 
                 overloadRankingDtos.add(dto);
 
-            } else if (numberOfImplicitConversions < minNumberOfImplicitConversions
+            } else if (hasNarrowed && !dto.hasNarrowedArguments
+                    || numberOfImplicitConversions < minNumberOfImplicitConversions
                     || (numberOfImplicitConversions == minNumberOfImplicitConversions
                     && usesConvertibleTypes && !dto.usesConvertibleTypes)) {
+                hasNarrowed = dto.hasNarrowedArguments;
                 usesConvertibleTypes = dto.usesConvertibleTypes;
                 minNumberOfImplicitConversions = numberOfImplicitConversions;
                 overloadRankingDtos = new ArrayList<>(size - i);
@@ -270,8 +273,8 @@ public class MostSpecificOverloadDecider implements IMostSpecificOverloadDecider
     }
 
     private List<OverloadRankingDto> getMostSpecificApplicableOverload(
-            List<OverloadRankingDto> applicableOverloads,
-            List<Pair<ITypeSymbol, ITypeSymbol>> boundsList) {
+            List<OverloadRankingDto> applicableOverloads, List<Pair<ITypeSymbol, ITypeSymbol>> boundsList) {
+
         List<OverloadRankingDto> mostSpecificOverloads = new ArrayList<>(3);
 
         int numberOfParameters = boundsList.size();
