@@ -87,10 +87,8 @@ public class SoftTypingConstraintSolver implements ISoftTypingConstraintSolver
         workItemDto.bindingCollection.setMode(EBindingCollectionMode.Modification);
         workItemDto.isInSoftTypingMode = false;
         solveConstraintsAfterInit(constraintCollection, workItemDto);
-
         //Notice! workItemDto.bindingCollection is not the same binding collection as above
-        IBindingCollection bindingCollection = workItemDto.bindingCollection;
-        bindingCollection.setMode(EBindingCollectionMode.Normal);
+        workItemDto.bindingCollection.setMode(EBindingCollectionMode.Normal);
     }
 
     private void initWorkListDtoBindingCollection(WorkItemDto workItemDto) {

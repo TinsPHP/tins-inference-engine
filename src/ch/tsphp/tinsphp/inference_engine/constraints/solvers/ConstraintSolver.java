@@ -59,7 +59,6 @@ public class ConstraintSolver implements IConstraintSolver
     private final Set<IMethodSymbol> collectionsWhichChanged
             = Collections.synchronizedSet(new HashSet<IMethodSymbol>());
 
-
     @SuppressWarnings("checkstyle:parameternumber")
     public ConstraintSolver(
             ISymbolFactory theSymbolFactory,
@@ -421,13 +420,14 @@ public class ConstraintSolver implements IConstraintSolver
     }
 
     private WorkItemDto getSoftTypingWorkItem(
-            IConstraintCollection constraintCollection, Deque<WorkItemDto> theWorkQueue, boolean isSolvingMethod) {
+            IConstraintCollection constraintCollection, Deque<WorkItemDto> workQueue, boolean isSolvingMethod) {
         IBindingCollection bindingCollection = symbolFactory.createBindingCollection();
         bindingCollection.setMode(EBindingCollectionMode.SoftTyping);
+        final int pointer = 0;
         WorkItemDto workItemDto = new WorkItemDto(
-                theWorkQueue, constraintCollection, 0, isSolvingMethod, bindingCollection);
+                workQueue, constraintCollection, pointer, isSolvingMethod, bindingCollection);
         workItemDto.isInSoftTypingMode = true;
-        theWorkQueue.add(workItemDto);
+        workQueue.add(workItemDto);
         return workItemDto;
     }
 
@@ -460,16 +460,15 @@ public class ConstraintSolver implements IConstraintSolver
         IConstraint constraint = theConstraint;
         IMinimalMethodSymbol refMethodSymbol = constraint.getMethodSymbol();
 
-        Collection<IFunctionType> overloads = refMethodSymbol.getOverloads();
-        boolean wasCreated = overloads.size() != 0;
+        boolean wasCreated = refMethodSymbol.getOverloads().size() != 0;
         if (!wasCreated) {
             String dependentMethodName = workItemDto.constraintCollection.getAbsoluteName();
             String methodWithDependent = refMethodSymbol.getAbsoluteName();
             if (!workItemDto.isInIterativeMode) {
                 //need to prevent that a dependency is created if the method is already solved
-                synchronized (overloads) {
+                synchronized (refMethodSymbol) {
                     //could be solved by now
-                    if (overloads.size() != 0) {
+                    if (refMethodSymbol.getOverloads().size() != 0) {
                         wasCreated = true;
                     } else {
                         registerDependency(workItemDto, dependentMethodName, methodWithDependent);
@@ -512,12 +511,10 @@ public class ConstraintSolver implements IConstraintSolver
         return value;
     }
 
-
     private class MethodConstraintSolver implements Runnable
     {
         private final IMethodSymbol methodSymbol;
         private final Deque<WorkItemDto> workDeque;
-        private boolean isInSoftTypingMode = false;
 
         public MethodConstraintSolver(
                 IMethodSymbol theMethodSymbol, Deque<WorkItemDto> theWorkDeque) {
@@ -532,14 +529,14 @@ public class ConstraintSolver implements IConstraintSolver
             String methodName = methodSymbol.getAbsoluteName();
             if (!workItemDtos.isEmpty()) {
                 WorkItemDto firstWorkItem = workItemDtos.get(0);
-                if (isInSoftTypingMode) {
+                if (firstWorkItem.isInSoftTypingMode) {
                     softTypingConstraintSolver.solveConstraints(methodSymbol, firstWorkItem);
                 }
 
                 //a method is not automatically solved if we are in the iterative mode
                 if (!firstWorkItem.isInIterativeMode) {
                     //make sure dependencies to this method are not created anymore
-                    synchronized (methodSymbol.getOverloads()) {
+                    synchronized (methodSymbol) {
                         for (WorkItemDto workItemDto : workItemDtos) {
                             methodSymbol.addBindingCollection(workItemDto.bindingCollection);
                             constraintSolverHelper.createOverload(methodSymbol, workItemDto.bindingCollection);
@@ -549,8 +546,8 @@ public class ConstraintSolver implements IConstraintSolver
                     Collection<String> dependentMethodNames = methodsWithDependents.remove(methodName);
                     if (dependentMethodNames != null) {
                         for (String dependentMethodName : dependentMethodNames) {
-                            solveDependentMethod(dependentMethods.get(dependentMethodName), false, false);
-                            dependentMethods.remove(dependentMethodName);
+                            Set<WorkItemDto> dependentWorkItems = dependentMethods.remove(dependentMethodName);
+                            solveDependentMethod(dependentWorkItems, false, false);
                         }
                     }
                     dependentMethods.remove(methodName);
@@ -564,11 +561,9 @@ public class ConstraintSolver implements IConstraintSolver
                         collectionsWhichChanged.add(methodSymbol);
                     }
                 }
-            } else if (!isInSoftTypingMode && !dependentMethods.containsKey(methodName)) {
+            } else if (!dependentMethods.containsKey(methodName)) {
                 //does not have any dependencies and still cannot be solved
                 //need to fallback to soft typing
-                isInSoftTypingMode = true;
-                dependentMethods.remove(methodName);
                 getSoftTypingWorkItem(methodSymbol, workDeque, true);
                 futures.add(executorService.submit(this));
             }

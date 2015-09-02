@@ -45,6 +45,101 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
         runTest();
     }
 
+    @Override
+    protected void assertsInInferencePhase() {
+        int counter = 0;
+        for (SignatureTestStruct testStruct : testStructs) {
+            ITSPHPAst testCandidate = ScopeTestHelper.getAst(ast, testString, testStruct);
+
+            Assert.assertNotNull(testString + " failed. testCandidate is null. should be " + testStruct.astText,
+                    testCandidate);
+            Assert.assertEquals(testString + " failed. wrong ast text (testStruct Nr " + counter + ")",
+                    testStruct.astText, testCandidate.toStringTree());
+
+            ISymbol symbol = testCandidate.getSymbol();
+            Assert.assertNotNull(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + ")." +
+                    " symbol was null", symbol);
+
+            List<String> signatures = getSignatures(counter, testStruct, symbol);
+            int size = testStruct.signatures.size();
+
+            for (int i = 0; i < size; ++i) {
+                try {
+                    assertThat(signatures, hasItem(testStruct.signatures.get(i)));
+                } catch (AssertionError ex) {
+                    StringBuilder stringBuilder = new StringBuilder();
+                    stringBuilder.append(testString).append(" \n-- ").append(testStruct.astText)
+                            .append(" failed (testStruct Nr ").append(counter).append("). ")
+                            .append("Error for functionType ").append(i).append("\n")
+                            .append("Expected (").append(size).append(")")
+                            .append("and the following was not part of the actual overloads:\n")
+                            .append(testStruct.signatures.get(i)).append("\n\n")
+                            .append("Actual (").append(signatures.size()).append("):");
+                    Collections.sort(signatures);
+                    for (String signature : signatures) {
+                        stringBuilder.append("\n").append(signature);
+                    }
+                    Assert.fail(stringBuilder.toString());
+                }
+            }
+
+            if (size != signatures.size()) {
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.append(testString).append(" -- ").append(testStruct.astText)
+                        .append(" failed (testStruct Nr ").append(counter)
+                        .append("). too many or not enough overloads.\nExpected: ").append(size).append(" actual: ")
+                        .append(signatures.size()).append("\n").append("Expected overloads:");
+
+                Collections.sort(testStruct.signatures);
+                for (String signature : testStruct.signatures) {
+                    stringBuilder.append("\n").append(signature);
+                }
+                stringBuilder.append("\nActual:");
+                Collections.sort(signatures);
+                for (String signature : signatures) {
+                    stringBuilder.append("\n").append(signature);
+                }
+                Assert.fail(stringBuilder.toString());
+            }
+
+            Assert.assertEquals(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
+                    "too many or not enough overloads", size, signatures.size());
+
+            ++counter;
+        }
+    }
+
+    protected List<String> getSignatures(int counter, SignatureTestStruct testStruct, ISymbol symbol) {
+        Assert.assertTrue(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + ")." +
+                "symbol is not a constraint collection", symbol instanceof IConstraintCollection);
+
+        IMethodSymbol methodSymbol = (IMethodSymbol) symbol;
+        List<String> signatures = new ArrayList<>();
+        for (IFunctionType functionType : methodSymbol.getOverloads()) {
+            signatures.add(functionType.getSignature());
+        }
+        return signatures;
+    }
+
+    protected static SignatureTestStruct testStruct(
+            String astText,
+            String definitionScope,
+            List<String> signatures,
+            Integer... astAccessOrder) {
+        return new SignatureTestStruct(
+                astText, definitionScope, asList(astAccessOrder), signatures);
+    }
+
+    protected static SignatureTestStruct[] testStructs(
+            String astText,
+            String definitionScope,
+            List<String> signatures,
+            Integer... astAccessOrder) {
+        return new SignatureTestStruct[]{
+                testStruct(astText, definitionScope, signatures, astAccessOrder)
+        };
+    }
+
     @Parameterized.Parameters
     public static Collection<Object[]> testStrings() {
         String bool = "(falseType | trueType)";
@@ -187,102 +282,213 @@ public class FunctionDefinitionMultipleOverloadTest extends AInferenceTest
                                 "int -> int",
                                 "((array | {as int}) & {as string}) -> int"
                         ), 1, 0, 2)
+                },
+                {
+                        "const NODE_WIDTH = 51;\n"
+                                + "const NODE_HEIGHT = 23;\n"
+                                + "\n"
+                                + "function myArrayPop(array $array) {\n"
+                                + "    $count = myCount($array);\n"
+                                + "    if($count > 0){\n"
+                                + "        return $array[$count-1];\n"
+                                + "    }\n"
+                                + "    return null;\n"
+                                + "}\n"
+                                + "\n"
+                                + "function myCount($x) {\n"
+                                + "    return 1;\n"
+                                + "}\n"
+                                + "\n"
+                                + "function myArraySearch($needle, array $haystack){\n"
+                                + "    return $haystack[0];\n"
+                                + "}\n"
+                                + "\n"
+                                + "function myArrayReverse(array $array){\n"
+                                + "    return [1];\n"
+                                + "}\n"
+                                + "\n"
+                                + "function myArrayKeyExists($key, array $array){\n"
+                                + "    return true;\n"
+                                + "}\n"
+                                + "\n"
+                                + "/***************** A* implementation, **********\n"
+                                + " * found here http://granularreverb.com/a_star.php\n"
+                                + " * And slightly adapted (by-ref is not yet supported) - some variables were " +
+                                "forward reference usages and other bugs\n"
+                                + " */\n"
+                                + "\n"
+                                + "// A* algorithm by aaz, found at\n"
+                                + "// http://althenia.net/svn/stackoverflow/a-star.php?rev=7\n"
+                                + "// Binary min-heap with element values stored separately\n"
+                                + "\n"
+                                + "//original code: function heap_float(&$heap, &$values, $i, $index) {\n"
+                                + "function heap_float($heap, $values, $i, $index) {\n"
+                                + "    $j = 0;\n"
+                                + "    for (; $i; $i = $j) {\n"
+                                + "        $j = ($i + $i%2)/2 - 1;\n"
+                                + "        if ($values[$heap[$j]] < $values[$index])\n"
+                                + "            break;\n"
+                                + "        $heap[$i] = $heap[$j];\n"
+                                + "    }\n"
+                                + "    $heap[$i] = $index;\n"
+                                + "    return null;\n"
+                                + "}\n"
+                                + "\n"
+                                + "//original code: function heap_push(&$heap, &$values, $index) {\n"
+                                + "function heap_push($heap, $values, $index) {\n"
+                                + "    heap_float($heap, $values, myCount($heap), $index);\n"
+                                + "    return null;\n"
+                                + "}\n"
+                                + "\n"
+                                + "//original code: function heap_raise(&$heap, &$values, $index) {\n"
+                                + "function heap_raise($heap, $values, $index) {\n"
+                                + "    heap_float($heap, $values, myArraySearch($index, $heap), $index);\n"
+                                + "    return null;\n"
+                                + "}\n"
+                                + "\n"
+                                + "//original code: function heap_pop(&$heap, &$values) {\n"
+                                + "function heap_pop($heap, $values) {\n"
+                                + "    $front = $heap[0];\n"
+                                + "    $index = myArrayPop($heap);\n"
+                                + "    $n = myCount($heap);\n"
+                                + "    if ($n) {\n"
+                                + "        $j = 0;\n"
+                                + "        for ($i = 0;; $i = $j) {\n"
+                                + "            $j = $i*2 + 1;\n"
+                                + "            if ($j >= $n)\n"
+                                + "                break;\n"
+                                + "            if ($j+1 < $n && $values[$heap[$j+1]] < $values[$heap[$j]])\n"
+                                + "                $j += 1;\n"
+                                + "            if ($values[$index] < $values[$heap[$j]])\n"
+                                + "                break;\n"
+                                + "            $heap[$i] = $heap[$j];\n"
+                                + "        }\n"
+                                + "        $heap[$i] = $index;\n"
+                                + "    }\n"
+                                + "    return $front;\n"
+                                + "}\n"
+                                + "\n"
+                                + "\n"
+                                + "// A-star algorithm:\n"
+                                + "//   $start, $target - node indexes\n"
+                                + "//   $neighbors($i)     - map of neighbor index => step cost\n"
+                                + "//   $heuristic($i, $j) - minimum cost between $i and $j\n"
+                                + "\n"
+                                + "function a_star($start, $target, $map) {\n"
+                                + "    $open_heap = array($start); // binary min-heap of indexes with values in $f\n"
+                                + "    $open      = array($start => TRUE); // set of indexes\n"
+                                + "    $closed    = array();               // set of indexes\n"
+                                + "\n"
+                                + "    $g = [];\n"
+                                + "    $h = [];\n"
+                                + "    $f = [];\n"
+                                + "    $from = [];\n"
+                                + "\n"
+                                + "    $g[$start] = 0;\n"
+                                + "    $h[$start] = heuristic($start, $target);\n"
+                                + "    $f[$start] = $g[$start] + $h[$start];\n"
+                                + "\n"
+                                + "    while ($open) {\n"
+                                + "        $i = heap_pop($open_heap, $f);\n"
+                                + "        //not yet supported\n"
+                                + "        //unset($open[$i]);\n"
+                                + "        $open[$i] = null;\n"
+                                + "        $closed[$i] = TRUE;\n"
+                                + "\n"
+                                + "        if ($i == $target) {\n"
+                                + "            $path = array();\n"
+                                + "            for (; $i != $start; $i = $from[$i])\n"
+                                + "                $path[myCount($path)] = $i;\n"
+                                + "            return myArrayReverse($path);\n"
+                                + "        }\n"
+                                + "\n"
+                                + "        foreach (neighbors($i, $map) as $j => $step)\n"
+                                + "            if (!myArrayKeyExists($j, $closed))\n"
+                                + "                if (!myArrayKeyExists($j, $open) || $g[$i] + $step < $g[$j]) {\n"
+                                + "                    $g[$j] = $g[$i] + $step;\n"
+                                + "                    $h[$j] = heuristic($j, $target);\n"
+                                + "                    $f[$j] = $g[$j] + $h[$j];\n"
+                                + "                    $from[$j] = $i;\n"
+                                + "\n"
+                                + "                    if (!myArrayKeyExists($j, $open)) {\n"
+                                + "                        $open[$j] = TRUE;\n"
+                                + "                        heap_push($open_heap, $f, $j);\n"
+                                + "                    } else\n"
+                                + "                        heap_raise($open_heap, $f, $j);\n"
+                                + "                }\n"
+                                + "    }\n"
+                                + "\n"
+                                + "    return FALSE;\n"
+                                + "}\n"
+                                + "\n"
+                                + "function node($x, $y) {\n"
+                                + "    return $y * NODE_WIDTH + $x;\n"
+                                + "}\n"
+                                + "\n"
+                                + "function coord($i) {\n"
+                                + "    $x = $i % NODE_WIDTH;\n"
+                                + "    $y = ($i - $x) / NODE_WIDTH;\n"
+                                + "    return array($x, $y);\n"
+                                + "}\n"
+                                + "\n"
+                                + "function neighbors($i, $map) {\n"
+                                + "    $arr = coord($i);\n"
+                                + "    $x = $arr[0];\n"
+                                + "    $y = $arr[1];\n"
+                                + "    $neighbors = array();\n"
+                                + "    if ($x-1 >= 0      && $map[$y][$x-1] == ' ') $neighbors[node($x-1, $y)] = 1;\n"
+                                + "    if ($x+1 < NODE_WIDTH  && $map[$y][$x+1] == ' ') $neighbors[node($x+1, " +
+                                "$y)] = 1;\n"
+                                + "    if ($y-1 >= 0      && $map[$y-1][$x] == ' ') $neighbors[node($x, $y-1)] = 1;\n"
+                                + "    if ($y+1 < NODE_HEIGHT && $map[$y+1][$x] == ' ') $neighbors[node($x, " +
+                                "$y+1)] = 1;\n"
+                                + "    return $neighbors;\n"
+                                + "}\n"
+                                + "\n"
+                                + "function heuristic($i, $j) {\n"
+                                + "    $arr_i = coord($i);\n"
+                                + "    $arr_j = coord($j);\n"
+                                + "    return abs($arr_i[0] - $arr_j[0]) + abs($arr_i[1] - $arr_j[1]);\n"
+                                + "}\n",
+                        new SignatureTestStruct[]{
+                                testStruct("myArrayPop()", "\\.\\.", asList("array -> mixed"), 1, 2, 2),
+                                testStruct("myCount()", "\\.\\.", asList("mixed -> int"), 1, 3, 2),
+                                testStruct("myArraySearch()", "\\.\\.", asList("mixed x array -> mixed"), 1, 4, 2),
+                                testStruct("myArrayReverse()", "\\.\\.", asList("array -> array"), 1, 5, 2),
+                                testStruct("myArrayKeyExists()", "\\.\\.",
+                                        asList("mixed x array -> trueType"), 1, 6, 2),
+                                testStruct("heap_float()", "\\.\\.",
+                                        asList("array x array x ({as (falseType | trueType)} | {as (float | int)}) "
+                                                + "x {as int} -> nullType"), 1, 7, 2),
+                                testStruct("heap_push()", "\\.\\.",
+                                        asList("array x array x {as int} -> nullType"), 1, 8, 2),
+                                testStruct("heap_raise()", "\\.\\.",
+                                        asList("array x array x {as int} -> nullType"), 1, 9, 2),
+                                testStruct("heap_pop()", "\\.\\.", asList("array x array -> mixed"), 1, 10, 2),
+                                testStruct("a_star()", "\\.\\.",
+                                        asList("(((array | {as int}) & {as (float | int)}) | {as int}) x "
+                                                + "((array | {as int}) & {as (float | int)}) "
+                                                + "x array -> (array | falseType)"), 1, 11, 2),
+                                testStruct("node()", "\\.\\.",
+                                        asList(
+                                                "int x int -> int",
+                                                "float x float -> float",
+                                                "{as T1} x {as T2} -> T1 "
+                                                        + "\\ T2 <: T1 <: (float | int), T2 <: (float | int)"),
+                                        1, 12, 2),
+
+                                testStruct("coord()", "\\.\\.",
+                                        asList("int -> array", "((array | {as int}) & {as (float | int)}) -> array"),
+                                        1, 13, 2),
+
+                                testStruct("neighbors()", "\\.\\.",
+                                        asList("((array | {as int}) & {as (float | int)}) x array -> array"), 1, 14, 2),
+                                testStruct("heuristic()", "\\.\\.",
+                                        asList("((array | {as int}) & {as (float | int)}) x "
+                                                + "((array | {as int}) & {as (float | int)}) -> (float | int)"),
+                                        1, 15, 2),
+                        }
                 }
         });
-    }
-
-    @Override
-    protected void assertsInInferencePhase() {
-        int counter = 0;
-        for (SignatureTestStruct testStruct : testStructs) {
-            ITSPHPAst testCandidate = ScopeTestHelper.getAst(ast, testString, testStruct);
-
-            Assert.assertNotNull(testString + " failed. testCandidate is null. should be " + testStruct.astText,
-                    testCandidate);
-            Assert.assertEquals(testString + " failed. wrong ast text (testStruct Nr " + counter + ")",
-                    testStruct.astText, testCandidate.toStringTree());
-
-            ISymbol symbol = testCandidate.getSymbol();
-            Assert.assertNotNull(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + ")." +
-                    " symbol was null", symbol);
-
-            List<String> signatures = getSignatures(counter, testStruct, symbol);
-            int size = testStruct.signatures.size();
-
-            for (int i = 0; i < size; ++i) {
-                try {
-                    assertThat(signatures, hasItem(testStruct.signatures.get(i)));
-                } catch (AssertionError ex) {
-                    StringBuilder stringBuilder = new StringBuilder();
-                    stringBuilder.append(testString).append(" \n-- ").append(testStruct.astText)
-                            .append(" failed (testStruct Nr ").append(counter).append("). ")
-                            .append("Error for functionType ").append(i).append("\n")
-                            .append("Expected (").append(size).append(")")
-                            .append("and the following was not part of the actual overloads:\n")
-                            .append(testStruct.signatures.get(i)).append("\n\n")
-                            .append("Actual (").append(signatures.size()).append("):");
-                    Collections.sort(signatures);
-                    for (String signature : signatures) {
-                        stringBuilder.append("\n").append(signature);
-                    }
-                    Assert.fail(stringBuilder.toString());
-                }
-            }
-
-            if (size != signatures.size()) {
-                StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.append(testString).append(" -- ").append(testStruct.astText)
-                        .append(" failed (testStruct Nr ").append(counter)
-                        .append("). too many or not enough overloads.\nExpected: ").append(size).append(" actual: ")
-                        .append(signatures.size()).append("\n").append("Expected overloads:");
-
-                Collections.sort(testStruct.signatures);
-                for (String signature : testStruct.signatures) {
-                    stringBuilder.append("\n").append(signature);
-                }
-                stringBuilder.append("\nActual:");
-                Collections.sort(signatures);
-                for (String signature : signatures) {
-                    stringBuilder.append("\n").append(signature);
-                }
-                Assert.fail(stringBuilder.toString());
-            }
-
-            Assert.assertEquals(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + "). " +
-                    "too many or not enough overloads", size, signatures.size());
-
-            ++counter;
-        }
-    }
-
-    protected List<String> getSignatures(int counter, SignatureTestStruct testStruct, ISymbol symbol) {
-        Assert.assertTrue(testString + " -- " + testStruct.astText + " failed (testStruct Nr " + counter + ")." +
-                "symbol is not a constraint collection", symbol instanceof IConstraintCollection);
-
-        IMethodSymbol methodSymbol = (IMethodSymbol) symbol;
-        List<String> signatures = new ArrayList<>();
-        for (IFunctionType functionType : methodSymbol.getOverloads()) {
-            signatures.add(functionType.getSignature());
-        }
-        return signatures;
-    }
-
-    protected static SignatureTestStruct testStruct(
-            String astText,
-            String definitionScope,
-            List<String> signatures,
-            Integer... astAccessOrder) {
-        return new SignatureTestStruct(
-                astText, definitionScope, asList(astAccessOrder), signatures);
-    }
-
-    protected static SignatureTestStruct[] testStructs(
-            String astText,
-            String definitionScope,
-            List<String> signatures,
-            Integer... astAccessOrder) {
-        return new SignatureTestStruct[]{
-                testStruct(astText, definitionScope, signatures, astAccessOrder)
-        };
     }
 }

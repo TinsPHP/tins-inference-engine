@@ -361,12 +361,11 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                 // and dependency was soft typed as well</strike>
                 //not anymore, since we do no longer continue when we detect a dependency
                 {
-                        "function test13C(){[1] + 1; return foo13C([1]) + 1;}"
+                        "function test13C(){$a = [1]; $a = 1; $a + 1; return foo13C([1]) + 1;}"
                                 + "function foo13C(array $x){ $x = 1; return $x + 1; }",
                         new OverloadTestStruct[]{
                                 testStruct("test13C()", "\\.\\.", functionDtos("test13C()", 0, bindingDtos(
-                                        varBinding(RETURN_VARIABLE_NAME, "V9",
-                                                asList("int", "float", "array"), null, true)
+                                        varBinding(RETURN_VARIABLE_NAME, "V13", asList("int"), null, true)
                                 )), 1, 0, 2),
                                 testStruct("foo13C()", "\\.\\.", functionDtos("foo13C()", 1, bindingDtos(
                                         varBinding("foo13C()$x", "V2", null, asList("(array | int)"), true),
@@ -376,13 +375,12 @@ public class FunctionDefinitionOverloadTest extends AInferenceOverloadTest
                 },
                 //needs to fall back to soft typing during dependency resolving and dependency was soft typed as well
                 {
-                        "function test13D(){[1] + 1; return foo13D([1]) + 1;}"
+                        "function test13D(){$a = [1]; $a = 1; $a + 1; return foo13D([1]) + 1;}"
                                 + "function foo13D(array $x){ bar13D($x); $x = 1; return $x + 1; }"
                                 + "function bar13D($x){return $x;}",
                         new OverloadTestStruct[]{
                                 testStruct("test13D()", "\\.\\.", functionDtos("test13D()", 0, bindingDtos(
-                                        varBinding(RETURN_VARIABLE_NAME, "V9",
-                                                asList("int", "float", "array"), null, true)
+                                        varBinding(RETURN_VARIABLE_NAME, "V13", asList("int"), null, true)
                                 )), 1, 0, 2),
                                 testStruct("foo13D()", "\\.\\.", functionDtos("foo13D()", 1, bindingDtos(
                                         varBinding("foo13D()$x", "V3", null, asList("(array | int)"), true),
