@@ -118,7 +118,7 @@ public class ConstraintSolverTest
         set.add(t1);
         function.manuallySimplified(set, 0, true);
         IMinimalMethodSymbol minimalMethodSymbol1 = symbolFactory.createMinimalMethodSymbol("+");
-        minimalMethodSymbol1.addOverload(function);
+        minimalMethodSymbol1.setOverloads(asList(function));
         IConstraint constraint1 = symbolFactory.createConstraint(
                 mock(ITSPHPAst.class), e1, asList((IVariable) $x, $y), minimalMethodSymbol1);
 
@@ -143,7 +143,7 @@ public class ConstraintSolverTest
         set.add(T_RETURN);
         function.manuallySimplified(set, 0, true);
         IMinimalMethodSymbol minimalMethodSymbol2 = symbolFactory.createMinimalMethodSymbol("+");
-        minimalMethodSymbol2.addOverload(function);
+        minimalMethodSymbol2.setOverloads(asList(function));
         IConstraint constraint2
                 = symbolFactory.createConstraint(mock(ITSPHPAst.class), e2, asList(e1, $z), minimalMethodSymbol2);
 
@@ -225,7 +225,7 @@ public class ConstraintSolverTest
         set.add(T_RETURN);
         function.manuallySimplified(set, 0, true);
         IMinimalMethodSymbol minimalMethodSymbol2 = symbolFactory.createMinimalMethodSymbol("+");
-        minimalMethodSymbol2.addOverload(function);
+        minimalMethodSymbol2.setOverloads(asList(function));
         IConstraint constraint1 = symbolFactory.createConstraint(
                 mock(ITSPHPAst.class), e1, asList((IVariable) $x, $y), minimalMethodSymbol2);
 
@@ -297,7 +297,7 @@ public class ConstraintSolverTest
         IFunctionType function = symbolFactory.createFunctionType("needInt", bindingCollection, Arrays.asList(lhs));
         function.manuallySimplified(new HashSet<String>(), 0, false);
         IMinimalMethodSymbol minimalMethodSymbol1 = symbolFactory.createMinimalMethodSymbol("needInt");
-        minimalMethodSymbol1.addOverload(function);
+        minimalMethodSymbol1.setOverloads(asList(function));
         IConstraint constraint1 = symbolFactory.createConstraint(
                 mock(ITSPHPAst.class), e1, asList((IVariable) $x), minimalMethodSymbol1);
 
@@ -319,7 +319,7 @@ public class ConstraintSolverTest
         function = symbolFactory.createFunctionType("needFloat", bindingCollection, Arrays.asList(lhs, rhs));
         function.manuallySimplified(new HashSet<String>(), 0, false);
         IMinimalMethodSymbol minimalMethodSymbol2 = symbolFactory.createMinimalMethodSymbol("needFloat");
-        minimalMethodSymbol2.addOverload(function);
+        minimalMethodSymbol2.setOverloads(asList(function));
         IConstraint constraint2 = symbolFactory.createConstraint(
                 mock(ITSPHPAst.class), e2, asList((IVariable) $x, $y), minimalMethodSymbol2);
 
@@ -381,7 +381,7 @@ public class ConstraintSolverTest
         IFunctionType function = symbolFactory.createFunctionType("needFloat", bindingCollection, Arrays.asList(lhs));
         function.manuallySimplified(new HashSet<String>(), 0, false);
         IMinimalMethodSymbol minimalMethodSymbol1 = symbolFactory.createMinimalMethodSymbol("needFloat");
-        minimalMethodSymbol1.addOverload(function);
+        minimalMethodSymbol1.setOverloads(asList(function));
         IConstraint constraint1 = symbolFactory.createConstraint(
                 mock(ITSPHPAst.class), e1, asList((IVariable) $x), minimalMethodSymbol1);
 
@@ -403,7 +403,7 @@ public class ConstraintSolverTest
         function = symbolFactory.createFunctionType("needInt", bindingCollection, Arrays.asList(lhs, rhs));
         function.manuallySimplified(new HashSet<String>(), 0, false);
         IMinimalMethodSymbol minimalMethodSymbol2 = symbolFactory.createMinimalMethodSymbol("needInt");
-        minimalMethodSymbol2.addOverload(function);
+        minimalMethodSymbol2.setOverloads(asList(function));
         IConstraint constraint2 = symbolFactory.createConstraint(
                 mock(ITSPHPAst.class), e2, asList((IVariable) $x, $y), minimalMethodSymbol2);
 

@@ -32,8 +32,8 @@ public class TempMethodSymbol implements IMinimalMethodSymbol
     }
 
     @Override
-    public void addOverload(IFunctionType overload) {
-        methodSymbol.addOverload(overload);
+    public void setOverloads(Collection<IFunctionType> overloads) {
+        methodSymbol.setOverloads(overloads);
     }
 
     @Override

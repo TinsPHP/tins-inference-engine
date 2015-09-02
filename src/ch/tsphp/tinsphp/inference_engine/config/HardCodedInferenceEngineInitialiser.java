@@ -92,7 +92,7 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
         scopeFactory = symbolsInitialiser.getScopeFactory();
 
         inferenceIssueReporter = new InferenceIssueReporter(new HardCodedIssueMessageProvider());
-        constraintCreator = new ConstraintCreator(symbolFactory, inferenceIssueReporter);
+        constraintCreator = new ConstraintCreator(symbolFactory);
 
         astModificationHelper = new AstModificationHelper(astHelper);
 

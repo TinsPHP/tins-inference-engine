@@ -16,7 +16,6 @@ import ch.tsphp.tinsphp.common.inference.constraints.IConstraintCreator;
 import ch.tsphp.tinsphp.common.inference.constraints.IFunctionType;
 import ch.tsphp.tinsphp.common.inference.constraints.IVariable;
 import ch.tsphp.tinsphp.common.inference.constraints.TypeVariableReference;
-import ch.tsphp.tinsphp.common.issues.IInferenceIssueReporter;
 import ch.tsphp.tinsphp.common.symbols.IExpressionVariableSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMethodSymbol;
 import ch.tsphp.tinsphp.common.symbols.IMinimalMethodSymbol;
@@ -32,13 +31,11 @@ import java.util.Set;
 public class ConstraintCreator implements IConstraintCreator
 {
     private final ISymbolFactory symbolFactory;
-    private final IInferenceIssueReporter inferenceIssueReporter;
     private final IMinimalMethodSymbol assignFunction;
 
 
-    public ConstraintCreator(ISymbolFactory theSymbolFactory, IInferenceIssueReporter theInferenceErrorReporter) {
+    public ConstraintCreator(ISymbolFactory theSymbolFactory) {
         symbolFactory = theSymbolFactory;
-        inferenceIssueReporter = theInferenceErrorReporter;
 
         //Tlhs x Trhs -> Tlhs \ Trhs <: Tlhs
         String tLhs = "Tlhs";
@@ -59,7 +56,9 @@ public class ConstraintCreator implements IConstraintCreator
         nonFixedTypeParameters.add("Trhs");
         identityOverload.manuallySimplified(nonFixedTypeParameters, 0, false);
         assignFunction = symbolFactory.createMinimalMethodSymbol("=");
-        assignFunction.addOverload(identityOverload);
+        List<IFunctionType> overloads = new ArrayList<>(1);
+        overloads.add(identityOverload);
+        assignFunction.setOverloads(overloads);
     }
 
     @Override

@@ -864,7 +864,6 @@ public class ConstraintSolverHelper implements IConstraintSolverHelper
 
         IFunctionType functionType = symbolFactory.createFunctionType(methodSymbol.getName(), bindings, parameters);
         functionType.simplify();
-        methodSymbol.addOverload(functionType);
         return functionType;
     }
 

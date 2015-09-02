@@ -207,6 +207,7 @@ public class ConstraintSolver implements IConstraintSolver
             overload = constraintSolverHelper.createOverload(methodSymbol, workItemDto.bindingCollection);
             mapping.put(overload, workItemDto);
         }
+        methodSymbol.setOverloads(mapping.keySet());
 
         for (IFunctionType functionType : methodSymbol.getOverloads()) {
             methodSymbol.addBindingCollection(functionType.getBindingCollection());
@@ -539,9 +540,8 @@ public class ConstraintSolver implements IConstraintSolver
 
         @Override
         public void run() {
-            String methodName = methodSymbol.getAbsoluteName();
-            System.out.println("solve dependency for " + methodName);
             int numberOfWorkItems = workDeque.size();
+            String methodName = methodSymbol.getAbsoluteName();
             List<WorkItemDto> workItemDtos = solveConstraints(workDeque);
             if (!workItemDtos.isEmpty()) {
                 WorkItemDto firstWorkItem = workItemDtos.get(0);
@@ -553,10 +553,13 @@ public class ConstraintSolver implements IConstraintSolver
                 if (!firstWorkItem.isInIterativeMode) {
                     //make sure dependencies to this method are not created anymore
                     synchronized (methodSymbol) {
+                        List<IFunctionType> overloads = new ArrayList<>();
                         for (WorkItemDto workItemDto : workItemDtos) {
                             methodSymbol.addBindingCollection(workItemDto.bindingCollection);
-                            constraintSolverHelper.createOverload(methodSymbol, workItemDto.bindingCollection);
+                            overloads.add(constraintSolverHelper.createOverload(
+                                    methodSymbol, workItemDto.bindingCollection));
                         }
+                        methodSymbol.setOverloads(overloads);
                     }
 
                     Set<String> dependentMethodNames = methodsWithDependents.remove(methodName);

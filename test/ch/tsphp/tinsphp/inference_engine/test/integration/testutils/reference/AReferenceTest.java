@@ -154,7 +154,7 @@ public abstract class AReferenceTest extends ADefinitionTest
                 dependentMethods
         );
 
-        constraintCreator = createConstraintCreator(symbolFactory, inferenceIssueReporter);
+        constraintCreator = createConstraintCreator(symbolFactory);
 
         referencePhaseController = createReferencePhaseController(
                 symbolFactory,
@@ -259,10 +259,8 @@ public abstract class AReferenceTest extends ADefinitionTest
                 theSymbolFactory, theAstModificationHelper, theDefinitionPhaseController);
     }
 
-    protected IConstraintCreator createConstraintCreator(
-            ISymbolFactory theSymbolFactory,
-            IInferenceIssueReporter theInferenceErrorReporter) {
-        return new ConstraintCreator(theSymbolFactory, theInferenceErrorReporter);
+    protected IConstraintCreator createConstraintCreator(ISymbolFactory theSymbolFactory) {
+        return new ConstraintCreator(theSymbolFactory);
     }
 
     protected IConstraintSolver createConstraintSolver(
