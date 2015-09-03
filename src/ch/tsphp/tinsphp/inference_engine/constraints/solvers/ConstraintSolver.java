@@ -90,6 +90,7 @@ public class ConstraintSolver implements IConstraintSolver
         waitUntilAllFeaturesAreDone();
 
         if (!dependentMethods.isEmpty()) {
+//            System.out.println("******* start iterative mode *****");
             solveConstraintsIteratively();
         }
 
@@ -482,7 +483,9 @@ public class ConstraintSolver implements IConstraintSolver
     }
 
     private boolean registerDependencyIfRequired(
-            WorkItemDto workItemDto, IMinimalMethodSymbol refMethodSymbol, String dependentMethodName,
+            WorkItemDto workItemDto,
+            IMinimalMethodSymbol refMethodSymbol,
+            String dependentMethodName,
             String methodWithDependent) {
 
         boolean refMethodWasSolved = false;
@@ -493,6 +496,8 @@ public class ConstraintSolver implements IConstraintSolver
             if (refMethodSymbol.getOverloads().size() != 0) {
                 refMethodWasSolved = true;
             } else {
+//                System.out.println("registering dependency for " + dependentMethodName + " to " +
+// methodWithDependent);
                 Set<String> dependentMethodNames = getOrInitAtomically(
                         methodsWithDependents,
                         methodWithDependent,
@@ -511,6 +516,7 @@ public class ConstraintSolver implements IConstraintSolver
                     WorkItemDto next = workItemDto.workDeque.remove();
                     workItemDtos.add(next);
                 }
+//                System.out.println("registering done for " + dependentMethodName);
             }
         }
         return refMethodWasSolved;
@@ -542,10 +548,13 @@ public class ConstraintSolver implements IConstraintSolver
         public void run() {
             int numberOfWorkItems = workDeque.size();
             String methodName = methodSymbol.getAbsoluteName();
+//            System.out.println("Solve constraints for " + methodName);
             List<WorkItemDto> workItemDtos = solveConstraints(workDeque);
             if (!workItemDtos.isEmpty()) {
                 WorkItemDto firstWorkItem = workItemDtos.get(0);
                 if (firstWorkItem.isInSoftTypingMode) {
+//                    System.out.println("aggregating lower type bounds done for " + methodName
+//                            + " -- solving constraints now.");
                     softTypingConstraintSolver.solveConstraints(methodSymbol, firstWorkItem);
                 }
 
@@ -553,6 +562,7 @@ public class ConstraintSolver implements IConstraintSolver
                 if (!firstWorkItem.isInIterativeMode) {
                     //make sure dependencies to this method are not created anymore
                     synchronized (methodSymbol) {
+//                        System.out.println("create overloads for " + methodName);
                         List<IFunctionType> overloads = new ArrayList<>();
                         for (WorkItemDto workItemDto : workItemDtos) {
                             methodSymbol.addBindingCollection(workItemDto.bindingCollection);
@@ -560,11 +570,13 @@ public class ConstraintSolver implements IConstraintSolver
                                     methodSymbol, workItemDto.bindingCollection));
                         }
                         methodSymbol.setOverloads(overloads);
+//                        System.out.println("overloads created for " + methodName);
                     }
 
                     Set<String> dependentMethodNames = methodsWithDependents.remove(methodName);
                     if (dependentMethodNames != null) {
                         for (String dependentMethodName : dependentMethodNames) {
+//                            System.out.println(dependentMethodName + " has a dependency to " + methodName);
                             Set<WorkItemDto> dependentWorkItems = dependentMethods.remove(dependentMethodName);
                             solveDependentMethod(dependentWorkItems, false, false);
                         }
@@ -581,11 +593,13 @@ public class ConstraintSolver implements IConstraintSolver
                     }
                 }
             } else if (!dependentMethods.containsKey(methodName)) {
+//                System.out.println("Fall back to soft typing for " + methodSymbol);
                 //does not have any dependencies and still cannot be solved
                 //need to fallback to soft typing
                 getSoftTypingWorkItem(methodSymbol, workDeque, true);
-                futures.add(executorService.submit(this));
+                futures.add(executorService.submit(new MethodConstraintSolver(methodSymbol, workDeque)));
             }
+//            System.out.println("Done solving constraints for " + methodName);
         }
 
         private boolean oneChanged(List<WorkItemDto> workItemDtos) {

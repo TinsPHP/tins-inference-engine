@@ -74,6 +74,9 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
     private InferenceEngine engine;
     private IDefinitionPhaseController definitionPhaseController;
     private IReferencePhaseController referencePhaseController;
+    private final ConcurrentMap<String, Set<String>> methodsWithDependents;
+    private final ConcurrentMap<String, Set<WorkItemDto>> dependentMethods;
+    private final ConcurrentMap<String, ConcurrentMap<String, List<Integer>>> directDependencies;
 
     public HardCodedInferenceEngineInitialiser(
             ITSPHPAstAdaptor theAstAdaptor,
@@ -102,9 +105,9 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
         IMostSpecificOverloadDecider mostSpecificOverloadDecider
                 = new MostSpecificOverloadDecider(symbolFactory, typeHelper);
 
-        ConcurrentMap<String, Set<String>> methodsWithDependents = new ConcurrentHashMap<>();
-        ConcurrentMap<String, Set<WorkItemDto>> dependentMethods = new ConcurrentHashMap<>();
-        ConcurrentMap<String, ConcurrentMap<String, List<Integer>>> directDependencies = new ConcurrentHashMap<>();
+        methodsWithDependents = new ConcurrentHashMap<>();
+        dependentMethods = new ConcurrentHashMap<>();
+        directDependencies = new ConcurrentHashMap<>();
 
         IConstraintSolverHelper constraintSolverHelper = new ConstraintSolverHelper(
                 symbolFactory,
@@ -173,6 +176,10 @@ public class HardCodedInferenceEngineInitialiser implements IInferenceEngineInit
 
     @Override
     public void reset() {
+        methodsWithDependents.clear();
+        dependentMethods.clear();
+        directDependencies.clear();
+
         inferenceIssueReporter.reset();
         init();
         engine.setDefinitionPhaseController(definitionPhaseController);
